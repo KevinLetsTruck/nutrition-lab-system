@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readFile } from 'fs/promises'
-import path from 'path'
+import { loadFile } from '@/lib/file-utils'
 import MasterAnalyzer from '@/lib/lab-analyzers/master-analyzer'
 import DatabaseService from '@/lib/database-service'
 import { getRateLimiter, getClientIdentifier, createRateLimitHeaders } from '@/lib/rate-limiter'
+import { db } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,47 +27,143 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { filename, clientEmail, clientFirstName, clientLastName } = await request.json()
+    const { labReportId, filename, clientEmail, clientFirstName, clientLastName } = await request.json()
     
-    if (!filename) {
+    if (!labReportId && !filename) {
       return NextResponse.json(
-        { error: 'No filename provided' },
+        { error: 'Either labReportId or filename must be provided' },
         { status: 400 }
       )
     }
 
-    if (!clientEmail) {
+    let labReport: any = null
+    let fileBuffer: Buffer | null = null
+
+    // If labReportId is provided, get the report from database
+    if (labReportId) {
+      try {
+        labReport = await db.getLabReportById(labReportId)
+        if (!labReport) {
+          return NextResponse.json(
+            { error: 'Lab report not found' },
+            { status: 404 }
+          )
+        }
+
+        // Download file from Supabase Storage
+        if (labReport.file_path) {
+          // Extract bucket from file path or use default
+          const bucket = determineBucketFromPath(labReport.file_path, labReport.report_type)
+          fileBuffer = await loadFile(bucket, labReport.file_path)
+          
+          if (!fileBuffer) {
+            return NextResponse.json(
+              { error: 'Failed to retrieve file from storage' },
+              { status: 500 }
+            )
+          }
+        } else {
+          return NextResponse.json(
+            { error: 'No file path found for this lab report' },
+            { status: 400 }
+          )
+        }
+      } catch (error) {
+        console.error('Error retrieving lab report:', error)
+        return NextResponse.json(
+          { error: 'Failed to retrieve lab report' },
+          { status: 500 }
+        )
+      }
+    } else {
+      // For backward compatibility, if filename is provided directly
       return NextResponse.json(
-        { error: 'Client email is required' },
+        { error: 'Direct filename analysis is deprecated. Please use labReportId.' },
         { status: 400 }
       )
     }
 
-    // For now, we'll analyze the file content directly since we're not saving to filesystem
-    // In production, you'd retrieve the file from cloud storage here
-    console.log('Analyzing file:', filename)
-    
-    // TODO: In production, implement cloud storage retrieval here
-    // For example: const pdfBuffer = await getFileFromSupabaseStorage(filename)
-    
-    // For now, we'll return an error since we need the actual file content
-    return NextResponse.json(
-      { 
-        error: 'File analysis requires actual file content',
-        details: 'In production, implement cloud storage integration to retrieve uploaded files'
-      },
-      { status: 501 }
-    )
+    // Update report status to processing
+    await db.updateLabReport(labReport.id, { status: 'processing' })
+
+    try {
+      // Initialize the master analyzer
+      const analyzer = MasterAnalyzer.getInstance()
+      
+      // Analyze the file
+      const analysisResult = await analyzer.analyzeReport(fileBuffer)
+
+      // Update report with analysis results
+      await db.updateLabReport(labReport.id, {
+        status: 'completed',
+        analysis_results: analysisResult
+      })
+
+      return NextResponse.json({
+        success: true,
+        labReportId: labReport.id,
+        analysis: analysisResult,
+        message: 'Analysis completed successfully'
+      }, {
+        headers: {
+          ...createRateLimitHeaders(rateLimiter, rateLimitClientId)
+        }
+      })
+
+    } catch (analysisError) {
+      console.error('Analysis error:', analysisError)
+      
+      // Update report status to failed
+      await db.updateLabReport(labReport.id, {
+        status: 'failed',
+        notes: `Analysis failed: ${analysisError instanceof Error ? analysisError.message : 'Unknown error'}`
+      })
+
+      return NextResponse.json(
+        { 
+          error: 'Failed to analyze file',
+          details: analysisError instanceof Error ? analysisError.message : 'Unknown error'
+        },
+        { status: 500 }
+      )
+    }
     
   } catch (error) {
     console.error('Analysis error:', error)
     return NextResponse.json(
       { 
-        error: 'Failed to analyze PDF',
+        error: 'Failed to analyze file',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     )
+  }
+}
+
+// Helper function to determine bucket from file path or report type
+function determineBucketFromPath(filePath: string, reportType: string): string {
+  // If path contains bucket information, extract it
+  if (filePath.includes('/')) {
+    const pathParts = filePath.split('/')
+    // Check if first part is a bucket name
+    const possibleBucket = pathParts[0]
+    if (Object.values(require('@/lib/supabase-storage').SupabaseStorageService.BUCKETS).includes(possibleBucket as any)) {
+      return possibleBucket
+    }
+  }
+  
+  // Fallback to bucket based on report type
+  switch (reportType) {
+    case 'nutriq':
+    case 'kbmo':
+    case 'dutch':
+      return 'lab-files'
+    case 'cgm':
+      return 'cgm-images'
+    case 'food_photo':
+      return 'food-photos'
+    default:
+      return 'general'
   }
 }
 
@@ -113,7 +209,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       pendingAnalyses,
-      message: 'Analysis endpoint ready'
+      message: 'Analysis endpoint ready - Supabase Storage enabled'
     })
     
   } catch (error) {

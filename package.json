@@ -10,6 +10,8 @@
     "db:query": "node scripts/query-runner.js",
     "db:migrate": "node scripts/run-onboarding-migration-simple.js",
     "db:seed": "node scripts/seed.js",
+    "storage:init": "node scripts/init-storage.js",
+    "storage:test": "node scripts/test-storage.js",
     "process-pdfs": "node scripts/process-pdfs.js",
     "analyze": "node scripts/query-runner.js analyze",
     "check": "node scripts/quick-check.js",

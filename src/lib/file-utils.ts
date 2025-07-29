@@ -1,43 +1,70 @@
-import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
-import { tmpdir } from 'os'
+import { storageService, StorageFile } from './supabase-storage'
 
 export interface FileUploadConfig {
   maxSize: number
   allowedTypes: string[]
-  uploadDir: string
 }
 
-// For serverless environments, we'll use a simple in-memory approach
-// In production, you'd want to use cloud storage like AWS S3 or Supabase Storage
+// Configuration for file uploads
 export const defaultFileConfig: FileUploadConfig = {
-  maxSize: parseInt(process.env.MAX_FILE_SIZE || '10485760'), // 10MB
-  allowedTypes: (process.env.ALLOWED_FILE_TYPES || 'pdf,jpg,jpeg,png,txt').split(','),
-  uploadDir: process.env.UPLOAD_DIR || './uploads' // Fallback to local directory
+  maxSize: parseInt((process.env.MAX_FILE_SIZE || '10485760').trim()), // 10MB
+  allowedTypes: (process.env.ALLOWED_FILE_TYPES || 'pdf,jpg,jpeg,png,txt').split(',').map(type => type.trim())
 }
 
+// Upload file to Supabase Storage
 export async function saveFile(
-  file: Buffer,
+  file: Buffer | File,
   filename: string,
-  subdirectory: string = ''
-): Promise<string> {
+  category?: string,
+  metadata?: Record<string, any>
+): Promise<StorageFile> {
   try {
-    // For now, we'll just return a virtual path since we can't write to filesystem in serverless
-    // In production, you'd upload to cloud storage here
-    const virtualPath = path.join(subdirectory, filename)
+    const result = await storageService.uploadFile(file, filename, category, metadata)
     
-    // TODO: In production, implement cloud storage upload here
-    // For example: await uploadToSupabaseStorage(file, filename, subdirectory)
+    if (!result.success || !result.file) {
+      throw new Error(result.error || 'Upload failed')
+    }
     
-    return virtualPath
+    return result.file
   } catch (error) {
     console.error('Error saving file:', error)
     throw new Error(`Failed to save file: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 
+// Download file from Supabase Storage
+export async function loadFile(bucket: string, path: string): Promise<Buffer | null> {
+  try {
+    return await storageService.downloadFile(bucket, path)
+  } catch (error) {
+    console.error('Error loading file:', error)
+    return null
+  }
+}
+
+// Get file URL from Supabase Storage
+export async function getFileUrl(bucket: string, path: string, signed = false): Promise<string | null> {
+  try {
+    return await storageService.getFileUrl(bucket, path, signed)
+  } catch (error) {
+    console.error('Error getting file URL:', error)
+    return null
+  }
+}
+
+// Delete file from Supabase Storage
+export async function deleteFile(bucket: string, path: string): Promise<boolean> {
+  try {
+    return await storageService.deleteFile(bucket, path)
+  } catch (error) {
+    console.error('Error deleting file:', error)
+    return false
+  }
+}
+
 export function validateFile(
-  file: Express.Multer.File,
+  file: Express.Multer.File | File,
   config: FileUploadConfig = defaultFileConfig
 ): { valid: boolean; error?: string } {
   try {
@@ -50,7 +77,8 @@ export function validateFile(
     }
     
     // Check file type
-    const fileExtension = path.extname(file.originalname).toLowerCase().slice(1)
+    const fileName = 'originalname' in file ? file.originalname : file.name
+    const fileExtension = path.extname(fileName).toLowerCase().slice(1)
     if (!config.allowedTypes.includes(fileExtension)) {
       return {
         valid: false,
@@ -87,5 +115,15 @@ export function getFileInfo(file: Express.Multer.File | File) {
     size: file.size,
     type: fileType,
     extension: path.extname(fileName).toLowerCase()
+  }
+}
+
+// Initialize storage buckets (call this during app startup)
+export async function initializeStorage(): Promise<void> {
+  try {
+    await storageService.initializeBuckets()
+    console.log('Storage buckets initialized successfully')
+  } catch (error) {
+    console.error('Failed to initialize storage buckets:', error)
   }
 }

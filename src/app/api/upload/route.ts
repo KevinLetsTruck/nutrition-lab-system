@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { saveFile, validateFile, generateUniqueFilename, getFileInfo } from '@/lib/file-utils'
 import { getRateLimiter, getClientIdentifier, createRateLimitHeaders } from '@/lib/rate-limiter'
+import { db } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,6 +30,7 @@ export async function POST(request: NextRequest) {
     const clientEmail = formData.get('clientEmail') as string
     const clientFirstName = formData.get('clientFirstName') as string
     const clientLastName = formData.get('clientLastName') as string
+    const category = formData.get('category') as string
     
     if (!files || files.length === 0) {
       return NextResponse.json(
@@ -45,22 +47,36 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Find or create client
+    let clientId: string
+    try {
+      const existingClient = await db.searchClients(clientEmail)
+      if (existingClient.length > 0) {
+        clientId = existingClient[0].id
+      } else {
+        const newClient = await db.createClient({
+          email: clientEmail,
+          first_name: clientFirstName,
+          last_name: clientLastName
+        })
+        clientId = newClient.id
+      }
+    } catch (error) {
+      console.error('Error finding/creating client:', error)
+      return NextResponse.json(
+        { error: 'Failed to process client information' },
+        { status: 500 }
+      )
+    }
+
     const results = []
     const errors = []
 
     // Process each file
     for (const file of files) {
       try {
-        // Convert File to Buffer for validation
-        const buffer = Buffer.from(await file.arrayBuffer())
-        
         // Validate file
-        const validation = validateFile({
-          buffer,
-          originalname: file.name,
-          size: file.size,
-          mimetype: file.type
-        } as Express.Multer.File)
+        const validation = validateFile(file)
         
         if (!validation.valid) {
           errors.push({
@@ -70,24 +86,37 @@ export async function POST(request: NextRequest) {
           continue
         }
 
-        // Generate unique filename
-        const uniqueFilename = generateUniqueFilename(file.name)
+        // Upload file to Supabase Storage
+        const storageFile = await saveFile(file, file.name, category, {
+          clientId,
+          clientEmail,
+          uploadedBy: 'api'
+        })
         
-        // Determine subdirectory based on file type
-        const subdirectory = file.type === 'application/pdf' ? 'pdfs' : 'images'
-        
-        // For testing, skip file saving and just return success
-        const filePath = `virtual/${subdirectory}/${uniqueFilename}`
+        // Create lab report record in database
+        const reportType = determineReportType(file.name, file.type, category)
+        const labReport = await db.createLabReport({
+          client_id: clientId,
+          report_type: reportType,
+          report_date: new Date().toISOString().split('T')[0],
+          file_path: storageFile.path,
+          file_size: storageFile.size,
+          notes: `Uploaded via API - ${file.name}`
+        })
         
         results.push({
           success: true,
-          filename: uniqueFilename,
+          filename: file.name,
           originalName: file.name,
           size: file.size,
-          path: filePath,
+          storagePath: storageFile.path,
+          storageUrl: storageFile.url,
+          bucket: storageFile.bucket,
+          labReportId: labReport.id,
           clientEmail,
           clientFirstName,
-          clientLastName
+          clientLastName,
+          reportType
         })
         
       } catch (error) {
@@ -134,10 +163,46 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Helper function to determine report type based on file and category
+function determineReportType(fileName: string, mimeType: string, category?: string): 'nutriq' | 'kbmo' | 'dutch' | 'cgm' | 'food_photo' {
+  const lowerFileName = fileName.toLowerCase()
+  
+  // If category is specified, map it to report type
+  if (category) {
+    switch (category) {
+      case 'lab_reports':
+        if (lowerFileName.includes('nutriq') || lowerFileName.includes('naq')) return 'nutriq'
+        if (lowerFileName.includes('kbmo')) return 'kbmo'
+        if (lowerFileName.includes('dutch')) return 'dutch'
+        return 'nutriq' // Default for lab reports
+      case 'cgm_data':
+        return 'cgm'
+      case 'food_photos':
+        return 'food_photo'
+      default:
+        break
+    }
+  }
+  
+  // Auto-detect based on filename
+  if (lowerFileName.includes('nutriq') || lowerFileName.includes('naq')) return 'nutriq'
+  if (lowerFileName.includes('kbmo')) return 'kbmo'
+  if (lowerFileName.includes('dutch')) return 'dutch'
+  if (lowerFileName.includes('cgm') || lowerFileName.includes('glucose')) return 'cgm'
+  if (lowerFileName.includes('food') || lowerFileName.includes('meal')) return 'food_photo'
+  
+  // Default based on MIME type
+  if (mimeType === 'application/pdf') return 'nutriq'
+  if (mimeType.startsWith('image/')) return 'food_photo'
+  
+  return 'nutriq' // Default fallback
+}
+
 export async function GET() {
   return NextResponse.json({ 
     message: 'Upload endpoint ready',
     maxFileSize: process.env.MAX_FILE_SIZE || '10485760',
-    allowedTypes: process.env.ALLOWED_FILE_TYPES || 'pdf,jpg,jpeg,png,txt'
+    allowedTypes: process.env.ALLOWED_FILE_TYPES || 'pdf,jpg,jpeg,png,txt',
+    storage: 'Supabase Storage'
   })
 }
