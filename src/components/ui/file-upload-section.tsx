@@ -3,12 +3,19 @@
 import React, { useState } from 'react'
 import { FileUpload } from './file-upload'
 import { Button } from './button'
-import { Loader2, CheckCircle, AlertCircle } from 'lucide-react'
+import { Loader2, CheckCircle, AlertCircle, File, X } from 'lucide-react'
 
 interface UploadStatus {
   status: 'idle' | 'uploading' | 'success' | 'error'
   message: string
   analysisResult?: any
+}
+
+interface FileProgress {
+  file: File
+  status: 'pending' | 'uploading' | 'analyzing' | 'success' | 'error'
+  message: string
+  filename?: string
 }
 
 export function FileUploadSection() {
@@ -19,23 +26,28 @@ export function FileUploadSection() {
   const [clientInfo, setClientInfo] = useState({
     email: '',
     firstName: '',
-    lastName: '',
-    dateOfBirth: ''
+    lastName: ''
   })
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [fileProgress, setFileProgress] = useState<FileProgress[]>([])
 
-  const handleFileSelect = async (files: File[]) => {
-    if (files.length === 0) return
+  const handleFileSelect = (files: File[]) => {
+    setSelectedFiles(files)
+    setFileProgress(files.map(file => ({
+      file,
+      status: 'pending',
+      message: 'Ready to upload'
+    })))
+  }
 
-    const file = files[0]
-    
-    // Validate file type
-    if (!file.type.includes('pdf')) {
-      setUploadStatus({
-        status: 'error',
-        message: 'Please upload a PDF file'
-      })
-      return
-    }
+  const removeFile = (index: number) => {
+    const newFiles = selectedFiles.filter((_, i) => i !== index)
+    setSelectedFiles(newFiles)
+    setFileProgress(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const processFiles = async () => {
+    if (selectedFiles.length === 0) return
 
     // Validate client info
     if (!clientInfo.email || !clientInfo.firstName || !clientInfo.lastName) {
@@ -48,64 +60,92 @@ export function FileUploadSection() {
 
     setUploadStatus({
       status: 'uploading',
-      message: 'Uploading and analyzing your lab report...'
+      message: `Processing ${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''}...`
     })
 
+    const uploadedFiles: { filename: string; originalName: string }[] = []
+    const analysisResults: any[] = []
+
     try {
-      // Create FormData for file upload
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('clientEmail', clientInfo.email)
-      formData.append('clientFirstName', clientInfo.firstName)
-      formData.append('clientLastName', clientInfo.lastName)
-      if (clientInfo.dateOfBirth) {
-        formData.append('clientDateOfBirth', clientInfo.dateOfBirth)
-      }
-
-      // Upload file first
-      const uploadResponse = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      })
-
-      if (!uploadResponse.ok) {
-        throw new Error('File upload failed')
-      }
-
-      const uploadResult = await uploadResponse.json()
-      
-      // Now analyze the uploaded file
-      const analyzeResponse = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          filename: uploadResult.filename,
-          clientEmail: clientInfo.email,
-          clientFirstName: clientInfo.firstName,
-          clientLastName: clientInfo.lastName,
-          clientDateOfBirth: clientInfo.dateOfBirth
-        })
-      })
-
-      if (!analyzeResponse.ok) {
-        const errorData = await analyzeResponse.json()
-        console.log('Analysis error details:', errorData)
+      // Upload all files first
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i]
         
-        if (errorData.validationDetails) {
-          throw new Error(`Analysis validation failed: ${errorData.validationDetails.join(', ')}`)
-        } else {
-          throw new Error(errorData.details || 'Analysis failed')
+        // Update progress for this file
+        setFileProgress(prev => prev.map((fp, index) => 
+          index === i ? { ...fp, status: 'uploading', message: 'Uploading file...' } : fp
+        ))
+
+        // Create FormData for file upload
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('clientEmail', clientInfo.email)
+        formData.append('clientFirstName', clientInfo.firstName)
+        formData.append('clientLastName', clientInfo.lastName)
+
+        // Upload file
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        })
+
+        if (!uploadResponse.ok) {
+          throw new Error(`Failed to upload ${file.name}`)
         }
+
+        const uploadResult = await uploadResponse.json()
+        uploadedFiles.push({
+          filename: uploadResult.filename,
+          originalName: file.name
+        })
+
+        // Update progress for this file
+        setFileProgress(prev => prev.map((fp, index) => 
+          index === i ? { ...fp, status: 'analyzing', message: 'Analyzing file...', filename: uploadResult.filename } : fp
+        ))
+
+        // Analyze the uploaded file
+        const analyzeResponse = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            filename: uploadResult.filename,
+            clientEmail: clientInfo.email,
+            clientFirstName: clientInfo.firstName,
+            clientLastName: clientInfo.lastName
+          })
+        })
+
+        if (!analyzeResponse.ok) {
+          const errorData = await analyzeResponse.json()
+          throw new Error(`Analysis failed for ${file.name}: ${errorData.details || 'Unknown error'}`)
+        }
+
+        const analysisResult = await analyzeResponse.json()
+        analysisResults.push(analysisResult)
+
+        // Update progress for this file
+        setFileProgress(prev => prev.map((fp, index) => 
+          index === i ? { ...fp, status: 'success', message: 'Analysis completed' } : fp
+        ))
       }
 
-      const analysisResult = await analyzeResponse.json()
+      // Combine all analysis results
+      const combinedResult = {
+        totalFiles: selectedFiles.length,
+        files: uploadedFiles.map((file, index) => ({
+          ...file,
+          analysis: analysisResults[index]
+        })),
+        summary: generateCombinedSummary(analysisResults)
+      }
 
       setUploadStatus({
         status: 'success',
-        message: 'Analysis completed successfully!',
-        analysisResult: analysisResult
+        message: `Successfully processed ${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''}!`,
+        analysisResult: combinedResult
       })
 
     } catch (error) {
@@ -117,6 +157,18 @@ export function FileUploadSection() {
     }
   }
 
+  const generateCombinedSummary = (results: any[]) => {
+    const reportTypes = results.map(r => r.analysisResult.reportType)
+    const avgConfidence = results.reduce((sum, r) => sum + r.analysisResult.confidence, 0) / results.length
+    
+    return {
+      totalReports: results.length,
+      reportTypes: [...new Set(reportTypes)],
+      averageConfidence: Math.round(avgConfidence),
+      processingTime: results.reduce((sum, r) => sum + r.analysisResult.processingTime, 0)
+    }
+  }
+
   const resetForm = () => {
     setUploadStatus({
       status: 'idle',
@@ -125,9 +177,10 @@ export function FileUploadSection() {
     setClientInfo({
       email: '',
       firstName: '',
-      lastName: '',
-      dateOfBirth: ''
+      lastName: ''
     })
+    setSelectedFiles([])
+    setFileProgress([])
   }
 
   return (
@@ -135,7 +188,7 @@ export function FileUploadSection() {
       {/* Client Information Form */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium text-gray-900">Client Information</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Email *
@@ -175,34 +228,94 @@ export function FileUploadSection() {
               required
             />
           </div>
-          <div>
-            <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700">
-              Date of Birth
-            </label>
-            <input
-              type="date"
-              id="dateOfBirth"
-              value={clientInfo.dateOfBirth}
-              onChange={(e) => setClientInfo(prev => ({ ...prev, dateOfBirth: e.target.value }))}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-            />
-          </div>
         </div>
       </div>
 
       {/* File Upload */}
       <div className="space-y-4">
-        <h3 className="text-lg font-medium text-gray-900">Upload Lab Report</h3>
+        <h3 className="text-lg font-medium text-gray-900">Upload Lab Reports</h3>
         <FileUpload
           onFileSelect={handleFileSelect}
           accept={{
-            'application/pdf': ['.pdf']
+            'application/pdf': ['.pdf'],
+            'image/*': ['.png', '.jpg', '.jpeg']
           }}
           maxSize={10 * 1024 * 1024} // 10MB
+          multiple={true}
         />
       </div>
 
-            {/* Status Display */}
+      {/* File Progress */}
+      {fileProgress.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="text-sm font-medium text-white">File Progress:</h4>
+          {fileProgress.map((progress, index) => (
+            <div
+              key={index}
+              className="flex items-center justify-between p-3 bg-dark-700 rounded-lg border border-dark-600"
+            >
+              <div className="flex items-center space-x-3">
+                <File className="h-5 w-5 text-dark-400" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-white">{progress.file.name}</p>
+                  <p className="text-xs text-dark-400">
+                    {(progress.file.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  {progress.status === 'pending' && (
+                    <div className="w-2 h-2 bg-gray-400 rounded-full" />
+                  )}
+                  {progress.status === 'uploading' && (
+                    <Loader2 className="h-4 w-4 text-primary-400 animate-spin" />
+                  )}
+                  {progress.status === 'analyzing' && (
+                    <Loader2 className="h-4 w-4 text-blue-400 animate-spin" />
+                  )}
+                  {progress.status === 'success' && (
+                    <CheckCircle className="h-4 w-4 text-green-400" />
+                  )}
+                  {progress.status === 'error' && (
+                    <AlertCircle className="h-4 w-4 text-red-400" />
+                  )}
+                  <span className={`text-xs ${
+                    progress.status === 'success' ? 'text-green-300' :
+                    progress.status === 'error' ? 'text-red-300' :
+                    progress.status === 'analyzing' ? 'text-blue-300' :
+                    progress.status === 'uploading' ? 'text-primary-300' :
+                    'text-gray-300'
+                  }`}>
+                    {progress.message}
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeFile(index)}
+                  className="text-dark-400 hover:text-red-400"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Process Button */}
+      {selectedFiles.length > 0 && uploadStatus.status === 'idle' && (
+        <Button
+          onClick={processFiles}
+          className="w-full"
+          disabled={!clientInfo.email || !clientInfo.firstName || !clientInfo.lastName}
+        >
+          Process {selectedFiles.length} File{selectedFiles.length > 1 ? 's' : ''}
+        </Button>
+      )}
+
+      {/* Status Display */}
       {uploadStatus.status !== 'idle' && (
         <div className={`p-4 rounded-lg border ${
           uploadStatus.status === 'success' ? 'bg-green-500/10 border-green-500/20' :
@@ -230,17 +343,21 @@ export function FileUploadSection() {
           
           {uploadStatus.status === 'success' && uploadStatus.analysisResult && (
             <div className="mt-3 p-3 bg-dark-700 rounded-lg border border-dark-600">
-              <h4 className="font-medium text-white mb-2">Analysis Summary</h4>
-              <div className="text-sm text-dark-300">
-                <p><strong>Report Type:</strong> {uploadStatus.analysisResult.analysisResult.reportType.toUpperCase()}</p>
-                <p><strong>Confidence:</strong> {uploadStatus.analysisResult.analysisResult.confidence}%</p>
-                <p><strong>Processing Time:</strong> {uploadStatus.analysisResult.analysisResult.processingTime}ms</p>
-                {uploadStatus.analysisResult.analysisResult.summary && (
-                  <div className="mt-2 p-2 bg-dark-800 rounded">
-                    <p className="font-medium text-white">Summary:</p>
-                    <pre className="text-xs text-dark-300 whitespace-pre-wrap">{uploadStatus.analysisResult.analysisResult.summary}</pre>
-                  </div>
-                )}
+              <h4 className="font-medium text-white mb-2">Combined Analysis Summary</h4>
+              <div className="text-sm text-dark-300 space-y-2">
+                <p><strong>Total Files Processed:</strong> {uploadStatus.analysisResult.totalFiles}</p>
+                <p><strong>Report Types:</strong> {uploadStatus.analysisResult.summary.reportTypes.join(', ')}</p>
+                <p><strong>Average Confidence:</strong> {uploadStatus.analysisResult.summary.averageConfidence}%</p>
+                <p><strong>Total Processing Time:</strong> {uploadStatus.analysisResult.summary.processingTime}ms</p>
+                
+                <div className="mt-3 space-y-2">
+                  <p className="font-medium text-white">Individual Results:</p>
+                  {uploadStatus.analysisResult.files.map((file: any, index: number) => (
+                    <div key={index} className="p-2 bg-dark-800 rounded text-xs">
+                      <p><strong>{file.originalName}:</strong> {file.analysis.analysisResult.reportType.toUpperCase()} ({file.analysis.analysisResult.confidence}% confidence)</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -254,7 +371,7 @@ export function FileUploadSection() {
           variant="outline"
           className="w-full"
         >
-          Upload Another Report
+          Upload More Reports
         </Button>
       )}
     </div>

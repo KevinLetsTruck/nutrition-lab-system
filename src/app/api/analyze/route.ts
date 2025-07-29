@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { filename, clientEmail, clientFirstName, clientLastName, clientDateOfBirth } = await request.json()
+    const { filename, clientEmail, clientFirstName, clientLastName } = await request.json()
     
     if (!filename) {
       return NextResponse.json(
@@ -58,8 +58,7 @@ export async function POST(request: NextRequest) {
     const clientId = await databaseService.findOrCreateClient(
       clientEmail,
       clientFirstName,
-      clientLastName,
-      clientDateOfBirth
+      clientLastName
     )
     
     // Analyze the PDF
