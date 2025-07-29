@@ -35,10 +35,22 @@ export async function saveFile(
 
 // Download file from Supabase Storage
 export async function loadFile(bucket: string, path: string): Promise<Buffer | null> {
+  console.log('[FILE-UTILS] loadFile called with:', { bucket, path })
+  
   try {
-    return await storageService.downloadFile(bucket, path)
+    console.log('[FILE-UTILS] Calling storageService.downloadFile...')
+    const buffer = await storageService.downloadFile(bucket, path)
+    
+    if (buffer) {
+      console.log('[FILE-UTILS] File downloaded successfully, size:', buffer.length)
+    } else {
+      console.log('[FILE-UTILS] downloadFile returned null')
+    }
+    
+    return buffer
   } catch (error) {
-    console.error('Error loading file:', error)
+    console.error('[FILE-UTILS] Error loading file:', error)
+    console.error('[FILE-UTILS] Error details:', error instanceof Error ? error.stack : error)
     return null
   }
 }

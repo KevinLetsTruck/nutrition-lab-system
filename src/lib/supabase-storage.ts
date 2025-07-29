@@ -64,19 +64,19 @@ export class SupabaseStorageService {
   private getAllowedMimeTypes(bucketName: string): string[] {
     switch (bucketName) {
       case SupabaseStorageService.BUCKETS.LAB_FILES:
-        return ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg']
+        return ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'text/plain', 'text/csv']
       case SupabaseStorageService.BUCKETS.CGM_IMAGES:
-        return ['image/jpeg', 'image/png', 'image/jpg', 'text/csv']
+        return ['image/jpeg', 'image/png', 'image/jpg', 'text/csv', 'text/plain']
       case SupabaseStorageService.BUCKETS.FOOD_PHOTOS:
         return ['image/jpeg', 'image/png', 'image/jpg']
       case SupabaseStorageService.BUCKETS.MEDICAL_RECORDS:
-        return ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg']
+        return ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'text/plain']
       case SupabaseStorageService.BUCKETS.SUPPLEMENTS:
         return ['image/jpeg', 'image/png', 'image/jpg']
       case SupabaseStorageService.BUCKETS.GENERAL:
-        return ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'text/csv']
+        return ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'text/csv', 'text/plain']
       default:
-        return ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg']
+        return ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'text/plain']
     }
   }
 
@@ -228,22 +228,42 @@ export class SupabaseStorageService {
 
   // Download file from Supabase Storage
   async downloadFile(bucket: string, path: string): Promise<Buffer | null> {
+    console.log('[STORAGE] downloadFile called with:', { bucket, path })
+    
     try {
+      console.log('[STORAGE] Attempting to download from Supabase Storage...')
       const { data, error } = await this.client.storage
         .from(bucket)
         .download(path)
       
       if (error) {
-        console.error('Download error:', error)
+        console.error('[STORAGE] Download error from Supabase:', error)
+        console.error('[STORAGE] Error details:', {
+          message: error.message,
+          status: error.status,
+          statusCode: error.statusCode,
+          name: error.name
+        })
         return null
       }
       
+      console.log('[STORAGE] Download successful, converting to Buffer...')
+      
       // Convert to Buffer
       const arrayBuffer = await data.arrayBuffer()
-      return Buffer.from(arrayBuffer)
+      const buffer = Buffer.from(arrayBuffer)
+      
+      console.log('[STORAGE] Buffer created, size:', buffer.length)
+      return buffer
       
     } catch (error) {
-      console.error('Storage download error:', error)
+      console.error('[STORAGE] Storage download error:', error)
+      console.error('[STORAGE] Error type:', typeof error)
+      console.error('[STORAGE] Error details:', error instanceof Error ? {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      } : error)
       return null
     }
   }
