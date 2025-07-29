@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "db:query": "node scripts/query-runner.js",
-    "db:migrate": "node scripts/migrate.js",
+    "db:migrate": "node scripts/run-onboarding-migration-simple.js",
     "db:seed": "node scripts/seed.js",
     "process-pdfs": "node scripts/process-pdfs.js",
     "analyze": "node scripts/query-runner.js analyze",

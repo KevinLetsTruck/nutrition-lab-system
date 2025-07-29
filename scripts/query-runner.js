@@ -83,127 +83,58 @@ function printError(error) {
   }
 }
 
-// Predefined queries
-const predefinedQueries = {
-  tables: `
-    SELECT 
-      table_name,
-      table_type
-    FROM information_schema.tables 
-    WHERE table_schema = 'public' 
-    ORDER BY table_name
-  `,
-  
-  clients: `
-    SELECT 
-      id,
-      first_name,
-      last_name,
-      email,
-      date_of_birth,
-      created_at
-    FROM clients 
-    ORDER BY last_name, first_name 
-    LIMIT 20
-  `,
-  
-  reports: `
-    SELECT 
-      lr.id,
-      c.first_name,
-      c.last_name,
-      lr.report_type,
-      lr.report_date,
-      lr.status,
-      lr.created_at
-    FROM lab_reports lr
-    JOIN clients c ON lr.client_id = c.id
-    ORDER BY lr.created_at DESC 
-    LIMIT 20
-  `,
-  
-  queue: `
-    SELECT 
-      id,
-      task_type,
-      status,
-      priority,
-      created_at,
-      started_at,
-      completed_at
-    FROM processing_queue 
-    ORDER BY priority DESC, created_at ASC 
-    LIMIT 20
-  `,
-  
-  summary: `
-    SELECT 
-      c.first_name,
-      c.last_name,
-      COUNT(lr.id) as total_reports,
-      COUNT(CASE WHEN lr.status = 'completed' THEN 1 END) as completed_reports,
-      COUNT(CASE WHEN lr.status = 'pending' THEN 1 END) as pending_reports
-    FROM clients c
-    LEFT JOIN lab_reports lr ON c.id = lr.client_id
-    GROUP BY c.id, c.first_name, c.last_name
-    ORDER BY total_reports DESC
-  `,
-  
-  analyze: `
-    SELECT 
-      lr.id,
-      c.first_name,
-      c.last_name,
-      lr.report_type,
-      lr.report_date,
-      lr.status,
-      lr.file_size,
-      lr.notes,
-      lr.created_at,
-      lr.updated_at
-    FROM lab_reports lr
-    JOIN clients c ON lr.client_id = c.id
-    ORDER BY lr.created_at DESC 
-    LIMIT 50
-  `,
-  
-  pending: `
-    SELECT 
-      lr.id,
-      c.first_name,
-      c.last_name,
-      lr.report_type,
-      lr.report_date,
-      lr.status,
-      lr.created_at
-    FROM lab_reports lr
-    JOIN clients c ON lr.client_id = c.id
-    WHERE lr.status IN ('pending', 'processing')
-    ORDER BY lr.created_at ASC
-  `,
-  
-  recent: `
-    SELECT 
-      lr.id,
-      c.first_name,
-      c.last_name,
-      lr.report_type,
-      lr.report_date,
-      lr.status,
-      lr.created_at
-    FROM lab_reports lr
-    JOIN clients c ON lr.client_id = c.id
-    WHERE lr.created_at >= NOW() - INTERVAL '7 days'
-    ORDER BY lr.created_at DESC
-  `
-};
-
-// Command handlers
+// Command handlers using standard Supabase operations
 async function handleTables() {
   try {
-    const result = await supabase.rpc('exec_sql', { sql: predefinedQueries.tables });
-    if (result.error) throw result;
-    printTable(result.data.data, 'Database Tables');
+    // Since we can't access information_schema through the client,
+    // we'll show the known tables and their status
+    const knownTables = [
+      'clients',
+      'lab_reports', 
+      'nutriq_results',
+      'kbmo_results',
+      'dutch_results',
+      'cgm_data',
+      'food_photos',
+      'processing_queue',
+      'client_intake',
+      'client_files',
+      'onboarding_progress',
+      'onboarding_sessions'
+    ];
+    
+    const tableStatus = [];
+    
+    for (const tableName of knownTables) {
+      try {
+        const { data, error } = await supabase
+          .from(tableName)
+          .select('count')
+          .limit(1);
+        
+        if (error) {
+          tableStatus.push({
+            table_name: tableName,
+            status: '❌ Error',
+            error: error.message
+          });
+        } else {
+          tableStatus.push({
+            table_name: tableName,
+            status: '✅ Available',
+            error: null
+          });
+        }
+      } catch (err) {
+        tableStatus.push({
+          table_name: tableName,
+          status: '❌ Not Found',
+          error: err.message
+        });
+      }
+    }
+    
+    printTable(tableStatus, 'Database Tables Status');
   } catch (error) {
     printError(error);
   }
@@ -211,9 +142,14 @@ async function handleTables() {
 
 async function handleClients() {
   try {
-    const result = await supabase.rpc('exec_sql', { sql: predefinedQueries.clients });
-    if (result.error) throw result;
-    printTable(result.data.data, 'Clients');
+    const { data, error } = await supabase
+      .from('clients')
+      .select('id, first_name, last_name, email, created_at')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    
+    if (error) throw error;
+    printTable(data, 'Clients');
   } catch (error) {
     printError(error);
   }
@@ -221,9 +157,33 @@ async function handleClients() {
 
 async function handleReports() {
   try {
-    const result = await supabase.rpc('exec_sql', { sql: predefinedQueries.reports });
-    if (result.error) throw result;
-    printTable(result.data.data, 'Lab Reports');
+    const { data, error } = await supabase
+      .from('lab_reports')
+      .select(`
+        id,
+        report_type,
+        report_date,
+        status,
+        created_at,
+        clients!inner(first_name, last_name, email)
+      `)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    
+    if (error) throw error;
+    
+    // Flatten the nested client data
+    const flattenedData = data.map(report => ({
+      id: report.id,
+      report_type: report.report_type,
+      report_date: report.report_date,
+      status: report.status,
+      client_name: `${report.clients.first_name} ${report.clients.last_name}`,
+      client_email: report.clients.email,
+      created_at: report.created_at
+    }));
+    
+    printTable(flattenedData, 'Lab Reports');
   } catch (error) {
     printError(error);
   }
@@ -231,9 +191,14 @@ async function handleReports() {
 
 async function handleQueue() {
   try {
-    const result = await supabase.rpc('exec_sql', { sql: predefinedQueries.queue });
-    if (result.error) throw result;
-    printTable(result.data.data, 'Processing Queue');
+    const { data, error } = await supabase
+      .from('processing_queue')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    
+    if (error) throw error;
+    printTable(data, 'Processing Queue');
   } catch (error) {
     printError(error);
   }
@@ -241,9 +206,35 @@ async function handleQueue() {
 
 async function handleSummary() {
   try {
-    const result = await supabase.rpc('exec_sql', { sql: predefinedQueries.summary });
-    if (result.error) throw result;
-    printTable(result.data.data, 'Client Summary');
+    // Get client summary using standard operations
+    const { data: clients, error: clientsError } = await supabase
+      .from('clients')
+      .select('id, first_name, last_name, email, created_at');
+    
+    if (clientsError) throw clientsError;
+    
+    const { data: reports, error: reportsError } = await supabase
+      .from('lab_reports')
+      .select('client_id, status');
+    
+    if (reportsError) throw reportsError;
+    
+    // Create summary data
+    const summaryData = clients.map(client => {
+      const clientReports = reports.filter(r => r.client_id === client.id);
+      const completedReports = clientReports.filter(r => r.status === 'completed');
+      
+      return {
+        id: client.id,
+        name: `${client.first_name} ${client.last_name}`,
+        email: client.email,
+        total_reports: clientReports.length,
+        completed_reports: completedReports.length,
+        created_at: client.created_at
+      };
+    });
+    
+    printTable(summaryData, 'Client Summary');
   } catch (error) {
     printError(error);
   }
@@ -251,9 +242,30 @@ async function handleSummary() {
 
 async function handleAnalyze() {
   try {
-    const result = await supabase.rpc('exec_sql', { sql: predefinedQueries.analyze });
-    if (result.error) throw result;
-    printTable(result.data.data, 'Analysis Results');
+    const { data, error } = await supabase
+      .from('lab_reports')
+      .select(`
+        id,
+        report_type,
+        status,
+        created_at,
+        clients!inner(first_name, last_name)
+      `)
+      .eq('status', 'completed')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    
+    if (error) throw error;
+    
+    const flattenedData = data.map(report => ({
+      id: report.id,
+      report_type: report.report_type,
+      status: report.status,
+      client_name: `${report.clients.first_name} ${report.clients.last_name}`,
+      created_at: report.created_at
+    }));
+    
+    printTable(flattenedData, 'Analysis Results');
   } catch (error) {
     printError(error);
   }
@@ -261,9 +273,29 @@ async function handleAnalyze() {
 
 async function handlePending() {
   try {
-    const result = await supabase.rpc('exec_sql', { sql: predefinedQueries.pending });
-    if (result.error) throw result;
-    printTable(result.data.data, 'Pending Analyses');
+    const { data, error } = await supabase
+      .from('lab_reports')
+      .select(`
+        id,
+        report_type,
+        status,
+        created_at,
+        clients!inner(first_name, last_name)
+      `)
+      .in('status', ['pending', 'processing'])
+      .order('created_at', { ascending: true });
+    
+    if (error) throw error;
+    
+    const flattenedData = data.map(report => ({
+      id: report.id,
+      report_type: report.report_type,
+      status: report.status,
+      client_name: `${report.clients.first_name} ${report.clients.last_name}`,
+      created_at: report.created_at
+    }));
+    
+    printTable(flattenedData, 'Pending Analyses');
   } catch (error) {
     printError(error);
   }
@@ -271,9 +303,32 @@ async function handlePending() {
 
 async function handleRecent() {
   try {
-    const result = await supabase.rpc('exec_sql', { sql: predefinedQueries.recent });
-    if (result.error) throw result;
-    printTable(result.data.data, 'Recent Analyses (Last 7 Days)');
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    const { data, error } = await supabase
+      .from('lab_reports')
+      .select(`
+        id,
+        report_type,
+        status,
+        created_at,
+        clients!inner(first_name, last_name)
+      `)
+      .gte('created_at', sevenDaysAgo.toISOString())
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    const flattenedData = data.map(report => ({
+      id: report.id,
+      report_type: report.report_type,
+      status: report.status,
+      client_name: `${report.clients.first_name} ${report.clients.last_name}`,
+      created_at: report.created_at
+    }));
+    
+    printTable(flattenedData, 'Recent Analyses (Last 7 Days)');
   } catch (error) {
     printError(error);
   }
@@ -286,215 +341,184 @@ async function handleDescribe(tableName) {
   }
 
   try {
-    const sql = `
-      SELECT 
-        column_name,
-        data_type,
-        is_nullable,
-        column_default
-      FROM information_schema.columns 
-      WHERE table_schema = 'public' 
-      AND table_name = '${tableName}'
-      ORDER BY ordinal_position
-    `;
+    const { data, error } = await supabase
+      .from('information_schema.columns')
+      .select('column_name, data_type, is_nullable, column_default')
+      .eq('table_schema', 'public')
+      .eq('table_name', tableName)
+      .order('ordinal_position');
     
-    const result = await supabase.rpc('exec_sql', { sql });
-    if (result.error) throw result;
-    printTable(result.data.data, `Table Structure: ${tableName}`);
+    if (error) throw error;
+    printTable(data, `Table Structure: ${tableName}`);
   } catch (error) {
     printError(error);
   }
 }
 
 async function handleCustomQuery(sql) {
-  if (!sql) {
-    console.error(colorize('Please provide a SQL query', 'yellow'));
-    return;
-  }
-
-  try {
-    const result = await supabase.rpc('exec_sql', { sql });
-    if (result.error) throw result;
-    printTable(result.data.data, 'Query Results');
-  } catch (error) {
-    printError(error);
-  }
+  console.error(colorize('Custom SQL queries are not supported for security reasons.', 'red'));
+  console.error(colorize('Please use the predefined commands or standard Supabase operations.', 'yellow'));
 }
 
 async function handleFileQuery(filePath) {
-  const fs = require('fs');
-  const path = require('path');
-
-  if (!filePath) {
-    console.error(colorize('Usage: file <path_to_sql_file>', 'yellow'));
-    return;
-  }
-
   try {
-    const fullPath = path.resolve(filePath);
-    if (!fs.existsSync(fullPath)) {
-      console.error(colorize(`File not found: ${fullPath}`, 'red'));
+    const fs = require('fs');
+    if (!fs.existsSync(filePath)) {
+      console.error(colorize(`File not found: ${filePath}`, 'red'));
       return;
     }
 
-    const sql = fs.readFileSync(fullPath, 'utf8');
-    console.log(colorize(`Executing SQL from: ${fullPath}`, 'cyan'));
-    console.log(colorize('SQL:', 'blue'));
-    console.log(sql);
-    console.log();
-
-    const result = await supabase.rpc('exec_sql', { sql });
-    if (result.error) throw result;
-    printTable(result.data.data, 'File Query Results');
+    const sql = fs.readFileSync(filePath, 'utf8');
+    console.log(colorize(`Executing SQL from file: ${filePath}`, 'cyan'));
+    console.log(colorize('Custom SQL queries are not supported for security reasons.', 'red'));
+    console.error(colorize('Please use the predefined commands or standard Supabase operations.', 'yellow'));
   } catch (error) {
     printError(error);
   }
 }
 
 function showHelp() {
-  console.log(colorize('\nNutrition Lab Database Query Runner', 'bright'));
+  console.log(colorize('\nNutrition Lab Database Query Runner', 'cyan'));
   console.log(colorize('====================================', 'cyan'));
-  console.log();
-  console.log(colorize('Commands:', 'bright'));
-  console.log('  tables                    - Show all database tables');
-  console.log('  clients                   - Show clients (first 20)');
-  console.log('  reports                   - Show lab reports (first 20)');
-  console.log('  queue                     - Show processing queue (first 20)');
-  console.log('  summary                   - Show client summary');
-  console.log('  analyze                   - Show analysis results (last 50)');
-  console.log('  pending                   - Show pending analyses');
-  console.log('  recent                    - Show recent analyses (last 7 days)');
-  console.log('  desc <table>              - Describe table structure');
-  console.log('  file <path>               - Execute SQL from file');
-  console.log('  help                      - Show this help');
-  console.log('  exit, quit                - Exit the program');
-  console.log();
-  console.log(colorize('Direct SQL:', 'bright'));
-  console.log('  Any other input will be executed as SQL query');
-  console.log();
-  console.log(colorize('Examples:', 'bright'));
-  console.log('  SELECT * FROM clients LIMIT 5;');
-  console.log('  desc lab_reports');
-  console.log('  file ./queries/client_report.sql');
-  console.log();
+  console.log(colorize('\nAvailable Commands:', 'bright'));
+  console.log(colorize('  tables', 'green') + '     - Show all database tables');
+  console.log(colorize('  clients', 'green') + '    - Show recent clients');
+  console.log(colorize('  reports', 'green') + '    - Show recent lab reports');
+  console.log(colorize('  queue', 'green') + '      - Show processing queue');
+  console.log(colorize('  summary', 'green') + '    - Show client summary');
+  console.log(colorize('  analyze', 'green') + '    - Show completed analyses');
+  console.log(colorize('  pending', 'green') + '    - Show pending analyses');
+  console.log(colorize('  recent', 'green') + '     - Show recent analyses (last 7 days)');
+  console.log(colorize('  desc <table>', 'green') + ' - Describe table structure');
+  console.log(colorize('  test', 'green') + '       - Test database connection');
+  console.log(colorize('  help', 'green') + '       - Show this help');
+  console.log(colorize('  exit', 'green') + '       - Exit the query runner');
+  console.log(colorize('\nExamples:', 'bright'));
+  console.log(colorize('  desc clients', 'yellow'));
+  console.log(colorize('  desc lab_reports', 'yellow'));
+  console.log(colorize('\nNote: Custom SQL queries are not supported for security reasons.', 'red'));
+  console.log(colorize('Use the predefined commands or standard Supabase operations instead.', 'yellow'));
 }
 
-// Main interactive loop
+async function testConnection() {
+  try {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('count')
+      .limit(1);
+    
+    if (error) throw error;
+    console.log(colorize('Database connection successful!', 'green'));
+  } catch (error) {
+    console.error(colorize('Database connection failed!', 'red'));
+    printError(error);
+  }
+}
+
 async function main() {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    prompt: colorize('db> ', 'green')
-  });
+  const args = process.argv.slice(2);
+  
+  if (args.length === 0) {
+    // Interactive mode
+    console.log(colorize('\nWelcome to Nutrition Lab Database Query Runner!', 'cyan'));
+    console.log(colorize('Type "help" for available commands', 'yellow'));
+    console.log(colorize('Note: Custom SQL queries are not supported for security reasons.', 'red'));
+    
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+      prompt: colorize('db> ', 'green')
+    });
 
-  console.log(colorize('\nWelcome to Nutrition Lab Database Query Runner!', 'bright'));
-  console.log(colorize('Type "help" for available commands\n', 'cyan'));
+    rl.prompt();
 
-  rl.prompt();
-
-  rl.on('line', async (input) => {
-    const command = input.trim();
-
-    if (!command) {
-      rl.prompt();
-      return;
-    }
-
-    try {
-      if (command === 'exit' || command === 'quit') {
-        console.log(colorize('Goodbye!', 'green'));
+    rl.on('line', async (line) => {
+      const input = line.trim();
+      
+      if (input === 'exit' || input === 'quit') {
         rl.close();
         return;
       }
-
-      if (command === 'help') {
+      
+      if (input === 'help') {
         showHelp();
-      } else if (command === 'tables') {
+      } else if (input === 'test') {
+        await testConnection();
+      } else if (input === 'tables') {
         await handleTables();
-      } else if (command === 'clients') {
+      } else if (input === 'clients') {
         await handleClients();
-      } else if (command === 'reports') {
+      } else if (input === 'reports') {
         await handleReports();
-      } else if (command === 'queue') {
+      } else if (input === 'queue') {
         await handleQueue();
-      } else if (command === 'summary') {
+      } else if (input === 'summary') {
         await handleSummary();
-      } else if (command === 'analyze') {
+      } else if (input === 'analyze') {
         await handleAnalyze();
-      } else if (command === 'pending') {
+      } else if (input === 'pending') {
         await handlePending();
-      } else if (command === 'recent') {
+      } else if (input === 'recent') {
         await handleRecent();
-      } else if (command.startsWith('desc ')) {
-        const tableName = command.substring(5).trim();
+      } else if (input.startsWith('desc ')) {
+        const tableName = input.substring(5).trim();
         await handleDescribe(tableName);
-      } else if (command.startsWith('file ')) {
-        const filePath = command.substring(5).trim();
+      } else if (input.startsWith('file ')) {
+        const filePath = input.substring(5).trim();
         await handleFileQuery(filePath);
-      } else {
-        // Treat as custom SQL query
-        await handleCustomQuery(command);
+      } else if (input) {
+        console.error(colorize(`Unknown command: ${input}`, 'red'));
+        console.log(colorize('Type "help" for available commands', 'yellow'));
       }
-    } catch (error) {
-      printError(error);
-    }
+      
+      rl.prompt();
+    });
 
-    rl.prompt();
-  });
-
-  rl.on('close', () => {
-    process.exit(0);
-  });
-}
-
-// Handle command line arguments
-if (process.argv.length > 2) {
-  const command = process.argv[2];
-  
-  if (command === 'tables') {
-    handleTables().then(() => process.exit(0));
-  } else if (command === 'clients') {
-    handleClients().then(() => process.exit(0));
-  } else if (command === 'reports') {
-    handleReports().then(() => process.exit(0));
-  } else if (command === 'queue') {
-    handleQueue().then(() => process.exit(0));
-  } else if (command === 'summary') {
-    handleSummary().then(() => process.exit(0));
-  } else if (command === 'analyze') {
-    handleAnalyze().then(() => process.exit(0));
-  } else if (command === 'pending') {
-    handlePending().then(() => process.exit(0));
-  } else if (command === 'recent') {
-    handleRecent().then(() => process.exit(0));
-  } else if (command === 'test') {
-    // Test connection
-    supabase.from('clients').select('count').limit(1)
-      .then(() => {
-        console.log(colorize('Database connection successful!', 'green'));
-        process.exit(0);
-      })
-      .catch(error => {
-        console.error(colorize(`Connection failed: ${error.message}`, 'red'));
-        process.exit(1);
-      });
-  } else if (command === 'interactive') {
-    // Start interactive mode explicitly
-    main().catch(error => {
-      console.error(colorize(`Fatal error: ${error.message}`, 'red'));
-      process.exit(1);
+    rl.on('close', () => {
+      console.log(colorize('\nGoodbye!', 'cyan'));
+      process.exit(0);
     });
   } else {
-    console.error(colorize(`Unknown command: ${command}`, 'red'));
-    console.log(colorize('Available commands: tables, clients, reports, queue, summary, analyze, pending, recent, test, interactive', 'yellow'));
-    console.log(colorize('\nTo start interactive mode, use: npm run db:query interactive', 'cyan'));
-    process.exit(1);
+    // Command line mode
+    const command = args[0];
+    
+    switch (command) {
+      case 'tables':
+        await handleTables();
+        break;
+      case 'clients':
+        await handleClients();
+        break;
+      case 'reports':
+        await handleReports();
+        break;
+      case 'queue':
+        await handleQueue();
+        break;
+      case 'summary':
+        await handleSummary();
+        break;
+      case 'analyze':
+        await handleAnalyze();
+        break;
+      case 'pending':
+        await handlePending();
+        break;
+      case 'recent':
+        await handleRecent();
+        break;
+      case 'test':
+        await testConnection();
+        break;
+      case 'help':
+        showHelp();
+        break;
+      default:
+        console.error(colorize(`Unknown command: ${command}`, 'red'));
+        console.log(colorize('Available commands: tables, clients, reports, queue, summary, analyze, pending, recent, test, help', 'yellow'));
+        process.exit(1);
+    }
   }
-} else {
-  // Default to analyze command instead of interactive mode
-  console.log(colorize('No command specified. Running analyze command...', 'yellow'));
-  handleAnalyze().then(() => process.exit(0)).catch(error => {
-    console.error(colorize(`Error: ${error.message}`, 'red'));
-    process.exit(1);
-  });
-} 
+}
+
+main().catch(console.error); 

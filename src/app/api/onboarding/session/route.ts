@@ -77,7 +77,8 @@ export async function POST(request: NextRequest) {
       })
 
     if (sessionError) {
-      throw new Error(`Failed to create session: ${sessionError.message}`)
+      console.error('Session creation error details:', sessionError)
+      throw new Error(`Failed to create session: ${sessionError.message || JSON.stringify(sessionError)}`)
     }
 
     // Initialize onboarding progress steps
