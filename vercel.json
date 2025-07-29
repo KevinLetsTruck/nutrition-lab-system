@@ -7,7 +7,7 @@
       "headers": {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With"
       }
     },
     {
@@ -22,7 +22,7 @@
       "maxDuration": 60
     },
     "src/app/api/upload/route.ts": {
-      "maxDuration": 30
+      "maxDuration": 60
     }
   },
   "env": {

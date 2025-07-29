@@ -67,74 +67,118 @@ export function FileUploadSection() {
     const analysisResults: any[] = []
 
     try {
-      // Upload all files first
-      for (let i = 0; i < selectedFiles.length; i++) {
-        const file = selectedFiles[i]
-        
-        // Update progress for this file
-        setFileProgress(prev => prev.map((fp, index) => 
-          index === i ? { ...fp, status: 'uploading', message: 'Uploading file...' } : fp
-        ))
-
-        // Create FormData for file upload
-        const formData = new FormData()
+      // Create FormData for all files
+      const formData = new FormData()
+      
+      // Add all files to FormData
+      selectedFiles.forEach(file => {
         formData.append('file', file)
-        formData.append('clientEmail', clientInfo.email)
-        formData.append('clientFirstName', clientInfo.firstName)
-        formData.append('clientLastName', clientInfo.lastName)
+      })
+      
+      // Add client information
+      formData.append('clientEmail', clientInfo.email)
+      formData.append('clientFirstName', clientInfo.firstName)
+      formData.append('clientLastName', clientInfo.lastName)
 
-        // Upload file
-        const uploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData
-        })
+      // Update all files to uploading status
+      setFileProgress(prev => prev.map(fp => ({ ...fp, status: 'uploading', message: 'Uploading file...' })))
 
-        if (!uploadResponse.ok) {
-          throw new Error(`Failed to upload ${file.name}`)
-        }
+      // Upload all files in a single request
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
 
-        const uploadResult = await uploadResponse.json()
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json()
+        throw new Error(`Upload failed: ${errorData.error || errorData.details || 'Unknown error'}`)
+      }
+
+      const uploadResult = await uploadResponse.json()
+      
+      if (!uploadResult.success) {
+        throw new Error(`Upload failed: ${uploadResult.error || 'Unknown error'}`)
+      }
+
+      console.log('Upload result:', uploadResult)
+
+      // Update progress for uploaded files
+      uploadResult.files.forEach((fileResult: any, index: number) => {
+        setFileProgress(prev => prev.map((fp, i) => 
+          i === index ? { ...fp, status: 'analyzing', message: 'Analyzing file...', filename: fileResult.filename } : fp
+        ))
         uploadedFiles.push({
-          filename: uploadResult.filename,
-          originalName: file.name
+          filename: fileResult.filename,
+          originalName: fileResult.originalName
         })
+      })
 
-        // Update progress for this file
-        setFileProgress(prev => prev.map((fp, index) => 
-          index === i ? { ...fp, status: 'analyzing', message: 'Analyzing file...', filename: uploadResult.filename } : fp
-        ))
+      // Handle any upload errors
+      if (uploadResult.errors && uploadResult.errors.length > 0) {
+        console.warn('Some files failed to upload:', uploadResult.errors)
+        uploadResult.errors.forEach((error: any, index: number) => {
+          setFileProgress(prev => prev.map((fp, i) => 
+            i === index ? { ...fp, status: 'error', message: error.error } : fp
+          ))
+        })
+      }
 
-        // Analyze the uploaded file
-        const analyzeResponse = await fetch('/api/analyze', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            filename: uploadResult.filename,
-            clientEmail: clientInfo.email,
-            clientFirstName: clientInfo.firstName,
-            clientLastName: clientInfo.lastName
+      // Analyze each successfully uploaded file
+      for (let i = 0; i < uploadResult.files.length; i++) {
+        const fileResult = uploadResult.files[i]
+        
+        try {
+          // Update progress for this file
+          setFileProgress(prev => prev.map((fp, index) => 
+            index === i ? { ...fp, status: 'analyzing', message: 'Analyzing file...' } : fp
+          ))
+
+          // Analyze the uploaded file
+          const analyzeResponse = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              filename: fileResult.filename,
+              clientEmail: clientInfo.email,
+              clientFirstName: clientInfo.firstName,
+              clientLastName: clientInfo.lastName
+            })
           })
-        })
 
-        if (!analyzeResponse.ok) {
-          const errorData = await analyzeResponse.json()
-          throw new Error(`Analysis failed for ${file.name}: ${errorData.details || 'Unknown error'}`)
+          if (!analyzeResponse.ok) {
+            const errorData = await analyzeResponse.json()
+            throw new Error(`Analysis failed: ${errorData.details || 'Unknown error'}`)
+          }
+
+          const analysisResult = await analyzeResponse.json()
+          analysisResults.push(analysisResult)
+
+          // Update progress for this file
+          setFileProgress(prev => prev.map((fp, index) => 
+            index === i ? { ...fp, status: 'success', message: 'Analysis completed' } : fp
+          ))
+          
+        } catch (error) {
+          console.error('Analysis error for file:', fileResult.originalName, error)
+          setFileProgress(prev => prev.map((fp, index) => 
+            index === i ? { ...fp, status: 'error', message: error instanceof Error ? error.message : 'Analysis failed' } : fp
+          ))
         }
+      }
 
-        const analysisResult = await analyzeResponse.json()
-        analysisResults.push(analysisResult)
-
-        // Update progress for this file
-        setFileProgress(prev => prev.map((fp, index) => 
-          index === i ? { ...fp, status: 'success', message: 'Analysis completed' } : fp
-        ))
+      // Check if we have any successful analyses
+      if (analysisResults.length === 0) {
+        throw new Error('No files were successfully analyzed')
       }
 
       // Combine all analysis results
       const combinedResult = {
         totalFiles: selectedFiles.length,
+        successfulUploads: uploadResult.uploaded,
+        failedUploads: uploadResult.failed,
+        successfulAnalyses: analysisResults.length,
         files: uploadedFiles.map((file, index) => ({
           ...file,
           analysis: analysisResults[index]
@@ -144,7 +188,7 @@ export function FileUploadSection() {
 
       setUploadStatus({
         status: 'success',
-        message: `Successfully processed ${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''}!`,
+        message: `Successfully processed ${analysisResults.length} of ${selectedFiles.length} files!`,
         analysisResult: combinedResult
       })
 
@@ -154,6 +198,9 @@ export function FileUploadSection() {
         status: 'error',
         message: error instanceof Error ? error.message : 'An unexpected error occurred'
       })
+      
+      // Update all files to error status
+      setFileProgress(prev => prev.map(fp => ({ ...fp, status: 'error', message: 'Upload failed' })))
     }
   }
 

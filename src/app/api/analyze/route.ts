@@ -43,71 +43,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Construct file path
-    const filePath = path.join(process.cwd(), 'uploads', 'pdfs', filename)
+    // For now, we'll analyze the file content directly since we're not saving to filesystem
+    // In production, you'd retrieve the file from cloud storage here
+    console.log('Analyzing file:', filename)
     
-    // Read the PDF file
-    const pdfBuffer = await readFile(filePath)
-    const fileSize = pdfBuffer.length
+    // TODO: In production, implement cloud storage retrieval here
+    // For example: const pdfBuffer = await getFileFromSupabaseStorage(filename)
     
-    // Initialize services
-    const masterAnalyzer = MasterAnalyzer.getInstance()
-    const databaseService = DatabaseService.getInstance()
-    
-    // Find or create client
-    const clientId = await databaseService.findOrCreateClient(
-      clientEmail,
-      clientFirstName,
-      clientLastName
-    )
-    
-    // Analyze the PDF
-    const analysisResult = await masterAnalyzer.analyzeReport(pdfBuffer)
-    
-    // Validate the analysis before saving
-    const validationResult = masterAnalyzer.validateAnalysisForStorage(analysisResult)
-    if (!validationResult.valid) {
-      return NextResponse.json(
-        { 
-          error: 'Analysis validation failed',
-          details: validationResult.reasons.join(', '),
-          analysisResult: {
-            reportType: analysisResult.reportType,
-            confidence: analysisResult.confidence,
-            processingTime: analysisResult.processingTime,
-            validationDetails: validationResult.reasons
-          }
-        },
-        { status: 422 }
-      )
-    }
-    
-    // Save the analysis results to database
-    const labReportId = await databaseService.saveAnalysisResult(
-      analysisResult,
-      clientId,
-      filePath,
-      fileSize
-    )
-    
-    // Get analysis summary
-    const summary = masterAnalyzer.getAnalysisSummary(analysisResult)
-    
-    return NextResponse.json({
-      success: true,
-      labReportId,
-      analysisResult: {
-        reportType: analysisResult.reportType,
-        confidence: analysisResult.confidence,
-        processingTime: analysisResult.processingTime,
-        summary
+    // For now, we'll return an error since we need the actual file content
+    return NextResponse.json(
+      { 
+        error: 'File analysis requires actual file content',
+        details: 'In production, implement cloud storage integration to retrieve uploaded files'
       },
-      message: 'Analysis completed successfully'
-    }, {
-      headers: {
-        ...createRateLimitHeaders(rateLimiter, rateLimitClientId)
-      }
-    })
+      { status: 501 }
+    )
     
   } catch (error) {
     console.error('Analysis error:', error)
