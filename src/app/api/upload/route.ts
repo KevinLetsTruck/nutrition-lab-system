@@ -1,8 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { saveFile, validateFile, generateUniqueFilename } from '@/lib/file-utils'
+import { getRateLimiter, getClientIdentifier, createRateLimitHeaders } from '@/lib/rate-limiter'
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const rateLimiter = getRateLimiter('upload')
+    const rateLimitClientId = getClientIdentifier(request)
+    
+    if (!rateLimiter.isAllowed(rateLimitClientId)) {
+      return NextResponse.json(
+        { 
+          error: 'Rate limit exceeded',
+          retryAfter: Math.ceil(rateLimiter.getResetTime(rateLimitClientId) / 1000)
+        },
+        { 
+          status: 429,
+          headers: {
+            ...createRateLimitHeaders(rateLimiter, rateLimitClientId),
+            'Retry-After': Math.ceil(rateLimiter.getResetTime(rateLimitClientId) / 1000).toString()
+          }
+        }
+      )
+    }
+
     const formData = await request.formData()
     const file = formData.get('file') as File
     
@@ -48,6 +69,10 @@ export async function POST(request: NextRequest) {
       originalName: file.name,
       size: file.size,
       path: filePath
+    }, {
+      headers: {
+        ...createRateLimitHeaders(rateLimiter, rateLimitClientId)
+      }
     })
     
   } catch (error) {

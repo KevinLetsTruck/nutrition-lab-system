@@ -9,7 +9,15 @@
     "lint": "next lint",
     "db:query": "node scripts/query-runner.js",
     "db:migrate": "node scripts/migrate.js",
-    "db:seed": "node scripts/seed.js"
+    "db:seed": "node scripts/seed.js",
+    "process-pdfs": "node scripts/process-pdfs.js",
+    "analyze": "node scripts/query-runner.js analyze",
+    "check": "node scripts/quick-check.js",
+    "db:interactive": "node scripts/query-runner.js interactive",
+    "deploy": "./scripts/deploy.sh",
+    "deploy:check": "npm run lint && npm run build",
+    "health": "curl -f https://your-domain.com/api/health || echo 'Health check failed'",
+    "test:production": "npm run health"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.18.0",
@@ -18,7 +26,6 @@
     "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-tabs": "^1.1.12",
     "@radix-ui/react-toast": "^1.2.14",
-    "resend": "^3.3.0",
     "@supabase/supabase-js": "^2.53.0",
     "@types/multer": "^2.0.0",
     "@types/uuid": "^10.0.0",
@@ -38,19 +45,21 @@
     "react-dom": "19.1.0",
     "react-dropzone": "^14.3.8",
     "recharts": "^3.1.0",
+    "resend": "^3.3.0",
     "sharp": "^0.34.3",
     "tailwind-merge": "^3.3.1",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9",
     "eslint-config-next": "15.4.4",
-    "tailwindcss": "^4",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
     "typescript": "^5"
   }
 }

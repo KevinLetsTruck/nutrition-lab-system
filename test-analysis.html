@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrition Lab Analysis Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2563eb;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #374151;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            background-color: #2563eb;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        button:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background-color: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
+        }
+        .error {
+            background-color: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+        }
+        .loading {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+        }
+        .curl-command {
+            background-color: #f3f4f6;
+            border: 1px solid #d1d5db;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Nutrition Lab Analysis Test</h1>
+        
+        <div class="form-group">
+            <label for="clientEmail">Client Email *</label>
+            <input type="email" id="clientEmail" value="test@example.com" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="clientFirstName">Client First Name</label>
+            <input type="text" id="clientFirstName" value="John">
+        </div>
+        
+        <div class="form-group">
+            <label for="clientLastName">Client Last Name</label>
+            <input type="text" id="clientLastName" value="Doe">
+        </div>
+        
+        <div class="form-group">
+            <label for="clientDateOfBirth">Client Date of Birth</label>
+            <input type="date" id="clientDateOfBirth" value="1985-03-15">
+        </div>
+        
+        <div class="form-group">
+            <label for="filename">PDF Filename (in uploads/pdfs/)</label>
+            <input type="text" id="filename" placeholder="example: nutriq_report.pdf" required>
+        </div>
+        
+        <button onclick="analyzePDF()" id="analyzeBtn">🔬 Analyze PDF</button>
+        <button onclick="checkStatus()" id="statusBtn">📊 Check Status</button>
+        <button onclick="clearResults()" id="clearBtn">🗑️ Clear Results</button>
+        
+        <div id="result" class="result" style="display: none;"></div>
+        
+        <h3>📋 Quick Commands</h3>
+        <div class="curl-command" id="curlCommand">
+            # Replace 'your_report.pdf' with your actual filename
+            curl -X POST http://localhost:3000/api/analyze \
+              -H "Content-Type: application/json" \
+              -d '{
+                "filename": "your_report.pdf",
+                "clientEmail": "test@example.com",
+                "clientFirstName": "John",
+                "clientLastName": "Doe",
+                "clientDateOfBirth": "1985-03-15"
+              }'
+        </div>
+        
+        <h3>📁 Batch Processing</h3>
+        <div class="curl-command">
+            # Process all PDFs in uploads/pdfs/ directory
+            npm run process-pdfs test@example.com "John" "Doe" "1985-03-15"
+        </div>
+        
+        <h3>📊 Database Queries</h3>
+        <div class="curl-command">
+            # View analysis results
+            npm run db:query analyze
+            
+            # View pending analyses
+            npm run db:query pending
+            
+            # Interactive database mode
+            npm run db:query
+        </div>
+    </div>
+
+    <script>
+        function analyzePDF() {
+            const filename = document.getElementById('filename').value;
+            const clientEmail = document.getElementById('clientEmail').value;
+            const clientFirstName = document.getElementById('clientFirstName').value;
+            const clientLastName = document.getElementById('clientLastName').value;
+            const clientDateOfBirth = document.getElementById('clientDateOfBirth').value;
+            
+            if (!filename || !clientEmail) {
+                showResult('Please fill in all required fields.', 'error');
+                return;
+            }
+            
+            const data = {
+                filename: filename,
+                clientEmail: clientEmail,
+                clientFirstName: clientFirstName,
+                clientLastName: clientLastName,
+                clientDateOfBirth: clientDateOfBirth
+            };
+            
+            showResult('🔄 Analyzing PDF... This may take 30-60 seconds.', 'loading');
+            document.getElementById('analyzeBtn').disabled = true;
+            
+            fetch('/api/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById('analyzeBtn').disabled = false;
+                if (result.success) {
+                    showResult(`✅ Analysis Complete!\n\n📊 Results:\n${JSON.stringify(result, null, 2)}`, 'success');
+                } else {
+                    showResult(`❌ Analysis Failed:\n${result.error}\n\nDetails: ${result.details || 'No details provided'}`, 'error');
+                }
+            })
+            .catch(error => {
+                document.getElementById('analyzeBtn').disabled = false;
+                showResult(`❌ Error: ${error.message}`, 'error');
+            });
+        }
+        
+        function checkStatus() {
+            showResult('📊 Checking analysis status...', 'loading');
+            
+            fetch('/api/analyze')
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showResult(`📊 Status:\n${JSON.stringify(result, null, 2)}`, 'success');
+                } else {
+                    showResult(`❌ Error: ${result.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showResult(`❌ Error: ${error.message}`, 'error');
+            });
+        }
+        
+        function clearResults() {
+            document.getElementById('result').style.display = 'none';
+        }
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+        }
+        
+        // Update curl command when form changes
+        function updateCurlCommand() {
+            const filename = document.getElementById('filename').value || 'your_report.pdf';
+            const clientEmail = document.getElementById('clientEmail').value || 'test@example.com';
+            const clientFirstName = document.getElementById('clientFirstName').value || 'John';
+            const clientLastName = document.getElementById('clientLastName').value || 'Doe';
+            const clientDateOfBirth = document.getElementById('clientDateOfBirth').value || '1985-03-15';
+            
+            const curlCommand = `# Replace '${filename}' with your actual filename
+curl -X POST http://localhost:3000/api/analyze \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "filename": "${filename}",
+    "clientEmail": "${clientEmail}",
+    "clientFirstName": "${clientFirstName}",
+    "clientLastName": "${clientLastName}",
+    "clientDateOfBirth": "${clientDateOfBirth}"
+  }'`;
+            
+            document.getElementById('curlCommand').textContent = curlCommand;
+        }
+        
+        // Add event listeners to update curl command
+        document.getElementById('filename').addEventListener('input', updateCurlCommand);
+        document.getElementById('clientEmail').addEventListener('input', updateCurlCommand);
+        document.getElementById('clientFirstName').addEventListener('input', updateCurlCommand);
+        document.getElementById('clientLastName').addEventListener('input', updateCurlCommand);
+        document.getElementById('clientDateOfBirth').addEventListener('input', updateCurlCommand);
+    </script>
+</body>
+</html> 
