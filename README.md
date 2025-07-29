@@ -1,153 +1,178 @@
 # Nutrition Lab Management System
 
-A comprehensive web application for managing nutrition lab results, analyzing PDF reports, and providing health insights.
+A comprehensive web application for managing nutrition lab reports, client data, and AI-powered analysis.
 
 ## Features
 
-- 📄 PDF Lab Report Parsing
-- 🧪 Lab Results Analysis
-- 📊 Data Visualization with Charts
-- 🔐 Secure Authentication with Supabase
-- 📧 Email Notifications with Resend
-- 🤖 AI Analysis with Claude (Anthropic)
-- 📱 Responsive Design
+- **Lab Report Management**: Upload and analyze various types of lab reports (NutriQ, KBMO, Dutch, CGM, Food Photos)
+- **Client Management**: Complete client profiles with medical history and contact information
+- **AI Analysis**: Claude-powered analysis of lab reports and food photos
+- **Interactive Database**: Terminal-based query interface for database operations
+- **Migration System**: Automated database schema management
+- **Sample Data**: Comprehensive seeding system for development
 
-## Tech Stack
+## Quick Start
 
-- **Frontend**: Next.js 14, React, TypeScript
-- **Styling**: Tailwind CSS, Radix UI Components
-- **Backend**: Next.js API Routes
-- **Database**: Supabase (PostgreSQL)
-- **File Processing**: pdf-parse, sharp, canvas
-- **Charts**: Recharts, Chart.js
-- **AI**: Anthropic Claude API
-- **Email**: Resend
+### 1. Environment Setup
+
+Create a `.env.local` file with your Supabase credentials:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+ANTHROPIC_API_KEY=your_claude_api_key
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Database Setup
+
+```bash
+# Run database migrations
+npm run db:migrate
+
+# Seed with sample data
+npm run db:seed
+
+# Test database connection
+npm run db:query test
+```
+
+### 4. Start Development Server
+
+```bash
+npm run dev
+```
+
+## Database System
+
+The system includes a powerful database layer with:
+
+### Interactive Query Runner
+
+```bash
+# Start interactive mode
+npm run db:query
+
+# Quick commands
+npm run db:query tables    # Show all tables
+npm run db:query clients   # Show clients
+npm run db:query reports   # Show lab reports
+npm run db:query summary   # Show client summary
+```
+
+### Migration System
+
+```bash
+# Run migrations
+npm run db:migrate
+
+# Check status
+node scripts/migrate.js status
+
+# Create new migration
+node scripts/migrate.js create add_new_feature
+```
+
+### Database Utilities
+
+```typescript
+import { db } from '@/lib/supabase'
+
+// Get clients
+const clients = await db.getClients()
+
+// Create lab report
+const report = await db.createLabReport({
+  client_id: clientId,
+  report_type: 'nutriq',
+  report_date: '2024-01-15'
+})
+```
 
 ## Project Structure
 
 ```
 nutrition-lab-system/
-├── src/
-│   ├── app/                 # Next.js App Router
-│   ├── components/
-│   │   ├── ui/             # Reusable UI components
-│   │   └── lab/            # Lab-specific components
-│   ├── lib/
-│   │   ├── lab-analyzers/  # PDF parsing for each test type
-│   │   ├── supabase.ts     # Supabase client
-│   │   ├── file-utils.ts   # File handling utilities
-│   │   └── utils.ts        # General utilities
-│   └── pages/              # API routes (if using Pages Router)
 ├── database/
-│   ├── migrations/         # Database migrations
-│   └── queries/           # Database queries
-├── uploads/
-│   ├── pdfs/              # Uploaded PDF files
-│   └── images/            # Uploaded images
-├── scripts/               # Utility scripts
-└── docs/                  # Documentation
+│   └── migrations/          # Database schema files
+├── docs/
+│   ├── API.md              # API documentation
+│   └── DATABASE.md         # Database system guide
+├── scripts/
+│   ├── query-runner.js     # Interactive SQL interface
+│   ├── migrate.js          # Migration system
+│   └── seed.js             # Sample data seeder
+├── src/
+│   ├── app/                # Next.js app router
+│   ├── components/         # React components
+│   └── lib/
+│       ├── supabase.ts     # Database utilities
+│       └── lab-analyzers/  # AI analysis modules
+└── uploads/                # File uploads
 ```
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ 
-- npm or yarn
-- Supabase account
-- Anthropic API key
-- Resend API key
-
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd nutrition-lab-system
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Set up environment variables:
-   ```bash
-   cp .env.example .env.local
-   ```
-   
-   Edit `.env.local` with your actual API keys and configuration.
-
-4. Run the development server:
-   ```bash
-   npm run dev
-   ```
-
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Environment Variables
-
-Create a `.env.local` file with the following variables:
-
-```env
-# Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-
-# Anthropic API (Claude) for AI Analysis
-ANTHROPIC_API_KEY=your_anthropic_api_key
-
-# Resend API for Email Notifications
-RESEND_API_KEY=your_resend_api_key
-
-# File Upload Settings
-MAX_FILE_SIZE=10485760
-ALLOWED_FILE_TYPES=pdf,jpg,jpeg,png
-UPLOAD_DIR=./uploads
-```
-
-## Development
-
-### Available Scripts
+## Available Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
-- `npm run type-check` - Run TypeScript type checking
+- `npm run db:query` - Interactive database query runner
+- `npm run db:migrate` - Run database migrations
+- `npm run db:seed` - Seed database with sample data
 
-### Code Style
+## Database Schema
 
-This project uses:
-- TypeScript for type safety
-- ESLint for code linting
-- Prettier for code formatting
-- Tailwind CSS for styling
+The system supports multiple types of lab reports:
 
-## Database Setup
+- **NutriQ/NAQ**: Nutritional assessment questionnaires
+- **KBMO**: Food sensitivity testing
+- **Dutch**: Hormone testing
+- **CGM**: Continuous glucose monitoring
+- **Food Photos**: AI-powered food analysis
 
-1. Create a Supabase project
-2. Run database migrations (to be created)
-3. Set up authentication and storage policies
+## Documentation
 
-## API Routes
+- [Database System Guide](docs/DATABASE.md) - Complete database documentation
+- [API Documentation](docs/API.md) - API endpoints and usage
 
-The application includes the following API routes:
+## Development
 
-- `POST /api/upload` - File upload endpoint
-- `POST /api/analyze` - PDF analysis endpoint
-- `GET /api/results` - Lab results retrieval
-- `POST /api/notify` - Email notification endpoint
+### Adding New Features
+
+1. Create a migration: `node scripts/migrate.js create feature_name`
+2. Update database utilities in `src/lib/supabase.ts`
+3. Add components in `src/components/`
+4. Update API routes in `src/app/api/`
+
+### Testing Database Changes
+
+```bash
+# Test connection
+npm run db:query test
+
+# View table structure
+npm run db:query
+db> desc table_name
+
+# Run custom queries
+db> SELECT * FROM clients LIMIT 5;
+```
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests if applicable
+4. Test thoroughly
 5. Submit a pull request
 
 ## License
 
-This project is licensed under the MIT License.
+MIT License - see LICENSE file for details.
