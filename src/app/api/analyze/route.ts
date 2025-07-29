@@ -50,9 +50,6 @@ export async function POST(request: NextRequest) {
     const pdfBuffer = await readFile(filePath)
     const fileSize = pdfBuffer.length
     
-    // Get file stats for size
-    const stats = await readFile(filePath)
-    
     // Initialize services
     const masterAnalyzer = MasterAnalyzer.getInstance()
     const databaseService = DatabaseService.getInstance()

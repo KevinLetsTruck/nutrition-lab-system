@@ -37,16 +37,13 @@ export async function POST(request: NextRequest) {
     // Convert File to Buffer for validation
     const buffer = Buffer.from(await file.arrayBuffer())
     
-    // Create a mock file object for validation
-    const mockFile = {
+    // Validate file directly
+    const validation = validateFile({
       buffer,
       originalname: file.name,
       size: file.size,
       mimetype: file.type
-    } as any
-
-    // Validate file
-    const validation = validateFile(mockFile)
+    } as Express.Multer.File)
     if (!validation.valid) {
       return NextResponse.json(
         { error: validation.error },

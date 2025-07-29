@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   const startTime = Date.now()
   
   try {
     // Check database connectivity
     const supabase = createServerSupabaseClient()
-    const { data: dbTest, error: dbError } = await supabase
+    const { error: dbError } = await supabase
       .from('lab_reports')
       .select('count')
       .limit(1)
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
