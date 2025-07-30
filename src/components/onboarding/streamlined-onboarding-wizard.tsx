@@ -9,7 +9,7 @@ import { StreamlinedGoals } from './steps/streamlined-goals'
 import { StreamlinedTruckInfo } from './steps/streamlined-truck-info'
 import { StreamlinedDotStatus } from './steps/streamlined-dot-status'
 import { CompleteOnboardingData } from '@/lib/onboarding-schemas'
-import { StreamlinedOnboardingService } from '@/lib/streamlined-onboarding-service'
+import { ClientOnboardingService } from '@/lib/client-onboarding-service'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, Loader2, AlertCircle } from 'lucide-react'
@@ -31,7 +31,7 @@ export function StreamlinedOnboardingWizard({
   const [error, setError] = useState<string | null>(null)
   const [isCompleted, setIsCompleted] = useState(false)
 
-  const onboardingService = useMemo(() => new StreamlinedOnboardingService(), [])
+  const onboardingService = useMemo(() => new ClientOnboardingService(), [])
 
   // Initialize session
   useEffect(() => {

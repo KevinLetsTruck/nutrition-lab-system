@@ -528,6 +528,33 @@ export class DatabaseUtils {
   }
 }
 
-// Export utility instances
-export const db = new DatabaseUtils()
-export const dbAdmin = new DatabaseUtils(true) // Uses service role for admin operations
+// Export utility instances (lazy creation)
+let dbInstance: DatabaseUtils | null = null
+let dbAdminInstance: DatabaseUtils | null = null
+
+export const getDb = (): DatabaseUtils => {
+  if (!dbInstance) {
+    dbInstance = new DatabaseUtils()
+  }
+  return dbInstance
+}
+
+export const getDbAdmin = (): DatabaseUtils => {
+  if (!dbAdminInstance) {
+    dbAdminInstance = new DatabaseUtils(true) // Uses service role for admin operations
+  }
+  return dbAdminInstance
+}
+
+// Legacy exports for backward compatibility (lazy getters)
+export const db = new Proxy({} as DatabaseUtils, {
+  get(target, prop) {
+    return getDb()[prop as keyof DatabaseUtils]
+  }
+})
+
+export const dbAdmin = new Proxy({} as DatabaseUtils, {
+  get(target, prop) {
+    return getDbAdmin()[prop as keyof DatabaseUtils]
+  }
+})
