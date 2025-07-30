@@ -95,6 +95,11 @@ export default function ClientDashboard() {
   }
 
   const uploadDocument = async () => {
+    if (!client) {
+      alert('Client data not available. Please refresh the page.')
+      return
+    }
+    
     try {
       // Create a file input element
       const input = document.createElement('input')
@@ -150,6 +155,11 @@ export default function ClientDashboard() {
   }
 
   const generateProtocol = async () => {
+    if (!client) {
+      alert('Client data not available. Please refresh the page.')
+      return
+    }
+    
     setGeneratingProtocol(true)
     try {
       const response = await fetch('/api/generate-protocol', {
