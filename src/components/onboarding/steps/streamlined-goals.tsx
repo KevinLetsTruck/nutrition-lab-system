@@ -15,11 +15,11 @@ interface StreamlinedGoalsProps {
   isLoading?: boolean
 }
 
-export function StreamlinedGoals({ data, onNext, onBack, onSave, isLoading }: StreamlinedGoalsProps) {
+export function StreamlinedGoals({ initialData, onNext, onBack, onSave, isLoading }: StreamlinedGoalsProps) {
   const [formData, setFormData] = useState({
-    healthGoals: data?.healthGoals || [],
-    primaryConcern: data?.primaryConcern || '',
-    timeline: data?.timeline || ''
+    healthGoals: initialData?.healthGoals || [],
+    primaryConcern: initialData?.primaryConcern || '',
+    timeline: initialData?.timeline || ''
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})

@@ -15,11 +15,11 @@ interface StreamlinedTruckInfoProps {
   isLoading?: boolean
 }
 
-export function StreamlinedTruckInfo({ data, onNext, onBack, onSave, isLoading }: StreamlinedTruckInfoProps) {
+export function StreamlinedTruckInfo({ initialData, onNext, onBack, onSave, isLoading }: StreamlinedTruckInfoProps) {
   const [formData, setFormData] = useState({
-    routeType: data?.routeType || '',
-    hoursPerWeek: data?.hoursPerWeek || '',
-    sleepSchedule: data?.sleepSchedule || ''
+    routeType: initialData?.routeType || '',
+    hoursPerWeek: initialData?.hoursPerWeek || '',
+    sleepSchedule: initialData?.sleepSchedule || ''
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})

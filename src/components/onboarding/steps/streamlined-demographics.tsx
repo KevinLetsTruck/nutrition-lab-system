@@ -15,11 +15,11 @@ interface StreamlinedDemographicsProps {
   isLoading?: boolean
 }
 
-export function StreamlinedDemographics({ data, onNext, onBack, onSave, isLoading }: StreamlinedDemographicsProps) {
+export function StreamlinedDemographics({ initialData, onNext, onBack, onSave, isLoading }: StreamlinedDemographicsProps) {
   const [formData, setFormData] = useState({
-    first_name: data?.first_name || '',
-    last_name: data?.last_name || '',
-    email: data?.email || ''
+    first_name: initialData?.first_name || '',
+    last_name: initialData?.last_name || '',
+    email: initialData?.email || ''
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})

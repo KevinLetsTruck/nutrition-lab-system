@@ -16,11 +16,11 @@ interface StreamlinedMedicationsProps {
   isLoading?: boolean
 }
 
-export function StreamlinedMedications({ data, onNext, onBack, onSave, isLoading }: StreamlinedMedicationsProps) {
+export function StreamlinedMedications({ initialData, onNext, onBack, onSave, isLoading }: StreamlinedMedicationsProps) {
   const [formData, setFormData] = useState({
-    currentMedications: data?.currentMedications || [],
-    supplements: data?.supplements || [],
-    medicalConditions: data?.medicalConditions || []
+    currentMedications: initialData?.currentMedications || [],
+    supplements: initialData?.supplements || [],
+    medicalConditions: initialData?.medicalConditions || []
   })
 
   const [newMedication, setNewMedication] = useState('')
@@ -127,10 +127,10 @@ export function StreamlinedMedications({ data, onNext, onBack, onSave, isLoading
       }))
     } else {
       // Remove "None" if it exists and add/remove the selected condition
-      const currentConditions = formData.medicalConditions.filter(c => c !== 'None')
+      const currentConditions = formData.medicalConditions.filter((c: string) => c !== 'None')
       const newConditions = checked
         ? [...currentConditions, condition]
-        : currentConditions.filter(c => c !== condition)
+        : currentConditions.filter((c: string) => c !== condition)
       
       setFormData(prev => ({
         ...prev,
@@ -292,10 +292,10 @@ export function StreamlinedMedications({ data, onNext, onBack, onSave, isLoading
                 </Button>
               </div>
               
-              {formData.medicalConditions.filter(c => !commonConditions.includes(c)).length > 0 && (
+              {formData.medicalConditions.filter((c: string) => !commonConditions.includes(c)).length > 0 && (
                 <div className="mt-3 space-y-2">
                   {formData.medicalConditions
-                    .filter(condition => !commonConditions.includes(condition))
+                    .filter((condition: string) => !commonConditions.includes(condition))
                     .map((condition: string, index: number) => (
                     <div key={index} className="flex items-center justify-between p-2 bg-dark-700 rounded-lg">
                       <span className="text-sm text-gray-300">{condition}</span>

@@ -58,10 +58,12 @@ export function StreamlinedOnboardingWizard({
         if (existingSessionToken) {
           // Verify session is still valid
           try {
-            const sessionData = await onboardingService.getSessionData(existingSessionToken)
+            const sessionData = await onboardingService.getSession(existingSessionToken)
             if (sessionData && !sessionData.is_completed) {
               setSessionToken(existingSessionToken)
-              setOnboardingData(sessionData.form_data || {})
+              // Get the onboarding data separately
+              const onboardingData = await onboardingService.getOnboardingData(existingSessionToken)
+              setOnboardingData(onboardingData || {})
               setCurrentStep(sessionData.current_step || 'demographics')
               setIsLoading(false)
               return
@@ -72,9 +74,9 @@ export function StreamlinedOnboardingWizard({
         }
 
         // Create new session
-        const newSessionToken = await onboardingService.createSession(clientId)
-        setSessionToken(newSessionToken)
-        localStorage.setItem('onboarding_session_token', newSessionToken)
+        const newSession = await onboardingService.createSession(clientId)
+        setSessionToken(newSession.session_token)
+        localStorage.setItem('onboarding_session_token', newSession.session_token)
       } catch (err) {
         setError('Failed to initialize onboarding session. Please try again.')
         console.error('Session initialization error:', err)
@@ -88,20 +90,24 @@ export function StreamlinedOnboardingWizard({
 
   // Debounced auto-save functionality - FIXED: Now saves 3 seconds after user stops interacting
   const debouncedAutoSave = useCallback(
-    debounce(async (data: Partial<CompleteOnboardingData>) => {
-      if (!sessionToken) return
+    (data: Partial<CompleteOnboardingData>) => {
+      const timeoutId = setTimeout(async () => {
+        if (!sessionToken) return
 
-      try {
-        setIsSaving(true)
-        await onboardingService.saveStepData(sessionToken, currentStep, data)
-        await onboardingService.updateSessionActivity(sessionToken)
-      } catch (err) {
-        console.error('Auto-save error:', err)
-        // Don't show error to user for auto-save failures
-      } finally {
-        setIsSaving(false)
-      }
-    }, 3000), // FIXED: Increased from 1 second to 3 seconds
+        try {
+          setIsSaving(true)
+          await onboardingService.saveStepData(sessionToken, currentStep, data)
+          await onboardingService.updateSessionActivity(sessionToken)
+        } catch (err) {
+          console.error('Auto-save error:', err)
+          // Don't show error to user for auto-save failures
+        } finally {
+          setIsSaving(false)
+        }
+      }, 3000) // FIXED: Increased from 1 second to 3 seconds
+      
+      return () => clearTimeout(timeoutId)
+    },
     [sessionToken, currentStep, onboardingService]
   )
 
@@ -210,7 +216,7 @@ export function StreamlinedOnboardingWizard({
             Onboarding Complete!
           </h2>
           <p className="text-gray-400 mb-6">
-            Thank you for completing your profile. We'll be in touch soon with your personalized nutrition plan.
+            Thank you for completing your profile. We{`'`}ll be in touch soon with your personalized nutrition plan.
           </p>
           <Button 
             onClick={() => window.location.href = '/'}

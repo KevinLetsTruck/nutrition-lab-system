@@ -17,14 +17,14 @@ interface StreamlinedDietProps {
   isLoading?: boolean
 }
 
-export function StreamlinedDiet({ data, onNext, onBack, onSave, isLoading }: StreamlinedDietProps) {
+export function StreamlinedDiet({ initialData, onNext, onBack, onSave, isLoading }: StreamlinedDietProps) {
   const [formData, setFormData] = useState({
-    dietType: data?.dietType || '',
-    foodAllergies: data?.foodAllergies || [],
-    dietaryRestrictions: data?.dietaryRestrictions || [],
-    mealFrequency: data?.mealFrequency || '',
-    waterIntake: data?.waterIntake || '',
-    supplements: data?.supplements || []
+    dietType: initialData?.dietType || '',
+    foodAllergies: initialData?.foodAllergies || [],
+    dietaryRestrictions: initialData?.dietaryRestrictions || [],
+    mealFrequency: initialData?.mealFrequency || '',
+    waterIntake: initialData?.waterIntake || '',
+    supplements: initialData?.supplements || []
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})

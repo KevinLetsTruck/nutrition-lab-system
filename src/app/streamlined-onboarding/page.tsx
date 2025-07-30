@@ -9,8 +9,13 @@ export default function StreamlinedOnboardingPage() {
     console.log('Onboarding completed:', data)
   }
 
+  // Generate a temporary client ID for demo purposes
+  // In production, this would come from authentication or URL params
+  const clientId = 'demo-client-' + Date.now()
+
   return (
     <StreamlinedOnboardingWizard 
+      clientId={clientId}
       onComplete={handleOnboardingComplete}
     />
   )

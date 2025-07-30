@@ -18,12 +18,12 @@ interface StreamlinedDotStatusProps {
   isLoading?: boolean
 }
 
-export function StreamlinedDotStatus({ data, onNext, onBack, onComplete, onSave, isLoading }: StreamlinedDotStatusProps) {
+export function StreamlinedDotStatus({ initialData, onNext, onBack, onComplete, onSave, isLoading }: StreamlinedDotStatusProps) {
   const [formData, setFormData] = useState({
-    dotStatus: data?.dotStatus || '',
-    hasRestrictions: data?.hasRestrictions || false,
-    restrictions: data?.restrictions || [],
-    medications: data?.medications || []
+    dotStatus: initialData?.dotStatus || '',
+    hasRestrictions: initialData?.hasRestrictions || false,
+    restrictions: initialData?.restrictions || [],
+    medications: initialData?.medications || []
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -107,7 +107,7 @@ export function StreamlinedDotStatus({ data, onNext, onBack, onComplete, onSave,
         setFormData(prev => ({ ...prev, hasRestrictions: true }))
       } else {
         // Remove any custom restrictions when "Other" is unchecked
-        const filteredRestrictions = formData.restrictions.filter(r => !r.startsWith('Custom:'))
+        const filteredRestrictions = formData.restrictions.filter((r: string) => !r.startsWith('Custom:'))
         setFormData(prev => ({ 
           ...prev, 
           restrictions: filteredRestrictions,
@@ -213,7 +213,7 @@ export function StreamlinedDotStatus({ data, onNext, onBack, onComplete, onSave,
                   <Checkbox
                     id={`restriction-${restriction}`}
                     checked={formData.restrictions.includes(restriction) || 
-                             (restriction === 'Other' && formData.restrictions.some(r => r.startsWith('Custom:')))}
+                             (restriction === 'Other' && formData.restrictions.some((r: string) => r.startsWith('Custom:')))}
                     onCheckedChange={(checked) => handleRestrictionChange(restriction, checked as boolean)}
                     disabled={isLoading}
                   />
@@ -225,7 +225,7 @@ export function StreamlinedDotStatus({ data, onNext, onBack, onComplete, onSave,
             </div>
             
             {/* Custom restriction input */}
-            {(formData.restrictions.includes('Other') || formData.restrictions.some(r => r.startsWith('Custom:'))) && (
+            {(formData.restrictions.includes('Other') || formData.restrictions.some((r: string) => r.startsWith('Custom:'))) && (
               <div className="mt-4">
                 <Label className="text-sm font-medium text-gray-400 mb-2 block">
                   Specify Other Restriction
