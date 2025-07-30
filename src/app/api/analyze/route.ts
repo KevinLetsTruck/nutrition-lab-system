@@ -122,60 +122,61 @@ export async function POST(request: NextRequest) {
         // Download file from Supabase Storage
         console.log('[ANALYZE] Attempting to download file from storage...')
         
-        // For recent uploads, try general bucket first since that's where uploads go
-        console.log('[ANALYZE] Trying general bucket first for recent uploads...')
-        fileBuffer = await loadFile('general', labReport.file_path)
-        
-        if (!fileBuffer) {
-          // If not in general, try the determined bucket
-          const bucket = determineBucketFromPath(labReport.file_path, labReport.report_type)
-          console.log('[ANALYZE] File not in general, trying determined bucket:', bucket)
-          
-          // Clean the file path - remove bucket name if it's included
-          let cleanPath = labReport.file_path
-          if (cleanPath.startsWith(bucket + '/')) {
-            cleanPath = cleanPath.substring(bucket.length + 1)
-          }
-          
-          fileBuffer = await loadFile(bucket, cleanPath)
+        try {
+          // For recent uploads, try general bucket first since that's where uploads go
+          console.log('[ANALYZE] Trying general bucket first for recent uploads...')
+          fileBuffer = await loadFile('general', labReport.file_path)
           
           if (!fileBuffer) {
-            // Try with original path if clean path fails
-            console.log('[ANALYZE] Retrying with original path...')
-            fileBuffer = await loadFile(bucket, labReport.file_path)
+            // If not in general, try the determined bucket
+            const bucket = determineBucketFromPath(labReport.file_path, labReport.report_type)
+            console.log('[ANALYZE] File not in general, trying determined bucket:', bucket)
+            
+            // Clean the file path - remove bucket name if it's included
+            let cleanPath = labReport.file_path
+            if (cleanPath.startsWith(bucket + '/')) {
+              cleanPath = cleanPath.substring(bucket.length + 1)
+            }
+            
+            fileBuffer = await loadFile(bucket, cleanPath)
+            
+            if (!fileBuffer) {
+              // Try with original path if clean path fails
+              console.log('[ANALYZE] Retrying with original path...')
+              fileBuffer = await loadFile(bucket, labReport.file_path)
+            }
           }
-        }
-          
-          if (!fileBuffer) {
-            logError('FILE_RETRIEVAL', new Error('Failed to retrieve file'), {
-              bucket,
-              path: labReport.file_path,
-              cleanPath,
-              reportType: labReport.report_type
+            
+            if (!fileBuffer) {
+              logError('FILE_RETRIEVAL', new Error('Failed to retrieve file'), {
+                bucket: 'general',
+                path: labReport.file_path,
+                cleanPath: labReport.file_path,
+                reportType: labReport.report_type
+              })
+              
+              // Update report status to failed
+              await db.updateLabReport(labReport.id, {
+                status: 'failed',
+                notes: 'Failed to retrieve file from storage - file may have been deleted or moved'
+              })
+              
+              return NextResponse.json(
+                { 
+                  error: 'Failed to retrieve file from storage',
+                  details: 'The file could not be found in storage. It may have been deleted or moved.',
+                  bucket: 'general',
+                  path: labReport.file_path
+                },
+                { status: 404 }
+              )
+            }
+            
+            console.log('[ANALYZE] File retrieved successfully:', {
+              size: fileBuffer.length,
+              sizeKB: (fileBuffer.length / 1024).toFixed(2) + ' KB'
             })
             
-            // Update report status to failed
-            await db.updateLabReport(labReport.id, {
-              status: 'failed',
-              notes: 'Failed to retrieve file from storage - file may have been deleted or moved'
-            })
-            
-            return NextResponse.json(
-              { 
-                error: 'Failed to retrieve file from storage',
-                details: 'The file could not be found in storage. It may have been deleted or moved.',
-                bucket,
-                path: labReport.file_path
-              },
-              { status: 404 }
-            )
-          }
-          
-          console.log('[ANALYZE] File retrieved successfully:', {
-            size: fileBuffer.length,
-            sizeKB: (fileBuffer.length / 1024).toFixed(2) + ' KB'
-          })
-          
         } catch (storageError) {
           logError('STORAGE_ACCESS', storageError, {
             bucket,
