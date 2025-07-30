@@ -198,7 +198,6 @@ export function StreamlinedOnboardingWizard({
       {/* Progress Bar */}
       <StreamlinedProgress
         currentStep={currentStep}
-        steps={steps}
         progressPercentage={progressPercentage}
       />
 

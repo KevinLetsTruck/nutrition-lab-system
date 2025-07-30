@@ -97,7 +97,7 @@ export function StreamlinedGoals({ onNext, onBack, initialData }: StreamlinedGoa
           {/* Timeline */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              What's your timeline for achieving these goals?
+              What&apos;s your timeline for achieving these goals?
             </label>
             <select
               value={formData.timeline}
