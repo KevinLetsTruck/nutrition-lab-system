@@ -9,7 +9,7 @@ export const demographicsSchema = z.object({
 
 // Diet approach schema
 export const dietSchema = z.object({
-  dietType: z.enum(['standard', 'vegetarian', 'vegan', 'keto', 'paleo', 'mediterranean', 'gluten-free', 'dairy-free', 'other']).refine((val) => val !== undefined, {
+  dietType: z.enum(['standard', 'vegetarian', 'vegan', 'keto', 'paleo', 'mediterranean', 'gluten-free', 'dairy-free', 'carnivore', 'other']).refine((val) => val !== undefined, {
     message: 'Please select your primary diet type'
   }),
   foodAllergies: z.array(z.string()).optional(),

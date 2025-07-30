@@ -11,9 +11,11 @@ interface StreamlinedDemographicsProps {
   data?: any
   onNext: (data: any) => void
   onBack?: () => void
+  onSave?: (data: any) => void
+  isLoading?: boolean
 }
 
-export function StreamlinedDemographics({ data, onNext, onBack }: StreamlinedDemographicsProps) {
+export function StreamlinedDemographics({ data, onNext, onBack, onSave, isLoading }: StreamlinedDemographicsProps) {
   const [formData, setFormData] = useState({
     first_name: data?.first_name || '',
     last_name: data?.last_name || '',
@@ -21,6 +23,17 @@ export function StreamlinedDemographics({ data, onNext, onBack }: StreamlinedDem
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Auto-save functionality
+  useEffect(() => {
+    if (onSave && Object.keys(formData).some(key => formData[key as keyof typeof formData])) {
+      const timeoutId = setTimeout(() => {
+        onSave(formData)
+      }, 1000)
+      return () => clearTimeout(timeoutId)
+    }
+  }, [formData, onSave])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -41,15 +54,26 @@ export function StreamlinedDemographics({ data, onNext, onBack }: StreamlinedDem
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (validateForm()) {
-      onNext(formData)
+    
+    if (!validateForm()) {
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      await onNext(formData)
+    } catch (error) {
+      console.error('Form submission error:', error)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+    // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
@@ -67,36 +91,45 @@ export function StreamlinedDemographics({ data, onNext, onBack }: StreamlinedDem
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="form-field">
-              <Label className="text-base font-medium text-white mb-3 block">First Name *</Label>
+              <Label className="text-base font-medium text-white mb-3 block">
+                First Name <span className="text-red-400">*</span>
+              </Label>
               <Input
                 value={formData.first_name}
                 onChange={(e) => handleInputChange('first_name', e.target.value)}
                 placeholder="Enter your first name"
-                className={errors.first_name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+                disabled={isLoading}
+                className={`${errors.first_name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
               />
               {errors.first_name && <p className="text-sm text-red-400 mt-2">{errors.first_name}</p>}
             </div>
 
             <div className="form-field">
-              <Label className="text-base font-medium text-white mb-3 block">Last Name *</Label>
+              <Label className="text-base font-medium text-white mb-3 block">
+                Last Name <span className="text-red-400">*</span>
+              </Label>
               <Input
                 value={formData.last_name}
                 onChange={(e) => handleInputChange('last_name', e.target.value)}
                 placeholder="Enter your last name"
-                className={errors.last_name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+                disabled={isLoading}
+                className={`${errors.last_name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
               />
               {errors.last_name && <p className="text-sm text-red-400 mt-2">{errors.last_name}</p>}
             </div>
           </div>
 
           <div className="form-field">
-            <Label className="text-base font-medium text-white mb-3 block">Email Address *</Label>
+            <Label className="text-base font-medium text-white mb-3 block">
+              Email Address <span className="text-red-400">*</span>
+            </Label>
             <Input
               type="email"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
               placeholder="Enter your email address"
-              className={errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+              disabled={isLoading}
+              className={`${errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
             />
             {errors.email && <p className="text-sm text-red-400 mt-2">{errors.email}</p>}
           </div>
@@ -108,6 +141,7 @@ export function StreamlinedDemographics({ data, onNext, onBack }: StreamlinedDem
                 type="button" 
                 variant="outline" 
                 onClick={onBack}
+                disabled={isLoading || isSubmitting}
                 className="px-8 py-3 bg-dark-700 hover:bg-dark-600 text-white font-medium rounded-lg transition-all duration-200 border border-dark-600"
               >
                 Back
@@ -115,9 +149,10 @@ export function StreamlinedDemographics({ data, onNext, onBack }: StreamlinedDem
             )}
             <Button 
               type="submit" 
-              className="ml-auto px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-all duration-200"
+              disabled={isLoading || isSubmitting}
+              className="ml-auto px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Next
+              {isSubmitting ? 'Saving...' : 'Next'}
             </Button>
           </div>
         </form>
