@@ -14,28 +14,28 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DestinationHealth - Transform Your Life Through Holistic Health Coaching",
-  description: "Start your journey to optimal health with evidence-based nutritional guidance and personalized wellness strategies designed just for you.",
-  keywords: ["health coaching", "nutrition", "wellness", "truck driver health", "functional medicine", "FNTP", "holistic health"],
-  authors: [{ name: "DestinationHealth" }],
-  creator: "DestinationHealth",
-  publisher: "DestinationHealth",
+  title: "FNTP Clinical - Professional Nutrition Practice Management",
+  description: "Clinical workflow system for FNTP practitioners specializing in truck driver health and functional medicine protocols.",
+  keywords: ["FNTP", "clinical", "nutrition", "truck driver health", "functional medicine", "protocols", "practice management"],
+  authors: [{ name: "Kevin Rutherford, FNTP" }],
+  creator: "Kevin Rutherford, FNTP",
+  publisher: "FNTP Clinical",
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://destinationhealth.com'),
+  metadataBase: new URL('https://fntp-clinical.com'),
   openGraph: {
-    title: "DestinationHealth - Transform Your Life Through Holistic Health Coaching",
-    description: "Start your journey to optimal health with evidence-based nutritional guidance and personalized wellness strategies designed just for you.",
+    title: "FNTP Clinical - Professional Nutrition Practice Management",
+    description: "Clinical workflow system for FNTP practitioners specializing in truck driver health and functional medicine protocols.",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "DestinationHealth - Transform Your Life Through Holistic Health Coaching",
-    description: "Start your journey to optimal health with evidence-based nutritional guidance and personalized wellness strategies designed just for you.",
+    title: "FNTP Clinical - Professional Nutrition Practice Management",
+    description: "Clinical workflow system for FNTP practitioners specializing in truck driver health and functional medicine protocols.",
   },
 };
 
