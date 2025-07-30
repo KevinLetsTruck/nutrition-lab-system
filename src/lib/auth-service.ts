@@ -331,7 +331,7 @@ export class AuthService {
         .from('user_sessions')
         .select('*')
         .eq('user_id', decoded.userId)
-        .eq('expires_at', '>', new Date().toISOString())
+        .gt('expires_at', new Date().toISOString())
         .single()
       
       if (!session) {
