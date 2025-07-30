@@ -7,16 +7,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     hasAuthToken: !!authToken,
     authTokenValue: authToken ? authToken.value.substring(0, 20) + '...' : null,
-    allCookies: Object.fromEntries(cookies.getAll().map(cookie => [
-      cookie.name,
-      {
-        value: cookie.value.substring(0, 20) + '...',
-        path: cookie.path,
-        domain: cookie.domain,
-        secure: cookie.secure,
-        httpOnly: cookie.httpOnly
-      }
-    ]))
+    cookieNames: cookies.getAll().map(cookie => cookie.name)
   })
 }
 
