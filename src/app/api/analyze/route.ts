@@ -57,14 +57,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { labReportId, filename, clientEmail, clientFirstName, clientLastName } = await request.json()
+    const { labReportId, filename, clientEmail, clientFirstName, clientLastName, useClientPriority } = await request.json()
     
     console.log('[ANALYZE] Request params:', { 
       labReportId, 
       filename, 
       clientEmail,
       hasFirstName: !!clientFirstName,
-      hasLastName: !!clientLastName 
+      hasLastName: !!clientLastName,
+      useClientPriority
     })
     
     if (!labReportId && !filename) {
@@ -252,33 +253,67 @@ export async function POST(request: NextRequest) {
       console.log('[ANALYZE] Initializing master analyzer...')
       const analyzer = MasterAnalyzer.getInstance()
       
-      // Analyze the file with retry logic
-      console.log('[ANALYZE] Starting file analysis with retry logic...')
-      let analysisResult = null
-      let lastError = null
+      // Declare analysis result variable
+      let analysisResult: any = null
+      let lastError: any = null
       
-      for (let attempt = 1; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
-        try {
-          console.log(`[ANALYZE] Analysis attempt ${attempt}/${RETRY_CONFIG.maxRetries}...`)
-          analysisResult = await analyzer.analyzeReport(fileBuffer)
-          console.log(`[ANALYZE] Analysis successful on attempt ${attempt}`)
-          break // Success, exit retry loop
-          
-        } catch (attemptError) {
-          lastError = attemptError
-          console.error(`[ANALYZE] Analysis attempt ${attempt} failed:`, {
-            error: attemptError instanceof Error ? attemptError.message : attemptError,
-            isClaudeError: attemptError instanceof Error && attemptError.message.includes('AI analysis failed')
+      // Check if we should use client data priority
+      const shouldUseClientPriority = useClientPriority && clientEmail && clientFirstName && clientLastName
+      
+      if (shouldUseClientPriority) {
+        console.log('[ANALYZE] Using client data priority analysis...')
+        
+        // Prepare form data for client priority processing
+        const formData = {
+          clientName: `${clientFirstName} ${clientLastName}`,
+          clientEmail,
+          clientFirstName,
+          clientLastName
+        }
+        
+        // Analyze with client priority
+        analysisResult = await analyzer.analyzeReportWithClientPriority(fileBuffer, formData)
+        console.log('[ANALYZE] Client priority analysis complete')
+        
+        // Log client data priority results
+        if (analysisResult.clientData) {
+          console.log('[ANALYZE] Client data priority results:', {
+            clientName: analysisResult.clientData.clientName,
+            dataSource: analysisResult.clientData.dataSource,
+            formOverride: analysisResult.clientData.formOverride
           })
-          
-          if (attempt < RETRY_CONFIG.maxRetries) {
-            const delay = Math.min(
-              RETRY_CONFIG.initialDelay * Math.pow(RETRY_CONFIG.backoffMultiplier, attempt - 1),
-              RETRY_CONFIG.maxDelay
-            )
-            console.log(`[ANALYZE] Waiting ${delay}ms before retry...`)
-            await sleep(delay)
+        }
+      } else {
+        // Use standard analysis with retry logic
+        console.log('[ANALYZE] Starting standard file analysis with retry logic...')
+        
+        for (let attempt = 1; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
+          try {
+            console.log(`[ANALYZE] Analysis attempt ${attempt}/${RETRY_CONFIG.maxRetries}...`)
+            analysisResult = await analyzer.analyzeReport(fileBuffer)
+            console.log(`[ANALYZE] Analysis successful on attempt ${attempt}`)
+            break // Success, exit retry loop
+            
+          } catch (attemptError) {
+            lastError = attemptError
+            console.error(`[ANALYZE] Analysis attempt ${attempt} failed:`, {
+              error: attemptError instanceof Error ? attemptError.message : attemptError,
+              isClaudeError: attemptError instanceof Error && attemptError.message.includes('AI analysis failed')
+            })
+            
+            if (attempt < RETRY_CONFIG.maxRetries) {
+              const delay = Math.min(
+                RETRY_CONFIG.initialDelay * Math.pow(RETRY_CONFIG.backoffMultiplier, attempt - 1),
+                RETRY_CONFIG.maxDelay
+              )
+              console.log(`[ANALYZE] Waiting ${delay}ms before retry...`)
+              await sleep(delay)
+            }
           }
+        }
+        
+        if (!analysisResult) {
+          throw lastError || new Error('Analysis failed after all retry attempts')
         }
       }
       

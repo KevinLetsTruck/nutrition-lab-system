@@ -3,6 +3,7 @@ import ClaudeClient from '../claude-client'
 import NutriQAnalyzer, { NutriQParsedReport } from './nutriq-analyzer'
 import KBMAAnalyzer, { KBMOParsedReport } from './kbmo-analyzer'
 import DutchAnalyzer, { DutchParsedReport } from './dutch-analyzer'
+import { FormData } from '../client-data-priority'
 
 export type ReportType = 'nutriq' | 'kbmo' | 'dutch' | 'cgm' | 'food_photo'
 
@@ -159,6 +160,138 @@ export class MasterAnalyzer {
       console.error('[MASTER-ANALYZER] ===== Analysis pipeline failed =====')
       console.error('[MASTER-ANALYZER] Error after', errorTime, 'ms:', error)
       throw new Error(`Master analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  /**
+   * Analyze report with client data priority logic
+   * This ensures PDF client data takes precedence over form entries
+   */
+  async analyzeReportWithClientPriority(
+    pdfBuffer: Buffer, 
+    formData: FormData
+  ): Promise<AnalysisResult & { clientData?: any }> {
+    console.log('[MASTER-ANALYZER] ===== Starting analysis with client data priority =====')
+    const startTime = Date.now()
+    
+    try {
+      // Step 1: Parse PDF to extract text (now includes vision analysis)
+      console.log('[MASTER-ANALYZER] Step 1: Parsing PDF to extract text...')
+      const basicParsedReport = await this.pdfParser.parseLabReport(pdfBuffer)
+      console.log('[MASTER-ANALYZER] PDF parsed successfully, text length:', basicParsedReport.rawText.length)
+      
+      // Log vision analysis usage
+      if (basicParsedReport.hasImageContent) {
+        console.log('[MASTER-ANALYZER] PDF contains image content, vision analysis was used')
+        console.log('[MASTER-ANALYZER] Vision text length:', basicParsedReport.visionAnalysisText?.length || 0)
+      }
+      
+      // Step 2: Detect report type using Claude (use combined text for better detection)
+      console.log('[MASTER-ANALYZER] Step 2: Detecting report type with Claude AI...')
+      let detectedType: ReportType
+      try {
+        // Use combinedText if available, otherwise fallback to rawText
+        const textForDetection = basicParsedReport.combinedText || basicParsedReport.rawText
+        detectedType = await this.claudeClient.detectReportType(textForDetection)
+        console.log('[MASTER-ANALYZER] Report type detected:', detectedType)
+      } catch (detectError) {
+        console.error('[MASTER-ANALYZER] Failed to detect report type:', detectError)
+        throw new Error(`Failed to detect report type: ${detectError instanceof Error ? detectError.message : 'Unknown error'}`)
+      }
+      
+      // Step 3: Route to appropriate analyzer with client priority
+      console.log('[MASTER-ANALYZER] Step 3: Routing to specific analyzer with client priority for type:', detectedType)
+      let analyzedReport: AnalyzedReport
+      let clientData: any = null
+      
+      switch (detectedType) {
+        case 'nutriq':
+          console.log('[MASTER-ANALYZER] Analyzing as NutriQ report with client priority...')
+          try {
+            const nutriqResult = await this.nutriqAnalyzer.analyzeNutriQReportWithClientPriority(pdfBuffer, formData)
+            analyzedReport = nutriqResult
+            clientData = nutriqResult.clientData
+            console.log('[MASTER-ANALYZER] NutriQ analysis with client priority complete')
+          } catch (nutriqError) {
+            console.error('[MASTER-ANALYZER] NutriQ analysis with client priority failed:', nutriqError)
+            throw new Error(`NutriQ analysis failed: ${nutriqError instanceof Error ? nutriqError.message : 'Unknown error'}`)
+          }
+          break
+          
+        case 'kbmo':
+          console.log('[MASTER-ANALYZER] Analyzing as KBMO report...')
+          try {
+            analyzedReport = await this.kbmoAnalyzer.analyzeKBMReport(pdfBuffer)
+            console.log('[MASTER-ANALYZER] KBMO analysis complete')
+          } catch (kbmoError) {
+            console.error('[MASTER-ANALYZER] KBMO analysis failed:', kbmoError)
+            throw new Error(`KBMO analysis failed: ${kbmoError instanceof Error ? kbmoError.message : 'Unknown error'}`)
+          }
+          break
+          
+        case 'dutch':
+          console.log('[MASTER-ANALYZER] Analyzing as Dutch report...')
+          try {
+            analyzedReport = await this.dutchAnalyzer.analyzeDutchReport(pdfBuffer)
+            console.log('[MASTER-ANALYZER] Dutch analysis complete')
+          } catch (dutchError) {
+            console.error('[MASTER-ANALYZER] Dutch analysis failed:', dutchError)
+            throw new Error(`Dutch analysis failed: ${dutchError instanceof Error ? dutchError.message : 'Unknown error'}`)
+          }
+          break
+          
+        case 'cgm':
+          console.log('[MASTER-ANALYZER] Analyzing as CGM report...')
+          try {
+            analyzedReport = await this.analyzeCGMReport(pdfBuffer, basicParsedReport)
+            console.log('[MASTER-ANALYZER] CGM analysis complete')
+          } catch (cgmError) {
+            console.error('[MASTER-ANALYZER] CGM analysis failed:', cgmError)
+            throw new Error(`CGM analysis failed: ${cgmError instanceof Error ? cgmError.message : 'Unknown error'}`)
+          }
+          break
+          
+        case 'food_photo':
+          console.log('[MASTER-ANALYZER] Analyzing as food photo...')
+          try {
+            analyzedReport = await this.analyzeFoodPhotoReport(pdfBuffer, basicParsedReport)
+            console.log('[MASTER-ANALYZER] Food photo analysis complete')
+          } catch (foodError) {
+            console.error('[MASTER-ANALYZER] Food photo analysis failed:', foodError)
+            throw new Error(`Food photo analysis failed: ${foodError instanceof Error ? foodError.message : 'Unknown error'}`)
+          }
+          break
+          
+        default:
+          throw new Error(`Unsupported report type: ${detectedType}`)
+      }
+
+      // Step 4: Calculate confidence and processing time
+      const processingTime = Date.now() - startTime
+      const confidence = this.calculateConfidence(analyzedReport, detectedType, basicParsedReport)
+      
+      console.log('[MASTER-ANALYZER] Analysis with client priority complete:', {
+        reportType: detectedType,
+        processingTime,
+        confidence: (confidence * 100).toFixed(1) + '%',
+        clientData: clientData ? {
+          clientName: clientData.clientName,
+          dataSource: clientData.dataSource,
+          formOverride: clientData.formOverride
+        } : null
+      })
+
+      return {
+        reportType: detectedType,
+        analyzedReport,
+        processingTime,
+        confidence,
+        clientData
+      }
+      
+    } catch (error) {
+      console.error('[MASTER-ANALYZER] Analysis with client priority failed:', error)
+      throw new Error(`Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 

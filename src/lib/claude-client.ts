@@ -389,6 +389,50 @@ ${pdfText}`
     }
   }
 
+  /**
+   * Analyze NutriQ assessment with specific client context
+   * This ensures the analysis is associated with the correct client from the PDF
+   */
+  async analyzeNutriQWithClientContext(pdfText: string, clientName: string): Promise<NutriQAnalysis> {
+    const systemPrompt = `You are an expert nutritionist analyzing NutriQ/NAQ assessment results. 
+    Extract structured data about body system scores and provide detailed recommendations.
+    
+    IMPORTANT: This assessment is for client "${clientName}". Use this client name in your analysis.
+    
+    Return your analysis as a JSON object with this exact structure:
+    {
+      "totalScore": number,
+      "bodySystems": {
+        "energy": {"score": number, "issues": [string], "recommendations": [string]},
+        "mood": {"score": number, "issues": [string], "recommendations": [string]},
+        "sleep": {"score": number, "issues": [string], "recommendations": [string]},
+        "stress": {"score": number, "issues": [string], "recommendations": [string]},
+        "digestion": {"score": number, "issues": [string], "recommendations": [string]},
+        "immunity": {"score": number, "issues": [string], "recommendations": [string]}
+      },
+      "overallRecommendations": [string],
+      "priorityActions": [string],
+      "followUpTests": [string]
+    }
+    
+    Scores should be 0-100. Be thorough in your analysis and provide actionable recommendations for ${clientName}.`
+
+    const prompt = `Please analyze this NutriQ assessment for client "${clientName}" and extract all relevant data:
+
+${pdfText}
+
+IMPORTANT: This assessment belongs to ${clientName}. Ensure all recommendations and analysis are personalized for this specific client.`
+
+    const result = await this.analyzeWithClaude(prompt, systemPrompt)
+    
+    try {
+      const analysis = JSON.parse(result)
+      return analysis as NutriQAnalysis
+    } catch (error) {
+      throw new Error(`Failed to parse NutriQ analysis: ${error instanceof Error ? error.message : 'Invalid JSON'}`)
+    }
+  }
+
   async analyzeKBMO(pdfText: string): Promise<KBMAAnalysis> {
     const systemPrompt = `You are an expert analyzing KBMO food intolerance test results. 
     Extract IgG levels for different foods and categorize them by sensitivity level.

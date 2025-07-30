@@ -1,5 +1,6 @@
 import PDFLabParser, { ParsedLabReport } from './pdf-parser'
 import ClaudeClient, { NutriQAnalysis } from '../claude-client'
+import ClientDataPriorityService, { ClientData, PDFExtractedData, FormData } from '../client-data-priority'
 
 export interface NutriQParsedReport extends ParsedLabReport {
   nutriqAnalysis: NutriQAnalysis
@@ -10,10 +11,12 @@ export class NutriQAnalyzer {
   private static instance: NutriQAnalyzer
   private pdfParser: PDFLabParser
   private claudeClient: ClaudeClient
+  private clientDataService: ClientDataPriorityService
 
   private constructor() {
     this.pdfParser = PDFLabParser.getInstance()
     this.claudeClient = ClaudeClient.getInstance()
+    this.clientDataService = ClientDataPriorityService.getInstance()
   }
 
   static getInstance(): NutriQAnalyzer {
@@ -48,6 +51,73 @@ export class NutriQAnalyzer {
       return nutriqReport
     } catch (error) {
       throw new Error(`Failed to analyze NutriQ report: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  /**
+   * Analyze NutriQ report with client data priority logic
+   * This method ensures PDF client data takes precedence over form entries
+   */
+  async analyzeNutriQReportWithClientPriority(
+    pdfBuffer: Buffer, 
+    formData: FormData
+  ): Promise<NutriQParsedReport & { clientData: ClientData }> {
+    try {
+      console.log('[NUTRIQ-ANALYZER] Starting analysis with client data priority...')
+      
+      // First, parse the PDF to get basic text (now includes vision analysis)
+      const basicParsedReport = await this.pdfParser.parseLabReport(pdfBuffer)
+      
+      // Use combined text if available (includes vision analysis)
+      const textForAnalysis = basicParsedReport.combinedText || basicParsedReport.rawText
+      
+      // Extract patient information from the PDF text
+      const patientInfo = this.extractNutriQPatientInfo(textForAnalysis)
+      
+      // Prepare PDF data for client priority processing
+      const pdfData: PDFExtractedData = {
+        clientName: patientInfo.patientName,
+        assessmentDate: patientInfo.testDate,
+        systemScores: null, // Will be extracted from Claude analysis
+        rawText: textForAnalysis
+      }
+      
+      // Process client data with priority logic
+      const clientData = this.clientDataService.processClientData(formData, pdfData)
+      
+      // Validate the data before proceeding
+      const validation = this.clientDataService.validateAnalysisData(clientData, pdfData)
+      if (!validation.valid) {
+        console.warn('[NUTRIQ-ANALYZER] Data validation warnings:', validation.issues)
+      }
+      
+      // Use Claude to analyze the NutriQ assessment with correct client context
+      const nutriqAnalysis = await this.claudeClient.analyzeNutriQWithClientContext(
+        textForAnalysis, 
+        clientData.clientName
+      )
+      
+      // Update PDF data with system scores from analysis
+      pdfData.systemScores = nutriqAnalysis.bodySystems
+      
+      // Get final analysis data with correct client association
+      const analysisData = this.clientDataService.getAnalysisData(clientData, pdfData)
+      
+      console.log('[NUTRIQ-ANALYZER] Analysis complete with client data priority')
+      console.log('[NUTRIQ-ANALYZER] Data source message:', this.clientDataService.getDataSourceMessage(clientData))
+      
+      // Combine the results
+      const nutriqReport: NutriQParsedReport & { clientData: ClientData } = {
+        ...basicParsedReport,
+        ...patientInfo,
+        nutriqAnalysis,
+        reportType: 'nutriq',
+        clientData
+      }
+
+      return nutriqReport
+    } catch (error) {
+      throw new Error(`Failed to analyze NutriQ report with client priority: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
