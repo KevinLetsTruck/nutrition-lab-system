@@ -42,6 +42,8 @@ export default function ClientDashboard() {
   const [loading, setLoading] = useState(true)
   const [showNoteModal, setShowNoteModal] = useState(false)
   const [noteType, setNoteType] = useState<'interview' | 'group_coaching'>('interview')
+  const [uploading, setUploading] = useState(false)
+  const [generatingProtocol, setGeneratingProtocol] = useState(false)
 
   useEffect(() => {
     // TODO: Fetch client data from API
@@ -92,14 +94,87 @@ export default function ClientDashboard() {
     setShowNoteModal(true)
   }
 
-  const uploadDocument = () => {
-    // TODO: Implement document upload
-    console.log('Upload document for client:', clientId)
+  const uploadDocument = async () => {
+    try {
+      // Create a file input element
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = '.pdf,.jpg,.jpeg,.png,.txt'
+      input.multiple = true
+      
+      input.onchange = async (event) => {
+        const files = (event.target as HTMLInputElement).files
+        if (!files || files.length === 0) return
+        
+        setUploading(true)
+        
+        const formData = new FormData()
+        for (let i = 0; i < files.length; i++) {
+          formData.append('file', files[i])
+        }
+        
+        // Add client information
+        formData.append('clientEmail', client.email)
+        formData.append('clientFirstName', client.name.split(' ')[0])
+        formData.append('clientLastName', client.name.split(' ').slice(1).join(' '))
+        formData.append('category', 'client_documents')
+        
+        try {
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+          })
+          
+          if (response.ok) {
+            alert('Documents uploaded successfully!')
+            // Refresh the page to show new documents
+            window.location.reload()
+          } else {
+            const error = await response.json()
+            alert(`Upload failed: ${error.error}`)
+          }
+        } catch (error) {
+          console.error('Upload error:', error)
+          alert('Upload failed. Please try again.')
+        } finally {
+          setUploading(false)
+        }
+      }
+      
+      input.click()
+    } catch (error) {
+      console.error('Upload document error:', error)
+      alert('Failed to open file selector')
+      setUploading(false)
+    }
   }
 
-  const generateProtocol = () => {
-    // TODO: Implement protocol generation
-    console.log('Generate protocol for client:', clientId)
+  const generateProtocol = async () => {
+    setGeneratingProtocol(true)
+    try {
+      const response = await fetch('/api/generate-protocol', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ clientId })
+      })
+      
+      if (response.ok) {
+        const result = await response.json()
+        alert('Protocol generated successfully!')
+        // You could open the protocol in a new window or modal
+        console.log('Generated protocol:', result)
+      } else {
+        const error = await response.json()
+        alert(`Protocol generation failed: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Generate protocol error:', error)
+      alert('Failed to generate protocol. Please try again.')
+    } finally {
+      setGeneratingProtocol(false)
+    }
   }
 
   const formatDate = (dateString: string) => {
@@ -164,15 +239,17 @@ export default function ClientDashboard() {
           </button>
           <button 
             onClick={uploadDocument} 
-            className="bg-purple-600 hover:bg-purple-700 p-4 rounded-lg text-white font-medium transition-colors"
+            disabled={uploading}
+            className={`bg-purple-600 hover:bg-purple-700 p-4 rounded-lg text-white font-medium transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            + Upload Document
+            {uploading ? 'Uploading...' : '+ Upload Document'}
           </button>
           <button 
             onClick={generateProtocol} 
-            className="bg-orange-600 hover:bg-orange-700 p-4 rounded-lg text-white font-medium transition-colors"
+            disabled={generatingProtocol}
+            className={`bg-orange-600 hover:bg-orange-700 p-4 rounded-lg text-white font-medium transition-colors ${generatingProtocol ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            Generate Protocol
+            {generatingProtocol ? 'Generating...' : 'Generate Protocol'}
           </button>
         </div>
 
