@@ -4,8 +4,7 @@ import { z } from 'zod'
 export const demographicsSchema = z.object({
   first_name: z.string().min(1, 'First name is required').max(100, 'First name too long'),
   last_name: z.string().min(1, 'Last name is required').max(100, 'Last name too long'),
-  email: z.string().email('Please enter a valid email address'),
-  date_of_birth: z.string().min(1, 'Date of birth is required')
+  email: z.string().email('Please enter a valid email address')
 })
 
 // Diet approach schema
@@ -56,7 +55,6 @@ export const completeOnboardingSchema = z.object({
   first_name: demographicsSchema.shape.first_name,
   last_name: demographicsSchema.shape.last_name,
   email: demographicsSchema.shape.email,
-  date_of_birth: demographicsSchema.shape.date_of_birth,
   
   // Diet
   current_diet_approach: dietSchema.shape.current_diet_approach,

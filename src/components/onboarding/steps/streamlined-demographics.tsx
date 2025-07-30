@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { User, Mail, Calendar } from 'lucide-react'
+import { User, Mail } from 'lucide-react'
 
 interface StreamlinedDemographicsProps {
   data?: any
@@ -17,8 +17,7 @@ export function StreamlinedDemographics({ data, onNext, onBack }: StreamlinedDem
   const [formData, setFormData] = useState({
     first_name: data?.first_name || '',
     last_name: data?.last_name || '',
-    email: data?.email || '',
-    date_of_birth: data?.date_of_birth || ''
+    email: data?.email || ''
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -37,9 +36,7 @@ export function StreamlinedDemographics({ data, onNext, onBack }: StreamlinedDem
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email'
     }
-    if (!formData.date_of_birth?.trim()) {
-      newErrors.date_of_birth = 'Date of birth is required'
-    }
+
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -108,17 +105,7 @@ export function StreamlinedDemographics({ data, onNext, onBack }: StreamlinedDem
             {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="date_of_birth" className="text-white">Date of Birth *</Label>
-            <Input
-              id="date_of_birth"
-              type="date"
-              value={formData.date_of_birth}
-              onChange={(e) => handleInputChange('date_of_birth', e.target.value)}
-              className={`bg-dark-700 border-dark-600 text-white ${errors.date_of_birth ? 'border-red-500' : ''}`}
-            />
-            {errors.date_of_birth && <p className="text-sm text-red-500">{errors.date_of_birth}</p>}
-          </div>
+
 
           <div className="flex justify-between pt-6">
             {onBack && (
