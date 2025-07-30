@@ -180,7 +180,7 @@ export function StreamlinedOnboardingWizard({
         <CardContent className="text-center">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
           <p className="text-gray-300 mb-6">
-            Thank you for completing your onboarding! Your information has been saved and we'll be in touch soon.
+            Thank you for completing your onboarding! Your information has been saved and we&apos;ll be in touch soon.
           </p>
           <Button
             onClick={() => window.location.href = '/'}

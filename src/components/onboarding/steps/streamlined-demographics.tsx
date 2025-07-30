@@ -49,9 +49,9 @@ export function StreamlinedDemographics({ onNext, initialData }: StreamlinedDemo
         <CardTitle className="text-2xl font-bold text-white text-center">
           Basic Information
         </CardTitle>
-        <p className="text-gray-400 text-center">
-          Let's start with your basic contact information
-        </p>
+                    <p className="text-gray-400 text-center">
+              Let&apos;s start with your basic contact information
+            </p>
       </CardHeader>
       
       <CardContent>

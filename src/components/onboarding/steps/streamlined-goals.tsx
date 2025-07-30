@@ -90,7 +90,7 @@ export function StreamlinedGoals({ onNext, onBack, initialData }: StreamlinedGoa
               value={formData.primaryConcern}
               onChange={(e) => handleInputChange('primaryConcern', e.target.value)}
               className="w-full p-3 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[80px] resize-y"
-              placeholder="Describe your main health concern or what you'd like to improve..."
+              placeholder="Describe your main health concern or what you&apos;d like to improve..."
             />
           </div>
 

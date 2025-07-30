@@ -96,7 +96,7 @@ export function StreamlinedTruckInfo({ onNext, onBack, initialData }: Streamline
           {/* Schedule Pattern */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              What's your typical driving schedule?
+              What&apos;s your typical driving schedule?
             </label>
             <select
               value={formData.schedulePattern}
