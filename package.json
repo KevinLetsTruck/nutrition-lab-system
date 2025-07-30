@@ -9,6 +9,7 @@
     "lint": "next lint",
     "db:query": "node scripts/query-runner.js",
     "db:migrate": "node scripts/run-onboarding-migration-simple.js",
+    "db:migrate:streamlined": "node scripts/run-streamlined-migration.js",
     "db:seed": "node scripts/seed.js",
     "storage:init": "node scripts/init-storage.js",
     "storage:test": "node scripts/test-storage.js",
@@ -23,6 +24,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.18.0",
+    "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-dropdown-menu": "^2.1.15",
     "@radix-ui/react-select": "^2.2.5",
@@ -47,11 +49,13 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-dropzone": "^14.3.8",
+    "react-hook-form": "^7.61.1",
     "recharts": "^3.1.0",
     "resend": "^3.3.0",
     "sharp": "^0.34.3",
     "tailwind-merge": "^3.3.1",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "zod": "^4.0.13"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
