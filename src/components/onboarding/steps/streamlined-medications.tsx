@@ -96,7 +96,7 @@ export function StreamlinedMedications({ data, onNext, onBack, onSave, isLoading
           {/* Current Medications Section */}
           <div className="form-field">
             <Label className="text-base font-medium text-white mb-3 block">Current Medications</Label>
-            <p className="text-sm text-gray-400 mb-4">List any prescription medications you're currently taking</p>
+            <p className="text-sm text-gray-400 mb-4">List any prescription medications you{`'`}re currently taking</p>
             <div className="flex space-x-3">
               <Input
                 value={newMedication}
@@ -139,7 +139,7 @@ export function StreamlinedMedications({ data, onNext, onBack, onSave, isLoading
           {/* Supplements Section */}
           <div className="form-field">
             <Label className="text-base font-medium text-white mb-3 block">Supplements</Label>
-            <p className="text-sm text-gray-400 mb-4">List any vitamins, minerals, or other supplements you're taking</p>
+            <p className="text-sm text-gray-400 mb-4">List any vitamins, minerals, or other supplements you{`'`}re taking</p>
             <div className="flex space-x-3">
               <Input
                 value={newSupplement}
