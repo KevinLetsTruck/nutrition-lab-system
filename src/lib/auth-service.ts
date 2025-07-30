@@ -327,12 +327,15 @@ export class AuthService {
       const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload
       
       // Check if session exists and is valid
-      const { data: session } = await this.supabase
+      const { data: sessions } = await this.supabase
         .from('user_sessions')
         .select('*')
         .eq('user_id', decoded.userId)
         .gt('expires_at', new Date().toISOString())
-        .single()
+        .order('created_at', { ascending: false })
+        .limit(1)
+      
+      const session = sessions?.[0]
       
       if (!session) {
         return { valid: false, error: 'Session expired' }
