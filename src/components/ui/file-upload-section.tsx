@@ -140,7 +140,7 @@ export function FileUploadSection() {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              filename: fileResult.filename,
+              labReportId: fileResult.labReportId,  // Using labReportId instead of filename
               clientEmail: clientInfo.email,
               clientFirstName: clientInfo.firstName,
               clientLastName: clientInfo.lastName

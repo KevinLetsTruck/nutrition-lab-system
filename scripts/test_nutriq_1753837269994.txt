@@ -1,0 +1,13 @@
+NUTRITIONAL ASSESSMENT QUESTIONNAIRE (NAQ)
+    
+Test Patient Results
+Date: 2025-07-30
+
+Symptom Burden Score: 85
+This is a test lab report for validating the analysis pipeline.
+
+Key Findings:
+- Vitamin D deficiency
+- Elevated inflammation markers
+- Digestive issues noted
+    

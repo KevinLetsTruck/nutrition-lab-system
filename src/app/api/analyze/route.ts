@@ -105,85 +105,111 @@ export async function POST(request: NextRequest) {
           created_at: labReport.created_at
         })
 
-        // Download file from Supabase Storage
-        if (labReport.file_path) {
-          // Extract bucket from file path or use default
-          const bucket = determineBucketFromPath(labReport.file_path, labReport.report_type)
-          
-          // Clean the file path - remove bucket name if it's included
-          let cleanPath = labReport.file_path
-          if (cleanPath.startsWith(bucket + '/')) {
-            cleanPath = cleanPath.substring(bucket.length + 1)
-          }
-          
-          console.log('[ANALYZE] File download attempt:', {
-            bucket,
-            originalPath: labReport.file_path,
-            cleanPath,
-            reportType: labReport.report_type
-          })
-          
-          try {
-            fileBuffer = await loadFile(bucket, cleanPath)
-            
-            if (!fileBuffer) {
-              // Try with original path if clean path fails
-              console.log('[ANALYZE] Retrying with original path...')
-              fileBuffer = await loadFile(bucket, labReport.file_path)
-            }
-            
-            if (!fileBuffer) {
-              logError('FILE_RETRIEVAL', new Error('Failed to retrieve file'), {
-                bucket,
-                path: labReport.file_path,
-                cleanPath,
-                reportType: labReport.report_type
-              })
-              
-              // Update report status to failed
-              await db.updateLabReport(labReport.id, {
-                status: 'failed',
-                notes: 'Failed to retrieve file from storage - file may have been deleted or moved'
-              })
-              
-              return NextResponse.json(
-                { 
-                  error: 'Failed to retrieve file from storage',
-                  details: 'The file could not be found in storage. It may have been deleted or moved.',
-                  bucket,
-                  path: labReport.file_path
-                },
-                { status: 404 }
-              )
-            }
-            
-            console.log('[ANALYZE] File retrieved successfully:', {
-              size: fileBuffer.length,
-              sizeKB: (fileBuffer.length / 1024).toFixed(2) + ' KB'
-            })
-            
-          } catch (storageError) {
-            logError('STORAGE_ACCESS', storageError, {
-              bucket,
-              path: labReport.file_path
-            })
-            
-            return NextResponse.json(
-              { 
-                error: 'Storage access error',
-                details: storageError instanceof Error ? storageError.message : 'Failed to access file storage'
-              },
-              { status: 500 }
-            )
-          }
-        } else {
+        // Check if file_path exists
+        if (!labReport.file_path) {
           console.error('[ANALYZE] No file path found in lab report')
           return NextResponse.json(
             { 
               error: 'No file path found for this lab report',
-              details: 'The lab report record does not contain a file path'
+              details: 'The lab report record does not contain a file path',
+              labReportId: labReport.id
             },
             { status: 400 }
+          )
+        }
+
+        // Download file from Supabase Storage
+        console.log('[ANALYZE] Attempting to download file from storage...')
+        // Extract bucket from file path or use default
+        const bucket = determineBucketFromPath(labReport.file_path, labReport.report_type)
+        
+        // Clean the file path - remove bucket name if it's included
+        let cleanPath = labReport.file_path
+        if (cleanPath.startsWith(bucket + '/')) {
+          cleanPath = cleanPath.substring(bucket.length + 1)
+        }
+        
+        console.log('[ANALYZE] File download attempt:', {
+          bucket,
+          originalPath: labReport.file_path,
+          cleanPath,
+          reportType: labReport.report_type,
+          pathStartsWithBucket: labReport.file_path.startsWith(bucket + '/')
+        })
+        
+        try {
+          fileBuffer = await loadFile(bucket, cleanPath)
+          
+          if (!fileBuffer) {
+            // Try with original path if clean path fails
+            console.log('[ANALYZE] Retrying with original path...')
+            fileBuffer = await loadFile(bucket, labReport.file_path)
+          }
+          
+          // If still not found, try other buckets
+          if (!fileBuffer) {
+            console.log('[ANALYZE] File not found in primary bucket, trying other buckets...')
+            const buckets = ['general', 'lab-files', 'cgm-images', 'food-photos', 'medical-records', 'supplements']
+            
+            for (const tryBucket of buckets) {
+              if (tryBucket === bucket) continue // Skip the bucket we already tried
+              
+              console.log(`[ANALYZE] Trying bucket: ${tryBucket}`)
+              fileBuffer = await loadFile(tryBucket, cleanPath)
+              
+              if (!fileBuffer && cleanPath !== labReport.file_path) {
+                fileBuffer = await loadFile(tryBucket, labReport.file_path)
+              }
+              
+              if (fileBuffer) {
+                console.log(`[ANALYZE] File found in ${tryBucket} bucket!`)
+                break
+              }
+            }
+          }
+          
+          if (!fileBuffer) {
+            logError('FILE_RETRIEVAL', new Error('Failed to retrieve file'), {
+              bucket,
+              path: labReport.file_path,
+              cleanPath,
+              reportType: labReport.report_type
+            })
+            
+            // Update report status to failed
+            await db.updateLabReport(labReport.id, {
+              status: 'failed',
+              notes: 'Failed to retrieve file from storage - file may have been deleted or moved'
+            })
+            
+            return NextResponse.json(
+              { 
+                error: 'Failed to retrieve file from storage',
+                details: 'The file could not be found in storage. It may have been deleted or moved.',
+                bucket,
+                path: labReport.file_path
+              },
+              { status: 404 }
+            )
+          }
+          
+          console.log('[ANALYZE] File retrieved successfully:', {
+            size: fileBuffer.length,
+            sizeKB: (fileBuffer.length / 1024).toFixed(2) + ' KB'
+          })
+          
+        } catch (storageError) {
+          logError('STORAGE_ACCESS', storageError, {
+            bucket,
+            path: labReport.file_path
+          })
+          
+          return NextResponse.json(
+            { 
+              error: 'Storage access error',
+              details: storageError instanceof Error ? storageError.message : 'Failed to access file storage'
+            },
+            { status: 500 }
           )
         }
       } catch (error) {
@@ -383,26 +409,10 @@ function determineBucketFromPath(filePath: string, reportType: string): string {
     }
   }
   
-  // Fallback to bucket based on report type
-  let bucket: string
-  switch (reportType) {
-    case 'nutriq':
-    case 'kbmo':
-    case 'dutch':
-      bucket = 'lab-files'
-      break
-    case 'cgm':
-      bucket = 'cgm-images'
-      break
-    case 'food_photo':
-      bucket = 'food-photos'
-      break
-    default:
-      bucket = 'general'
-  }
-  
-  console.log('[ANALYZE] Bucket determined from report type:', bucket)
-  return bucket
+  // IMPORTANT: Recent files are being uploaded to 'general' bucket by default
+  // Check general bucket first for all report types
+  console.log('[ANALYZE] No bucket in path, defaulting to general bucket')
+  return 'general'
 }
 
 export async function GET(request: NextRequest) {
