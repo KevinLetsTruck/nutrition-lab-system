@@ -116,12 +116,64 @@ export class StreamlinedOnboardingService {
     }
   }
 
+  // Map form field names to database column names
+  private mapFormDataToDatabase(data: any): any {
+    // Only map to columns that actually exist in the database
+    const fieldMapping: Record<string, string | undefined> = {
+      // Diet fields - map to existing columns
+      dietType: 'current_diet_approach',
+      
+      // Goals fields - map to existing columns
+      healthGoals: 'primary_health_goal',
+      
+      // Medications fields - map to existing columns
+      currentMedications: 'current_medications',
+      supplements: 'current_supplements',
+      
+      // Other fields that might be sent but don't have database columns
+      // These will be filtered out since they don't exist in the database
+      dateOfBirth: undefined, // Removed from database
+      medications: 'current_medications', // Alias for currentMedications
+      
+      // Fields that don't exist in database - will be filtered out
+      dietaryRestrictions: undefined,
+      foodAllergies: undefined,
+      mealFrequency: undefined,
+      waterIntake: undefined,
+      primaryConcern: undefined,
+      timeline: undefined,
+      medicalConditions: undefined
+    }
+
+    const mappedData: any = {}
+    
+    // Map fields that need conversion and exist in database
+    Object.entries(data).forEach(([key, value]) => {
+      const databaseField = fieldMapping[key]
+      
+      if (databaseField === undefined) {
+        // Field doesn't exist in database, skip it
+        console.log(`Skipping field '${key}' - no database column`)
+        return
+      }
+      
+      const finalField = databaseField || key
+      mappedData[finalField] = value
+    })
+    
+    console.log('Field mapping:', { original: data, mapped: mappedData })
+    return mappedData
+  }
+
   // Save step data
   async saveStepData(sessionToken: string, step: string, data: Partial<CompleteOnboardingData>): Promise<void> {
     console.log('Saving step data:', { sessionToken, step, data })
     
+    // Map form field names to database column names
+    const mappedData = this.mapFormDataToDatabase(data)
+    
     const updateData = {
-      ...data,
+      ...mappedData,
       current_step: step,
       last_activity: new Date().toISOString()
     }
@@ -141,6 +193,35 @@ export class StreamlinedOnboardingService {
     console.log('Step data saved successfully')
   }
 
+  // Map database column names back to form field names
+  private mapDatabaseToFormData(data: any): any {
+    // Only map columns that actually exist in the database
+    const reverseFieldMapping: Record<string, string> = {
+      // Diet fields - map from existing columns
+      current_diet_approach: 'dietType',
+      
+      // Goals fields - map from existing columns
+      primary_health_goal: 'healthGoals',
+      
+      // Medications fields - map from existing columns
+      current_medications: 'currentMedications',
+      current_supplements: 'supplements'
+      
+      // Note: We don't map back fields that don't exist in the database
+      // like date_of_birth, dietary_restrictions, etc.
+    }
+
+    const mappedData: any = {}
+    
+    // Map fields that need conversion and exist in database
+    Object.entries(data).forEach(([key, value]) => {
+      const formField = reverseFieldMapping[key] || key
+      mappedData[formField] = value
+    })
+    
+    return mappedData
+  }
+
   // Get current onboarding data
   async getOnboardingData(sessionToken: string): Promise<Partial<CompleteOnboardingData> | null> {
     const { data, error } = await this.supabase
@@ -153,21 +234,8 @@ export class StreamlinedOnboardingService {
       return null
     }
 
-    return {
-      first_name: data.first_name,
-      last_name: data.last_name,
-      email: data.email,
-      current_diet_approach: data.current_diet_approach,
-      diet_duration_months: data.diet_duration_months,
-      current_medications: data.current_medications,
-      current_supplements: data.current_supplements,
-      primary_health_goal: data.primary_health_goal,
-      years_driving: data.years_driving,
-      route_type: data.route_type,
-      schedule_pattern: data.schedule_pattern,
-      dot_medical_status: data.dot_medical_status,
-      dot_expiry_date: data.dot_expiry_date
-    }
+    // Map database fields back to form field names
+    return this.mapDatabaseToFormData(data)
   }
 
   // Complete onboarding
