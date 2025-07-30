@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { Button } from './button'
 import { Loader2, FileText, Calendar, User, TrendingUp, AlertCircle } from 'lucide-react'
 
@@ -184,9 +185,11 @@ export function RecentResults() {
       
       {results.length >= 5 && (
         <div className="text-center pt-4">
-          <Button variant="outline" size="sm">
-            View All Results
-          </Button>
+          <Link href="/results">
+            <Button variant="outline" size="sm">
+              View All Results
+            </Button>
+          </Link>
         </div>
       )}
     </div>

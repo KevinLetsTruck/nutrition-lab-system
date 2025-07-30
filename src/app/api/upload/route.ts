@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { saveFile, validateFile, generateUniqueFilename, getFileInfo } from '@/lib/file-utils'
 import { getRateLimiter, getClientIdentifier, createRateLimitHeaders } from '@/lib/rate-limiter'
 import { db } from '@/lib/supabase'
+import MasterAnalyzer from '@/lib/lab-analyzers/master-analyzer'
+import DatabaseService from '@/lib/database-service'
 
 export async function POST(request: NextRequest) {
   try {
@@ -118,6 +120,34 @@ export async function POST(request: NextRequest) {
           clientLastName,
           reportType
         })
+        
+        // Trigger analysis automatically after successful upload
+        console.log('[UPLOAD] Triggering automatic analysis for report:', labReport.id)
+        
+        // Make an internal request to the analyze endpoint
+        const baseUrl = request.headers.get('host') || 'localhost:3000'
+        const protocol = request.headers.get('x-forwarded-proto') || 'http'
+        const analyzeUrl = `${protocol}://${baseUrl}/api/analyze`
+        
+        fetch(analyzeUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            labReportId: labReport.id
+          })
+        }).then(response => {
+          if (response.ok) {
+            console.log('[UPLOAD] Analysis triggered successfully for report:', labReport.id)
+          } else {
+            console.error('[UPLOAD] Failed to trigger analysis for report:', labReport.id, response.status)
+          }
+        }).catch(error => {
+          console.error('[UPLOAD] Error triggering analysis for report:', labReport.id, error)
+        })
+        
+        // Don't wait for analysis to complete - return upload success immediately
         
       } catch (error) {
         console.error('Error processing file:', file.name, error)
