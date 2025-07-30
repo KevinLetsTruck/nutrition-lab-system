@@ -3,11 +3,12 @@ import { createServerSupabaseClient } from '@/lib/supabase'
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = createServerSupabaseClient()
-    const { id: reportId } = await params
+    const params = await context.params
+    const reportId = params.id
     
     // Delete the lab report
     const { error } = await supabase
