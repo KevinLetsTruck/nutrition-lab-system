@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/ui/header'
+import { ProfessionalReport } from '@/components/lab/professional-report'
 import { 
   FileText, 
   RefreshCw, 
@@ -12,7 +13,9 @@ import {
   Clock, 
   AlertCircle,
   Play,
-  Trash2
+  Trash2,
+  Eye,
+  EyeOff
 } from 'lucide-react'
 
 interface LabReport {
@@ -38,6 +41,7 @@ export default function ResultsPage() {
   const [loading, setLoading] = useState(true)
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set())
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
+  const [viewMode, setViewMode] = useState<'professional' | 'raw'>('professional')
 
   useEffect(() => {
     fetchReports()
@@ -196,6 +200,28 @@ export default function ResultsPage() {
               </Button>
             )}
           </div>
+          
+          {/* View Mode Toggle */}
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setViewMode('professional')}
+              variant="outline"
+              size="sm"
+              className={viewMode === 'professional' ? 'bg-primary-600 hover:bg-primary-700 border-primary-600' : 'bg-dark-800 border-dark-600'}
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              Professional View
+            </Button>
+            <Button
+              onClick={() => setViewMode('raw')}
+              variant="outline"
+              size="sm"
+              className={viewMode === 'raw' ? 'bg-primary-600 hover:bg-primary-700 border-primary-600' : 'bg-dark-800 border-dark-600'}
+            >
+              <EyeOff className="h-4 w-4 mr-2" />
+              Raw Data
+            </Button>
+          </div>
         </div>
 
         {/* Status Filter Tabs */}
@@ -254,16 +280,38 @@ export default function ResultsPage() {
                       </div>
 
                       {report.status === 'completed' && report.analysis_results && (
-                        <div className="mt-4 p-4 bg-dark-700 rounded-lg">
-                          <h4 className="text-sm font-medium text-white mb-2">Analysis Summary</h4>
-                          <pre className="text-xs text-dark-300 overflow-x-auto">
-                            {JSON.stringify(report.analysis_results.summary || report.analysis_results, null, 2)}
-                          </pre>
+                        <div className="mt-4">
+                          {viewMode === 'professional' ? (
+                            <ProfessionalReport
+                              analysisResults={report.analysis_results}
+                              reportType={report.report_type}
+                              clientName={report.client ? `${report.client.first_name} ${report.client.last_name}` : undefined}
+                              reportDate={report.report_date}
+                            />
+                          ) : (
+                            <div className="p-4 bg-dark-700 rounded-lg">
+                              <h4 className="text-sm font-medium text-white mb-2">Raw Analysis Data</h4>
+                              <pre className="text-xs text-dark-300 overflow-x-auto">
+                                {JSON.stringify(report.analysis_results.summary || report.analysis_results, null, 2)}
+                              </pre>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
 
                     <div className="flex gap-2 ml-4">
+                      {report.status === 'completed' && (
+                        <Button
+                          onClick={() => window.open(`/reports/${report.id}`, '_blank')}
+                          size="sm"
+                          className="bg-primary-600 hover:bg-primary-700"
+                        >
+                          <Eye className="h-4 w-4" />
+                          <span className="ml-1">View Full Report</span>
+                        </Button>
+                      )}
+                      
                       {report.status === 'pending' && (
                         <Button
                           onClick={() => processReport(report.id)}
