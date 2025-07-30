@@ -121,24 +121,22 @@ export async function POST(request: NextRequest) {
 
         // Download file from Supabase Storage
         console.log('[ANALYZE] Attempting to download file from storage...')
-        // Extract bucket from file path or use default
-        const bucket = determineBucketFromPath(labReport.file_path, labReport.report_type)
         
-        // Clean the file path - remove bucket name if it's included
-        let cleanPath = labReport.file_path
-        if (cleanPath.startsWith(bucket + '/')) {
-          cleanPath = cleanPath.substring(bucket.length + 1)
-        }
+        // For recent uploads, try general bucket first since that's where uploads go
+        console.log('[ANALYZE] Trying general bucket first for recent uploads...')
+        fileBuffer = await loadFile('general', labReport.file_path)
         
-        console.log('[ANALYZE] File download attempt:', {
-          bucket,
-          originalPath: labReport.file_path,
-          cleanPath,
-          reportType: labReport.report_type,
-          pathStartsWithBucket: labReport.file_path.startsWith(bucket + '/')
-        })
-        
-        try {
+        if (!fileBuffer) {
+          // If not in general, try the determined bucket
+          const bucket = determineBucketFromPath(labReport.file_path, labReport.report_type)
+          console.log('[ANALYZE] File not in general, trying determined bucket:', bucket)
+          
+          // Clean the file path - remove bucket name if it's included
+          let cleanPath = labReport.file_path
+          if (cleanPath.startsWith(bucket + '/')) {
+            cleanPath = cleanPath.substring(bucket.length + 1)
+          }
+          
           fileBuffer = await loadFile(bucket, cleanPath)
           
           if (!fileBuffer) {
@@ -146,28 +144,7 @@ export async function POST(request: NextRequest) {
             console.log('[ANALYZE] Retrying with original path...')
             fileBuffer = await loadFile(bucket, labReport.file_path)
           }
-          
-          // If still not found, try other buckets
-          if (!fileBuffer) {
-            console.log('[ANALYZE] File not found in primary bucket, trying other buckets...')
-            const buckets = ['general', 'lab-files', 'cgm-images', 'food-photos', 'medical-records', 'supplements']
-            
-            for (const tryBucket of buckets) {
-              if (tryBucket === bucket) continue // Skip the bucket we already tried
-              
-              console.log(`[ANALYZE] Trying bucket: ${tryBucket}`)
-              fileBuffer = await loadFile(tryBucket, cleanPath)
-              
-              if (!fileBuffer && cleanPath !== labReport.file_path) {
-                fileBuffer = await loadFile(tryBucket, labReport.file_path)
-              }
-              
-              if (fileBuffer) {
-                console.log(`[ANALYZE] File found in ${tryBucket} bucket!`)
-                break
-              }
-            }
-          }
+        }
           
           if (!fileBuffer) {
             logError('FILE_RETRIEVAL', new Error('Failed to retrieve file'), {
