@@ -40,7 +40,7 @@ export class EmailService {
       
       const client = getResendClient()
       await client.emails.send({
-        from: 'Kevin Rutherford <kevin@destinationhealth.com>',
+        from: 'Kevin Rutherford <onboarding@resend.dev>',
         to: email,
         subject: 'Verify Your Email - DestinationHealth',
         html
@@ -92,7 +92,7 @@ export class EmailService {
 
       const client = getResendClient()
       await client.emails.send({
-        from: 'Kevin Rutherford <kevin@destinationhealth.com>',
+        from: 'Kevin Rutherford <onboarding@resend.dev>',
         to: user.email,
         subject: emailConfig.subject,
         html

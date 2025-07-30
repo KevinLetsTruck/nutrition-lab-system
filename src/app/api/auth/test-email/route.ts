@@ -15,7 +15,7 @@ export async function GET() {
     
     // Test sending a simple email
     const result = await resend.emails.send({
-      from: 'Kevin Rutherford <kevin@destinationhealth.com>',
+      from: 'Kevin Rutherford <onboarding@resend.dev>',
       to: 'trucktax@icloud.com',
       subject: 'Test Email from Nutrition Lab System',
       html: '<h1>Test Email</h1><p>This is a test email to verify the email service is working.</p>'
