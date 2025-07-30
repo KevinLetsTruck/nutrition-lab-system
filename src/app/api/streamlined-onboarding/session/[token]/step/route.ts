@@ -7,6 +7,20 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
+  return handleStepRequest(request, params)
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ token: string }> }
+) {
+  return handleStepRequest(request, params)
+}
+
+async function handleStepRequest(
+  request: NextRequest,
+  params: Promise<{ token: string }>
+) {
   const { token } = await params
   try {
     const { step, data } = await request.json()
