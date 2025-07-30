@@ -1,21 +1,48 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!.trim()
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!.trim()
+// Safe environment variable processing
+const safeTrim = (value: string | undefined): string => {
+  return value?.trim() || ''
+}
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+const supabaseUrl = safeTrim(process.env.NEXT_PUBLIC_SUPABASE_URL)
+const supabaseAnonKey = safeTrim(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+
+// Single instance pattern for client-side Supabase
+let supabaseInstance: SupabaseClient | null = null
+
+export const getSupabaseClient = (): SupabaseClient => {
+  if (!supabaseInstance) {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Missing Supabase environment variables')
+    }
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey)
+  }
+  return supabaseInstance
+}
+
+export const supabase = getSupabaseClient()
 
 // Server-side Supabase client with service role key
-export const createServerSupabaseClient = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!.trim()
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!.trim()
-  
-  return createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
+let serverSupabaseInstance: SupabaseClient | null = null
+
+export const createServerSupabaseClient = (): SupabaseClient => {
+  if (!serverSupabaseInstance) {
+    const serverSupabaseUrl = safeTrim(process.env.NEXT_PUBLIC_SUPABASE_URL)
+    const supabaseServiceKey = safeTrim(process.env.SUPABASE_SERVICE_ROLE_KEY)
+    
+    if (!serverSupabaseUrl || !supabaseServiceKey) {
+      throw new Error('Missing Supabase service role environment variables')
     }
-  })
+    
+    serverSupabaseInstance = createClient(serverSupabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+  }
+  return serverSupabaseInstance
 }
 
 // Database utility functions

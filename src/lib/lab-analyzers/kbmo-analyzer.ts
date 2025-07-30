@@ -60,7 +60,7 @@ export class KBMAAnalyzer {
 
     for (const pattern of namePatterns) {
       const match = rawText.match(pattern)
-      if (match) {
+      if (match && match[1]) {
         patientInfo.patientName = match[1].trim()
         break
       }

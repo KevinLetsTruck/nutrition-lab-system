@@ -22,11 +22,17 @@ export function Header() {
             <Link href="/" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
               Home
             </Link>
+            <Link href="/onboarding" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+              New Client
+            </Link>
+            <Link href="/streamlined-onboarding" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+              Quick Onboarding
+            </Link>
             <Link href="/results" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
               View Results
             </Link>
-            <Link href="/test-tailwind" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
-              Test
+            <Link href="/reports" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+              Reports
             </Link>
           </nav>
         </div>

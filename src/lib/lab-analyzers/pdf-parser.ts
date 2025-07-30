@@ -307,7 +307,7 @@ export class PDFLabParser {
     
     // Extract patient name
     const nameMatch = text.match(/Patient Name[:\s]*([A-Za-z\s]+)/i)
-    if (nameMatch) {
+    if (nameMatch && nameMatch[1]) {
       report.patientName = nameMatch[1].trim()
     }
     
@@ -337,7 +337,7 @@ export class PDFLabParser {
         else if (numValue > maxRefNum) status = 'high'
         
         report.results.push({
-          testName: testName.trim(),
+          testName: testName?.trim() || '',
           value,
           unit,
           referenceRange: `${minRef} - ${maxRef}`,
@@ -351,7 +351,7 @@ export class PDFLabParser {
   private checkIfNeedsVisionAnalysis(text: string, pdfData: any): boolean {
     // Check various conditions that indicate we need vision analysis
     const conditions = [
-      text.trim().length < 100,                            // Very little text extracted
+      text?.trim().length < 100,                            // Very little text extracted
       text.split('\n').length < 10,                        // Very few lines
       !text.match(/[a-zA-Z]{5,}/g),                       // No meaningful words
       text.toLowerCase().includes('image'),                // References to images
@@ -377,7 +377,7 @@ export class PDFLabParser {
       return textExtract
     }
     
-    if (!textExtract || textExtract.trim().length < 50) {
+    if (!textExtract || textExtract?.trim().length < 50) {
       return visionExtract
     }
     

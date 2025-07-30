@@ -8,8 +8,8 @@ export interface FileUploadConfig {
 
 // Configuration for file uploads
 export const defaultFileConfig: FileUploadConfig = {
-  maxSize: parseInt((process.env.MAX_FILE_SIZE || '10485760').trim()), // 10MB
-  allowedTypes: (process.env.ALLOWED_FILE_TYPES || 'pdf,jpg,jpeg,png,txt').split(',').map(type => type.trim())
+  maxSize: parseInt((process.env.MAX_FILE_SIZE || '10485760')?.trim() || '10485760'), // 10MB
+  allowedTypes: (process.env.ALLOWED_FILE_TYPES || 'pdf,jpg,jpeg,png,txt').split(',').map(type => type?.trim() || '')
 }
 
 // Upload file to Supabase Storage

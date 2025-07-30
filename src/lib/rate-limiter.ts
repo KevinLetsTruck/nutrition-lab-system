@@ -73,8 +73,8 @@ class RateLimiter {
 // Create rate limiters for different endpoints
 const rateLimiters = {
   analyze: new RateLimiter({
-    maxRequests: parseInt((process.env.RATE_LIMIT_MAX_REQUESTS || '100').trim()),
-    windowMs: parseInt((process.env.RATE_LIMIT_WINDOW_MS || '900000').trim()) // 15 minutes
+    maxRequests: parseInt((process.env.RATE_LIMIT_MAX_REQUESTS || '100')?.trim() || '100'),
+    windowMs: parseInt((process.env.RATE_LIMIT_WINDOW_MS || '900000')?.trim() || '900000') // 15 minutes
   }),
   upload: new RateLimiter({
     maxRequests: 50,

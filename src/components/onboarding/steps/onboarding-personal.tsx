@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { User, Phone, Mail, Calendar, MapPin, Shield } from 'lucide-react'
+import { processSafeFormData, validateFormData, debugFormData } from '@/lib/utils'
 
 interface PersonalData {
   firstName: string
@@ -51,31 +52,15 @@ export function OnboardingPersonal({ data, onUpdate, onComplete }: OnboardingPer
   }, [formData, onUpdate])
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<PersonalData> = {}
-
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required'
-    }
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required'
-    }
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required'
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address'
-    }
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required'
-    }
-    if (!formData.dateOfBirth) {
-      newErrors.dateOfBirth = 'Date of birth is required'
-    }
-    if (!formData.gender) {
-      newErrors.gender = 'Gender is required'
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    // Debug form data to help identify issues
+    debugFormData(formData, 'Onboarding Personal Form')
+    
+    // Process form data safely
+    const safeData = processSafeFormData(formData)
+    const validation = validateFormData(safeData)
+    
+    setErrors(validation.errors)
+    return validation.valid
   }
 
   const handleSubmit = () => {

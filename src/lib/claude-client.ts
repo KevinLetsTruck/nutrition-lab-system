@@ -336,7 +336,7 @@ ${pdfText.substring(0, 2000)}...`
 
     try {
       const result = await this.analyzeWithClaude(prompt, systemPrompt)
-      const detectedType = result.toLowerCase().trim() as any
+      const detectedType = result?.toLowerCase().trim() as any
       
       console.log('[CLAUDE] Detected report type:', detectedType)
       

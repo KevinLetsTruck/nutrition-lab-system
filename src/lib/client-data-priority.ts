@@ -87,7 +87,7 @@ export class ClientDataPriorityService {
 
     for (const pattern of namePatterns) {
       const match = rawText.match(pattern)
-      if (match) {
+      if (match && match[1]) {
         const extractedName = match[1].trim()
         // Validate that it looks like a real name (not empty, has letters)
         if (extractedName && /[A-Za-z]/.test(extractedName)) {
@@ -105,7 +105,7 @@ export class ClientDataPriorityService {
    * Extract first name from full name
    */
   private extractFirstName(fullName: string): string {
-    const parts = fullName.trim().split(/\s+/)
+    const parts = fullName?.trim().split(/\s+/) || []
     return parts[0] || ''
   }
 
@@ -113,7 +113,7 @@ export class ClientDataPriorityService {
    * Extract last name from full name
    */
   private extractLastName(fullName: string): string {
-    const parts = fullName.trim().split(/\s+/)
+    const parts = fullName?.trim().split(/\s+/) || []
     return parts.length > 1 ? parts.slice(1).join(' ') : ''
   }
 
