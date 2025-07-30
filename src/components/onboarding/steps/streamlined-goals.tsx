@@ -44,7 +44,7 @@ export function StreamlinedGoals({ data, onNext, onBack }: StreamlinedGoalsProps
     setFormData(prev => ({
       ...prev,
       healthGoals: prev.healthGoals.includes(goal)
-        ? prev.healthGoals.filter(g => g !== goal)
+        ? prev.healthGoals.filter((g: string) => g !== goal)
         : [...prev.healthGoals, goal]
     }))
   }

@@ -12,9 +12,10 @@ interface StreamlinedDotStatusProps {
   data?: any
   onNext: (data: any) => void
   onBack?: () => void
+  onComplete?: (data: any) => void
 }
 
-export function StreamlinedDotStatus({ data, onNext, onBack }: StreamlinedDotStatusProps) {
+export function StreamlinedDotStatus({ data, onNext, onBack, onComplete }: StreamlinedDotStatusProps) {
   const [formData, setFormData] = useState({
     dotStatus: data?.dotStatus || '',
     lastPhysical: data?.lastPhysical || '',
@@ -26,7 +27,11 @@ export function StreamlinedDotStatus({ data, onNext, onBack }: StreamlinedDotSta
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onNext(formData)
+    if (onComplete) {
+      onComplete(formData)
+    } else {
+      onNext(formData)
+    }
   }
 
   const handleInputChange = (field: string, value: any) => {
@@ -103,7 +108,7 @@ export function StreamlinedDotStatus({ data, onNext, onBack }: StreamlinedDotSta
                         onCheckedChange={(checked) => {
                           const newRestrictions = checked
                             ? [...formData.restrictions, restriction]
-                            : formData.restrictions.filter(r => r !== restriction)
+                            : formData.restrictions.filter((r: string) => r !== restriction)
                           handleInputChange('restrictions', newRestrictions)
                         }}
                       />
@@ -122,7 +127,7 @@ export function StreamlinedDotStatus({ data, onNext, onBack }: StreamlinedDotSta
               </Button>
             )}
             <Button type="submit" className="ml-auto">
-              Complete Onboarding
+              {onComplete ? 'Complete Onboarding' : 'Next'}
             </Button>
           </div>
         </form>

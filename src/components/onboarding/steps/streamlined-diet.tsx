@@ -74,7 +74,7 @@ export function StreamlinedDiet({ data, onNext, onBack }: StreamlinedDietProps) 
                     onCheckedChange={(checked) => {
                       const newAllergies = checked
                         ? [...formData.foodAllergies, allergy]
-                        : formData.foodAllergies.filter(a => a !== allergy)
+                        : formData.foodAllergies.filter((a: string) => a !== allergy)
                       handleInputChange('foodAllergies', newAllergies)
                     }}
                   />

@@ -81,7 +81,7 @@ export function StreamlinedMedications({ data, onNext, onBack }: StreamlinedMedi
                       size="sm"
                       onClick={() => setFormData(prev => ({
                         ...prev,
-                        currentMedications: prev.currentMedications.filter((_, i) => i !== index)
+                        currentMedications: prev.currentMedications.filter((_: string, i: number) => i !== index)
                       }))}
                     >
                       Remove
@@ -114,7 +114,7 @@ export function StreamlinedMedications({ data, onNext, onBack }: StreamlinedMedi
                       size="sm"
                       onClick={() => setFormData(prev => ({
                         ...prev,
-                        supplements: prev.supplements.filter((_, i) => i !== index)
+                        supplements: prev.supplements.filter((_: string, i: number) => i !== index)
                       }))}
                     >
                       Remove
