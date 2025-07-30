@@ -119,13 +119,13 @@ export default function HomePage() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <a 
-                    href="/onboarding" 
+                    href="/streamlined-onboarding" 
                     className="inline-flex items-center justify-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition-colors"
                   >
                     Start Onboarding
                   </a>
                   <a 
-                    href="/onboarding" 
+                    href="/streamlined-onboarding" 
                     className="inline-flex items-center justify-center px-4 py-2 border border-dark-600 hover:bg-dark-700 text-dark-300 font-medium rounded-md transition-colors"
                   >
                     Learn More

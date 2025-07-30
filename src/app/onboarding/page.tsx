@@ -1,15 +1,21 @@
-import { OnboardingWizard } from '@/components/onboarding/onboarding-wizard'
+'use client'
 
-export const metadata = {
-  title: 'Client Onboarding - Nutrition Lab System',
-  description: 'Complete your comprehensive health assessment and onboarding process',
-}
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
-export default function OnboardingPage() {
+export default function OnboardingRedirectPage() {
+  const router = useRouter()
+
+  useEffect(() => {
+    // Redirect to streamlined onboarding
+    router.replace('/streamlined-onboarding')
+  }, [router])
+
   return (
-    <div className="min-h-screen bg-navy-950">
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <OnboardingWizard />
+    <div className="min-h-screen bg-navy-950 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400 mx-auto mb-4"></div>
+        <p className="text-white">Redirecting to onboarding...</p>
       </div>
     </div>
   )
