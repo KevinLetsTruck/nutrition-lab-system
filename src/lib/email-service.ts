@@ -1,7 +1,19 @@
 import { Resend } from 'resend'
 import { createServerSupabaseClient } from './supabase'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Don't initialize at module level - use lazy initialization
+let resend: Resend | null = null
+
+function getResendClient(): Resend {
+  if (!resend) {
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) {
+      throw new Error('RESEND_API_KEY is not configured')
+    }
+    resend = new Resend(apiKey)
+  }
+  return resend
+}
 
 export interface EmailTemplate {
   subject: string
@@ -26,7 +38,8 @@ export class EmailService {
       
       const html = this.getVerificationEmailTemplate(firstName, verificationUrl)
       
-      await resend.emails.send({
+      const client = getResendClient()
+      await client.emails.send({
         from: 'Kevin Rutherford <kevin@destinationhealth.com>',
         to: email,
         subject: 'Verify Your Email - DestinationHealth',
@@ -36,6 +49,11 @@ export class EmailService {
       return true
     } catch (error) {
       console.error('Email verification error:', error)
+      // Don't fail the registration if email service is not configured
+      if (error instanceof Error && error.message.includes('RESEND_API_KEY')) {
+        console.warn('Email service not configured - skipping verification email')
+        return true // Return true to not block registration
+      }
       return false
     }
   }
@@ -72,7 +90,8 @@ export class EmailService {
         ...emailConfig.content
       })
 
-      await resend.emails.send({
+      const client = getResendClient()
+      await client.emails.send({
         from: 'Kevin Rutherford <kevin@destinationhealth.com>',
         to: user.email,
         subject: emailConfig.subject,
@@ -85,6 +104,11 @@ export class EmailService {
       return true
     } catch (error) {
       console.error('Welcome sequence error:', error)
+      // Don't fail if email service is not configured
+      if (error instanceof Error && error.message.includes('RESEND_API_KEY')) {
+        console.warn('Email service not configured - skipping welcome sequence')
+        return true // Return true to not block the process
+      }
       return false
     }
   }

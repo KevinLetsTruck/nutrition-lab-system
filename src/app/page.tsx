@@ -1,3 +1,5 @@
+'use client'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { FileUploadSection } from '@/components/ui/file-upload-section'
 import { RecentResults } from '@/components/ui/recent-results'
