@@ -118,18 +118,27 @@ export class StreamlinedOnboardingService {
 
   // Save step data
   async saveStepData(sessionToken: string, step: string, data: Partial<CompleteOnboardingData>): Promise<void> {
+    console.log('Saving step data:', { sessionToken, step, data })
+    
+    const updateData = {
+      ...data,
+      current_step: step,
+      last_activity: new Date().toISOString()
+    }
+    
+    console.log('Update data:', updateData)
+    
     const { error } = await this.supabase
       .from('client_onboarding')
-      .update({
-        ...data,
-        current_step: step,
-        last_activity: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('session_token', sessionToken)
 
     if (error) {
+      console.error('Supabase error in saveStepData:', error)
       throw new Error(`Failed to save step data: ${error.message}`)
     }
+    
+    console.log('Step data saved successfully')
   }
 
   // Get current onboarding data

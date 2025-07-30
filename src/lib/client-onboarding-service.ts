@@ -78,6 +78,8 @@ export class ClientOnboardingService {
 
   // Save step data
   async saveStepData(sessionToken: string, step: string, data: Partial<CompleteOnboardingData>): Promise<void> {
+    console.log('Client: Saving step data:', { sessionToken, step, data })
+    
     const response = await fetch(`${this.baseUrl}/session/${sessionToken}/step`, {
       method: 'PUT',
       headers: {
@@ -87,8 +89,12 @@ export class ClientOnboardingService {
     })
 
     if (!response.ok) {
-      throw new Error(`Failed to save step data: ${response.statusText}`)
+      const errorData = await response.json().catch(() => ({}))
+      console.error('Client: Step save failed:', { status: response.status, statusText: response.statusText, errorData })
+      throw new Error(`Failed to save step data: ${response.statusText}${errorData.details ? ` - ${errorData.details}` : ''}`)
     }
+    
+    console.log('Client: Step data saved successfully')
   }
 
   // Get current onboarding data

@@ -16,17 +16,17 @@ interface StreamlinedDemographicsProps {
 
 export function StreamlinedDemographics({ data, onNext, onBack }: StreamlinedDemographicsProps) {
   const [formData, setFormData] = useState({
-    firstName: data?.firstName || '',
-    lastName: data?.lastName || '',
+    first_name: data?.first_name || '',
+    last_name: data?.last_name || '',
     email: data?.email || '',
     phone: data?.phone || '',
-    dateOfBirth: data?.dateOfBirth || '',
+    date_of_birth: data?.date_of_birth || '',
     address: data?.address || '',
     city: data?.city || '',
     state: data?.state || '',
-    zipCode: data?.zipCode || '',
-    emergencyContact: data?.emergencyContact || '',
-    emergencyPhone: data?.emergencyPhone || ''
+    zip_code: data?.zip_code || '',
+    emergency_contact: data?.emergency_contact || '',
+    emergency_phone: data?.emergency_phone || ''
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -34,11 +34,11 @@ export function StreamlinedDemographics({ data, onNext, onBack }: StreamlinedDem
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
-    if (!formData.firstName?.trim()) {
-      newErrors.firstName = 'First name is required'
+    if (!formData.first_name?.trim()) {
+      newErrors.first_name = 'First name is required'
     }
-    if (!formData.lastName?.trim()) {
-      newErrors.lastName = 'Last name is required'
+    if (!formData.last_name?.trim()) {
+      newErrors.last_name = 'Last name is required'
     }
     if (!formData.email?.trim()) {
       newErrors.email = 'Email is required'
@@ -48,8 +48,8 @@ export function StreamlinedDemographics({ data, onNext, onBack }: StreamlinedDem
     if (!formData.phone?.trim()) {
       newErrors.phone = 'Phone number is required'
     }
-    if (!formData.dateOfBirth?.trim()) {
-      newErrors.dateOfBirth = 'Date of birth is required'
+    if (!formData.date_of_birth?.trim()) {
+      newErrors.date_of_birth = 'Date of birth is required'
     }
 
     setErrors(newErrors)
@@ -82,27 +82,27 @@ export function StreamlinedDemographics({ data, onNext, onBack }: StreamlinedDem
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="firstName">First Name *</Label>
+              <Label htmlFor="first_name">First Name *</Label>
               <Input
-                id="firstName"
-                value={formData.firstName}
-                onChange={(e) => handleInputChange('firstName', e.target.value)}
+                id="first_name"
+                value={formData.first_name}
+                onChange={(e) => handleInputChange('first_name', e.target.value)}
                 placeholder="Enter first name"
-                className={errors.firstName ? 'border-red-500' : ''}
+                className={errors.first_name ? 'border-red-500' : ''}
               />
-              {errors.firstName && <p className="text-sm text-red-500">{errors.firstName}</p>}
+              {errors.first_name && <p className="text-sm text-red-500">{errors.first_name}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name *</Label>
+              <Label htmlFor="last_name">Last Name *</Label>
               <Input
-                id="lastName"
-                value={formData.lastName}
-                onChange={(e) => handleInputChange('lastName', e.target.value)}
+                id="last_name"
+                value={formData.last_name}
+                onChange={(e) => handleInputChange('last_name', e.target.value)}
                 placeholder="Enter last name"
-                className={errors.lastName ? 'border-red-500' : ''}
+                className={errors.last_name ? 'border-red-500' : ''}
               />
-              {errors.lastName && <p className="text-sm text-red-500">{errors.lastName}</p>}
+              {errors.last_name && <p className="text-sm text-red-500">{errors.last_name}</p>}
             </div>
           </div>
 
@@ -135,15 +135,15 @@ export function StreamlinedDemographics({ data, onNext, onBack }: StreamlinedDem
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="dateOfBirth">Date of Birth *</Label>
+            <Label htmlFor="date_of_birth">Date of Birth *</Label>
             <Input
-              id="dateOfBirth"
+              id="date_of_birth"
               type="date"
-              value={formData.dateOfBirth}
-              onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-              className={errors.dateOfBirth ? 'border-red-500' : ''}
+              value={formData.date_of_birth}
+              onChange={(e) => handleInputChange('date_of_birth', e.target.value)}
+              className={errors.date_of_birth ? 'border-red-500' : ''}
             />
-            {errors.dateOfBirth && <p className="text-sm text-red-500">{errors.dateOfBirth}</p>}
+            {errors.date_of_birth && <p className="text-sm text-red-500">{errors.date_of_birth}</p>}
           </div>
 
           <div className="space-y-2">
@@ -229,11 +229,11 @@ export function StreamlinedDemographics({ data, onNext, onBack }: StreamlinedDem
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="zipCode">ZIP Code</Label>
+              <Label htmlFor="zip_code">ZIP Code</Label>
               <Input
-                id="zipCode"
-                value={formData.zipCode}
-                onChange={(e) => handleInputChange('zipCode', e.target.value)}
+                id="zip_code"
+                value={formData.zip_code}
+                onChange={(e) => handleInputChange('zip_code', e.target.value)}
                 placeholder="Enter ZIP code"
               />
             </div>
@@ -241,22 +241,22 @@ export function StreamlinedDemographics({ data, onNext, onBack }: StreamlinedDem
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="emergencyContact">Emergency Contact</Label>
+              <Label htmlFor="emergency_contact">Emergency Contact</Label>
               <Input
-                id="emergencyContact"
-                value={formData.emergencyContact}
-                onChange={(e) => handleInputChange('emergencyContact', e.target.value)}
+                id="emergency_contact"
+                value={formData.emergency_contact}
+                onChange={(e) => handleInputChange('emergency_contact', e.target.value)}
                 placeholder="Emergency contact name"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="emergencyPhone">Emergency Phone</Label>
+              <Label htmlFor="emergency_phone">Emergency Phone</Label>
               <Input
-                id="emergencyPhone"
+                id="emergency_phone"
                 type="tel"
-                value={formData.emergencyPhone}
-                onChange={(e) => handleInputChange('emergencyPhone', e.target.value)}
+                value={formData.emergency_phone}
+                onChange={(e) => handleInputChange('emergency_phone', e.target.value)}
                 placeholder="Emergency contact phone"
               />
             </div>
