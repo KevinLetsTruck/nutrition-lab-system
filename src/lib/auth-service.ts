@@ -269,8 +269,8 @@ export class AuthService {
         return { success: false, error: 'Invalid email or password' }
       }
       
-      // Check if email is verified (for clients)
-      if (user.role === 'client' && !user.email_verified) {
+      // Check if email is verified (for clients) - bypass in development mode
+      if (user.role === 'client' && !user.email_verified && process.env.NODE_ENV === 'production') {
         return { success: false, error: 'Please verify your email before logging in' }
       }
       
