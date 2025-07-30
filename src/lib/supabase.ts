@@ -14,9 +14,18 @@ let supabaseInstance: SupabaseClient | null = null
 export const getSupabaseClient = (): SupabaseClient => {
   if (!supabaseInstance) {
     if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error('Missing Supabase environment variables')
+      // Only throw error in server context, not client context
+      if (typeof window === 'undefined') {
+        throw new Error('Missing Supabase environment variables')
+      } else {
+        // In client context, create a dummy client or handle gracefully
+        console.warn('Supabase environment variables not available in client context')
+        // Create a dummy client that will fail gracefully
+        supabaseInstance = createClient('https://dummy.supabase.co', 'dummy-key')
+      }
+    } else {
+      supabaseInstance = createClient(supabaseUrl, supabaseAnonKey)
     }
-    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey)
   }
   return supabaseInstance
 }
@@ -32,7 +41,13 @@ export const createServerSupabaseClient = (): SupabaseClient => {
     const supabaseServiceKey = safeTrim(process.env.SUPABASE_SERVICE_ROLE_KEY)
     
     if (!serverSupabaseUrl || !supabaseServiceKey) {
-      throw new Error('Missing Supabase service role environment variables')
+      // Only throw error in server context, not client context
+      if (typeof window === 'undefined') {
+        throw new Error('Missing Supabase service role environment variables')
+      } else {
+        // In client context, return a dummy client or throw a different error
+        throw new Error('Server Supabase client cannot be used in client context')
+      }
     }
     
     serverSupabaseInstance = createClient(serverSupabaseUrl, supabaseServiceKey, {

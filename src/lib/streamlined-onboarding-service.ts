@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from './supabase'
+import { supabase } from './supabase'
 import { CompleteOnboardingData } from './onboarding-schemas'
 import { randomUUID } from 'crypto'
 
@@ -23,7 +23,7 @@ export class StreamlinedOnboardingService {
   private supabase
 
   constructor() {
-    this.supabase = createServerSupabaseClient()
+    this.supabase = supabase
   }
 
   // Create a new onboarding session

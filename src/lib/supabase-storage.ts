@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from './supabase'
+import { supabase } from './supabase'
 
 export interface StorageFile {
   path: string
@@ -19,7 +19,7 @@ export class SupabaseStorageService {
   private client: any
 
   constructor() {
-    this.client = createServerSupabaseClient()
+    this.client = supabase
   }
 
   // Storage bucket names
