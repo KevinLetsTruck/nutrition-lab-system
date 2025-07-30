@@ -80,7 +80,7 @@ export default function VerifyEmailPage() {
             <>
               <h2 className="text-2xl font-bold text-white mb-4">Check Your Email</h2>
               <p className="text-gray-400 mb-6">
-                We've sent a verification link to your email address. 
+                We&apos;ve sent a verification link to your email address. 
                 Please click the link to verify your account and continue.
               </p>
               
@@ -101,7 +101,7 @@ export default function VerifyEmailPage() {
                 onClick={handleResendEmail}
                 className="text-green-400 hover:text-green-300 text-sm"
               >
-                Didn't receive the email? Resend
+                Didn&apos;t receive the email? Resend
               </button>
             </>
           )}

@@ -39,7 +39,7 @@ export default function OnboardingSuccessPage() {
                 </div>
                 <div>
                   <h4 className="text-white font-medium">Discovery Call</h4>
-                  <p className="text-gray-400 text-sm">You'll receive a call within 24-48 hours to discuss your goals and answer questions</p>
+                  <p className="text-gray-400 text-sm">You&apos;ll receive a call within 24-48 hours to discuss your goals and answer questions</p>
                 </div>
               </div>
               
@@ -58,7 +58,7 @@ export default function OnboardingSuccessPage() {
           <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 mb-8">
             <p className="text-green-400 text-sm">
               💡 <strong>Pro Tip:</strong> Check your email for important updates and resources 
-              we'll be sending to help you prepare for your coaching journey.
+              we&apos;ll be sending to help you prepare for your coaching journey.
             </p>
           </div>
           
