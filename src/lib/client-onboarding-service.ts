@@ -26,7 +26,7 @@ export class ClientOnboardingService {
 
   // Create a new onboarding session
   async createSession(clientId?: string): Promise<OnboardingSession> {
-    const response = await fetch(`${this.baseUrl}/session`, {
+    const response = await fetch(`${this.baseUrl}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
