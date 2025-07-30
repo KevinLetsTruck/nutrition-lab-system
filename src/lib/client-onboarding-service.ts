@@ -113,7 +113,6 @@ export class ClientOnboardingService {
       first_name: data.first_name,
       last_name: data.last_name,
       email: data.email,
-      phone: data.phone,
       current_diet_approach: data.current_diet_approach,
       diet_duration_months: data.diet_duration_months,
       current_medications: data.current_medications,
@@ -123,7 +122,7 @@ export class ClientOnboardingService {
       route_type: data.route_type,
       schedule_pattern: data.schedule_pattern,
       dot_medical_status: data.dot_medical_status,
-      dot_expiry_date: data.dot_expiry_date ? new Date(data.dot_expiry_date) : undefined
+      dot_expiry_date: data.dot_expiry_date
     }
   }
 

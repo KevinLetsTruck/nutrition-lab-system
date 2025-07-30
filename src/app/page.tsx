@@ -2,7 +2,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { FileUploadSection } from '@/components/ui/file-upload-section'
 import { RecentResults } from '@/components/ui/recent-results'
 import { Header } from '@/components/ui/header'
-import { Activity, BarChart3, FileText, TrendingUp, Users, Zap } from 'lucide-react'
+import { Footer } from '@/components/ui/footer'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { ActionCard } from '@/components/ui/action-card'
+import { Activity, BarChart3, FileText, TrendingUp, Users, Zap, MessageSquare, Calendar } from 'lucide-react'
 
 export default function HomePage() {
   return (
@@ -11,17 +15,33 @@ export default function HomePage() {
       
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Hero Section */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600/20 rounded-2xl mb-6">
-            <Activity className="w-8 h-8 text-primary-400" />
+        <section className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-6 -mt-16">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <Badge variant="fntp" size="lg" className="text-sm">
+              FNTP Certified • Truck Driver Specialist
+            </Badge>
+            
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
+              Professional Truck Driver
+              <br />
+              <span className="text-primary-400">Health Optimization</span>
+            </h1>
+            
+            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              Evidence-based functional medicine protocols designed for the unique challenges 
+              of professional driving. Stay healthy, stay compliant, keep driving.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button size="lg" className="shadow-2xl shadow-green-500/25 bg-primary-600 hover:bg-primary-700">
+                Start Health Assessment →
+              </Button>
+              <button className="text-gray-300 hover:text-white underline text-lg">
+                View Sample Report
+              </button>
+            </div>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Nutrition Lab Management
-          </h1>
-          <p className="text-xl text-dark-300 max-w-2xl mx-auto">
-            Upload and analyze multiple lab reports with AI-powered insights. Get comprehensive health assessments in minutes.
-          </p>
-        </div>
+        </section>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
@@ -82,6 +102,37 @@ export default function HomePage() {
           </Card>
         </div>
 
+        {/* Enhanced Quick Actions */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold text-white mb-8 text-center">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <ActionCard 
+              icon={<FileText className="w-6 h-6 text-blue-500" />}
+              title="Upload Lab Results"
+              description="NutriQ, KBMO, Dutch tests"
+              href="/upload"
+            />
+            <ActionCard 
+              icon={<MessageSquare className="w-6 h-6 text-orange-500" />}
+              title="Client Notes"
+              description="Session notes & progress"
+              href="/onboarding"
+            />
+            <ActionCard 
+              icon={<BarChart3 className="w-6 h-6 text-green-500" />}
+              title="View Reports"
+              description="Analysis & protocols"
+              href="/reports"
+            />
+            <ActionCard 
+              icon={<Calendar className="w-6 h-6 text-purple-500" />}
+              title="Schedule Follow-up"
+              description="Track client progress"
+              href="/streamlined-onboarding"
+            />
+          </div>
+        </section>
+
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Upload Section */}
@@ -92,7 +143,7 @@ export default function HomePage() {
                 <span>Upload Lab Reports</span>
               </CardTitle>
               <CardDescription>
-                Upload multiple NutriQ, KBMO, Dutch, or other lab reports for comprehensive AI analysis
+                Upload NutriQ, KBMO, Dutch, or other lab reports for FNTP analysis
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -105,24 +156,24 @@ export default function HomePage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Users className="w-5 h-5 text-primary-400" />
-                <span>Client Onboarding</span>
+                <span>Health Assessment</span>
               </CardTitle>
               <CardDescription>
-                Complete comprehensive health assessment and intake forms for personalized care
+                Complete comprehensive health assessment for personalized truck driver protocols
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <p className="text-dark-300 text-sm">
-                  New clients can complete our comprehensive onboarding process to provide detailed health information, 
-                  medical history, and goals for personalized functional medicine care.
+                  New clients complete our comprehensive health assessment to provide detailed health information, 
+                  DOT medical history, and driving-specific goals for personalized functional medicine care.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <a 
                     href="/streamlined-onboarding" 
                     className="inline-flex items-center justify-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition-colors"
                   >
-                    Start Onboarding
+                    Start Assessment
                   </a>
                   <a 
                     href="/streamlined-onboarding" 
@@ -140,10 +191,10 @@ export default function HomePage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <BarChart3 className="w-5 h-5 text-primary-400" />
-                <span>Recent Analysis Results</span>
+                <span>Recent Health Reports</span>
               </CardTitle>
               <CardDescription>
-                View your latest lab report analyses and insights
+                View your latest FNTP health analysis reports and protocols
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -156,10 +207,10 @@ export default function HomePage() {
         <div className="mt-16">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-white mb-4">
-              Powerful Features
+              Truck Driver Health Specialization
             </h2>
             <p className="text-dark-300 max-w-2xl mx-auto">
-              Everything you need for comprehensive lab report analysis and health insights
+              Evidence-based functional medicine protocols designed for professional drivers
             </p>
           </div>
           
@@ -170,10 +221,10 @@ export default function HomePage() {
                   <FileText className="w-8 h-8 text-primary-400" />
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-3">
-                  Smart PDF Parsing
+                  DOT Medical Compliance
                 </h3>
                 <p className="text-dark-300">
-                  Automatically extract and parse lab results from any PDF format with advanced AI
+                  Optimize health markers for DOT medical certification and long-term compliance
                 </p>
               </CardContent>
             </Card>
@@ -184,10 +235,10 @@ export default function HomePage() {
                   <Activity className="w-8 h-8 text-green-400" />
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-3">
-                  AI-Powered Analysis
+                  Road-Ready Protocols
                 </h3>
                 <p className="text-dark-300">
-                  Get intelligent insights and recommendations using Claude AI technology
+                  Functional medicine protocols designed for truck stop accessibility and on-the-road lifestyle
                 </p>
               </CardContent>
             </Card>
@@ -198,16 +249,18 @@ export default function HomePage() {
                   <BarChart3 className="w-8 h-8 text-blue-400" />
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-3">
-                  Data Visualization
+                  Energy & Focus Optimization
                 </h3>
                 <p className="text-dark-300">
-                  Beautiful charts and trends to understand your health data at a glance
+                  Targeted nutrition and lifestyle strategies for sustained energy during long hauls
                 </p>
               </CardContent>
             </Card>
           </div>
         </div>
       </main>
+      
+      <Footer />
     </div>
   )
 }

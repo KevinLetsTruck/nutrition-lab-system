@@ -167,7 +167,7 @@ export class StreamlinedOnboardingService {
       route_type: data.route_type,
       schedule_pattern: data.schedule_pattern,
       dot_medical_status: data.dot_medical_status,
-      dot_expiry_date: data.dot_expiry_date ? new Date(data.dot_expiry_date) : undefined
+      dot_expiry_date: data.dot_expiry_date
     }
   }
 

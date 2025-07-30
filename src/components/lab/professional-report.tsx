@@ -20,6 +20,7 @@ import {
   FileText,
   Printer
 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 
 interface SystemScore {
   system: string
@@ -180,6 +181,42 @@ const CollapsibleSection: React.FC<{
         </div>
       )}
     </Card>
+  )
+}
+
+interface ClientData {
+  name: string
+  date: string
+  reportType?: string
+}
+
+interface ReportHeaderProps {
+  clientData: ClientData
+}
+
+export function ReportHeader({ clientData }: ReportHeaderProps) {
+  return (
+    <div className="bg-gradient-to-r from-slate-800 to-slate-700 border border-slate-600 rounded-xl p-8 mb-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white">FNTP Health Analysis</h1>
+          <p className="text-gray-300 mt-1">Functional Medicine Assessment Report</p>
+          <p className="text-sm text-gray-400 mt-2">
+            Client: {clientData.name} • Report Date: {clientData.date}
+            {clientData.reportType && ` • Type: ${clientData.reportType}`}
+          </p>
+        </div>
+        <div className="text-right">
+          <Badge variant="fntp" size="lg">Kevin Rutherford, FNTP</Badge>
+          <p className="text-sm text-gray-400 mt-2">
+            Truck Driver Health Specialist
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            Functional Nutritional Therapy Practitioner
+          </p>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -357,28 +394,7 @@ export function ProfessionalReport({
       )}
 
       {/* Report Header */}
-      <Card className="bg-dark-800/50 border-dark-700">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-white mb-2">
-                FNTP Practitioner Report
-              </h1>
-              <div className="text-dark-300 space-y-1">
-                {clientName && <p><strong>Client:</strong> {clientName}</p>}
-                {reportDate && <p><strong>Report Date:</strong> {new Date(reportDate).toLocaleDateString()}</p>}
-                <p><strong>Report Type:</strong> {reportType.toUpperCase()}</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${analysis.executiveSummary.overallSeverity.bgColor} ${analysis.executiveSummary.overallSeverity.color}`}>
-                {analysis.executiveSummary.overallSeverity.icon}
-                {analysis.executiveSummary.overallSeverity.level.toUpperCase()} PRIORITY
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <ReportHeader clientData={{ name: clientName || 'Client Name', date: reportDate || new Date().toLocaleDateString(), reportType }} />
 
       {/* Executive Summary */}
       <CollapsibleSection 
