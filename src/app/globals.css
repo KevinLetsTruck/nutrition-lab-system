@@ -104,6 +104,6 @@ body {
   }
   
   .medication-item:hover {
-    @apply bg-dark-650 border-dark-500;
+    @apply bg-dark-700 border-dark-500;
   }
 }
