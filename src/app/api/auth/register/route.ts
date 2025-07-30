@@ -1,14 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authService } from '@/lib/auth-service'
 import { emailService } from '@/lib/email-service'
+import { createServerSupabaseClient } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
+  console.log('Registration request received')
+  
   try {
+    // Parse request body
     const body = await request.json()
+    console.log('Request body parsed:', { 
+      firstName: body.firstName ? 'present' : 'missing',
+      lastName: body.lastName ? 'present' : 'missing', 
+      email: body.email ? 'present' : 'missing',
+      phone: body.phone ? 'present' : 'missing',
+      password: body.password ? 'present' : 'missing'
+    })
+    
     const { firstName, lastName, email, phone, password } = body
 
     // Basic validation
     if (!firstName || !lastName || !email || !phone || !password) {
+      console.log('Validation failed: missing required fields')
       return NextResponse.json(
         { error: 'All fields are required' },
         { status: 400 }
@@ -18,6 +31,7 @@ export async function POST(request: NextRequest) {
     // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
+      console.log('Validation failed: invalid email format')
       return NextResponse.json(
         { error: 'Please enter a valid email address' },
         { status: 400 }
@@ -27,19 +41,52 @@ export async function POST(request: NextRequest) {
     // Phone format validation (basic)
     const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
     if (!phoneRegex.test(phone.replace(/\D/g, ''))) {
+      console.log('Validation failed: invalid phone format')
       return NextResponse.json(
         { error: 'Please enter a valid phone number' },
         { status: 400 }
       )
     }
 
+    // Test database connection before proceeding
+    console.log('Testing database connection...')
+    try {
+      const supabase = createServerSupabaseClient()
+      const { error: dbTestError } = await supabase
+        .from('users')
+        .select('count')
+        .limit(1)
+      
+      if (dbTestError) {
+        console.error('Database connection test failed:', dbTestError)
+        return NextResponse.json(
+          { error: 'Database connection failed. Please try again later.' },
+          { status: 500 }
+        )
+      }
+      console.log('Database connection test passed')
+    } catch (dbError) {
+      console.error('Database connection error:', dbError)
+      return NextResponse.json(
+        { error: 'Database connection failed. Please try again later.' },
+        { status: 500 }
+      )
+    }
+
     // Register user
+    console.log('Attempting user registration...')
     const result = await authService.register({
       firstName,
       lastName,
       email,
       phone,
       password
+    })
+
+    console.log('Registration result:', { 
+      success: result.success, 
+      error: result.error,
+      userId: result.user?.id 
     })
 
     if (!result.success) {
@@ -51,10 +98,23 @@ export async function POST(request: NextRequest) {
 
     // Send email verification
     if (result.user) {
-      const verificationToken = authService.generateEmailVerificationToken(result.user.id)
-      await emailService.sendVerificationEmail(result.user.email, verificationToken, firstName)
+      console.log('Sending verification email...')
+      try {
+        const verificationToken = authService.generateEmailVerificationToken(result.user.id)
+        const emailResult = await emailService.sendVerificationEmail(result.user.email, verificationToken, firstName)
+        
+        if (!emailResult) {
+          console.warn('Email verification failed, but registration succeeded')
+        } else {
+          console.log('Verification email sent successfully')
+        }
+      } catch (emailError) {
+        console.error('Email verification error:', emailError)
+        // Don't fail registration if email fails
+      }
     }
 
+    console.log('Registration completed successfully')
     return NextResponse.json({
       success: true,
       message: 'Registration successful. Please check your email to verify your account.',
@@ -67,6 +127,22 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Registration error:', error)
+    
+    // Provide more specific error messages
+    if (error instanceof SyntaxError) {
+      return NextResponse.json(
+        { error: 'Invalid request format. Please check your data and try again.' },
+        { status: 400 }
+      )
+    }
+    
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: error.message || 'Registration failed. Please try again.' },
+        { status: 500 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Registration failed. Please try again.' },
       { status: 500 }

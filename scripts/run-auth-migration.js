@@ -1,148 +1,70 @@
-const { createClient } = require('@supabase/supabase-js')
-const bcrypt = require('bcryptjs')
-require('dotenv').config({ path: '.env.local' })
+require('dotenv').config({ path: '.env.local' });
+const fs = require('fs');
+const path = require('path');
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+// Read the migration file
+const migrationPath = path.join(__dirname, '../database/migrations/006_authentication_system.sql');
+const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
+
+console.log('=== Authentication System Migration ===');
+console.log('Migration file loaded successfully');
+console.log('SQL Preview (first 200 chars):', migrationSQL.substring(0, 200) + '...');
+console.log('\nTo run this migration:');
+console.log('1. Connect to your Supabase database');
+console.log('2. Run the SQL from: database/migrations/006_authentication_system.sql');
+console.log('3. Or use the Supabase dashboard SQL editor');
+console.log('\nRequired environment variables:');
+console.log('- NEXT_PUBLIC_SUPABASE_URL');
+console.log('- SUPABASE_SERVICE_ROLE_KEY');
+console.log('- DATABASE_URL (if using direct connection)');
+console.log('- NEXTAUTH_SECRET');
+console.log('- NEXTAUTH_URL');
+
+// Check if we can connect to Supabase
+const { createClient } = require('@supabase/supabase-js');
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+console.log('\nEnvironment variables:');
+console.log('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? '✅ Set' : '❌ Missing');
+console.log('SUPABASE_SERVICE_ROLE_KEY:', supabaseServiceKey ? '✅ Set' : '❌ Missing');
 
 if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('❌ Missing Supabase environment variables')
-  console.error('Please set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY')
-  process.exit(1)
+  console.log('\n❌ Missing Supabase environment variables');
+  console.log('Please set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.local');
+  process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-})
+console.log('\n✅ Supabase environment variables found');
+console.log('Attempting to connect to Supabase...');
 
-async function runAuthMigration() {
-  console.log('🚀 Starting authentication system migration...')
-  
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+// Test connection
+async function testConnection() {
   try {
-    // Read the migration SQL file
-    const fs = require('fs')
-    const path = require('path')
-    const migrationPath = path.join(__dirname, '../database/migrations/006_authentication_system.sql')
-    
-    if (!fs.existsSync(migrationPath)) {
-      console.error('❌ Migration file not found:', migrationPath)
-      process.exit(1)
-    }
-    
-    const migrationSQL = fs.readFileSync(migrationPath, 'utf8')
-    
-    // Split the SQL into individual statements
-    const statements = migrationSQL
-      .split(';')
-      .map(stmt => stmt.trim())
-      .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'))
-    
-    console.log(`📝 Executing ${statements.length} SQL statements...`)
-    
-    // Execute each statement
-    for (let i = 0; i < statements.length; i++) {
-      const statement = statements[i]
-      if (statement.trim()) {
-        console.log(`  ${i + 1}/${statements.length}: ${statement.substring(0, 50)}...`)
-        
-        const { error } = await supabase.rpc('exec_sql', { sql: statement })
-        
-        if (error) {
-          console.error(`❌ Error executing statement ${i + 1}:`, error)
-          // Continue with other statements
-        }
-      }
-    }
-    
-    console.log('✅ Migration completed successfully!')
-    
-    // Set up admin user password
-    console.log('🔐 Setting up admin user...')
-    
-    const adminEmail = 'kevin@destinationhealth.com'
-    const adminPassword = process.env.ADMIN_PASSWORD || 'DestinationHealth2024!'
-    
-    // Hash the password
-    const passwordHash = await bcrypt.hash(adminPassword, 12)
-    
-    // Update the admin user's password
-    const { error: updateError } = await supabase
+    const { data, error } = await supabase
       .from('users')
-      .update({ password_hash: passwordHash })
-      .eq('email', adminEmail)
+      .select('count')
+      .limit(1);
     
-    if (updateError) {
-      console.error('❌ Error updating admin password:', updateError)
+    if (error) {
+      console.log('❌ Database connection failed:', error.message);
+      console.log('This is expected if the tables don\'t exist yet');
+      console.log('You need to run the migration first');
+      console.log('\n📋 Next steps:');
+      console.log('1. Go to your Supabase dashboard');
+      console.log('2. Navigate to SQL Editor');
+      console.log('3. Copy and paste the contents of database/migrations/006_authentication_system.sql');
+      console.log('4. Execute the SQL');
     } else {
-      console.log('✅ Admin user password set successfully!')
-      console.log(`📧 Admin email: ${adminEmail}`)
-      console.log(`🔑 Admin password: ${adminPassword}`)
-      console.log('⚠️  Please change this password after first login!')
+      console.log('✅ Database connection successful');
+      console.log('Users table exists and is accessible');
     }
-    
-    // Test the authentication system
-    console.log('🧪 Testing authentication system...')
-    
-    // Test user registration
-    const testUser = {
-      email: 'test@example.com',
-      password_hash: await bcrypt.hash('TestPassword123!', 12),
-      role: 'client'
-    }
-    
-    const { data: testUserData, error: testUserError } = await supabase
-      .from('users')
-      .insert(testUser)
-      .select()
-      .single()
-    
-    if (testUserError) {
-      console.error('❌ Error creating test user:', testUserError)
-    } else {
-      console.log('✅ Test user created successfully')
-      
-      // Clean up test user
-      await supabase
-        .from('users')
-        .delete()
-        .eq('email', 'test@example.com')
-      
-      console.log('✅ Test user cleaned up')
-    }
-    
-    // Test client profile creation
-    const testProfile = {
-      user_id: testUserData?.id,
-      first_name: 'Test',
-      last_name: 'User',
-      phone: '555-123-4567'
-    }
-    
-    const { error: profileError } = await supabase
-      .from('client_profiles')
-      .insert(testProfile)
-    
-    if (profileError) {
-      console.error('❌ Error creating test profile:', profileError)
-    } else {
-      console.log('✅ Test client profile created successfully')
-    }
-    
-    console.log('🎉 Authentication system setup complete!')
-    console.log('\n📋 Next steps:')
-    console.log('1. Set up environment variables for JWT_SECRET')
-    console.log('2. Configure email service (RESEND_API_KEY)')
-    console.log('3. Test the registration and login flow')
-    console.log('4. Update the admin password')
-    
   } catch (error) {
-    console.error('❌ Migration failed:', error)
-    process.exit(1)
+    console.log('❌ Connection error:', error.message);
   }
 }
 
-// Run the migration
-runAuthMigration() 
+testConnection(); 
