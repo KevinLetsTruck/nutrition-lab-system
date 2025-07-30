@@ -43,65 +43,132 @@ export class MasterAnalyzer {
   }
 
   async analyzeReport(pdfBuffer: Buffer): Promise<AnalysisResult> {
+    console.log('[MASTER-ANALYZER] ===== Starting analysis pipeline =====')
     const startTime = Date.now()
     
     try {
-      // First, get the basic parsed report to extract text
+      // Step 1: Parse PDF to extract text (now includes vision analysis)
+      console.log('[MASTER-ANALYZER] Step 1: Parsing PDF to extract text...')
       const basicParsedReport = await this.pdfParser.parseLabReport(pdfBuffer)
+      console.log('[MASTER-ANALYZER] PDF parsed successfully, text length:', basicParsedReport.rawText.length)
       
-      // Use Claude to detect the report type
-      const detectedType = await this.claudeClient.detectReportType(basicParsedReport.rawText)
+      // Log vision analysis usage
+      if (basicParsedReport.hasImageContent) {
+        console.log('[MASTER-ANALYZER] PDF contains image content, vision analysis was used')
+        console.log('[MASTER-ANALYZER] Vision text length:', basicParsedReport.visionAnalysisText?.length || 0)
+      }
       
-      // Route to the appropriate analyzer based on detected type
+      // Step 2: Detect report type using Claude (use combined text for better detection)
+      console.log('[MASTER-ANALYZER] Step 2: Detecting report type with Claude AI...')
+      let detectedType: ReportType
+      try {
+        // Use combinedText if available, otherwise fallback to rawText
+        const textForDetection = basicParsedReport.combinedText || basicParsedReport.rawText
+        detectedType = await this.claudeClient.detectReportType(textForDetection)
+        console.log('[MASTER-ANALYZER] Report type detected:', detectedType)
+      } catch (detectError) {
+        console.error('[MASTER-ANALYZER] Failed to detect report type:', detectError)
+        throw new Error(`Failed to detect report type: ${detectError instanceof Error ? detectError.message : 'Unknown error'}`)
+      }
+      
+      // Step 3: Route to appropriate analyzer
+      console.log('[MASTER-ANALYZER] Step 3: Routing to specific analyzer for type:', detectedType)
       let analyzedReport: AnalyzedReport
       
       switch (detectedType) {
         case 'nutriq':
-          analyzedReport = await this.nutriqAnalyzer.analyzeNutriQReport(pdfBuffer)
+          console.log('[MASTER-ANALYZER] Analyzing as NutriQ report...')
+          try {
+            analyzedReport = await this.nutriqAnalyzer.analyzeNutriQReport(pdfBuffer)
+            console.log('[MASTER-ANALYZER] NutriQ analysis complete')
+          } catch (nutriqError) {
+            console.error('[MASTER-ANALYZER] NutriQ analysis failed:', nutriqError)
+            throw new Error(`NutriQ analysis failed: ${nutriqError instanceof Error ? nutriqError.message : 'Unknown error'}`)
+          }
           break
           
         case 'kbmo':
-          analyzedReport = await this.kbmoAnalyzer.analyzeKBMReport(pdfBuffer)
+          console.log('[MASTER-ANALYZER] Analyzing as KBMO report...')
+          try {
+            analyzedReport = await this.kbmoAnalyzer.analyzeKBMReport(pdfBuffer)
+            console.log('[MASTER-ANALYZER] KBMO analysis complete')
+          } catch (kbmoError) {
+            console.error('[MASTER-ANALYZER] KBMO analysis failed:', kbmoError)
+            throw new Error(`KBMO analysis failed: ${kbmoError instanceof Error ? kbmoError.message : 'Unknown error'}`)
+          }
           break
           
         case 'dutch':
-          analyzedReport = await this.dutchAnalyzer.analyzeDutchReport(pdfBuffer)
+          console.log('[MASTER-ANALYZER] Analyzing as Dutch report...')
+          try {
+            analyzedReport = await this.dutchAnalyzer.analyzeDutchReport(pdfBuffer)
+            console.log('[MASTER-ANALYZER] Dutch analysis complete')
+          } catch (dutchError) {
+            console.error('[MASTER-ANALYZER] Dutch analysis failed:', dutchError)
+            throw new Error(`Dutch analysis failed: ${dutchError instanceof Error ? dutchError.message : 'Unknown error'}`)
+          }
           break
           
         case 'cgm':
-          analyzedReport = await this.analyzeCGMReport(pdfBuffer, basicParsedReport)
+          console.log('[MASTER-ANALYZER] Analyzing as CGM report...')
+          try {
+            analyzedReport = await this.analyzeCGMReport(pdfBuffer, basicParsedReport)
+            console.log('[MASTER-ANALYZER] CGM analysis complete')
+          } catch (cgmError) {
+            console.error('[MASTER-ANALYZER] CGM analysis failed:', cgmError)
+            throw new Error(`CGM analysis failed: ${cgmError instanceof Error ? cgmError.message : 'Unknown error'}`)
+          }
           break
           
         case 'food_photo':
-          analyzedReport = await this.analyzeFoodPhotoReport(pdfBuffer, basicParsedReport)
+          console.log('[MASTER-ANALYZER] Analyzing as food photo...')
+          try {
+            analyzedReport = await this.analyzeFoodPhotoReport(pdfBuffer, basicParsedReport)
+            console.log('[MASTER-ANALYZER] Food photo analysis complete')
+          } catch (foodError) {
+            console.error('[MASTER-ANALYZER] Food photo analysis failed:', foodError)
+            throw new Error(`Food photo analysis failed: ${foodError instanceof Error ? foodError.message : 'Unknown error'}`)
+          }
           break
           
         default:
           // Default to NutriQ if type is unclear
+          console.warn('[MASTER-ANALYZER] Unknown report type, defaulting to NutriQ')
           analyzedReport = await this.nutriqAnalyzer.analyzeNutriQReport(pdfBuffer)
       }
       
       const processingTime = Date.now() - startTime
+      console.log('[MASTER-ANALYZER] Analysis complete, processing time:', processingTime, 'ms')
       
       // Calculate confidence based on how well the analysis went
-      const confidence = this.calculateConfidence(analyzedReport, detectedType)
+      const confidence = this.calculateConfidence(analyzedReport, detectedType, basicParsedReport)
+      console.log('[MASTER-ANALYZER] Confidence score:', (confidence * 100).toFixed(1) + '%')
       
-      return {
+      const result = {
         reportType: detectedType,
         analyzedReport,
         processingTime,
         confidence
       }
       
+      console.log('[MASTER-ANALYZER] ===== Analysis pipeline complete =====')
+      return result
+      
     } catch (error) {
+      const errorTime = Date.now() - startTime
+      console.error('[MASTER-ANALYZER] ===== Analysis pipeline failed =====')
+      console.error('[MASTER-ANALYZER] Error after', errorTime, 'ms:', error)
       throw new Error(`Master analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
   private async analyzeCGMReport(pdfBuffer: Buffer, basicParsedReport: ParsedLabReport): Promise<AnalyzedReport> {
     try {
-      // For CGM reports, we'll use Claude to analyze the data
-      const cgmAnalysis = await this.claudeClient.analyzeCGM(basicParsedReport.rawText)
+      console.log('[MASTER-ANALYZER] Sending CGM data to Claude for analysis...')
+      // For CGM reports, use the combined text if available
+      const textForAnalysis = basicParsedReport.combinedText || basicParsedReport.rawText
+      const cgmAnalysis = await this.claudeClient.analyzeCGM(textForAnalysis)
+      console.log('[MASTER-ANALYZER] Claude CGM analysis received')
       
       return {
         ...basicParsedReport,
@@ -109,14 +176,18 @@ export class MasterAnalyzer {
         analysisResults: cgmAnalysis
       } as AnalyzedReport
     } catch (error) {
+      console.error('[MASTER-ANALYZER] CGM Claude analysis error:', error)
       throw new Error(`CGM analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
   private async analyzeFoodPhotoReport(pdfBuffer: Buffer, basicParsedReport: ParsedLabReport): Promise<AnalyzedReport> {
     try {
-      // For food photos, we'll use Claude to analyze the image description
-      const foodAnalysis = await this.claudeClient.analyzeFoodPhoto(basicParsedReport.rawText)
+      console.log('[MASTER-ANALYZER] Sending food photo data to Claude for analysis...')
+      // For food photos, use the combined text if available
+      const textForAnalysis = basicParsedReport.combinedText || basicParsedReport.rawText
+      const foodAnalysis = await this.claudeClient.analyzeFoodPhoto(textForAnalysis)
+      console.log('[MASTER-ANALYZER] Claude food photo analysis received')
       
       return {
         ...basicParsedReport,
@@ -124,12 +195,19 @@ export class MasterAnalyzer {
         analysisResults: foodAnalysis
       } as AnalyzedReport
     } catch (error) {
+      console.error('[MASTER-ANALYZER] Food photo Claude analysis error:', error)
       throw new Error(`Food photo analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
-  private calculateConfidence(analyzedReport: AnalyzedReport, detectedType: ReportType): number {
+  private calculateConfidence(analyzedReport: AnalyzedReport, detectedType: ReportType, parsedReport?: ParsedLabReport): number {
     let confidence = 0.8 // Base confidence
+    
+    // Boost confidence if vision analysis was used successfully
+    if (parsedReport?.hasImageContent && parsedReport?.visionAnalysisText) {
+      confidence += 0.05
+      console.log('[MASTER-ANALYZER] Vision analysis boost applied')
+    }
     
     // Check if we have patient information
     if (analyzedReport.patientName) {

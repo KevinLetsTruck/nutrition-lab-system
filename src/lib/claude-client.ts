@@ -97,9 +97,27 @@ class ClaudeClient {
   private constructor() {
     const apiKey = process.env.ANTHROPIC_API_KEY
     if (!apiKey) {
+      console.error('[CLAUDE] ANTHROPIC_API_KEY is missing!')
       throw new Error('ANTHROPIC_API_KEY environment variable is required')
     }
-    this.client = new Anthropic({ apiKey })
+    
+    // Log API key info for debugging (first 10 chars only for security)
+    console.log('[CLAUDE] Initializing client with API key:', apiKey.substring(0, 10) + '...')
+    console.log('[CLAUDE] API key length:', apiKey.length)
+    console.log('[CLAUDE] API key format valid:', apiKey.startsWith('sk-ant-'))
+    
+    try {
+      this.client = new Anthropic({ 
+        apiKey,
+        defaultHeaders: {
+          'anthropic-version': '2023-06-01'
+        }
+      })
+      console.log('[CLAUDE] Client initialized successfully')
+    } catch (initError) {
+      console.error('[CLAUDE] Failed to initialize Anthropic client:', initError)
+      throw initError
+    }
   }
 
   static getInstance(): ClaudeClient {
@@ -109,23 +127,199 @@ class ClaudeClient {
     return ClaudeClient.instance
   }
 
-  private async analyzeWithClaude(prompt: string, systemPrompt: string): Promise<string> {
+  // Updated method to support both text and vision inputs
+  private async analyzeWithClaude(
+    prompt: string | Anthropic.MessageParam['content'], 
+    systemPrompt: string
+  ): Promise<string> {
+    console.log('[CLAUDE] ===== Starting Claude API call =====')
+    console.log('[CLAUDE] System prompt length:', systemPrompt.length)
+    
+    // Handle both text-only and multi-modal inputs
+    const isTextOnly = typeof prompt === 'string'
+    if (isTextOnly) {
+      console.log('[CLAUDE] User prompt length:', prompt.length)
+      console.log('[CLAUDE] First 200 chars of prompt:', prompt.substring(0, 200))
+    } else {
+      console.log('[CLAUDE] Multi-modal prompt with', Array.isArray(prompt) ? prompt.length : 1, 'parts')
+    }
+    
     try {
-      const message = await this.client.messages.create({
+      const requestPayload = {
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 4000,
+        temperature: 0,
         system: systemPrompt,
-        messages: [{ role: 'user', content: prompt }]
+        messages: [{ 
+          role: 'user' as const, 
+          content: prompt 
+        }]
+      }
+      
+      console.log('[CLAUDE] Request payload:', {
+        model: requestPayload.model,
+        max_tokens: requestPayload.max_tokens,
+        temperature: requestPayload.temperature,
+        systemPromptLength: systemPrompt.length,
+        contentType: isTextOnly ? 'text' : 'multi-modal'
       })
-
-      return message.content[0].type === 'text' ? message.content[0].text : ''
+      
+      console.log('[CLAUDE] Sending request to Anthropic API...')
+      const startTime = Date.now()
+      
+      const message = await this.client.messages.create(requestPayload)
+      
+      const endTime = Date.now()
+      console.log('[CLAUDE] API call successful! Response time:', endTime - startTime, 'ms')
+      console.log('[CLAUDE] Response details:', {
+        id: message.id,
+        model: message.model,
+        role: message.role,
+        usage: message.usage,
+        stop_reason: message.stop_reason
+      })
+      
+      if (message.content && message.content.length > 0 && message.content[0].type === 'text') {
+        const responseText = message.content[0].text
+        console.log('[CLAUDE] Response text length:', responseText.length)
+        console.log('[CLAUDE] First 200 chars of response:', responseText.substring(0, 200))
+        return responseText
+      } else {
+        console.error('[CLAUDE] Unexpected response format:', message)
+        throw new Error('Received empty or invalid response from Claude')
+      }
+      
     } catch (error) {
-      console.error('Claude API error:', error)
-      throw new Error(`AI analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      console.error('[CLAUDE] ===== API ERROR OCCURRED =====')
+      console.error('[CLAUDE] Error type:', error?.constructor?.name)
+      console.error('[CLAUDE] Error details:', error)
+      
+      // Provide detailed error information
+      if (error instanceof Anthropic.APIError) {
+        console.error('[CLAUDE] Anthropic API Error Details:', {
+          status: error.status,
+          headers: error.headers,
+          error: error.error,
+          message: error.message
+        })
+        
+        // Log the raw error response if available
+        if (error.error) {
+          console.error('[CLAUDE] Raw error response:', JSON.stringify(error.error, null, 2))
+        }
+        
+        // Handle specific error types
+        if (error.status === 401) {
+          throw new Error('AI analysis failed: Invalid API key. Please check your ANTHROPIC_API_KEY environment variable.')
+        } else if (error.status === 400) {
+          // Extract more specific error message from the response
+          const errorMessage = (error.error as any)?.error?.message || error.message || 'Bad request'
+          throw new Error(`AI analysis failed: Invalid request - ${errorMessage}`)
+        } else if (error.status === 429) {
+          throw new Error('AI analysis failed: Rate limit exceeded. Please try again in a few moments.')
+        } else if (error.status === 500 || error.status === 502 || error.status === 503) {
+          throw new Error(`AI analysis failed: Claude API service error (${error.status}). Please try again.`)
+        } else {
+          throw new Error(`AI analysis failed: ${error.message} (Status: ${error.status})`)
+        }
+      } else if (error instanceof Error) {
+        console.error('[CLAUDE] JavaScript Error:', {
+          message: error.message,
+          stack: error.stack
+        })
+        
+        // Network errors or other issues
+        if (error.message.includes('ECONNREFUSED') || error.message.includes('ENOTFOUND')) {
+          throw new Error('AI analysis failed: Unable to connect to Claude API. Please check your internet connection.')
+        } else if (error.message.includes('timeout')) {
+          throw new Error('AI analysis failed: Request timed out. The document may be too large or complex.')
+        } else if (error.message.includes('fetch failed')) {
+          throw new Error('AI analysis failed: Network error. Please check your internet connection.')
+        } else {
+          throw new Error(`AI analysis failed: ${error.message}`)
+        }
+      } else {
+        console.error('[CLAUDE] Unknown error type:', error)
+        throw new Error('AI analysis failed: An unexpected error occurred while communicating with Claude API')
+      }
     }
   }
 
+  // New method to analyze images with Claude Vision
+  async analyzeImageWithVision(
+    imageBase64: string, 
+    imageType: string,
+    analysisPrompt: string,
+    systemPrompt: string
+  ): Promise<string> {
+    console.log('[CLAUDE] Analyzing image with Vision API')
+    console.log('[CLAUDE] Image type:', imageType)
+    console.log('[CLAUDE] Image size (base64):', imageBase64.length, 'chars')
+    
+    // Construct multi-modal message content
+    const content: Anthropic.MessageParam['content'] = [
+      {
+        type: 'text',
+        text: analysisPrompt
+      },
+      {
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: imageType as any, // e.g., 'image/png', 'image/jpeg'
+          data: imageBase64
+        }
+      }
+    ]
+    
+    return await this.analyzeWithClaude(content, systemPrompt)
+  }
+
+  // New method for analyzing PDF pages as images
+  async analyzePDFPagesAsImages(
+    pageImages: Array<{ base64: string; pageNumber: number }>,
+    systemPrompt: string,
+    textExtract?: string
+  ): Promise<string> {
+    console.log('[CLAUDE] Analyzing', pageImages.length, 'PDF pages as images')
+    
+    // Build the content array with text instructions and all page images
+    const content: Anthropic.MessageParam['content'] = []
+    
+    // Add initial instruction
+    content.push({
+      type: 'text',
+      text: `Please analyze these PDF pages and extract all relevant information. ${textExtract ? `For context, here's what text extraction found (may be incomplete): ${textExtract.substring(0, 1000)}` : 'The PDF appears to be image-based or contains charts/graphs.'}`
+    })
+    
+    // Add each page image
+    for (const { base64, pageNumber } of pageImages) {
+      content.push({
+        type: 'text',
+        text: `Page ${pageNumber}:`
+      })
+      content.push({
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: 'image/png',
+          data: base64
+        }
+      })
+    }
+    
+    // Add final instruction
+    content.push({
+      type: 'text',
+      text: 'Please extract all text, data from charts/graphs, tables, and any other relevant information from these pages.'
+    })
+    
+    return await this.analyzeWithClaude(content, systemPrompt)
+  }
+
   async detectReportType(pdfText: string): Promise<'nutriq' | 'kbmo' | 'dutch' | 'cgm' | 'food_photo'> {
+    console.log('[CLAUDE] Detecting report type from text length:', pdfText.length)
+    
     const systemPrompt = `You are an expert at identifying different types of lab reports and medical documents. 
     Analyze the provided text and determine which type of report it is. Return only one of these exact values:
     - nutriq (for NutriQ/NAQ assessments)
@@ -140,15 +334,23 @@ class ClaudeClient {
 
 ${pdfText.substring(0, 2000)}...`
 
-    const result = await this.analyzeWithClaude(prompt, systemPrompt)
-    const detectedType = result.toLowerCase().trim() as any
-    
-    if (['nutriq', 'kbmo', 'dutch', 'cgm', 'food_photo'].includes(detectedType)) {
-      return detectedType
+    try {
+      const result = await this.analyzeWithClaude(prompt, systemPrompt)
+      const detectedType = result.toLowerCase().trim() as any
+      
+      console.log('[CLAUDE] Detected report type:', detectedType)
+      
+      if (['nutriq', 'kbmo', 'dutch', 'cgm', 'food_photo'].includes(detectedType)) {
+        return detectedType
+      }
+      
+      console.warn('[CLAUDE] Unknown report type detected:', detectedType, '- defaulting to nutriq')
+      // Default to nutriq if unclear
+      return 'nutriq'
+    } catch (error) {
+      console.error('[CLAUDE] Failed to detect report type:', error)
+      throw new Error(`Failed to detect report type: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
-    
-    // Default to nutriq if unclear
-    return 'nutriq'
   }
 
   async analyzeNutriQ(pdfText: string): Promise<NutriQAnalysis> {

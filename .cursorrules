@@ -1,0 +1,42 @@
+# Nutrition Lab System - Project Rules
+
+## Development Workflow
+
+### Git Workflow Rules
+1. **Always push changes when finished** - After completing any feature, fix, or update, commit and push changes to the repository
+2. **Use descriptive commit messages** - Clearly describe what was changed and why
+3. **Commit related changes together** - Group related modifications in single commits
+4. **Push after testing** - Ensure changes work before pushing
+
+### Automatic Push Rule
+When completing any task:
+```bash
+# Stage all changes
+git add .
+
+# Commit with descriptive message
+git commit -m "feat: [description of change]"
+
+# Push to repository
+git push origin main
+```
+
+### Commit Message Format
+- `feat:` - New features
+- `fix:` - Bug fixes
+- `docs:` - Documentation changes
+- `refactor:` - Code refactoring
+- `test:` - Test additions/changes
+- `chore:` - Maintenance tasks
+
+### Code Quality Rules
+1. **Test before pushing** - Run relevant test scripts
+2. **Check for linter errors** - Fix any issues before committing
+3. **Update documentation** - Keep docs in sync with code changes
+4. **Clean up temporary files** - Remove test/debug files
+
+### Project-Specific Rules
+1. **Sensitive data** - Never commit API keys or credentials
+2. **PDF handling** - Test with both text and image-based PDFs
+3. **Error messages** - Provide user-friendly error messages
+4. **Logging** - Include detailed logging for debugging 

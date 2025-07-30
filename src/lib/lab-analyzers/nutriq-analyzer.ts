@@ -25,14 +25,17 @@ export class NutriQAnalyzer {
 
   async analyzeNutriQReport(pdfBuffer: Buffer): Promise<NutriQParsedReport> {
     try {
-      // First, parse the PDF to get basic text
+      // First, parse the PDF to get basic text (now includes vision analysis)
       const basicParsedReport = await this.pdfParser.parseLabReport(pdfBuffer)
       
+      // Use combined text if available (includes vision analysis)
+      const textForAnalysis = basicParsedReport.combinedText || basicParsedReport.rawText
+      
       // Extract patient information from the PDF text
-      const patientInfo = this.extractNutriQPatientInfo(basicParsedReport.rawText)
+      const patientInfo = this.extractNutriQPatientInfo(textForAnalysis)
       
       // Use Claude to analyze the NutriQ assessment
-      const nutriqAnalysis = await this.claudeClient.analyzeNutriQ(basicParsedReport.rawText)
+      const nutriqAnalysis = await this.claudeClient.analyzeNutriQ(textForAnalysis)
       
       // Combine the results
       const nutriqReport: NutriQParsedReport = {
