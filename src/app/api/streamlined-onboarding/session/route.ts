@@ -5,9 +5,12 @@ const onboardingService = new StreamlinedOnboardingService()
 
 export async function POST(request: NextRequest) {
   try {
-    const { clientId } = await request.json()
+    const body = await request.json()
+    const { clientId } = body
     
     console.log('Creating session for clientId:', clientId)
+    
+    // Create session - clientId is optional for new users
     const session = await onboardingService.createSession(clientId)
     console.log('Session created successfully:', session)
     

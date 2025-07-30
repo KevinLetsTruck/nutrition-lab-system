@@ -40,16 +40,39 @@ export class StreamlinedOnboardingService {
       last_activity: new Date().toISOString()
     })
 
+    // Create minimal session data - demographic fields will be filled in later
+    const sessionData: any = {
+      session_token: sessionToken,
+      current_step: 'demographics',
+      progress_percentage: 0,
+      expires_at: expiresAt.toISOString(),
+      last_activity: new Date().toISOString()
+    }
+
+    // Only add client_id if it's provided and is a valid UUID
+    if (clientId) {
+      // Validate UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      if (uuidRegex.test(clientId)) {
+        sessionData.client_id = clientId
+      } else {
+        console.warn('Invalid UUID format for clientId:', clientId)
+      }
+    }
+
+    // Add placeholder values for required fields (will be updated when user fills out demographics)
+    sessionData.first_name = 'Pending'
+    sessionData.last_name = 'Pending'
+    sessionData.email = 'pending@example.com'
+    sessionData.phone = '000-000-0000'
+    sessionData.current_diet_approach = 'pending'
+    sessionData.primary_health_goal = 'pending'
+
+    console.log('Final session data to insert:', sessionData)
+
     const { data, error } = await this.supabase
       .from('client_onboarding')
-      .insert({
-        client_id: clientId,
-        session_token: sessionToken,
-        current_step: 'demographics',
-        progress_percentage: 0,
-        expires_at: expiresAt.toISOString(),
-        last_activity: new Date().toISOString()
-      })
+      .insert(sessionData)
       .select()
       .single()
 
