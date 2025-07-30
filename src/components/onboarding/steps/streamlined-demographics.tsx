@@ -3,153 +3,127 @@
 import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { User } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 interface StreamlinedDemographicsProps {
-  initialData?: any
   onNext: (data: any) => void
-  onBack?: () => void
-  onSave?: (data: any) => void
-  isLoading?: boolean
+  initialData?: any
 }
 
-export function StreamlinedDemographics({ initialData, onNext, onBack, onSave, isLoading }: StreamlinedDemographicsProps) {
+export function StreamlinedDemographics({ onNext, initialData }: StreamlinedDemographicsProps) {
   const [formData, setFormData] = useState({
-    first_name: initialData?.first_name || '',
-    last_name: initialData?.last_name || '',
-    email: initialData?.email || ''
+    firstName: initialData?.firstName || '',
+    lastName: initialData?.lastName || '',
+    email: initialData?.email || '',
+    phone: initialData?.phone || ''
   })
 
-  const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // FIXED: Removed aggressive auto-save that was preventing user input
-  // Auto-save is now handled by the parent component with proper debouncing
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {}
-
-    if (!formData.first_name?.trim()) {
-      newErrors.first_name = 'First name is required'
-    }
-    if (!formData.last_name?.trim()) {
-      newErrors.last_name = 'Last name is required'
-    }
-    if (!formData.email?.trim()) {
-      newErrors.email = 'Email is required'
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email'
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (!validateForm()) {
-      return
-    }
-
     setIsSubmitting(true)
-    try {
-      // FIXED: Save data when user clicks Next
-      if (onSave) {
-        onSave(formData)
-      }
-      await onNext(formData)
-    } catch (error) {
-      console.error('Form submission error:', error)
-    } finally {
+    
+    // Store data locally for now (no API calls)
+    localStorage.setItem('demographicsData', JSON.stringify(formData))
+    
+    // Simulate processing time
+    setTimeout(() => {
+      onNext(formData)
       setIsSubmitting(false)
-    }
+    }, 500)
   }
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }))
-    }
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
   }
+
+  const isFormValid = formData.firstName && formData.lastName && formData.email
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <User className="w-5 h-5 text-primary-400" />
-          <span>Basic Information</span>
+        <CardTitle className="text-2xl font-bold text-white text-center">
+          Basic Information
         </CardTitle>
+        <p className="text-gray-400 text-center">
+          Let's start with your basic contact information
+        </p>
       </CardHeader>
+      
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="form-field">
-              <Label className="text-base font-medium text-white mb-3 block">
-                First Name <span className="text-red-400">*</span>
-              </Label>
-              <Input
-                value={formData.first_name}
-                onChange={(e) => handleInputChange('first_name', e.target.value)}
-                placeholder="Enter your first name"
-                disabled={isLoading}
-                className={`${errors.first_name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
-              />
-              {errors.first_name && <p className="text-sm text-red-400 mt-2">{errors.first_name}</p>}
-            </div>
-
-            <div className="form-field">
-              <Label className="text-base font-medium text-white mb-3 block">
-                Last Name <span className="text-red-400">*</span>
-              </Label>
-              <Input
-                value={formData.last_name}
-                onChange={(e) => handleInputChange('last_name', e.target.value)}
-                placeholder="Enter your last name"
-                disabled={isLoading}
-                className={`${errors.last_name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
-              />
-              {errors.last_name && <p className="text-sm text-red-400 mt-2">{errors.last_name}</p>}
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* First Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              First Name <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              value={formData.firstName}
+              onChange={(e) => handleInputChange('firstName', e.target.value)}
+              className="w-full p-3 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter your first name"
+              required
+            />
           </div>
 
-          <div className="form-field">
-            <Label className="text-base font-medium text-white mb-3 block">
+          {/* Last Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Last Name <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              value={formData.lastName}
+              onChange={(e) => handleInputChange('lastName', e.target.value)}
+              className="w-full p-3 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter your last name"
+              required
+            />
+          </div>
+
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
               Email Address <span className="text-red-400">*</span>
-            </Label>
-            <Input
+            </label>
+            <input
               type="email"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
+              className="w-full p-3 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter your email address"
-              disabled={isLoading}
-              className={`${errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
+              required
             />
-            {errors.email && <p className="text-sm text-red-400 mt-2">{errors.email}</p>}
           </div>
 
-          {/* Navigation Buttons */}
-          <div className="flex justify-between pt-8 border-t border-dark-600">
-            {onBack && (
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={onBack}
-                disabled={isLoading || isSubmitting}
-                className="px-8 py-3 bg-dark-700 hover:bg-dark-600 text-white font-medium rounded-lg transition-all duration-200 border border-dark-600"
-              >
-                Back
-              </Button>
-            )}
-            <Button 
-              type="submit" 
-              disabled={isLoading || isSubmitting}
-              className="ml-auto px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          {/* Phone */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Phone Number
+            </label>
+            <input
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => handleInputChange('phone', e.target.value)}
+              className="w-full p-3 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter your phone number"
+            />
+          </div>
+
+          {/* Navigation Button */}
+          <div className="flex justify-end pt-6">
+            <Button
+              type="submit"
+              disabled={isSubmitting || !isFormValid}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
             >
               {isSubmitting ? 'Saving...' : 'Next'}
+              <ArrowRight className="w-4 h-4" />
             </Button>
           </div>
         </form>

@@ -3,348 +3,140 @@
 import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Utensils, Plus, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 
 interface StreamlinedDietProps {
-  initialData?: any
   onNext: (data: any) => void
-  onBack?: () => void
-  onSave?: (data: any) => void
-  isLoading?: boolean
+  onBack: () => void
+  initialData?: any
 }
 
-export function StreamlinedDiet({ initialData, onNext, onBack, onSave, isLoading }: StreamlinedDietProps) {
+export function StreamlinedDiet({ onNext, onBack, initialData }: StreamlinedDietProps) {
   const [formData, setFormData] = useState({
     dietType: initialData?.dietType || '',
-    foodAllergies: initialData?.foodAllergies || [],
-    dietaryRestrictions: initialData?.dietaryRestrictions || [],
     mealFrequency: initialData?.mealFrequency || '',
-    waterIntake: initialData?.waterIntake || '',
-    supplements: initialData?.supplements || []
+    waterIntake: initialData?.waterIntake || ''
   })
 
-  const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [newSupplement, setNewSupplement] = useState('')
 
-  // FIXED: Removed aggressive auto-save that was preventing user input
-  // Auto-save is now handled by the parent component with proper debouncing
-
-  const dietTypeOptions = [
-    'Standard American',
-    'Mediterranean',
-    'Keto',
-    'Paleo',
-    'Vegetarian',
-    'Vegan',
-    'Low-Carb',
-    'High-Protein',
-    'Gluten-Free',
-    'Dairy-Free',
-    'Other'
-  ]
-
-  const allergyOptions = [
-    'Peanuts',
-    'Tree Nuts',
-    'Milk',
-    'Eggs',
-    'Soy',
-    'Wheat',
-    'Fish',
-    'Shellfish',
-    'Gluten',
-    'Lactose'
-  ]
-
-  const restrictionOptions = [
-    'Low Sodium',
-    'Low Sugar',
-    'Low Fat',
-    'High Fiber',
-    'Low Cholesterol',
-    'No Red Meat',
-    'No Processed Foods',
-    'Organic Only'
-  ]
-
-  const mealFrequencyOptions = [
-    '3 meals per day',
-    '4-5 small meals',
-    '2 meals + snacks',
-    'Intermittent fasting',
-    'Variable schedule'
-  ]
-
-  const waterIntakeOptions = [
-    'Less than 4 cups',
-    '4-6 cups',
-    '6-8 cups',
-    '8-10 cups',
-    'More than 10 cups'
-  ]
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {}
-    
-    if (!formData.dietType) {
-      newErrors.dietType = 'Please select your primary diet type'
-    }
-    
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (!validateForm()) {
-      return
-    }
-
     setIsSubmitting(true)
-    try {
-      // FIXED: Save data when user clicks Next
-      if (onSave) {
-        onSave(formData)
-      }
-      await onNext(formData)
-    } catch (error) {
-      console.error('Form submission error:', error)
-    } finally {
+    
+    // Store data locally for now (no API calls)
+    localStorage.setItem('dietData', JSON.stringify(formData))
+    
+    // Simulate processing time
+    setTimeout(() => {
+      onNext(formData)
       setIsSubmitting(false)
-    }
+    }, 500)
   }
 
-  const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    // Clear error when user starts typing/selecting
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }))
-    }
-  }
-
-  const handleAllergyChange = (allergy: string, checked: boolean) => {
-    const newAllergies = checked
-      ? [...formData.foodAllergies, allergy]
-      : formData.foodAllergies.filter((a: string) => a !== allergy)
-    handleInputChange('foodAllergies', newAllergies)
-  }
-
-  const handleRestrictionChange = (restriction: string, checked: boolean) => {
-    const newRestrictions = checked
-      ? [...formData.dietaryRestrictions, restriction]
-      : formData.dietaryRestrictions.filter((r: string) => r !== restriction)
-    handleInputChange('dietaryRestrictions', newRestrictions)
-  }
-
-  const addSupplement = () => {
-    if (newSupplement.trim()) {
-      const newSupplements = [...formData.supplements, newSupplement.trim()]
-      handleInputChange('supplements', newSupplements)
-      setNewSupplement('')
-    }
-  }
-
-  const removeSupplement = (index: number) => {
-    const newSupplements = formData.supplements.filter((_: string, i: number) => i !== index)
-    handleInputChange('supplements', newSupplements)
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
   }
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Utensils className="w-5 h-5 text-primary-400" />
-          <span>Diet & Nutrition</span>
+        <CardTitle className="text-2xl font-bold text-white text-center">
+          Current Diet & Nutrition
         </CardTitle>
+        <p className="text-gray-400 text-center">
+          Tell us about your current eating habits
+        </p>
       </CardHeader>
+      
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Primary Diet Type */}
-          <div className="form-field">
-            <Label className="text-base font-medium text-white mb-3 block">
-              Primary Diet Type <span className="text-red-400">*</span>
-            </Label>
-            <Select
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              What is your primary diet type?
+            </label>
+            <select
               value={formData.dietType}
-              onValueChange={(value) => handleInputChange('dietType', value)}
-              disabled={isLoading}
+              onChange={(e) => handleInputChange('dietType', e.target.value)}
+              className="w-full p-3 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
             >
-              <SelectTrigger className={`${errors.dietType ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}>
-                <SelectValue placeholder="Select your primary diet type" />
-              </SelectTrigger>
-              <SelectContent>
-                {dietTypeOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.dietType && <p className="text-sm text-red-400 mt-2">{errors.dietType}</p>}
-          </div>
-
-          {/* Food Allergies */}
-          <div className="form-field">
-            <Label className="text-base font-medium text-white mb-3 block">
-              Food Allergies
-            </Label>
-            <div className="grid grid-cols-2 gap-3">
-              {allergyOptions.map((allergy) => (
-                <div key={allergy} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`allergy-${allergy}`}
-                    checked={formData.foodAllergies.includes(allergy)}
-                    onCheckedChange={(checked) => handleAllergyChange(allergy, checked as boolean)}
-                    disabled={isLoading}
-                  />
-                  <Label htmlFor={`allergy-${allergy}`} className="text-sm text-gray-300">
-                    {allergy}
-                  </Label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Dietary Restrictions */}
-          <div className="form-field">
-            <Label className="text-base font-medium text-white mb-3 block">
-              Dietary Restrictions
-            </Label>
-            <div className="grid grid-cols-2 gap-3">
-              {restrictionOptions.map((restriction) => (
-                <div key={restriction} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`restriction-${restriction}`}
-                    checked={formData.dietaryRestrictions.includes(restriction)}
-                    onCheckedChange={(checked) => handleRestrictionChange(restriction, checked as boolean)}
-                    disabled={isLoading}
-                  />
-                  <Label htmlFor={`restriction-${restriction}`} className="text-sm text-gray-300">
-                    {restriction}
-                  </Label>
-                </div>
-              ))}
-            </div>
+              <option value="">Select your primary diet</option>
+              <option value="Standard American Diet">Standard American Diet</option>
+              <option value="Low Carb Paleo">Low Carb Paleo</option>
+              <option value="Keto Paleo">Keto Paleo</option>
+              <option value="Carnivore">Carnivore</option>
+              <option value="Vegetarian">Vegetarian</option>
+              <option value="Vegan">Vegan</option>
+              <option value="Mediterranean">Mediterranean</option>
+              <option value="Gluten-Free">Gluten-Free</option>
+              <option value="Dairy-Free">Dairy-Free</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
 
           {/* Meal Frequency */}
-          <div className="form-field">
-            <Label className="text-base font-medium text-white mb-3 block">
-              Typical Meal Frequency
-            </Label>
-            <Select
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              How many meals do you typically eat per day?
+            </label>
+            <select
               value={formData.mealFrequency}
-              onValueChange={(value) => handleInputChange('mealFrequency', value)}
-              disabled={isLoading}
+              onChange={(e) => handleInputChange('mealFrequency', e.target.value)}
+              className="w-full p-3 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select your meal frequency" />
-              </SelectTrigger>
-              <SelectContent>
-                {mealFrequencyOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <option value="">Select meal frequency</option>
+              <option value="1 meal per day">1 meal per day</option>
+              <option value="2 meals per day">2 meals per day</option>
+              <option value="3 meals per day">3 meals per day</option>
+              <option value="4+ meals per day">4+ meals per day</option>
+              <option value="Intermittent fasting">Intermittent fasting</option>
+              <option value="Grazing throughout day">Grazing throughout day</option>
+            </select>
           </div>
 
           {/* Water Intake */}
-          <div className="form-field">
-            <Label className="text-base font-medium text-white mb-3 block">
-              Daily Water Intake
-            </Label>
-            <Select
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              How much water do you drink daily?
+            </label>
+            <select
               value={formData.waterIntake}
-              onValueChange={(value) => handleInputChange('waterIntake', value)}
-              disabled={isLoading}
+              onChange={(e) => handleInputChange('waterIntake', e.target.value)}
+              className="w-full p-3 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select your water intake" />
-              </SelectTrigger>
-              <SelectContent>
-                {waterIntakeOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Supplements */}
-          <div className="form-field">
-            <Label className="text-base font-medium text-white mb-3 block">
-              Current Supplements
-            </Label>
-            <div className="flex gap-3">
-              <Input
-                value={newSupplement}
-                onChange={(e) => setNewSupplement(e.target.value)}
-                placeholder="Enter supplement name"
-                disabled={isLoading}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    addSupplement()
-                  }
-                }}
-              />
-              <Button
-                type="button"
-                onClick={addSupplement}
-                disabled={isLoading || !newSupplement.trim()}
-                className="px-4 bg-primary-600 hover:bg-primary-700"
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-            
-            {formData.supplements.length > 0 && (
-              <div className="mt-3 space-y-2">
-                {formData.supplements.map((supplement: string, index: number) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-dark-700 rounded-lg">
-                    <span className="text-sm text-gray-300">{supplement}</span>
-                    <Button
-                      type="button"
-                      onClick={() => removeSupplement(index)}
-                      disabled={isLoading}
-                      className="p-1 h-auto bg-transparent hover:bg-dark-600 text-gray-400 hover:text-red-400"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
+              <option value="">Select water intake</option>
+              <option value="Less than 4 cups">Less than 4 cups</option>
+              <option value="4-6 cups">4-6 cups</option>
+              <option value="6-8 cups">6-8 cups</option>
+              <option value="8+ cups">8+ cups</option>
+              <option value="Not sure">Not sure</option>
+            </select>
           </div>
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between pt-8 border-t border-dark-600">
-            {onBack && (
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={onBack}
-                disabled={isLoading || isSubmitting}
-                className="px-8 py-3 bg-dark-700 hover:bg-dark-600 text-white font-medium rounded-lg transition-all duration-200 border border-dark-600"
-              >
-                Back
-              </Button>
-            )}
-            <Button 
-              type="submit" 
-              disabled={isLoading || isSubmitting}
-              className="ml-auto px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          <div className="flex justify-between pt-6">
+            <Button
+              type="button"
+              onClick={onBack}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
+            
+            <Button
+              type="submit"
+              disabled={isSubmitting || !formData.dietType}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
             >
               {isSubmitting ? 'Saving...' : 'Next'}
+              <ArrowRight className="w-4 h-4" />
             </Button>
           </div>
         </form>

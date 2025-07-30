@@ -3,198 +3,134 @@
 import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Truck } from 'lucide-react'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 
 interface StreamlinedTruckInfoProps {
-  initialData?: any
   onNext: (data: any) => void
-  onBack?: () => void
-  onSave?: (data: any) => void
-  isLoading?: boolean
+  onBack: () => void
+  initialData?: any
 }
 
-export function StreamlinedTruckInfo({ initialData, onNext, onBack, onSave, isLoading }: StreamlinedTruckInfoProps) {
+export function StreamlinedTruckInfo({ onNext, onBack, initialData }: StreamlinedTruckInfoProps) {
   const [formData, setFormData] = useState({
+    yearsDriving: initialData?.yearsDriving || '',
     routeType: initialData?.routeType || '',
-    hoursPerWeek: initialData?.hoursPerWeek || '',
-    sleepSchedule: initialData?.sleepSchedule || ''
+    schedulePattern: initialData?.schedulePattern || ''
   })
 
-  const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // FIXED: Removed aggressive auto-save that was preventing user input
-  // Auto-save is now handled by the parent component with proper debouncing
-
-  const routeTypeOptions = [
-    'Local/Regional',
-    'Over-the-Road (OTR)',
-    'Team Driving',
-    'Owner Operator',
-    'Specialized Hauling',
-    'Intermodal',
-    'Other'
-  ]
-
-  const hoursPerWeekOptions = [
-    'Less than 40 hours',
-    '40-50 hours',
-    '50-60 hours',
-    '60-70 hours',
-    'More than 70 hours',
-    'Variable schedule'
-  ]
-
-  const sleepScheduleOptions = [
-    'Regular day schedule (6AM-10PM)',
-    'Night shift (10PM-6AM)',
-    'Split schedule',
-    'Irregular/rotating shifts',
-    'Sleep when possible',
-    'Other'
-  ]
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {}
-    
-    if (!formData.routeType) {
-      newErrors.routeType = 'Please select your route type'
-    }
-    
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (!validateForm()) {
-      return
-    }
-
     setIsSubmitting(true)
-    try {
-      // FIXED: Save data when user clicks Next
-      if (onSave) {
-        onSave(formData)
-      }
-      await onNext(formData)
-    } catch (error) {
-      console.error('Form submission error:', error)
-    } finally {
+    
+    // Store data locally for now (no API calls)
+    localStorage.setItem('truckInfoData', JSON.stringify(formData))
+    
+    // Simulate processing time
+    setTimeout(() => {
+      onNext(formData)
       setIsSubmitting(false)
-    }
+    }, 500)
   }
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    // Clear error when user starts selecting
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }))
-    }
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
   }
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Truck className="w-5 h-5 text-primary-400" />
-          <span>Truck Driver Information</span>
+        <CardTitle className="text-2xl font-bold text-white text-center">
+          Truck Driver Information
         </CardTitle>
+        <p className="text-gray-400 text-center">
+          Tell us about your driving schedule and experience
+        </p>
       </CardHeader>
+      
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Years Driving */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              How many years have you been driving professionally?
+            </label>
+            <select
+              value={formData.yearsDriving}
+              onChange={(e) => handleInputChange('yearsDriving', e.target.value)}
+              className="w-full p-3 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select years of experience</option>
+              <option value="Less than 1 year">Less than 1 year</option>
+              <option value="1-3 years">1-3 years</option>
+              <option value="3-5 years">3-5 years</option>
+              <option value="5-10 years">5-10 years</option>
+              <option value="10+ years">10+ years</option>
+            </select>
+          </div>
+
           {/* Route Type */}
-          <div className="form-field">
-            <Label className="text-base font-medium text-white mb-3 block">
-              Route Type <span className="text-red-400">*</span>
-            </Label>
-            <Select
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              What type of route do you typically drive?
+            </label>
+            <select
               value={formData.routeType}
-              onValueChange={(value) => handleInputChange('routeType', value)}
-              disabled={isLoading}
+              onChange={(e) => handleInputChange('routeType', e.target.value)}
+              className="w-full p-3 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <SelectTrigger className={`${errors.routeType ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}>
-                <SelectValue placeholder="Select your route type" />
-              </SelectTrigger>
-              <SelectContent>
-                {routeTypeOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.routeType && <p className="text-sm text-red-400 mt-2">{errors.routeType}</p>}
+              <option value="">Select route type</option>
+              <option value="OTR (Over the Road)">OTR (Over the Road)</option>
+              <option value="Regional">Regional</option>
+              <option value="Local">Local</option>
+              <option value="Dedicated">Dedicated</option>
+              <option value="Team Driving">Team Driving</option>
+              <option value="Owner Operator">Owner Operator</option>
+            </select>
           </div>
 
-          {/* Hours Per Week */}
-          <div className="form-field">
-            <Label className="text-base font-medium text-white mb-3 block">
-              Typical Hours Per Week
-            </Label>
-            <Select
-              value={formData.hoursPerWeek}
-              onValueChange={(value) => handleInputChange('hoursPerWeek', value)}
-              disabled={isLoading}
+          {/* Schedule Pattern */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              What's your typical driving schedule?
+            </label>
+            <select
+              value={formData.schedulePattern}
+              onChange={(e) => handleInputChange('schedulePattern', e.target.value)}
+              className="w-full p-3 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select your typical hours" />
-              </SelectTrigger>
-              <SelectContent>
-                {hoursPerWeekOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Sleep Schedule */}
-          <div className="form-field">
-            <Label className="text-base font-medium text-white mb-3 block">
-              Typical Sleep Schedule
-            </Label>
-            <Select
-              value={formData.sleepSchedule}
-              onValueChange={(value) => handleInputChange('sleepSchedule', value)}
-              disabled={isLoading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select your sleep schedule" />
-              </SelectTrigger>
-              <SelectContent>
-                {sleepScheduleOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <option value="">Select schedule pattern</option>
+              <option value="Standard (Day shifts)">Standard (Day shifts)</option>
+              <option value="Night shifts">Night shifts</option>
+              <option value="Irregular schedule">Irregular schedule</option>
+              <option value="Split shifts">Split shifts</option>
+              <option value="On-call">On-call</option>
+            </select>
           </div>
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between pt-8 border-t border-dark-600">
-            {onBack && (
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={onBack}
-                disabled={isLoading || isSubmitting}
-                className="px-8 py-3 bg-dark-700 hover:bg-dark-600 text-white font-medium rounded-lg transition-all duration-200 border border-dark-600"
-              >
-                Back
-              </Button>
-            )}
-            <Button 
-              type="submit" 
-              disabled={isLoading || isSubmitting}
-              className="ml-auto px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          <div className="flex justify-between pt-6">
+            <Button
+              type="button"
+              onClick={onBack}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
+            
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
             >
               {isSubmitting ? 'Saving...' : 'Next'}
+              <ArrowRight className="w-4 h-4" />
             </Button>
           </div>
         </form>
