@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { createServerSupabaseClient } from './supabase'
 import { CompleteOnboardingData } from './onboarding-schemas'
 import { randomUUID } from 'crypto'
 
@@ -23,13 +23,22 @@ export class StreamlinedOnboardingService {
   private supabase
 
   constructor() {
-    this.supabase = supabase
+    this.supabase = createServerSupabaseClient()
   }
 
   // Create a new onboarding session
   async createSession(clientId?: string): Promise<OnboardingSession> {
     const sessionToken = randomUUID()
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+
+    console.log('Creating session with data:', {
+      client_id: clientId,
+      session_token: sessionToken,
+      current_step: 'demographics',
+      progress_percentage: 0,
+      expires_at: expiresAt.toISOString(),
+      last_activity: new Date().toISOString()
+    })
 
     const { data, error } = await this.supabase
       .from('client_onboarding')
@@ -44,8 +53,17 @@ export class StreamlinedOnboardingService {
       .select()
       .single()
 
+    console.log('Supabase response:', { data, error })
+
     if (error) {
-      throw new Error(`Failed to create onboarding session: ${error.message}`)
+      console.error('Supabase error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        error: error
+      })
+      throw new Error(`Failed to create onboarding session: ${error.message || error.details || error.hint || 'Unknown error'}`)
     }
 
     return {
