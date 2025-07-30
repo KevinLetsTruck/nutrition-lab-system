@@ -34,9 +34,9 @@ export function StreamlinedDiet({ data, onNext, onBack }: StreamlinedDietProps) 
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full max-w-2xl mx-auto bg-dark-800 border-dark-700">
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
+        <CardTitle className="flex items-center space-x-2 text-white">
           <Utensils className="w-5 h-5 text-primary-400" />
           <span>Diet & Nutrition</span>
         </CardTitle>
@@ -44,12 +44,12 @@ export function StreamlinedDiet({ data, onNext, onBack }: StreamlinedDietProps) 
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label>Primary Diet Type</Label>
+            <Label className="text-white">Primary Diet Type</Label>
             <Select value={formData.dietType} onValueChange={(value) => handleInputChange('dietType', value)}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-dark-700 border-dark-600 text-white">
                 <SelectValue placeholder="Select your primary diet" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-dark-700 border-dark-600">
                 <SelectItem value="standard">Standard American Diet</SelectItem>
                 <SelectItem value="vegetarian">Vegetarian</SelectItem>
                 <SelectItem value="vegan">Vegan</SelectItem>
@@ -64,7 +64,7 @@ export function StreamlinedDiet({ data, onNext, onBack }: StreamlinedDietProps) 
           </div>
 
           <div className="space-y-2">
-            <Label>Food Allergies & Sensitivities</Label>
+            <Label className="text-white">Food Allergies & Sensitivities</Label>
             <div className="grid grid-cols-2 gap-2">
               {['Gluten', 'Dairy', 'Nuts', 'Shellfish', 'Eggs', 'Soy', 'Wheat', 'Fish'].map((allergy) => (
                 <div key={allergy} className="flex items-center space-x-2">
@@ -77,20 +77,21 @@ export function StreamlinedDiet({ data, onNext, onBack }: StreamlinedDietProps) 
                         : formData.foodAllergies.filter((a: string) => a !== allergy)
                       handleInputChange('foodAllergies', newAllergies)
                     }}
+                    className="border-dark-600 bg-dark-700"
                   />
-                  <Label htmlFor={allergy} className="text-sm">{allergy}</Label>
+                  <Label htmlFor={allergy} className="text-sm text-white">{allergy}</Label>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Meals Per Day</Label>
+            <Label className="text-white">Meals Per Day</Label>
             <Select value={formData.mealFrequency} onValueChange={(value) => handleInputChange('mealFrequency', value)}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-dark-700 border-dark-600 text-white">
                 <SelectValue placeholder="How many meals do you eat per day?" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-dark-700 border-dark-600">
                 <SelectItem value="1-2">1-2 meals</SelectItem>
                 <SelectItem value="3">3 meals</SelectItem>
                 <SelectItem value="4-5">4-5 meals</SelectItem>
@@ -100,12 +101,12 @@ export function StreamlinedDiet({ data, onNext, onBack }: StreamlinedDietProps) 
           </div>
 
           <div className="space-y-2">
-            <Label>Daily Water Intake</Label>
+            <Label className="text-white">Daily Water Intake</Label>
             <Select value={formData.waterIntake} onValueChange={(value) => handleInputChange('waterIntake', value)}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-dark-700 border-dark-600 text-white">
                 <SelectValue placeholder="How much water do you drink daily?" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-dark-700 border-dark-600">
                 <SelectItem value="<32oz">Less than 32 oz</SelectItem>
                 <SelectItem value="32-64oz">32-64 oz</SelectItem>
                 <SelectItem value="64-96oz">64-96 oz</SelectItem>
@@ -116,11 +117,11 @@ export function StreamlinedDiet({ data, onNext, onBack }: StreamlinedDietProps) 
 
           <div className="flex justify-between pt-6">
             {onBack && (
-              <Button type="button" variant="outline" onClick={onBack}>
+              <Button type="button" variant="outline" onClick={onBack} className="bg-dark-700 border-dark-600 text-white hover:bg-dark-600">
                 Back
               </Button>
             )}
-            <Button type="submit" className="ml-auto">
+            <Button type="submit" className="ml-auto bg-primary-600 hover:bg-primary-700 text-white">
               Next
             </Button>
           </div>

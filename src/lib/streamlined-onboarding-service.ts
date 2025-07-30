@@ -157,7 +157,7 @@ export class StreamlinedOnboardingService {
       first_name: data.first_name,
       last_name: data.last_name,
       email: data.email,
-      phone: data.phone,
+      date_of_birth: data.date_of_birth,
       current_diet_approach: data.current_diet_approach,
       diet_duration_months: data.diet_duration_months,
       current_medications: data.current_medications,

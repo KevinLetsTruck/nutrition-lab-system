@@ -1,11 +1,11 @@
 import { z } from 'zod'
 
-// Basic demographics schema
+// Basic demographics schema (simplified - no address fields)
 export const demographicsSchema = z.object({
   first_name: z.string().min(1, 'First name is required').max(100, 'First name too long'),
   last_name: z.string().min(1, 'Last name is required').max(100, 'Last name too long'),
   email: z.string().email('Please enter a valid email address'),
-  phone: z.string().min(10, 'Please enter a valid phone number').max(20, 'Phone number too long')
+  date_of_birth: z.string().min(1, 'Date of birth is required')
 })
 
 // Diet approach schema
@@ -13,23 +13,23 @@ export const dietSchema = z.object({
   current_diet_approach: z.enum(['low_carb_paleo', 'keto_paleo', 'carnivore']).refine((val) => val !== undefined, {
     message: 'Please select your current diet approach'
   }),
-  diet_duration_months: z.number().min(0, 'Duration cannot be negative').max(600, 'Please enter a realistic duration').optional()
+  diet_duration_months: z.number().min(0).max(120).optional()
 })
 
-// Medications and supplements schema
+// Medications schema
 export const medicationsSchema = z.object({
-  current_medications: z.string().max(1000, 'Medication list too long').optional(),
-  current_supplements: z.string().max(1000, 'Supplement list too long').optional()
+  current_medications: z.string().optional(),
+  current_supplements: z.string().optional()
 })
 
-// Health goals schema
+// Goals schema
 export const goalsSchema = z.object({
   primary_health_goal: z.string().min(1, 'Please describe your primary health goal').max(500, 'Goal description too long')
 })
 
-// Truck driver information schema
+// Truck driver schema
 export const truckDriverSchema = z.object({
-  years_driving: z.number().min(0, 'Years cannot be negative').max(50, 'Please enter a realistic number of years'),
+  years_driving: z.number().min(0).max(50).optional(),
   route_type: z.enum(['otr', 'regional', 'local']).refine((val) => val !== undefined, {
     message: 'Please select your route type'
   }),
@@ -38,24 +38,25 @@ export const truckDriverSchema = z.object({
   })
 })
 
-// DOT medical status schema
+// DOT status schema
 export const dotStatusSchema = z.object({
   dot_medical_status: z.enum(['current', 'expired', 'upcoming']).refine((val) => val !== undefined, {
     message: 'Please select your DOT medical status'
   }),
-  dot_expiry_date: z.date().optional().refine((date) => {
-    if (!date) return true // Optional field
-    return date > new Date('1900-01-01') // Basic date validation
+  dot_expiry_date: z.string().optional().refine((val) => {
+    if (!val) return true
+    const date = new Date(val)
+    return !isNaN(date.getTime())
   }, 'Please enter a valid expiry date')
 })
 
-// Complete onboarding schema
+// Complete onboarding schema (updated to match simplified structure)
 export const completeOnboardingSchema = z.object({
-  // Demographics
+  // Demographics (simplified)
   first_name: demographicsSchema.shape.first_name,
   last_name: demographicsSchema.shape.last_name,
   email: demographicsSchema.shape.email,
-  phone: demographicsSchema.shape.phone,
+  date_of_birth: demographicsSchema.shape.date_of_birth,
   
   // Diet
   current_diet_approach: dietSchema.shape.current_diet_approach,
@@ -88,7 +89,7 @@ export const stepSchemas = {
   dot_status: dotStatusSchema
 }
 
-// Type exports
+// Type exports for TypeScript
 export type DemographicsData = z.infer<typeof demographicsSchema>
 export type DietData = z.infer<typeof dietSchema>
 export type MedicationsData = z.infer<typeof medicationsSchema>
