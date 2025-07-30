@@ -34,22 +34,23 @@ export function StreamlinedDiet({ data, onNext, onBack }: StreamlinedDietProps) 
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto bg-dark-800 border-dark-700">
+    <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2 text-white">
+        <CardTitle className="flex items-center space-x-2">
           <Utensils className="w-5 h-5 text-primary-400" />
           <span>Diet & Nutrition</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label className="text-white">Primary Diet Type</Label>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Primary Diet Type */}
+          <div className="form-field">
+            <Label className="text-base font-medium text-white mb-3 block">Primary Diet Type</Label>
             <Select value={formData.dietType} onValueChange={(value) => handleInputChange('dietType', value)}>
-              <SelectTrigger className="bg-dark-700 border-dark-600 text-white">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select your primary diet" />
               </SelectTrigger>
-              <SelectContent className="bg-dark-700 border-dark-600">
+              <SelectContent>
                 <SelectItem value="standard">Standard American Diet</SelectItem>
                 <SelectItem value="vegetarian">Vegetarian</SelectItem>
                 <SelectItem value="vegan">Vegan</SelectItem>
@@ -63,11 +64,12 @@ export function StreamlinedDiet({ data, onNext, onBack }: StreamlinedDietProps) 
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-white">Food Allergies & Sensitivities</Label>
-            <div className="grid grid-cols-2 gap-2">
+          {/* Food Allergies & Sensitivities */}
+          <div className="form-field">
+            <Label className="text-base font-medium text-white mb-4 block">Food Allergies & Sensitivities</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {['Gluten', 'Dairy', 'Nuts', 'Shellfish', 'Eggs', 'Soy', 'Wheat', 'Fish'].map((allergy) => (
-                <div key={allergy} className="flex items-center space-x-2">
+                <div key={allergy} className="flex items-center space-x-3 p-3 bg-dark-700 border border-dark-600 rounded-lg">
                   <Checkbox
                     id={allergy}
                     checked={formData.foodAllergies.includes(allergy)}
@@ -77,21 +79,22 @@ export function StreamlinedDiet({ data, onNext, onBack }: StreamlinedDietProps) 
                         : formData.foodAllergies.filter((a: string) => a !== allergy)
                       handleInputChange('foodAllergies', newAllergies)
                     }}
-                    className="border-dark-600 bg-dark-700"
+                    className="text-primary-500"
                   />
-                  <Label htmlFor={allergy} className="text-sm text-white">{allergy}</Label>
+                  <Label htmlFor={allergy} className="text-white text-sm cursor-pointer">{allergy}</Label>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-white">Meals Per Day</Label>
+          {/* Meals Per Day */}
+          <div className="form-field">
+            <Label className="text-base font-medium text-white mb-3 block">Meals Per Day</Label>
             <Select value={formData.mealFrequency} onValueChange={(value) => handleInputChange('mealFrequency', value)}>
-              <SelectTrigger className="bg-dark-700 border-dark-600 text-white">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="How many meals do you eat per day?" />
               </SelectTrigger>
-              <SelectContent className="bg-dark-700 border-dark-600">
+              <SelectContent>
                 <SelectItem value="1-2">1-2 meals</SelectItem>
                 <SelectItem value="3">3 meals</SelectItem>
                 <SelectItem value="4-5">4-5 meals</SelectItem>
@@ -100,13 +103,14 @@ export function StreamlinedDiet({ data, onNext, onBack }: StreamlinedDietProps) 
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-white">Daily Water Intake</Label>
+          {/* Daily Water Intake */}
+          <div className="form-field">
+            <Label className="text-base font-medium text-white mb-3 block">Daily Water Intake</Label>
             <Select value={formData.waterIntake} onValueChange={(value) => handleInputChange('waterIntake', value)}>
-              <SelectTrigger className="bg-dark-700 border-dark-600 text-white">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="How much water do you drink daily?" />
               </SelectTrigger>
-              <SelectContent className="bg-dark-700 border-dark-600">
+              <SelectContent>
                 <SelectItem value="<32oz">Less than 32 oz</SelectItem>
                 <SelectItem value="32-64oz">32-64 oz</SelectItem>
                 <SelectItem value="64-96oz">64-96 oz</SelectItem>
@@ -115,13 +119,22 @@ export function StreamlinedDiet({ data, onNext, onBack }: StreamlinedDietProps) 
             </Select>
           </div>
 
-          <div className="flex justify-between pt-6">
+          {/* Navigation Buttons */}
+          <div className="flex justify-between pt-8 border-t border-dark-600">
             {onBack && (
-              <Button type="button" variant="outline" onClick={onBack} className="bg-dark-700 border-dark-600 text-white hover:bg-dark-600">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onBack}
+                className="px-8 py-3 bg-dark-700 hover:bg-dark-600 text-white font-medium rounded-lg transition-all duration-200 border border-dark-600"
+              >
                 Back
               </Button>
             )}
-            <Button type="submit" className="ml-auto bg-primary-600 hover:bg-primary-700 text-white">
+            <Button 
+              type="submit" 
+              className="ml-auto px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-all duration-200"
+            >
               Next
             </Button>
           </div>

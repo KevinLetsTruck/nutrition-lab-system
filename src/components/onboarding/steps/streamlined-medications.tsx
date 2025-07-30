@@ -58,23 +58,31 @@ export function StreamlinedMedications({ data, onNext, onBack }: StreamlinedMedi
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            <Label>Current Medications</Label>
-            <div className="flex space-x-2">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Current Medications Section */}
+          <div className="form-field">
+            <Label className="text-base font-medium text-white mb-3 block">Current Medications</Label>
+            <div className="flex space-x-3">
               <Input
                 value={newMedication}
                 onChange={(e) => setNewMedication(e.target.value)}
-                placeholder="Add medication"
+                placeholder="Enter medication name (e.g., lisinopril)"
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addMedication())}
+                className="flex-1"
               />
-              <Button type="button" onClick={addMedication}>Add</Button>
+              <Button 
+                type="button" 
+                onClick={addMedication}
+                className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-all duration-200"
+              >
+                Add
+              </Button>
             </div>
             {formData.currentMedications.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-3 mt-4">
                 {formData.currentMedications.map((med: string, index: number) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-gray-100 rounded">
-                    <span>{med}</span>
+                  <div key={index} className="medication-item">
+                    <span className="text-white font-medium">{med}</span>
                     <Button
                       type="button"
                       variant="outline"
@@ -83,6 +91,7 @@ export function StreamlinedMedications({ data, onNext, onBack }: StreamlinedMedi
                         ...prev,
                         currentMedications: prev.currentMedications.filter((_: string, i: number) => i !== index)
                       }))}
+                      className="text-red-400 border-red-400 hover:bg-red-400 hover:text-white"
                     >
                       Remove
                     </Button>
@@ -92,22 +101,30 @@ export function StreamlinedMedications({ data, onNext, onBack }: StreamlinedMedi
             )}
           </div>
 
-          <div className="space-y-4">
-            <Label>Supplements</Label>
-            <div className="flex space-x-2">
+          {/* Supplements Section */}
+          <div className="form-field">
+            <Label className="text-base font-medium text-white mb-3 block">Supplements</Label>
+            <div className="flex space-x-3">
               <Input
                 value={newSupplement}
                 onChange={(e) => setNewSupplement(e.target.value)}
-                placeholder="Add supplement"
+                placeholder="Enter supplement name (e.g., vitamin D, fish oil)"
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSupplement())}
+                className="flex-1"
               />
-              <Button type="button" onClick={addSupplement}>Add</Button>
+              <Button 
+                type="button" 
+                onClick={addSupplement}
+                className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-all duration-200"
+              >
+                Add
+              </Button>
             </div>
             {formData.supplements.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-3 mt-4">
                 {formData.supplements.map((supp: string, index: number) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-gray-100 rounded">
-                    <span>{supp}</span>
+                  <div key={index} className="medication-item">
+                    <span className="text-white font-medium">{supp}</span>
                     <Button
                       type="button"
                       variant="outline"
@@ -116,6 +133,7 @@ export function StreamlinedMedications({ data, onNext, onBack }: StreamlinedMedi
                         ...prev,
                         supplements: prev.supplements.filter((_: string, i: number) => i !== index)
                       }))}
+                      className="text-red-400 border-red-400 hover:bg-red-400 hover:text-white"
                     >
                       Remove
                     </Button>
@@ -125,13 +143,22 @@ export function StreamlinedMedications({ data, onNext, onBack }: StreamlinedMedi
             )}
           </div>
 
-          <div className="flex justify-between pt-6">
+          {/* Navigation Buttons */}
+          <div className="flex justify-between pt-8 border-t border-dark-600">
             {onBack && (
-              <Button type="button" variant="outline" onClick={onBack}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onBack}
+                className="px-8 py-3 bg-dark-700 hover:bg-dark-600 text-white font-medium rounded-lg transition-all duration-200 border border-dark-600"
+              >
                 Back
               </Button>
             )}
-            <Button type="submit" className="ml-auto">
+            <Button 
+              type="submit" 
+              className="ml-auto px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-all duration-200"
+            >
               Next
             </Button>
           </div>

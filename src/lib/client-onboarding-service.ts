@@ -24,9 +24,9 @@ export class ClientOnboardingService {
     this.baseUrl = '/api/streamlined-onboarding'
   }
 
-  // Create a new onboarding session
+  // Create new onboarding session
   async createSession(clientId?: string): Promise<OnboardingSession> {
-    const response = await fetch(`${this.baseUrl}`, {
+    const response = await fetch(`${this.baseUrl}/session`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -35,14 +35,14 @@ export class ClientOnboardingService {
     })
 
     if (!response.ok) {
-      throw new Error(`Failed to create onboarding session: ${response.statusText}`)
+      throw new Error(`Failed to create session: ${response.statusText}`)
     }
 
-    const data = await response.json()
+    const session = await response.json()
     return {
-      ...data,
-      expires_at: new Date(data.expires_at),
-      last_activity: new Date(data.last_activity)
+      ...session,
+      expires_at: new Date(session.expires_at),
+      last_activity: new Date(session.last_activity)
     }
   }
 
@@ -57,18 +57,18 @@ export class ClientOnboardingService {
       throw new Error(`Failed to get session: ${response.statusText}`)
     }
 
-    const data = await response.json()
+    const session = await response.json()
     return {
-      ...data,
-      expires_at: new Date(data.expires_at),
-      last_activity: new Date(data.last_activity)
+      ...session,
+      expires_at: new Date(session.expires_at),
+      last_activity: new Date(session.last_activity)
     }
   }
 
   // Update session activity
   async updateSessionActivity(sessionToken: string): Promise<void> {
     const response = await fetch(`${this.baseUrl}/session/${sessionToken}/activity`, {
-      method: 'PUT',
+      method: 'POST',
     })
 
     if (!response.ok) {
@@ -78,10 +78,8 @@ export class ClientOnboardingService {
 
   // Save step data
   async saveStepData(sessionToken: string, step: string, data: Partial<CompleteOnboardingData>): Promise<void> {
-    console.log('Client: Saving step data:', { sessionToken, step, data })
-    
     const response = await fetch(`${this.baseUrl}/session/${sessionToken}/step`, {
-      method: 'PUT',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -89,9 +87,7 @@ export class ClientOnboardingService {
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      console.error('Client: Step save failed:', { status: response.status, statusText: response.statusText, errorData })
-      throw new Error(`Failed to save step data: ${response.statusText}${errorData.details ? ` - ${errorData.details}` : ''}`)
+      throw new Error(`Failed to save step data: ${response.statusText}`)
     }
     
     console.log('Client: Step data saved successfully')
@@ -113,16 +109,21 @@ export class ClientOnboardingService {
       first_name: data.first_name,
       last_name: data.last_name,
       email: data.email,
-      current_diet_approach: data.current_diet_approach,
-      diet_duration_months: data.diet_duration_months,
-      current_medications: data.current_medications,
-      current_supplements: data.current_supplements,
-      primary_health_goal: data.primary_health_goal,
-      years_driving: data.years_driving,
-      route_type: data.route_type,
-      schedule_pattern: data.schedule_pattern,
-      dot_medical_status: data.dot_medical_status,
-      dot_expiry_date: data.dot_expiry_date
+      dietType: data.dietType,
+      foodAllergies: data.foodAllergies,
+      mealFrequency: data.mealFrequency,
+      waterIntake: data.waterIntake,
+      currentMedications: data.currentMedications,
+      supplements: data.supplements,
+      healthGoals: data.healthGoals,
+      primaryConcern: data.primaryConcern,
+      timeline: data.timeline,
+      routeType: data.routeType,
+      hoursPerWeek: data.hoursPerWeek,
+      sleepSchedule: data.sleepSchedule,
+      dotStatus: data.dotStatus,
+      hasRestrictions: data.hasRestrictions,
+      restrictions: data.restrictions
     }
   }
 
@@ -171,10 +172,10 @@ export class ClientOnboardingService {
   getStepTitle(step: string): string {
     const titles: Record<string, string> = {
       demographics: 'Basic Information',
-      diet: 'Current Diet',
+      diet: 'Diet & Nutrition',
       medications: 'Medications & Supplements',
       goals: 'Health Goals',
-      truck_info: 'Truck Driver Info',
+      truck_info: 'Truck Driver Information',
       dot_status: 'DOT Medical Status'
     }
     return titles[step] || step
@@ -186,7 +187,7 @@ export class ClientOnboardingService {
       demographics: 'Tell us about yourself',
       diet: 'What diet are you currently following?',
       medications: 'List your current medications and supplements',
-      goals: 'What is your primary health goal?',
+      goals: 'What are your health goals?',
       truck_info: 'Tell us about your driving schedule',
       dot_status: 'What is your DOT medical status?'
     }

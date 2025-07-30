@@ -9,44 +9,43 @@ export const demographicsSchema = z.object({
 
 // Diet approach schema
 export const dietSchema = z.object({
-  current_diet_approach: z.enum(['low_carb_paleo', 'keto_paleo', 'carnivore']).refine((val) => val !== undefined, {
-    message: 'Please select your current diet approach'
+  dietType: z.enum(['standard', 'vegetarian', 'vegan', 'keto', 'paleo', 'mediterranean', 'gluten-free', 'dairy-free', 'other']).refine((val) => val !== undefined, {
+    message: 'Please select your primary diet type'
   }),
-  diet_duration_months: z.number().min(0).max(120).optional()
+  foodAllergies: z.array(z.string()).optional(),
+  mealFrequency: z.enum(['1-2', '3', '4-5', '6+']).optional(),
+  waterIntake: z.enum(['<32oz', '32-64oz', '64-96oz', '>96oz']).optional()
 })
 
 // Medications schema
 export const medicationsSchema = z.object({
-  current_medications: z.string().optional(),
-  current_supplements: z.string().optional()
+  currentMedications: z.array(z.string()).optional(),
+  supplements: z.array(z.string()).optional()
 })
 
 // Goals schema
 export const goalsSchema = z.object({
-  primary_health_goal: z.string().min(1, 'Please describe your primary health goal').max(500, 'Goal description too long')
+  healthGoals: z.array(z.string()).optional(),
+  primaryConcern: z.string().optional(),
+  timeline: z.string().optional()
 })
 
-// Truck driver schema
+// Truck driver schema (removed truck number and company fields)
 export const truckDriverSchema = z.object({
-  years_driving: z.number().min(0).max(50).optional(),
-  route_type: z.enum(['otr', 'regional', 'local']).refine((val) => val !== undefined, {
+  routeType: z.enum(['local', 'regional', 'long-haul', 'dedicated', 'team']).refine((val) => val !== undefined, {
     message: 'Please select your route type'
   }),
-  schedule_pattern: z.enum(['standard', 'irregular', 'night_shifts']).refine((val) => val !== undefined, {
-    message: 'Please select your schedule pattern'
-  })
+  hoursPerWeek: z.enum(['<40', '40-50', '50-60', '60-70', '>70']).optional(),
+  sleepSchedule: z.enum(['regular', 'irregular', 'night-shift', 'split-sleep']).optional()
 })
 
-// DOT status schema
+// DOT status schema (removed last physical date and medical card expiry fields)
 export const dotStatusSchema = z.object({
-  dot_medical_status: z.enum(['current', 'expired', 'upcoming']).refine((val) => val !== undefined, {
-    message: 'Please select your DOT medical status'
+  dotStatus: z.enum(['clear', 'restricted', 'conditional', 'expired', 'pending']).refine((val) => val !== undefined, {
+    message: 'Please select your current DOT status'
   }),
-  dot_expiry_date: z.string().optional().refine((val) => {
-    if (!val) return true
-    const date = new Date(val)
-    return !isNaN(date.getTime())
-  }, 'Please enter a valid expiry date')
+  hasRestrictions: z.boolean().optional(),
+  restrictions: z.array(z.string()).optional()
 })
 
 // Complete onboarding schema (updated to match simplified structure)
@@ -57,24 +56,29 @@ export const completeOnboardingSchema = z.object({
   email: demographicsSchema.shape.email,
   
   // Diet
-  current_diet_approach: dietSchema.shape.current_diet_approach,
-  diet_duration_months: dietSchema.shape.diet_duration_months,
+  dietType: dietSchema.shape.dietType,
+  foodAllergies: dietSchema.shape.foodAllergies,
+  mealFrequency: dietSchema.shape.mealFrequency,
+  waterIntake: dietSchema.shape.waterIntake,
   
   // Medications
-  current_medications: medicationsSchema.shape.current_medications,
-  current_supplements: medicationsSchema.shape.current_supplements,
+  currentMedications: medicationsSchema.shape.currentMedications,
+  supplements: medicationsSchema.shape.supplements,
   
   // Goals
-  primary_health_goal: goalsSchema.shape.primary_health_goal,
+  healthGoals: goalsSchema.shape.healthGoals,
+  primaryConcern: goalsSchema.shape.primaryConcern,
+  timeline: goalsSchema.shape.timeline,
   
-  // Truck driver info
-  years_driving: truckDriverSchema.shape.years_driving,
-  route_type: truckDriverSchema.shape.route_type,
-  schedule_pattern: truckDriverSchema.shape.schedule_pattern,
+  // Truck driver info (removed unwanted fields)
+  routeType: truckDriverSchema.shape.routeType,
+  hoursPerWeek: truckDriverSchema.shape.hoursPerWeek,
+  sleepSchedule: truckDriverSchema.shape.sleepSchedule,
   
-  // DOT status
-  dot_medical_status: dotStatusSchema.shape.dot_medical_status,
-  dot_expiry_date: dotStatusSchema.shape.dot_expiry_date
+  // DOT status (removed unwanted fields)
+  dotStatus: dotStatusSchema.shape.dotStatus,
+  hasRestrictions: dotStatusSchema.shape.hasRestrictions,
+  restrictions: dotStatusSchema.shape.restrictions
 })
 
 // Step-specific schemas for progressive validation

@@ -37,7 +37,6 @@ export function StreamlinedDemographics({ data, onNext, onBack }: StreamlinedDem
       newErrors.email = 'Please enter a valid email'
     }
 
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -57,63 +56,67 @@ export function StreamlinedDemographics({ data, onNext, onBack }: StreamlinedDem
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto bg-dark-800 border-dark-700">
+    <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2 text-white">
+        <CardTitle className="flex items-center space-x-2">
           <User className="w-5 h-5 text-primary-400" />
           <span>Basic Information</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="first_name" className="text-white">First Name *</Label>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="form-field">
+              <Label className="text-base font-medium text-white mb-3 block">First Name *</Label>
               <Input
-                id="first_name"
                 value={formData.first_name}
                 onChange={(e) => handleInputChange('first_name', e.target.value)}
-                placeholder="Enter first name"
-                className={`bg-dark-700 border-dark-600 text-white placeholder:text-dark-400 ${errors.first_name ? 'border-red-500' : ''}`}
+                placeholder="Enter your first name"
+                className={errors.first_name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
               />
-              {errors.first_name && <p className="text-sm text-red-500">{errors.first_name}</p>}
+              {errors.first_name && <p className="text-sm text-red-400 mt-2">{errors.first_name}</p>}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="last_name" className="text-white">Last Name *</Label>
+            <div className="form-field">
+              <Label className="text-base font-medium text-white mb-3 block">Last Name *</Label>
               <Input
-                id="last_name"
                 value={formData.last_name}
                 onChange={(e) => handleInputChange('last_name', e.target.value)}
-                placeholder="Enter last name"
-                className={`bg-dark-700 border-dark-600 text-white placeholder:text-dark-400 ${errors.last_name ? 'border-red-500' : ''}`}
+                placeholder="Enter your last name"
+                className={errors.last_name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
               />
-              {errors.last_name && <p className="text-sm text-red-500">{errors.last_name}</p>}
+              {errors.last_name && <p className="text-sm text-red-400 mt-2">{errors.last_name}</p>}
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-white">Email Address *</Label>
+          <div className="form-field">
+            <Label className="text-base font-medium text-white mb-3 block">Email Address *</Label>
             <Input
-              id="email"
               type="email"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
-              placeholder="Enter email address"
-              className={`bg-dark-700 border-dark-600 text-white placeholder:text-dark-400 ${errors.email ? 'border-red-500' : ''}`}
+              placeholder="Enter your email address"
+              className={errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
             />
-            {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
+            {errors.email && <p className="text-sm text-red-400 mt-2">{errors.email}</p>}
           </div>
 
-
-
-          <div className="flex justify-between pt-6">
+          {/* Navigation Buttons */}
+          <div className="flex justify-between pt-8 border-t border-dark-600">
             {onBack && (
-              <Button type="button" variant="outline" onClick={onBack} className="bg-dark-700 border-dark-600 text-white hover:bg-dark-600">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onBack}
+                className="px-8 py-3 bg-dark-700 hover:bg-dark-600 text-white font-medium rounded-lg transition-all duration-200 border border-dark-600"
+              >
                 Back
               </Button>
             )}
-            <Button type="submit" className="ml-auto bg-primary-600 hover:bg-primary-700 text-white">
+            <Button 
+              type="submit" 
+              className="ml-auto px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-all duration-200"
+            >
               Next
             </Button>
           </div>

@@ -18,8 +18,6 @@ interface StreamlinedDotStatusProps {
 export function StreamlinedDotStatus({ data, onNext, onBack, onComplete }: StreamlinedDotStatusProps) {
   const [formData, setFormData] = useState({
     dotStatus: data?.dotStatus || '',
-    lastPhysical: data?.lastPhysical || '',
-    medicalCardExpiry: data?.medicalCardExpiry || '',
     hasRestrictions: data?.hasRestrictions || false,
     restrictions: data?.restrictions || [],
     medications: data?.medications || []
@@ -47,12 +45,13 @@ export function StreamlinedDotStatus({ data, onNext, onBack, onComplete }: Strea
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label>Current DOT Status</Label>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Current DOT Status */}
+          <div className="form-field">
+            <Label className="text-base font-medium text-white mb-3 block">Current DOT Status</Label>
             <Select value={formData.dotStatus} onValueChange={(value) => handleInputChange('dotStatus', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select DOT status" />
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select your current DOT status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="clear">Clear - No restrictions</SelectItem>
@@ -64,44 +63,26 @@ export function StreamlinedDotStatus({ data, onNext, onBack, onComplete }: Strea
             </Select>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Last Physical Exam Date</Label>
-              <input
-                type="date"
-                className="w-full p-3 border border-gray-300 rounded-md"
-                value={formData.lastPhysical}
-                onChange={(e) => handleInputChange('lastPhysical', e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Medical Card Expiry Date</Label>
-              <input
-                type="date"
-                className="w-full p-3 border border-gray-300 rounded-md"
-                value={formData.medicalCardExpiry}
-                onChange={(e) => handleInputChange('medicalCardExpiry', e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
+          {/* Medical Restrictions */}
+          <div className="form-field">
+            <div className="flex items-center space-x-3 p-4 bg-dark-700 border border-dark-600 rounded-lg">
               <Checkbox
                 id="hasRestrictions"
                 checked={formData.hasRestrictions}
                 onCheckedChange={(checked) => handleInputChange('hasRestrictions', checked)}
+                className="text-primary-500"
               />
-              <Label htmlFor="hasRestrictions">Do you have any medical restrictions?</Label>
+              <Label htmlFor="hasRestrictions" className="text-white font-medium cursor-pointer">
+                Do you have any medical restrictions?
+              </Label>
             </div>
 
             {formData.hasRestrictions && (
-              <div className="space-y-2">
-                <Label>Medical Restrictions (Select all that apply)</Label>
-                <div className="grid grid-cols-2 gap-2">
+              <div className="mt-6 p-4 bg-dark-700 border border-dark-600 rounded-lg">
+                <Label className="text-base font-medium text-white mb-4 block">Medical Restrictions (Select all that apply)</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {['Vision', 'Hearing', 'Diabetes', 'Cardiac', 'Respiratory', 'Neurological', 'Musculoskeletal', 'Other'].map((restriction) => (
-                    <div key={restriction} className="flex items-center space-x-2">
+                    <div key={restriction} className="flex items-center space-x-3">
                       <Checkbox
                         id={restriction}
                         checked={formData.restrictions.includes(restriction)}
@@ -111,8 +92,9 @@ export function StreamlinedDotStatus({ data, onNext, onBack, onComplete }: Strea
                             : formData.restrictions.filter((r: string) => r !== restriction)
                           handleInputChange('restrictions', newRestrictions)
                         }}
+                        className="text-primary-500"
                       />
-                      <Label htmlFor={restriction} className="text-sm">{restriction}</Label>
+                      <Label htmlFor={restriction} className="text-white text-sm cursor-pointer">{restriction}</Label>
                     </div>
                   ))}
                 </div>
@@ -120,13 +102,22 @@ export function StreamlinedDotStatus({ data, onNext, onBack, onComplete }: Strea
             )}
           </div>
 
-          <div className="flex justify-between pt-6">
+          {/* Navigation Buttons */}
+          <div className="flex justify-between pt-8 border-t border-dark-600">
             {onBack && (
-              <Button type="button" variant="outline" onClick={onBack}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onBack}
+                className="px-8 py-3 bg-dark-700 hover:bg-dark-600 text-white font-medium rounded-lg transition-all duration-200 border border-dark-600"
+              >
                 Back
               </Button>
             )}
-            <Button type="submit" className="ml-auto">
+            <Button 
+              type="submit" 
+              className="ml-auto px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-all duration-200"
+            >
               {onComplete ? 'Complete Onboarding' : 'Next'}
             </Button>
           </div>
