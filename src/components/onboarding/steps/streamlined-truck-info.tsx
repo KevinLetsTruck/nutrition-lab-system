@@ -89,7 +89,7 @@ export function StreamlinedTruckInfo({ onNext, onBack, initialData }: Streamline
               <option value="Local">Local</option>
               <option value="Dedicated">Dedicated</option>
               <option value="Team Driving">Team Driving</option>
-              <option value="Owner Operator">Owner Operator</option>
+
             </select>
           </div>
 

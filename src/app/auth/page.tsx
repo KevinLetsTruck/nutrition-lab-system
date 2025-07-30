@@ -1,0 +1,226 @@
+'use client'
+
+import { useState } from 'react'
+import { useAuth } from '@/lib/auth-context'
+import { useRouter } from 'next/navigation'
+
+export default function AuthPage() {
+  const [mode, setMode] = useState<'register' | 'login'>('register')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const { login, register } = useAuth()
+  const router = useRouter()
+
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: ''
+  })
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
+    setError('') // Clear error when user starts typing
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+
+    try {
+      if (mode === 'register') {
+        // Validate password confirmation
+        if (formData.password !== formData.confirmPassword) {
+          setError('Passwords do not match')
+          setLoading(false)
+          return
+        }
+
+        // Validate password strength
+        if (formData.password.length < 8) {
+          setError('Password must be at least 8 characters long')
+          setLoading(false)
+          return
+        }
+
+        const result = await register({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password
+        })
+
+        if (result.success) {
+          // Redirect to email verification page
+          router.push('/verify-email')
+        } else {
+          setError(result.error || 'Registration failed')
+        }
+      } else {
+        const result = await login(formData.email, formData.password)
+        
+        if (result.success) {
+          // Redirect based on user role and onboarding status
+          router.push('/dashboard')
+        } else {
+          setError(result.error || 'Login failed')
+        }
+      }
+    } catch (error) {
+      setError('An unexpected error occurred')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center px-6">
+      <div className="w-full max-w-md">
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-8 shadow-2xl">
+          <div className="text-center mb-8">
+            <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <span className="text-white font-bold text-xl">D</span>
+            </div>
+            <h2 className="text-2xl font-bold text-white">
+              {mode === 'register' ? 'Create Your Account' : 'Welcome Back'}
+            </h2>
+            <p className="text-gray-400 mt-2">
+              {mode === 'register' 
+                ? 'Start your health transformation journey' 
+                : 'Continue your wellness journey'
+              }
+            </p>
+          </div>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+              <p className="text-red-400 text-sm">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === 'register' && (
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  name="firstName"
+                  placeholder="First Name"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+                  required
+                />
+                <input
+                  type="text"
+                  name="lastName"
+                  placeholder="Last Name"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+                  required
+                />
+              </div>
+            )}
+
+            <input
+              type="email"
+              name="email"
+              placeholder="Email Address"
+              value={formData.email}
+              onChange={handleInputChange}
+              className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+              required
+            />
+
+            {mode === 'register' && (
+              <input
+                type="tel"
+                name="phone"
+                placeholder="Phone Number"
+                value={formData.phone}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+                required
+              />
+            )}
+
+            <input
+              type="password"
+              name="password"
+              placeholder={mode === 'register' ? 'Create Password' : 'Password'}
+              value={formData.password}
+              onChange={handleInputChange}
+              className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+              required
+            />
+
+            {mode === 'register' && (
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+                required
+              />
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-green-500 hover:bg-green-600 disabled:bg-green-600/50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  {mode === 'register' ? 'Creating Account...' : 'Signing In...'}
+                </div>
+              ) : (
+                mode === 'register' ? 'Create Account' : 'Sign In'
+              )}
+            </button>
+          </form>
+
+          <div className="text-center mt-6">
+            <button 
+              onClick={() => {
+                setMode(mode === 'register' ? 'login' : 'register')
+                setError('')
+                setFormData({
+                  firstName: '',
+                  lastName: '',
+                  email: '',
+                  phone: '',
+                  password: '',
+                  confirmPassword: ''
+                })
+              }}
+              className="text-green-400 hover:text-green-300 text-sm"
+            >
+              {mode === 'register' 
+                ? 'Already have an account? Sign in' 
+                : "Don't have an account? Sign up"
+              }
+            </button>
+          </div>
+
+          {mode === 'login' && (
+            <div className="text-center mt-4">
+              <button className="text-gray-400 hover:text-gray-300 text-sm">
+                Forgot your password?
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+} 

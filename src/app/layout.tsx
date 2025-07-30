@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/lib/auth-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,28 +14,28 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Nutrition Lab Management - AI-Powered Lab Analysis",
-  description: "Upload and analyze your lab results with AI-powered insights. Get comprehensive health assessments in minutes.",
-  keywords: ["nutrition", "lab analysis", "AI", "health", "biomarkers", "wellness", "functional medicine"],
-  authors: [{ name: "Nutrition Lab System" }],
-  creator: "Nutrition Lab System",
-  publisher: "Nutrition Lab System",
+  title: "DestinationHealth - Transform Your Life Through Holistic Health Coaching",
+  description: "Start your journey to optimal health with evidence-based nutritional guidance and personalized wellness strategies designed just for you.",
+  keywords: ["health coaching", "nutrition", "wellness", "truck driver health", "functional medicine", "FNTP", "holistic health"],
+  authors: [{ name: "DestinationHealth" }],
+  creator: "DestinationHealth",
+  publisher: "DestinationHealth",
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://nutrition-lab-system.vercel.app'),
+  metadataBase: new URL('https://destinationhealth.com'),
   openGraph: {
-    title: "Nutrition Lab Management - AI-Powered Lab Analysis",
-    description: "Upload and analyze your lab results with AI-powered insights. Get comprehensive health assessments in minutes.",
+    title: "DestinationHealth - Transform Your Life Through Holistic Health Coaching",
+    description: "Start your journey to optimal health with evidence-based nutritional guidance and personalized wellness strategies designed just for you.",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Nutrition Lab Management - AI-Powered Lab Analysis",
-    description: "Upload and analyze your lab results with AI-powered insights. Get comprehensive health assessments in minutes.",
+    title: "DestinationHealth - Transform Your Life Through Holistic Health Coaching",
+    description: "Start your journey to optimal health with evidence-based nutritional guidance and personalized wellness strategies designed just for you.",
   },
 };
 
@@ -48,7 +49,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
