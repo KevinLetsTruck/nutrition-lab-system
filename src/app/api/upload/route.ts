@@ -4,6 +4,7 @@ import { getRateLimiter, getClientIdentifier, createRateLimitHeaders } from '@/l
 import { db } from '@/lib/supabase'
 import MasterAnalyzer from '@/lib/lab-analyzers/master-analyzer'
 import DatabaseService from '@/lib/database-service'
+import { SupabaseStorageService } from '@/lib/supabase-storage'
 
 export async function POST(request: NextRequest) {
   try {
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
           clientId,
           clientEmail,
           uploadedBy: 'api'
-        })
+        }, true) // Use service role for server-side uploads
         
         // Create lab report record in database
         const reportType = determineReportType(file.name, file.type, category)

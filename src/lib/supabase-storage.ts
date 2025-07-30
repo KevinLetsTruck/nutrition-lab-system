@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { createClient } from '@supabase/supabase-js'
 
 export interface StorageFile {
   path: string
@@ -18,8 +18,18 @@ export interface UploadResult {
 export class SupabaseStorageService {
   private client: any
 
-  constructor() {
-    this.client = supabase
+  constructor(useServiceRole = false) {
+    if (useServiceRole) {
+      // Use service role client for server-side operations
+      this.client = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      )
+    } else {
+      // Use regular client for client-side operations
+      const { supabase } = require('./supabase')
+      this.client = supabase
+    }
   }
 
   // Storage bucket names

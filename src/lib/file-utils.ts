@@ -17,10 +17,19 @@ export async function saveFile(
   file: Buffer | File,
   filename: string,
   category?: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>,
+  useServiceRole = false
 ): Promise<StorageFile> {
   try {
-    const result = await storageService.uploadFile(file, filename, category, metadata)
+    let service: any
+    if (useServiceRole) {
+      const { SupabaseStorageService } = require('./supabase-storage')
+      service = new SupabaseStorageService(true) // Use service role
+    } else {
+      service = storageService
+    }
+    
+    const result = await service.uploadFile(file, filename, category, metadata)
     
     if (!result.success || !result.file) {
       throw new Error(result.error || 'Upload failed')
