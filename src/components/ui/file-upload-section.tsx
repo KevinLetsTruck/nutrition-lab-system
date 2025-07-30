@@ -205,14 +205,37 @@ export function FileUploadSection() {
   }
 
   const generateCombinedSummary = (results: any[]) => {
-    const reportTypes = results.map(r => r.analysisResult.reportType)
-    const avgConfidence = results.reduce((sum, r) => sum + r.analysisResult.confidence, 0) / results.length
+    // Add defensive checks to prevent undefined errors
+    if (!results || results.length === 0) {
+      return {
+        totalReports: 0,
+        reportTypes: [],
+        averageConfidence: 0,
+        processingTime: 0
+      }
+    }
+    
+    // Safely extract report types with null checks
+    const reportTypes = results
+      .filter(r => r && r.analysis && r.analysis.reportType)
+      .map(r => r.analysis.reportType)
+    
+    // Calculate average confidence with null checks
+    const validResults = results.filter(r => r && r.analysis && typeof r.analysis.confidence === 'number')
+    const avgConfidence = validResults.length > 0
+      ? validResults.reduce((sum, r) => sum + r.analysis.confidence, 0) / validResults.length
+      : 0
+    
+    // Calculate total processing time
+    const totalProcessingTime = results
+      .filter(r => r && typeof r.processingTime === 'number')
+      .reduce((sum, r) => sum + r.processingTime, 0)
     
     return {
       totalReports: results.length,
       reportTypes: [...new Set(reportTypes)],
       averageConfidence: Math.round(avgConfidence),
-      processingTime: results.reduce((sum, r) => sum + r.analysisResult.processingTime, 0)
+      processingTime: totalProcessingTime
     }
   }
 
@@ -399,9 +422,20 @@ export function FileUploadSection() {
                 
                 <div className="mt-3 space-y-2">
                   <p className="font-medium text-white">Individual Results:</p>
-                  {uploadStatus.analysisResult.files.map((file: any, index: number) => (
+                  {uploadStatus.analysisResult.files && Array.isArray(uploadStatus.analysisResult.files) && 
+                   uploadStatus.analysisResult.files.map((file: any, index: number) => (
                     <div key={index} className="p-2 bg-dark-800 rounded text-xs">
-                      <p><strong>{file.originalName}:</strong> {file.analysis.analysisResult.reportType.toUpperCase()} ({file.analysis.analysisResult.confidence}% confidence)</p>
+                      <p>
+                        <strong>{file.originalName}:</strong>{' '}
+                        {file.analysis && file.analysis.reportType ? (
+                          <>
+                            {file.analysis.reportType.toUpperCase()} 
+                            {file.analysis.confidence && ` (${file.analysis.confidence}% confidence)`}
+                          </>
+                        ) : (
+                          'Analysis pending...'
+                        )}
+                      </p>
                     </div>
                   ))}
                 </div>
