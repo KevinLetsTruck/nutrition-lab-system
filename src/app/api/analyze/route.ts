@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
             
         } catch (storageError) {
           logError('STORAGE_ACCESS', storageError, {
-            bucket,
+            bucket: 'general',
             path: labReport.file_path
           })
           
