@@ -1,14 +1,14 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Target } from 'lucide-react'
 
 interface StreamlinedGoalsProps {
-  data?: any
+  initialData?: any
   onNext: (data: any) => void
   onBack?: () => void
   onSave?: (data: any) => void
@@ -40,15 +40,30 @@ export function StreamlinedGoals({ data, onNext, onBack, onSave, isLoading }: St
     'General Wellness'
   ]
 
-  // Auto-save functionality
-  useEffect(() => {
-    if (onSave && (formData.healthGoals.length > 0 || formData.primaryConcern || formData.timeline)) {
-      const timeoutId = setTimeout(() => {
-        onSave(formData)
-      }, 1000)
-      return () => clearTimeout(timeoutId)
-    }
-  }, [formData, onSave])
+  const primaryConcernOptions = [
+    'Low Energy',
+    'Weight Gain',
+    'Digestive Issues',
+    'Poor Sleep',
+    'Stress & Anxiety',
+    'Joint Pain',
+    'Brain Fog',
+    'Mood Swings',
+    'Hormone Imbalance',
+    'Immune Issues',
+    'Other'
+  ]
+
+  const timelineOptions = [
+    '1-3 months',
+    '3-6 months',
+    '6-12 months',
+    '1+ years',
+    'Ongoing maintenance'
+  ]
+
+  // FIXED: Removed aggressive auto-save that was preventing user input
+  // Auto-save is now handled by the parent component with proper debouncing
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -70,6 +85,10 @@ export function StreamlinedGoals({ data, onNext, onBack, onSave, isLoading }: St
 
     setIsSubmitting(true)
     try {
+      // FIXED: Save data when user clicks Next
+      if (onSave) {
+        onSave(formData)
+      }
       await onNext(formData)
     } catch (error) {
       console.error('Form submission error:', error)
@@ -79,13 +98,13 @@ export function StreamlinedGoals({ data, onNext, onBack, onSave, isLoading }: St
   }
 
   const handleGoalToggle = (goal: string) => {
-    setFormData(prev => ({
-      ...prev,
-      healthGoals: prev.healthGoals.includes(goal)
-        ? prev.healthGoals.filter((g: string) => g !== goal)
-        : [...prev.healthGoals, goal]
-    }))
-    // Clear error when user selects a goal
+    const newGoals = formData.healthGoals.includes(goal)
+      ? formData.healthGoals.filter((g: string) => g !== goal)
+      : [...formData.healthGoals, goal]
+    
+    setFormData(prev => ({ ...prev, healthGoals: newGoals }))
+    
+    // Clear error when user starts selecting
     if (errors.healthGoals) {
       setErrors(prev => ({ ...prev, healthGoals: '' }))
     }
@@ -100,83 +119,81 @@ export function StreamlinedGoals({ data, onNext, onBack, onSave, isLoading }: St
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <Target className="w-5 h-5 text-primary-400" />
-          <span>Health Goals</span>
+          <span>Health Goals & Concerns</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Health Goals */}
           <div className="form-field">
-            <Label className="text-base font-medium text-white mb-4 block">
-              What are your primary health goals? <span className="text-red-400">*</span>
+            <Label className="text-base font-medium text-white mb-3 block">
+              Health Goals <span className="text-red-400">*</span>
             </Label>
-            <p className="text-sm text-gray-400 mb-4">Select all that apply</p>
+            <p className="text-sm text-gray-400 mb-4">Select all that apply to your health objectives</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {healthGoalOptions.map((goal) => (
-                <div key={goal} className="flex items-center space-x-3 p-3 bg-dark-700 border border-dark-600 rounded-lg hover:bg-dark-600 transition-colors">
-                  <Checkbox
-                    id={goal}
-                    checked={formData.healthGoals.includes(goal)}
-                    onCheckedChange={() => handleGoalToggle(goal)}
-                    disabled={isLoading}
-                    className="text-primary-500"
-                  />
-                  <Label 
-                    htmlFor={goal} 
-                    className="text-white text-sm cursor-pointer flex-1"
-                  >
-                    {goal}
-                  </Label>
-                </div>
+                <button
+                  key={goal}
+                  type="button"
+                  onClick={() => handleGoalToggle(goal)}
+                  disabled={isLoading}
+                  className={`p-3 text-left rounded-lg border transition-all duration-200 ${
+                    formData.healthGoals.includes(goal)
+                      ? 'bg-primary-600 border-primary-500 text-white'
+                      : 'bg-dark-700 border-dark-600 text-gray-300 hover:bg-dark-600 hover:border-dark-500'
+                  } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                >
+                  {goal}
+                </button>
               ))}
             </div>
-            {errors.healthGoals && (
-              <p className="text-red-400 text-sm mt-2">{errors.healthGoals}</p>
-            )}
+            {errors.healthGoals && <p className="text-sm text-red-400 mt-2">{errors.healthGoals}</p>}
           </div>
 
           {/* Primary Health Concern */}
           <div className="form-field">
             <Label className="text-base font-medium text-white mb-3 block">
-              What is your most pressing health concern?
+              Primary Health Concern
             </Label>
-            <textarea
-              className="w-full px-4 py-3 bg-dark-800 border border-dark-600 text-white rounded-lg shadow-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20 transition-all duration-200 disabled:opacity-50"
-              rows={4}
+            <Select
               value={formData.primaryConcern}
-              onChange={(e) => handleInputChange('primaryConcern', e.target.value)}
-              placeholder="Describe your main health concern..."
+              onValueChange={(value) => handleInputChange('primaryConcern', value)}
               disabled={isLoading}
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select your primary health concern" />
+              </SelectTrigger>
+              <SelectContent>
+                {primaryConcernOptions.map((concern) => (
+                  <SelectItem key={concern} value={concern}>
+                    {concern}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Timeline */}
           <div className="form-field">
-            <Label className="text-base font-medium text-white mb-4 block">
-              What is your timeline for achieving these goals?
+            <Label className="text-base font-medium text-white mb-3 block">
+              Desired Timeline
             </Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {['1-3 months', '3-6 months', '6-12 months', '1+ years'].map((timeline) => (
-                <div key={timeline} className="flex items-center space-x-3 p-3 bg-dark-700 border border-dark-600 rounded-lg hover:bg-dark-600 transition-colors">
-                  <input
-                    type="radio"
-                    id={timeline}
-                    name="timeline"
-                    value={timeline}
-                    checked={formData.timeline === timeline}
-                    onChange={(e) => handleInputChange('timeline', e.target.value)}
-                    disabled={isLoading}
-                    className="text-primary-500"
-                  />
-                  <Label 
-                    htmlFor={timeline} 
-                    className="text-white text-sm cursor-pointer flex-1"
-                  >
+            <Select
+              value={formData.timeline}
+              onValueChange={(value) => handleInputChange('timeline', value)}
+              disabled={isLoading}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select your desired timeline" />
+              </SelectTrigger>
+              <SelectContent>
+                {timelineOptions.map((timeline) => (
+                  <SelectItem key={timeline} value={timeline}>
                     {timeline}
-                  </Label>
-                </div>
-              ))}
-            </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Navigation Buttons */}

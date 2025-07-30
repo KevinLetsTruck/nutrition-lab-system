@@ -1,21 +1,33 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { StreamlinedProgress } from './streamlined-progress'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Loader2, CheckCircle } from 'lucide-react'
 import { StreamlinedDemographics } from './steps/streamlined-demographics'
 import { StreamlinedDiet } from './steps/streamlined-diet'
 import { StreamlinedMedications } from './steps/streamlined-medications'
 import { StreamlinedGoals } from './steps/streamlined-goals'
 import { StreamlinedTruckInfo } from './steps/streamlined-truck-info'
 import { StreamlinedDotStatus } from './steps/streamlined-dot-status'
-import { CompleteOnboardingData } from '@/lib/onboarding-schemas'
+import { StreamlinedProgress } from './streamlined-progress'
 import { ClientOnboardingService } from '@/lib/client-onboarding-service'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { CheckCircle, Loader2, AlertCircle } from 'lucide-react'
+import { CompleteOnboardingData } from '@/lib/onboarding-schemas'
+
+// Debounce utility function
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout)
+    timeout = setTimeout(() => func(...args), wait)
+  }
+}
 
 interface StreamlinedOnboardingWizardProps {
-  clientId?: string
+  clientId: string
   onComplete?: (data: CompleteOnboardingData) => void
 }
 
@@ -44,31 +56,25 @@ export function StreamlinedOnboardingWizard({
         const existingSessionToken = localStorage.getItem('onboarding_session_token')
         
         if (existingSessionToken) {
-          const existingSession = await onboardingService.getSession(existingSessionToken)
-          
-          if (existingSession && !onboardingService.isSessionExpired(existingSession)) {
-            // Resume existing session
-            setSessionToken(existingSession.session_token)
-            setCurrentStep(existingSession.current_step)
-            
-            // Load existing data
-            const data = await onboardingService.getOnboardingData(existingSession.session_token)
-            if (data) {
-              setOnboardingData(data)
+          // Verify session is still valid
+          try {
+            const sessionData = await onboardingService.getSessionData(existingSessionToken)
+            if (sessionData && !sessionData.is_completed) {
+              setSessionToken(existingSessionToken)
+              setOnboardingData(sessionData.form_data || {})
+              setCurrentStep(sessionData.current_step || 'demographics')
+              setIsLoading(false)
+              return
             }
-          } else {
-            // Session expired, create new one
-            localStorage.removeItem('onboarding_session_token')
-            const session = await onboardingService.createSession(clientId)
-            setSessionToken(session.session_token)
-            localStorage.setItem('onboarding_session_token', session.session_token)
+          } catch (err) {
+            console.log('Existing session invalid, creating new one')
           }
-        } else {
-          // Create new session
-          const session = await onboardingService.createSession(clientId)
-          setSessionToken(session.session_token)
-          localStorage.setItem('onboarding_session_token', session.session_token)
         }
+
+        // Create new session
+        const newSessionToken = await onboardingService.createSession(clientId)
+        setSessionToken(newSessionToken)
+        localStorage.setItem('onboarding_session_token', newSessionToken)
       } catch (err) {
         setError('Failed to initialize onboarding session. Please try again.')
         console.error('Session initialization error:', err)
@@ -80,21 +86,24 @@ export function StreamlinedOnboardingWizard({
     initializeSession()
   }, [clientId, onboardingService])
 
-  // Auto-save functionality
-  const autoSave = useCallback(async (data: Partial<CompleteOnboardingData>) => {
-    if (!sessionToken) return
+  // Debounced auto-save functionality - FIXED: Now saves 3 seconds after user stops interacting
+  const debouncedAutoSave = useCallback(
+    debounce(async (data: Partial<CompleteOnboardingData>) => {
+      if (!sessionToken) return
 
-    try {
-      setIsSaving(true)
-      await onboardingService.saveStepData(sessionToken, currentStep, data)
-      await onboardingService.updateSessionActivity(sessionToken)
-    } catch (err) {
-      console.error('Auto-save error:', err)
-      // Don't show error to user for auto-save failures
-    } finally {
-      setIsSaving(false)
-    }
-  }, [sessionToken, currentStep, onboardingService])
+      try {
+        setIsSaving(true)
+        await onboardingService.saveStepData(sessionToken, currentStep, data)
+        await onboardingService.updateSessionActivity(sessionToken)
+      } catch (err) {
+        console.error('Auto-save error:', err)
+        // Don't show error to user for auto-save failures
+      } finally {
+        setIsSaving(false)
+      }
+    }, 3000), // FIXED: Increased from 1 second to 3 seconds
+    [sessionToken, currentStep, onboardingService]
+  )
 
   // Handle step navigation
   const handleNext = async (stepData: any) => {
@@ -108,7 +117,7 @@ export function StreamlinedOnboardingWizard({
       const newData = { ...onboardingData, ...stepData }
       setOnboardingData(newData)
 
-      // Save to database
+      // Save to database immediately when user clicks Next
       await onboardingService.saveStepData(sessionToken, currentStep, stepData)
       await onboardingService.updateSessionActivity(sessionToken)
 
@@ -132,8 +141,14 @@ export function StreamlinedOnboardingWizard({
     }
   }
 
+  // FIXED: Debounced save function - only triggers after user stops typing
   const handleSave = async (stepData: any) => {
-    await autoSave(stepData)
+    // Update local state immediately for responsive UI
+    const newData = { ...onboardingData, ...stepData }
+    setOnboardingData(newData)
+    
+    // Trigger debounced save
+    debouncedAutoSave(newData)
   }
 
   const handleComplete = async (stepData: any) => {
@@ -195,36 +210,13 @@ export function StreamlinedOnboardingWizard({
             Onboarding Complete!
           </h2>
           <p className="text-gray-400 mb-6">
-            Thank you for completing your streamlined onboarding. We&apos;ll review your information and get back to you soon.
+            Thank you for completing your profile. We'll be in touch soon with your personalized nutrition plan.
           </p>
-          <Button
+          <Button 
             onClick={() => window.location.href = '/'}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700"
+            className="w-full bg-primary-600 hover:bg-primary-700"
           >
-            Return to Dashboard
-          </Button>
-        </Card>
-      </div>
-    )
-  }
-
-  // Render error state
-  if (error) {
-    return (
-      <div className="min-h-screen bg-navy-950 flex items-center justify-center">
-        <Card className="p-8 bg-gray-900 border-gray-700 text-center max-w-md">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-white mb-2">
-            Something went wrong
-          </h2>
-          <p className="text-gray-400 mb-6">
-            {error}
-          </p>
-          <Button
-            onClick={() => window.location.reload()}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700"
-          >
-            Try Again
+            Return to Home
           </Button>
         </Card>
       </div>
@@ -285,7 +277,7 @@ export function StreamlinedOnboardingWizard({
           {renderCurrentStep()}
         </div>
 
-        {/* Auto-save indicator */}
+        {/* Auto-save indicator - FIXED: Only shows when actually saving */}
         {isSaving && (
           <div className="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg flex items-center">
             <Loader2 className="w-4 h-4 animate-spin mr-2" />

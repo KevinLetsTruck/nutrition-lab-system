@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Truck } from 'lucide-react'
 
 interface StreamlinedTruckInfoProps {
-  data?: any
+  initialData?: any
   onNext: (data: any) => void
   onBack?: () => void
   onSave?: (data: any) => void
@@ -25,15 +25,36 @@ export function StreamlinedTruckInfo({ data, onNext, onBack, onSave, isLoading }
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Auto-save functionality
-  useEffect(() => {
-    if (onSave && Object.keys(formData).some(key => formData[key as keyof typeof formData])) {
-      const timeoutId = setTimeout(() => {
-        onSave(formData)
-      }, 1000)
-      return () => clearTimeout(timeoutId)
-    }
-  }, [formData, onSave])
+  // FIXED: Removed aggressive auto-save that was preventing user input
+  // Auto-save is now handled by the parent component with proper debouncing
+
+  const routeTypeOptions = [
+    'Local/Regional',
+    'Over-the-Road (OTR)',
+    'Team Driving',
+    'Owner Operator',
+    'Specialized Hauling',
+    'Intermodal',
+    'Other'
+  ]
+
+  const hoursPerWeekOptions = [
+    'Less than 40 hours',
+    '40-50 hours',
+    '50-60 hours',
+    '60-70 hours',
+    'More than 70 hours',
+    'Variable schedule'
+  ]
+
+  const sleepScheduleOptions = [
+    'Regular day schedule (6AM-10PM)',
+    'Night shift (10PM-6AM)',
+    'Split schedule',
+    'Irregular/rotating shifts',
+    'Sleep when possible',
+    'Other'
+  ]
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -55,6 +76,10 @@ export function StreamlinedTruckInfo({ data, onNext, onBack, onSave, isLoading }
 
     setIsSubmitting(true)
     try {
+      // FIXED: Save data when user clicks Next
+      if (onSave) {
+        onSave(formData)
+      }
       await onNext(formData)
     } catch (error) {
       console.error('Form submission error:', error)
@@ -86,64 +111,67 @@ export function StreamlinedTruckInfo({ data, onNext, onBack, onSave, isLoading }
             <Label className="text-base font-medium text-white mb-3 block">
               Route Type <span className="text-red-400">*</span>
             </Label>
-            <Select 
-              value={formData.routeType} 
+            <Select
+              value={formData.routeType}
               onValueChange={(value) => handleInputChange('routeType', value)}
               disabled={isLoading}
             >
-              <SelectTrigger className={`w-full ${errors.routeType ? 'border-red-500' : ''}`}>
+              <SelectTrigger className={`${errors.routeType ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}>
                 <SelectValue placeholder="Select your route type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="local">Local</SelectItem>
-                <SelectItem value="regional">Regional</SelectItem>
-                <SelectItem value="long-haul">Long Haul</SelectItem>
-                <SelectItem value="dedicated">Dedicated</SelectItem>
-                <SelectItem value="team">Team Driving</SelectItem>
+                {routeTypeOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            {errors.routeType && (
-              <p className="text-red-400 text-sm mt-1">{errors.routeType}</p>
-            )}
+            {errors.routeType && <p className="text-sm text-red-400 mt-2">{errors.routeType}</p>}
           </div>
 
-          {/* Average Hours Per Week */}
+          {/* Hours Per Week */}
           <div className="form-field">
-            <Label className="text-base font-medium text-white mb-3 block">Average Hours Per Week</Label>
-            <Select 
-              value={formData.hoursPerWeek} 
+            <Label className="text-base font-medium text-white mb-3 block">
+              Typical Hours Per Week
+            </Label>
+            <Select
+              value={formData.hoursPerWeek}
               onValueChange={(value) => handleInputChange('hoursPerWeek', value)}
               disabled={isLoading}
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select your average hours per week" />
+              <SelectTrigger>
+                <SelectValue placeholder="Select your typical hours" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="<40">Less than 40 hours</SelectItem>
-                <SelectItem value="40-50">40-50 hours</SelectItem>
-                <SelectItem value="50-60">50-60 hours</SelectItem>
-                <SelectItem value="60-70">60-70 hours</SelectItem>
-                <SelectItem value=">70">More than 70 hours</SelectItem>
+                {hoursPerWeekOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
           {/* Sleep Schedule */}
           <div className="form-field">
-            <Label className="text-base font-medium text-white mb-3 block">Sleep Schedule</Label>
-            <Select 
-              value={formData.sleepSchedule} 
+            <Label className="text-base font-medium text-white mb-3 block">
+              Typical Sleep Schedule
+            </Label>
+            <Select
+              value={formData.sleepSchedule}
               onValueChange={(value) => handleInputChange('sleepSchedule', value)}
               disabled={isLoading}
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select your typical sleep schedule" />
+              <SelectTrigger>
+                <SelectValue placeholder="Select your sleep schedule" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="regular">Regular schedule</SelectItem>
-                <SelectItem value="irregular">Irregular schedule</SelectItem>
-                <SelectItem value="night-shift">Night shift</SelectItem>
-                <SelectItem value="split-sleep">Split sleep</SelectItem>
+                {sleepScheduleOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

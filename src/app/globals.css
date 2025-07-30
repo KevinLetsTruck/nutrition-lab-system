@@ -46,27 +46,75 @@ body {
     font-size: 16px;
   }
   
-  /* Radix Select Component Styling */
+  /* FIXED: Radix Select Component Styling - Improved for dark theme */
   [data-radix-select-trigger] {
     @apply w-full px-4 py-3 bg-dark-800 border border-dark-600 text-white rounded-lg shadow-sm;
     @apply focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20;
     @apply transition-all duration-200 cursor-pointer;
     font-size: 16px;
+    font-weight: 400;
+    color: #f8fafc !important; /* slate-50 - proper contrast */
+  }
+  
+  [data-radix-select-trigger]:hover {
+    @apply bg-dark-750 border-dark-500;
+  }
+  
+  [data-radix-select-trigger]:focus {
+    @apply border-primary-500 ring-2 ring-primary-500 ring-opacity-20;
   }
   
   [data-radix-select-content] {
     @apply bg-dark-800 border border-dark-600 rounded-lg shadow-lg;
     @apply max-h-60 overflow-y-auto;
+    background: #1e293b !important; /* slate-800 */
+    border: 1px solid rgba(148, 163, 184, 0.3) !important; /* slate-400 with opacity */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25) !important;
+    z-index: 1000;
   }
   
   [data-radix-select-item] {
     @apply px-4 py-3 text-white cursor-pointer;
     @apply hover:bg-dark-700 focus:bg-dark-700;
     @apply transition-colors duration-150;
+    display: block !important;
+    width: 100% !important;
+    text-align: left !important;
+    background: transparent !important;
+    border: none !important;
+    font-size: 16px !important;
+    color: #f8fafc !important; /* slate-50 */
+  }
+  
+  [data-radix-select-item]:hover {
+    background: rgba(71, 85, 105, 0.5) !important; /* slate-600 with opacity */
   }
   
   [data-radix-select-item][data-highlighted] {
-    @apply bg-dark-700;
+    background: rgba(71, 85, 105, 0.7) !important; /* slate-600 with more opacity */
+  }
+  
+  [data-radix-select-item]:first-child {
+    border-radius: 8px 8px 0 0 !important;
+  }
+  
+  [data-radix-select-item]:last-child {
+    border-radius: 0 0 8px 8px !important;
+  }
+  
+  /* FIXED: Select trigger icon styling */
+  [data-radix-select-trigger] svg {
+    color: #94a3b8 !important; /* slate-400 */
+    opacity: 0.5;
+  }
+  
+  /* FIXED: Select value placeholder styling */
+  [data-radix-select-trigger] span {
+    color: #94a3b8 !important; /* slate-400 for placeholder */
+  }
+  
+  [data-radix-select-trigger][data-value] span {
+    color: #f8fafc !important; /* slate-50 for selected value */
   }
   
   /* Card styles */
@@ -105,5 +153,38 @@ body {
   
   .medication-item:hover {
     @apply bg-dark-700 border-dark-500;
+  }
+  
+  /* FIXED: Checkbox styling for better visibility */
+  [data-radix-checkbox] {
+    @apply border-dark-500 bg-dark-800;
+  }
+  
+  [data-radix-checkbox][data-state="checked"] {
+    @apply bg-primary-600 border-primary-600;
+  }
+  
+  [data-radix-checkbox]:hover {
+    @apply border-primary-500;
+  }
+  
+  /* FIXED: Label styling for better contrast */
+  label {
+    color: #f8fafc !important; /* slate-50 */
+    font-weight: 500;
+  }
+  
+  /* FIXED: Error message styling */
+  .text-red-400 {
+    color: #f87171 !important; /* red-400 */
+  }
+  
+  /* FIXED: Success/primary color consistency */
+  .text-primary-400 {
+    color: #34d399 !important; /* primary-400 */
+  }
+  
+  .text-primary-500 {
+    color: #10b981 !important; /* primary-500 */
   }
 }

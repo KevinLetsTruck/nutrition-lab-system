@@ -1,14 +1,14 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { User, Mail } from 'lucide-react'
+import { User } from 'lucide-react'
 
 interface StreamlinedDemographicsProps {
-  data?: any
+  initialData?: any
   onNext: (data: any) => void
   onBack?: () => void
   onSave?: (data: any) => void
@@ -25,15 +25,8 @@ export function StreamlinedDemographics({ data, onNext, onBack, onSave, isLoadin
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Auto-save functionality
-  useEffect(() => {
-    if (onSave && Object.keys(formData).some(key => formData[key as keyof typeof formData])) {
-      const timeoutId = setTimeout(() => {
-        onSave(formData)
-      }, 1000)
-      return () => clearTimeout(timeoutId)
-    }
-  }, [formData, onSave])
+  // FIXED: Removed aggressive auto-save that was preventing user input
+  // Auto-save is now handled by the parent component with proper debouncing
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -63,6 +56,10 @@ export function StreamlinedDemographics({ data, onNext, onBack, onSave, isLoadin
 
     setIsSubmitting(true)
     try {
+      // FIXED: Save data when user clicks Next
+      if (onSave) {
+        onSave(formData)
+      }
       await onNext(formData)
     } catch (error) {
       console.error('Form submission error:', error)
