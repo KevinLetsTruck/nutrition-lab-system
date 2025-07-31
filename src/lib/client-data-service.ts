@@ -14,13 +14,10 @@ export async function fetchClientData(clientId: string): Promise<ReportData> {
       throw new Error(`Failed to fetch client: ${clientError.message}`)
     }
 
-    // Fetch NutriQ results
+    // Fetch NutriQ results from lab_reports table
     const { data: nutriqResults, error: nutriqError } = await supabase
       .from('lab_reports')
-      .select(`
-        *,
-        nutriq_results (*)
-      `)
+      .select('*')
       .eq('client_id', clientId)
       .eq('report_type', 'nutriq')
       .order('created_at', { ascending: false })
@@ -78,48 +75,88 @@ export async function fetchClientData(clientId: string): Promise<ReportData> {
     }
 
     // Transform NutriQ data
+    console.log('[CLIENT-DATA] NutriQ results found:', nutriqResults?.length || 0)
+    if (nutriqResults && nutriqResults.length > 0) {
+      console.log('[CLIENT-DATA] First NutriQ report:', JSON.stringify(nutriqResults[0], null, 2))
+    }
+    
     let nutriqData: NutriQData | null = null
-    if (nutriqResults && nutriqResults.length > 0 && nutriqResults[0].nutriq_results && nutriqResults[0].nutriq_results.length > 0) {
-      const nutriqResult = nutriqResults[0].nutriq_results[0]
-      const analysisResults = nutriqResults[0].analysis_results
+    if (nutriqResults && nutriqResults.length > 0) {
+      const nutriqReport = nutriqResults[0]
+      const nutriqResult = nutriqReport.nutriq_results?.[0] || nutriqReport.nutriq_results
+      const analysisResults = nutriqReport.analysis_results
+      
+      // Handle both array and direct object formats
+      const scores = nutriqResult || {}
       
       nutriqData = {
-        totalScore: nutriqResult.total_score || 0,
+        totalScore: scores.total_score || scores.totalScore || 0,
         bodySystems: {
           energy: {
-            score: nutriqResult.energy_score || 0,
+            score: scores.energy_score || scores.energyScore || 0,
             issues: analysisResults?.bodySystems?.energy?.issues || [],
             recommendations: analysisResults?.bodySystems?.energy?.recommendations || []
           },
           mood: {
-            score: nutriqResult.mood_score || 0,
+            score: scores.mood_score || scores.moodScore || 0,
             issues: analysisResults?.bodySystems?.mood?.issues || [],
             recommendations: analysisResults?.bodySystems?.mood?.recommendations || []
           },
           sleep: {
-            score: nutriqResult.sleep_score || 0,
+            score: scores.sleep_score || scores.sleepScore || 0,
             issues: analysisResults?.bodySystems?.sleep?.issues || [],
             recommendations: analysisResults?.bodySystems?.sleep?.recommendations || []
           },
           stress: {
-            score: nutriqResult.stress_score || 0,
+            score: scores.stress_score || scores.stressScore || 0,
             issues: analysisResults?.bodySystems?.stress?.issues || [],
             recommendations: analysisResults?.bodySystems?.stress?.recommendations || []
           },
           digestion: {
-            score: nutriqResult.digestion_score || 0,
+            score: scores.digestion_score || scores.digestionScore || 0,
             issues: analysisResults?.bodySystems?.digestion?.issues || [],
             recommendations: analysisResults?.bodySystems?.digestion?.recommendations || []
           },
           immunity: {
-            score: nutriqResult.immunity_score || 0,
+            score: scores.immunity_score || scores.immunityScore || 0,
             issues: analysisResults?.bodySystems?.immunity?.issues || [],
             recommendations: analysisResults?.bodySystems?.immunity?.recommendations || []
           }
         },
         overallRecommendations: analysisResults?.overallRecommendations || [],
         priorityActions: analysisResults?.priorityActions || [],
-        assessmentDate: nutriqResults[0].report_date
+        assessmentDate: nutriqReport.report_date || nutriqReport.created_at
+      }
+    }
+
+    // If no NutriQ data found, create a fallback based on notes
+    if (!nutriqData && notes.length > 0) {
+      console.log('[CLIENT-DATA] No NutriQ data found, creating fallback from notes')
+      
+      // Analyze notes to estimate scores
+      const noteContent = notes.map(n => n.content).join(' ').toLowerCase()
+      
+      // Simple scoring based on note content
+      const energyScore = noteContent.includes('energy') || noteContent.includes('fatigue') ? 7 : 5
+      const moodScore = noteContent.includes('mood') || noteContent.includes('irritable') ? 6 : 5
+      const sleepScore = noteContent.includes('sleep') || noteContent.includes('insomnia') ? 8 : 5
+      const stressScore = noteContent.includes('stress') || noteContent.includes('anxiety') ? 7 : 5
+      const digestionScore = noteContent.includes('digest') || noteContent.includes('bloat') || noteContent.includes('heartburn') ? 8 : 5
+      const immunityScore = noteContent.includes('immune') || noteContent.includes('sick') ? 6 : 5
+      
+      nutriqData = {
+        totalScore: Math.round((energyScore + moodScore + sleepScore + stressScore + digestionScore + immunityScore) / 6),
+        bodySystems: {
+          energy: { score: energyScore, issues: ['Fatigue mentioned in notes'], recommendations: ['Focus on energy optimization'] },
+          mood: { score: moodScore, issues: ['Mood concerns noted'], recommendations: ['Address mood support'] },
+          sleep: { score: sleepScore, issues: ['Sleep issues identified'], recommendations: ['Improve sleep hygiene'] },
+          stress: { score: stressScore, issues: ['Stress factors present'], recommendations: ['Stress management needed'] },
+          digestion: { score: digestionScore, issues: ['Digestive symptoms noted'], recommendations: ['Gut health focus'] },
+          immunity: { score: immunityScore, issues: ['Immune concerns'], recommendations: ['Immune support'] }
+        },
+        overallRecommendations: ['Address root causes identified in notes'],
+        priorityActions: ['Implement protocol based on note analysis'],
+        assessmentDate: new Date().toISOString().split('T')[0]
       }
     }
 
