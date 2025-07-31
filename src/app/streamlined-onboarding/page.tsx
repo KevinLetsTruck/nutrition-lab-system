@@ -1,12 +1,16 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { StreamlinedOnboardingWizard } from '@/components/onboarding/streamlined-onboarding-wizard'
 import { CompleteOnboardingData } from '@/lib/onboarding-schemas'
 
 export default function StreamlinedOnboardingPage() {
+  const router = useRouter()
+
   const handleOnboardingComplete = (data: CompleteOnboardingData) => {
-    // Handle completion - could redirect to dashboard or show success message
+    // Redirect to clients page after onboarding completion
     console.log('Onboarding completed:', data)
+    router.push('/clients')
   }
 
   // Generate a temporary client ID for demo purposes

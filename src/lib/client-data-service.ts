@@ -136,7 +136,7 @@ export async function fetchClientData(clientId: string): Promise<ReportData> {
     // Transform notes data
     const notesData: NoteData[] = notes.map(note => ({
       id: note.id,
-      type: note.type as 'interview' | 'group_coaching' | 'coaching_call' | 'assistant',
+      type: note.type as 'interview' | 'coaching_call' | 'assistant',
       content: note.content,
       date: note.created_at,
       author: note.author

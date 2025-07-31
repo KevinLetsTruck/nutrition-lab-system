@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS analysis_versions (
 CREATE TABLE IF NOT EXISTS client_notes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   client_id UUID REFERENCES clients(id) ON DELETE CASCADE,
-  type VARCHAR(50) NOT NULL CHECK (type IN ('interview', 'group_coaching', 'coaching_call', 'assistant')),
+  type VARCHAR(50) NOT NULL CHECK (type IN ('interview', 'coaching_call', 'assistant')),
   content TEXT NOT NULL,
   author VARCHAR(255),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -118,7 +118,6 @@ CREATE TRIGGER update_protocols_updated_at
 -- Insert sample data for testing
 INSERT INTO client_notes (client_id, type, content, author) VALUES
   ((SELECT id FROM clients LIMIT 1), 'interview', 'Initial consultation completed. Client reports fatigue, digestive issues, and difficulty maintaining healthy eating habits while on the road. Currently taking blood pressure medication.', 'Dr. Smith'),
-  ((SELECT id FROM clients LIMIT 1), 'group_coaching', 'Follow-up call - client has been implementing meal prep strategies. Reports 30% improvement in energy levels. Still struggling with sleep quality.', 'Coach Johnson'),
   ((SELECT id FROM clients LIMIT 1), 'coaching_call', 'Weekly check-in - client has been consistent with supplement protocol. Energy levels continue to improve. Discussed stress management techniques for truck driving.', 'Coach Johnson');
 
 INSERT INTO protocols (client_id, phase, start_date, content, compliance, status) VALUES

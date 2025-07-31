@@ -67,7 +67,7 @@ export default function NotesPage() {
     switch (noteType.toLowerCase()) {
       case 'interview':
         return 'bg-blue-100 text-blue-800'
-      case 'group_coaching':
+      case 'coaching_call':
         return 'bg-green-100 text-green-800'
       case 'follow_up':
         return 'bg-purple-100 text-purple-800'

@@ -67,8 +67,8 @@ export default function AuthPage() {
         const result = await login(formData.email, formData.password)
         
         if (result.success) {
-          // Redirect based on user role and onboarding status
-          router.push('/dashboard')
+          // Redirect to clients page for client selection
+          router.push('/clients')
         } else {
           setError(result.error || 'Login failed')
         }

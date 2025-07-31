@@ -68,7 +68,7 @@ export interface LabData {
 
 export interface NoteData {
   id: string
-  type: 'interview' | 'group_coaching' | 'coaching_call' | 'assistant'
+  type: 'interview' | 'coaching_call' | 'assistant'
   content: string
   date: string
   author?: string

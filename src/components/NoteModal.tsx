@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 interface NoteModalProps {
   clientId: string
-  noteType: 'interview' | 'group_coaching' | 'coaching_call'
+  noteType: 'interview' | 'coaching_call'
   onClose: () => void
 }
 
@@ -81,7 +81,6 @@ const NoteModal = ({ clientId, noteType, onClose }: NoteModalProps) => {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-white">
             {noteType === 'interview' ? 'Interview Notes' : 
-             noteType === 'group_coaching' ? 'Group Coaching Notes' : 
              'Coaching Call Notes'}
           </h2>
           <button 

@@ -55,7 +55,7 @@ export default function ClientDashboard() {
   const [client, setClient] = useState<Client | null>(null)
   const [loading, setLoading] = useState(true)
   const [showNoteModal, setShowNoteModal] = useState(false)
-  const [noteType, setNoteType] = useState<'interview' | 'group_coaching' | 'coaching_call'>('interview')
+  const [noteType, setNoteType] = useState<'interview' | 'coaching_call'>('interview')
   const [uploading, setUploading] = useState(false)
   const [generatingProtocol, setGeneratingProtocol] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'analyses' | 'protocols' | 'notes' | 'documents'>('overview')
@@ -117,11 +117,6 @@ export default function ClientDashboard() {
 
   const openInterviewNotes = () => {
     setNoteType('interview')
-    setShowNoteModal(true)
-  }
-
-  const openGroupNotes = () => {
-    setNoteType('group_coaching')
     setShowNoteModal(true)
   }
 
@@ -284,12 +279,6 @@ export default function ClientDashboard() {
             className="bg-blue-600 hover:bg-blue-700 p-4 rounded-lg text-white font-medium transition-colors"
           >
             + Interview Notes
-          </button>
-          <button 
-            onClick={openGroupNotes} 
-            className="bg-green-600 hover:bg-green-700 p-4 rounded-lg text-white font-medium transition-colors"
-          >
-            + Group Call Notes
           </button>
           <button 
             onClick={openCoachingCallNotes} 

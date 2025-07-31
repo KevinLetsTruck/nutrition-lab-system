@@ -5,7 +5,7 @@
 CREATE TABLE client_notes (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
-    note_type VARCHAR(50) NOT NULL CHECK (note_type IN ('interview', 'group_coaching', 'admin', 'follow_up')),
+    note_type VARCHAR(50) NOT NULL CHECK (note_type IN ('interview', 'coaching_call', 'admin', 'follow_up')),
     content TEXT NOT NULL,
     created_by UUID REFERENCES users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
