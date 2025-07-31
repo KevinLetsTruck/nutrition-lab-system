@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/Navigation'
 import NoteModal from '@/components/NoteModal'
+import { supabase } from '@/lib/supabase'
 
 interface Client {
   id: string
@@ -60,66 +61,58 @@ export default function ClientDashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'analyses' | 'protocols' | 'notes' | 'documents'>('overview')
 
   useEffect(() => {
-    // TODO: Fetch client data from API
-    // For now, using mock data
-    const mockClient: Client = {
-      id: clientId,
-      name: 'John Smith',
-      email: 'john.smith@email.com',
-      phone: '(555) 123-4567',
-      notes: [
-        {
-          id: '1',
-          type: 'Interview',
-          content: 'Initial consultation completed. Client reports fatigue, digestive issues, and difficulty maintaining healthy eating habits while on the road. Currently taking blood pressure medication.',
-          date: '2024-01-15'
-        },
-        {
-          id: '2',
-          type: 'Group Coaching',
-          content: 'Follow-up call - client has been implementing meal prep strategies. Reports 30% improvement in energy levels. Still struggling with sleep quality.',
-          date: '2024-01-10'
-        },
-        {
-          id: '3',
-          type: 'Coaching Call',
-          content: 'Weekly check-in - client has been consistent with supplement protocol. Energy levels continue to improve. Discussed stress management techniques for truck driving.',
-          date: '2024-01-08'
+    const loadClientData = async () => {
+      try {
+        setLoading(true)
+        
+        // Validate UUID format
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+        if (!uuidRegex.test(clientId)) {
+          console.error('Invalid UUID format:', clientId)
+          setLoading(false)
+          return
         }
-      ],
-      documents: [
-        { id: '1', name: 'NutriQ Lab Results', type: 'Lab Report', filePath: '2025/07/30/test_1753917130144_00hd6dpauqmli.pdf', fileUrl: 'https://ajwudhwruxxdshqjeqij.supabase.co/storage/v1/object/public/general/2025/07/30/test_1753917130144_00hd6dpauqmli.pdf' },
-        { id: '2', name: 'Health Assessment Form', type: 'Intake Form' }
-      ],
-      currentProtocol: {
-        id: '1',
-        phase: 'Phase 1: Gut Restoration',
-        startDate: '2024-01-15',
-        content: 'GREETING\nHello John,\n\nThank you for completing your comprehensive health assessment. Based on your lab results and our consultation, I\'ve created a personalized protocol to address your health goals.\n\nPHASE 1: GUT RESTORATION & INFLAMMATION REDUCTION\n\nDURATION: 8 weeks\nCLINICAL FOCUS: Reduce inflammation, improve gut health, increase energy levels\nCURRENT STATUS: Based on your assessment data, we\'ll focus on foundational health improvements\n\nPRIORITY SUPPLEMENTS\n\nNAME OF PRODUCT: Biotics Research - Bio-D-Mulsion Forte\nDOSE: 1 drop daily\nTIMING: With breakfast\nPURPOSE: Optimize vitamin D levels for immune function and inflammation reduction\n\nNAME OF PRODUCT: Biotics Research - CytoFlora\nDOSE: 1 capsule twice daily\nTIMING: 30 minutes before meals\nPURPOSE: Support healthy gut microbiome and reduce inflammation\n\nNAME OF PRODUCT: Biotics Research - Magnesium Glycinate\nDOSE: 200mg twice daily\nTIMING: With meals\nPURPOSE: Support muscle function and energy production\n\nDAILY PROTOCOL SCHEDULE\n\nUPON WAKING: 16oz water with lemon, 1 drop Bio-D-Mulsion Forte\nBEFORE BREAKFAST: 1 CytoFlora capsule\nBETWEEN BREAKFAST & LUNCH: 200mg Magnesium Glycinate\nBEFORE LUNCH: 1 CytoFlora capsule\nWITH LARGEST MEAL: 200mg Magnesium Glycinate\nBETWEEN LUNCH & DINNER: Hydration focus, herbal tea\n\nPROTOCOL NOTES\n\n• Focus on whole foods, avoiding processed foods and added sugars\n• Prioritize sleep hygiene - aim for 7-8 hours per night\n• Consider meal prep strategies for truck stops\n• Monitor energy levels and digestive symptoms'
-      },
-      analyses: [
-        {
-          id: '1',
-          reportType: 'NutriQ',
-          status: 'completed',
-          createdAt: '2024-01-15',
-          results: {
-            totalScore: 75,
-            energyScore: 8,
-            moodScore: 7,
-            sleepScore: 6,
-            stressScore: 5,
-            digestionScore: 9,
-            immunityScore: 8
-          }
+
+        // Fetch client data from the database
+        const { data: client, error: clientError } = await supabase
+          .from('clients')
+          .select('*')
+          .eq('id', clientId)
+          .single()
+
+        if (clientError) {
+          console.error('Error fetching client:', clientError)
+          setLoading(false)
+          return
         }
-      ]
+
+        if (!client) {
+          console.error('Client not found')
+          setLoading(false)
+          return
+        }
+
+        // Transform the client data
+        const transformedClient: Client = {
+          id: client.id,
+          name: `${client.first_name} ${client.last_name}`,
+          email: client.email,
+          phone: client.phone || '',
+          notes: [], // Will be populated from client_notes table
+          documents: [], // Will be populated from client_documents table
+          currentProtocol: undefined, // Will be populated from protocols table
+          analyses: [] // Will be populated from lab_reports table
+        }
+
+        setClient(transformedClient)
+      } catch (error) {
+        console.error('Error loading client data:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-    
-    setTimeout(() => {
-      setClient(mockClient)
-      setLoading(false)
-    }, 500)
+
+    loadClientData()
   }, [clientId])
 
   const openInterviewNotes = () => {

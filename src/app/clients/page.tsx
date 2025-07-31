@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Navigation from '@/components/Navigation'
+import { supabase } from '@/lib/supabase'
 
 interface Client {
   id: string
@@ -18,36 +19,41 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // TODO: Fetch clients from API
-    // For now, using mock data
-    const mockClients: Client[] = [
-      {
-        id: '1',
-        name: 'John Smith',
-        email: 'john.smith@email.com',
-        phone: '(555) 123-4567',
-        lastContact: '2024-01-15'
-      },
-      {
-        id: '2',
-        name: 'Sarah Johnson',
-        email: 'sarah.j@email.com',
-        phone: '(555) 234-5678',
-        lastContact: '2024-01-10'
-      },
-      {
-        id: '3',
-        name: 'Mike Wilson',
-        email: 'mike.wilson@email.com',
-        phone: '(555) 345-6789',
-        lastContact: '2024-01-08'
+    const fetchClients = async () => {
+      try {
+        setLoading(true)
+        
+        // Fetch clients from the database
+        const { data: clientsData, error } = await supabase
+          .from('clients')
+          .select('id, first_name, last_name, email, phone, created_at')
+          .order('created_at', { ascending: false })
+
+        if (error) {
+          console.error('Error fetching clients:', error)
+          setClients([])
+          return
+        }
+
+        // Transform the data to match our interface
+        const transformedClients: Client[] = clientsData.map(client => ({
+          id: client.id,
+          name: `${client.first_name} ${client.last_name}`,
+          email: client.email,
+          phone: client.phone || '',
+          lastContact: client.created_at
+        }))
+
+        setClients(transformedClients)
+      } catch (error) {
+        console.error('Error loading clients:', error)
+        setClients([])
+      } finally {
+        setLoading(false)
       }
-    ]
-    
-    setTimeout(() => {
-      setClients(mockClients)
-      setLoading(false)
-    }, 500)
+    }
+
+    fetchClients()
   }, [])
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
