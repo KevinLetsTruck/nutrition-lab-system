@@ -55,6 +55,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('🔐 Attempting login for:', email)
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -63,18 +65,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ email, password }),
       })
 
+      console.log('📥 Login response status:', response.status)
+      
       const data = await response.json()
+      console.log('📥 Login response data:', data)
 
       if (response.ok) {
+        console.log('✅ Login successful, setting user data')
         setUser(data.user)
-        // Fetch profile after successful login
-        await checkAuth()
+        
+        // Don't call checkAuth() here as it might cause issues
+        // Instead, manually set the profile if available
+        if (data.profile) {
+          setProfile(data.profile)
+        }
+        
         return { success: true }
       } else {
+        console.log('❌ Login failed:', data.error)
         return { success: false, error: data.error }
       }
     } catch (error) {
-      console.error('Login error:', error)
+      console.error('🚨 Login error:', error)
       return { success: false, error: 'Login failed. Please try again.' }
     }
   }

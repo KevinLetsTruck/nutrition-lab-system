@@ -36,6 +36,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Get user profile
+    const profileResult = await authService.getUserProfile(result.user!.id)
+
     // Set HTTP-only cookie with JWT token
     const response = NextResponse.json({
       success: true,
@@ -46,7 +49,8 @@ export async function POST(request: NextRequest) {
         role: result.user?.role,
         emailVerified: result.user?.emailVerified,
         onboardingCompleted: result.user?.onboardingCompleted
-      }
+      },
+      profile: profileResult.success ? profileResult.profile : null
     })
 
     // Set secure cookie with JWT token

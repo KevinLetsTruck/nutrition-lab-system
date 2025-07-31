@@ -33,6 +33,9 @@ export default function AuthPage() {
     setLoading(true)
     setError('')
 
+    console.log('🚀 Form submitted, mode:', mode)
+    console.log('📧 Email:', formData.email)
+
     try {
       if (mode === 'register') {
         // Validate password confirmation
@@ -64,16 +67,21 @@ export default function AuthPage() {
           setError(result.error || 'Registration failed')
         }
       } else {
+        console.log('🔐 Calling login function...')
         const result = await login(formData.email, formData.password)
+        console.log('📥 Login result:', result)
         
         if (result.success) {
+          console.log('✅ Login successful, redirecting to /clients')
           // Redirect to clients page for client selection
           router.push('/clients')
         } else {
+          console.log('❌ Login failed:', result.error)
           setError(result.error || 'Login failed')
         }
       }
     } catch (error) {
+      console.error('🚨 Unexpected error in handleSubmit:', error)
       setError('An unexpected error occurred')
     } finally {
       setLoading(false)
