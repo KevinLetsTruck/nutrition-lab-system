@@ -408,31 +408,68 @@ export class AuthService {
             updatedAt: new Date(profile.updated_at)
           }
         }
-      } else {
-        const { data: profile } = await this.supabase
-          .from('admin_profiles')
-          .select('*')
-          .eq('user_id', userId)
-          .single()
-        
-        if (!profile) {
-          return { success: false, error: 'Admin profile not found' }
-        }
-        
-        return {
-          success: true,
-          profile: {
-            id: profile.id,
-            userId: profile.user_id,
-            name: profile.name,
-            title: profile.title,
-            specializations: profile.specializations || [],
-            clientCapacity: profile.client_capacity,
-            activeSessions: profile.active_sessions,
-            createdAt: new Date(profile.created_at),
-            updatedAt: new Date(profile.updated_at)
+      } else if (user.role === 'admin') {
+        // Check if admin_profiles table exists first
+        try {
+          const { data: profile } = await this.supabase
+            .from('admin_profiles')
+            .select('*')
+            .eq('user_id', userId)
+            .single()
+          
+          if (!profile) {
+            // If admin profile doesn't exist, return a basic profile
+            console.warn(`Admin profile not found for user ${userId}, returning basic profile`)
+            return {
+              success: true,
+              profile: {
+                id: userId,
+                userId: userId,
+                name: 'Administrator',
+                title: 'System Admin',
+                specializations: ['System Administration'],
+                clientCapacity: 100,
+                activeSessions: 0,
+                createdAt: new Date(),
+                updatedAt: new Date()
+              }
+            }
+          }
+          
+          return {
+            success: true,
+            profile: {
+              id: profile.id,
+              userId: profile.user_id,
+              name: profile.name,
+              title: profile.title,
+              specializations: profile.specializations || [],
+              clientCapacity: profile.client_capacity,
+              activeSessions: profile.active_sessions,
+              createdAt: new Date(profile.created_at),
+              updatedAt: new Date(profile.updated_at)
+            }
+          }
+        } catch (tableError) {
+          // If admin_profiles table doesn't exist, return a basic profile
+          console.warn(`Admin profiles table not found, returning basic profile for user ${userId}`)
+          return {
+            success: true,
+            profile: {
+              id: userId,
+              userId: userId,
+              name: 'Administrator',
+              title: 'System Admin',
+              specializations: ['System Administration'],
+              clientCapacity: 100,
+              activeSessions: 0,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            }
           }
         }
+      } else {
+        return { success: false, error: 'Unknown user role' }
       }
     } catch (error) {
       console.error('Get profile error:', error)
