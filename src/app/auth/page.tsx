@@ -30,6 +30,9 @@ export default function AuthPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('🚀 FORM SUBMITTED - handleSubmit called!')
+    console.log('📝 Form data:', { email: formData.email, password: formData.password ? '[HIDDEN]' : '[EMPTY]' })
+    
     setLoading(true)
     setError('')
 
@@ -68,6 +71,8 @@ export default function AuthPage() {
         }
       } else {
         console.log('🔐 Calling login function...')
+        console.log('🔐 Login params:', { email: formData.email, password: formData.password ? '[HIDDEN]' : '[EMPTY]' })
+        
         const result = await login(formData.email, formData.password)
         console.log('📥 Login result:', result)
         
@@ -84,6 +89,7 @@ export default function AuthPage() {
       console.error('🚨 Unexpected error in handleSubmit:', error)
       setError('An unexpected error occurred')
     } finally {
+      console.log('🏁 handleSubmit completed, setting loading to false')
       setLoading(false)
     }
   }
@@ -184,6 +190,7 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading}
+              onClick={() => console.log('🔘 Submit button clicked!')}
               className="w-full py-3 bg-green-500 hover:bg-green-600 disabled:bg-green-600/50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
             >
               {loading ? (

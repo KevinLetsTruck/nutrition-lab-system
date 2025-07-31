@@ -54,8 +54,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const login = async (email: string, password: string) => {
+    console.log('🔐 AuthContext.login called with:', { email, password: password ? '[HIDDEN]' : '[EMPTY]' })
+    
     try {
       console.log('🔐 Attempting login for:', email)
+      console.log('🔐 Making fetch request to /api/auth/login...')
       
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -66,6 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       console.log('📥 Login response status:', response.status)
+      console.log('📥 Login response headers:', Object.fromEntries(response.headers.entries()))
       
       const data = await response.json()
       console.log('📥 Login response data:', data)
@@ -77,9 +81,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Don't call checkAuth() here as it might cause issues
         // Instead, manually set the profile if available
         if (data.profile) {
+          console.log('✅ Setting profile data:', data.profile)
           setProfile(data.profile)
+        } else {
+          console.log('⚠️ No profile data in response')
         }
         
+        console.log('✅ AuthContext.login returning success')
         return { success: true }
       } else {
         console.log('❌ Login failed:', data.error)
