@@ -13,6 +13,12 @@ export default function StreamlinedOnboardingPage() {
     router.push('/clients')
   }
 
+  const handleOnboardingExit = () => {
+    // Redirect to clients page when user exits onboarding
+    console.log('Onboarding exited by user')
+    router.push('/clients')
+  }
+
   // Generate a temporary client ID for demo purposes
   // In production, this would come from authentication or URL params
   const clientId = 'demo-client-' + Date.now()
@@ -21,6 +27,7 @@ export default function StreamlinedOnboardingPage() {
     <StreamlinedOnboardingWizard 
       clientId={clientId}
       onComplete={handleOnboardingComplete}
+      onExit={handleOnboardingExit}
     />
   )
 } 

@@ -15,11 +15,13 @@ import { StreamlinedProgress } from './streamlined-progress'
 interface StreamlinedOnboardingWizardProps {
   clientId?: string
   onComplete?: (data: any) => void
+  onExit?: () => void
 }
 
 export function StreamlinedOnboardingWizard({ 
   clientId, 
-  onComplete 
+  onComplete,
+  onExit
 }: StreamlinedOnboardingWizardProps) {
   const [currentStep, setCurrentStep] = useState('demographics')
   const [onboardingData, setOnboardingData] = useState<any>({})
@@ -195,6 +197,24 @@ export function StreamlinedOnboardingWizard({
 
   return (
     <div className="w-full max-w-4xl mx-auto">
+      {/* Header with Exit Button */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-white">Client Onboarding</h1>
+        <Button
+          onClick={() => {
+            if (onExit) {
+              onExit()
+            } else {
+              window.location.href = '/clients'
+            }
+          }}
+          variant="outline"
+          className="text-gray-300 border-gray-600 hover:bg-gray-700 hover:text-white"
+        >
+          Exit Onboarding
+        </Button>
+      </div>
+
       {/* Progress Bar */}
       <StreamlinedProgress
         currentStep={currentStep}
