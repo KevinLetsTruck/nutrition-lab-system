@@ -125,6 +125,8 @@ export default function QuickAnalysisPage() {
         }
 
         const analysisData = await analysisResponse.json()
+        
+        console.log('Analysis response:', analysisData)
 
         // Update with successful analysis
         setAnalysisResults(prev => 
@@ -134,10 +136,10 @@ export default function QuickAnalysisPage() {
                   ...result, 
                   status: 'completed',
                   analysis: {
-                    summary: analysisData.summary || 'Analysis completed successfully.',
-                    recommendations: analysisData.recommendations || ['Review the detailed findings below.'],
-                    keyFindings: analysisData.keyFindings || ['Document processed successfully.'],
-                    reportType: analysisData.reportType || 'General Analysis'
+                    summary: analysisData.summary || analysisData.analysis?.summary || 'Analysis completed successfully.',
+                    recommendations: analysisData.recommendations || analysisData.analysis?.recommendations || ['Review the detailed findings below.'],
+                    keyFindings: analysisData.keyFindings || analysisData.analysis?.keyFindings || ['Document processed successfully.'],
+                    reportType: analysisData.reportType || analysisData.analysis?.reportType || 'General Analysis'
                   }
                 }
               : result
@@ -298,7 +300,7 @@ Generated: ${new Date().toLocaleString()}
         {/* Analysis Results */}
         {analysisResults.length > 0 && (
           <div className="bg-slate-800 rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Analysis Results</h2>
+            <h2 className="text-xl font-semibold text-white mb-4">Analysis Results ({analysisResults.length})</h2>
             
             <div className="space-y-4">
               {analysisResults.map((result) => (
