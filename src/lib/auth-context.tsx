@@ -30,8 +30,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Check authentication status on mount
   useEffect(() => {
+    console.log('🔍 AuthProvider: Starting authentication check...')
     checkAuth()
   }, [])
+
+  // Debug user state changes
+  useEffect(() => {
+    console.log('👤 AuthProvider: User state changed:', user ? `Logged in as ${user.email}` : 'Not logged in')
+  }, [user])
+
+  // Debug loading state changes
+  useEffect(() => {
+    console.log('⏳ AuthProvider: Loading state changed:', loading)
+  }, [loading])
 
   const checkAuth = async () => {
     try {

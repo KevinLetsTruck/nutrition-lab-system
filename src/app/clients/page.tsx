@@ -2,10 +2,11 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
 import Navigation from '@/components/Navigation'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/lib/auth-context'
 
 interface Client {
   id: string
@@ -19,11 +20,43 @@ interface Client {
 }
 
 function ClientsContent() {
+  const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
   const searchParams = useSearchParams()
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [showArchived, setShowArchived] = useState(false)
+
+  // Check authentication
+  useEffect(() => {
+    if (!authLoading && !user) {
+      console.log('🔒 User not authenticated, redirecting to auth')
+      router.push('/auth')
+      return
+    }
+  }, [user, authLoading, router])
+
+  // Don't render anything if still loading auth or not authenticated
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-slate-900">
+        <Navigation />
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-slate-700 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-slate-700 rounded w-1/2 mb-8"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return null // Will redirect to auth
+  }
+
+  console.log('✅ User authenticated, loading clients page:', user.email)
 
   useEffect(() => {
     const search = searchParams.get('search')
