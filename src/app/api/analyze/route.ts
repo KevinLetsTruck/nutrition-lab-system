@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { labReportId, filename, clientEmail, clientFirstName, clientLastName, useClientPriority } = await request.json()
+    const { labReportId, filename, clientEmail, clientFirstName, clientLastName, useClientPriority, filePath, fileName, quickAnalysis } = await request.json()
     
     console.log('[ANALYZE] Request params:', { 
       labReportId, 
@@ -65,9 +65,155 @@ export async function POST(request: NextRequest) {
       clientEmail,
       hasFirstName: !!clientFirstName,
       hasLastName: !!clientLastName,
-      useClientPriority
+      useClientPriority,
+      filePath,
+      fileName,
+      quickAnalysis
     })
     
+    // Handle quick analysis mode
+    if (quickAnalysis === true && filePath) {
+      console.log('[ANALYZE] Quick analysis mode - analyzing file directly from storage')
+      
+      let fileBuffer: Buffer | null = null
+      
+      try {
+        // Download file from Supabase Storage for quick analysis
+        console.log('[ANALYZE] Downloading file for quick analysis:', filePath)
+        fileBuffer = await loadFile('general', filePath)
+        
+        if (!fileBuffer) {
+          return NextResponse.json(
+            { 
+              error: 'Failed to retrieve file from storage',
+              details: 'The file could not be found in storage for quick analysis.',
+              filePath
+            },
+            { status: 404 }
+          )
+        }
+        
+        console.log('[ANALYZE] File retrieved successfully for quick analysis:', {
+          size: fileBuffer.length,
+          sizeKB: (fileBuffer.length / 1024).toFixed(2) + ' KB'
+        })
+        
+        // Initialize the master analyzer
+        console.log('[ANALYZE] Initializing master analyzer for quick analysis...')
+        const analyzer = MasterAnalyzer.getInstance()
+        
+        // Perform analysis with retry logic
+        let analysisResult: any = null
+        let lastError: any = null
+        
+        console.log('[ANALYZE] Starting quick analysis with retry logic...')
+        
+        for (let attempt = 1; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
+          try {
+            console.log(`[ANALYZE] Quick analysis attempt ${attempt}/${RETRY_CONFIG.maxRetries}...`)
+            analysisResult = await analyzer.analyzeReport(fileBuffer)
+            console.log(`[ANALYZE] Quick analysis successful on attempt ${attempt}`)
+            break // Success, exit retry loop
+            
+          } catch (attemptError) {
+            lastError = attemptError
+            console.error(`[ANALYZE] Quick analysis attempt ${attempt} failed:`, {
+              error: attemptError instanceof Error ? attemptError.message : attemptError,
+              isClaudeError: attemptError instanceof Error && attemptError.message.includes('AI analysis failed')
+            })
+            
+            if (attempt < RETRY_CONFIG.maxRetries) {
+              const delay = Math.min(
+                RETRY_CONFIG.initialDelay * Math.pow(RETRY_CONFIG.backoffMultiplier, attempt - 1),
+                RETRY_CONFIG.maxDelay
+              )
+              console.log(`[ANALYZE] Waiting ${delay}ms before retry...`)
+              await sleep(delay)
+            }
+          }
+        }
+        
+        if (!analysisResult) {
+          throw lastError || new Error('Quick analysis failed after all retry attempts')
+        }
+        
+        console.log('[ANALYZE] Quick analysis completed successfully:', {
+          reportType: analysisResult.reportType,
+          processingTime: analysisResult.processingTime,
+          confidence: analysisResult.confidence
+        })
+        
+        // Return quick analysis results
+        const response = {
+          success: true,
+          quickAnalysis: true,
+          fileName: fileName || 'Unknown',
+          analysis: analysisResult,
+          message: 'Quick analysis completed successfully',
+          processingTime: Date.now() - startTime,
+          confidence: analysisResult.confidence,
+          summary: analyzer.getAnalysisSummary(analysisResult),
+          reportType: analysisResult.reportType,
+          recommendations: analysisResult.recommendations || [],
+          keyFindings: analysisResult.keyFindings || []
+        }
+        
+        console.log('[ANALYZE] ========== Quick analysis complete ==========', {
+          totalTime: `${Date.now() - startTime}ms`,
+          reportType: analysisResult.reportType
+        })
+        
+        return NextResponse.json(response, {
+          headers: {
+            ...createRateLimitHeaders(rateLimiter, rateLimitClientId)
+          }
+        })
+        
+      } catch (analysisError) {
+        logError('QUICK_ANALYSIS_PROCESSING', analysisError, {
+          filePath,
+          fileName,
+          fileSize: fileBuffer?.length
+        })
+        
+        // Extract detailed error information
+        let errorDetails = 'Unknown quick analysis error'
+        let errorType = 'UNKNOWN_ERROR'
+        
+        if (analysisError instanceof Error) {
+          errorDetails = analysisError.message
+          
+          // Categorize the error
+          if (analysisError.message.includes('AI analysis failed')) {
+            errorType = 'CLAUDE_API_ERROR'
+            // Extract Claude-specific error details
+            const claudeMatch = analysisError.message.match(/AI analysis failed: (.+)/)
+            if (claudeMatch) {
+              errorDetails = claudeMatch[1]
+            }
+          } else if (analysisError.message.includes('parse')) {
+            errorType = 'PARSING_ERROR'
+          } else if (analysisError.message.includes('PDF')) {
+            errorType = 'PDF_ERROR'
+          }
+        }
+        
+        return NextResponse.json(
+          { 
+            error: 'Quick analysis failed',
+            errorType,
+            details: errorDetails,
+            fileName: fileName || 'Unknown',
+            suggestion: errorType === 'CLAUDE_API_ERROR' 
+              ? 'This may be a temporary API issue. Please try again in a few moments.'
+              : 'Please ensure the file is a valid lab report PDF and try again.'
+          },
+          { status: 500 }
+        )
+      }
+    }
+    
+    // Regular analysis mode (requires labReportId)
     if (!labReportId && !filename) {
       return NextResponse.json(
         { 

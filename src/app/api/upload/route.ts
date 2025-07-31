@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
     const clientFirstName = formData.get('clientFirstName') as string
     const clientLastName = formData.get('clientLastName') as string
     const category = formData.get('category') as string
+    const quickAnalysis = formData.get('quickAnalysis') as string
     
     if (!files || files.length === 0) {
       return NextResponse.json(
@@ -42,7 +43,81 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate client information
+    // Handle quick analysis mode (no client required)
+    if (quickAnalysis === 'true') {
+      const results = []
+      const errors = []
+
+      // Process each file for quick analysis
+      for (const file of files) {
+        try {
+          // Validate file
+          const validation = validateFile(file)
+          
+          if (!validation.valid) {
+            errors.push({
+              filename: file.name,
+              error: validation.error
+            })
+            continue
+          }
+
+          // Generate unique filename for quick analysis
+          const uniqueFilename = generateUniqueFilename(file.name)
+          
+          // Upload file to Supabase Storage with quick analysis path
+          const storageFile = await saveFile(file, uniqueFilename, 'quick-analysis', {
+            uploadedBy: 'quick-analysis',
+            timestamp: new Date().toISOString()
+          }, true)
+          
+          results.push({
+            success: true,
+            filename: file.name,
+            originalName: file.name,
+            size: file.size,
+            storagePath: storageFile.path,
+            storageUrl: storageFile.url,
+            bucket: storageFile.bucket,
+            filePath: storageFile.path, // For analysis API
+            quickAnalysis: true
+          })
+          
+        } catch (error) {
+          console.error('Error processing file for quick analysis:', file.name, error)
+          errors.push({
+            filename: file.name,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          })
+        }
+      }
+
+      // Return results for quick analysis
+      if (results.length === 0) {
+        return NextResponse.json(
+          { 
+            error: 'All files failed to upload',
+            details: errors
+          },
+          { status: 400 }
+        )
+      }
+
+      return NextResponse.json({
+        success: true,
+        uploaded: results.length,
+        failed: errors.length,
+        files: results,
+        errors: errors.length > 0 ? errors : undefined,
+        quickAnalysis: true
+      }, {
+        headers: {
+          ...createRateLimitHeaders(rateLimiter, rateLimitClientId)
+        }
+      })
+    }
+
+    // Regular upload mode (requires client information)
     if (!clientEmail || !clientFirstName || !clientLastName) {
       return NextResponse.json(
         { error: 'Missing client information (email, firstName, lastName)' },

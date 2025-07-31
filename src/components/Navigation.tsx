@@ -14,20 +14,23 @@ const Navigation = () => {
           <Link href="/" className="text-xl font-semibold text-white hover:text-blue-400 transition-colors">
             FNTP Clinical
           </Link>
-          <div className="flex items-center gap-6">
-            <Link href="/clients" className="text-gray-300 hover:text-white transition-colors">
-              Clients
-            </Link>
-            <Link href="/notes" className="text-gray-300 hover:text-white transition-colors">
-              Notes
-            </Link>
-            <Link href="/protocols" className="text-gray-300 hover:text-white transition-colors">
-              Protocols
-            </Link>
-            <Link href="/reports" className="text-gray-300 hover:text-white transition-colors">
-              Reports
-            </Link>
-          </div>
+                           <div className="flex items-center gap-6">
+                   <Link href="/clients" className="text-gray-300 hover:text-white transition-colors">
+                     Clients
+                   </Link>
+                   <Link href="/notes" className="text-gray-300 hover:text-white transition-colors">
+                     Notes
+                   </Link>
+                   <Link href="/protocols" className="text-gray-300 hover:text-white transition-colors">
+                     Protocols
+                   </Link>
+                   <Link href="/reports" className="text-gray-300 hover:text-white transition-colors">
+                     Reports
+                   </Link>
+                   <Link href="/quick-analysis" className="text-gray-300 hover:text-white transition-colors">
+                     Quick Analysis
+                   </Link>
+                 </div>
         </div>
         <div className="flex items-center gap-4">
           <SearchClients />
