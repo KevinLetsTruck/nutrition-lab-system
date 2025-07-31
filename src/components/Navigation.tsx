@@ -18,6 +18,9 @@ const Navigation = () => {
                    <Link href="/clients" className="text-gray-300 hover:text-white transition-colors">
                      Clients
                    </Link>
+                   <Link href="/onboarding" className="text-gray-300 hover:text-white transition-colors">
+                     Onboarding
+                   </Link>
                    <Link href="/notes" className="text-gray-300 hover:text-white transition-colors">
                      Notes
                    </Link>
