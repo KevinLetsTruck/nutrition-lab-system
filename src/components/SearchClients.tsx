@@ -20,14 +20,16 @@ export const SearchClients = () => {
   return (
     <form onSubmit={handleSearch} className="relative">
       <div className="relative flex items-center">
-        <div className="absolute left-4 flex items-center justify-center w-5 h-5 pointer-events-none">
-          <Search className="w-4 h-4 text-gray-400" />
-        </div>
+        {!searchQuery && (
+          <div className="absolute left-4 flex items-center justify-center w-5 h-5 pointer-events-none">
+            <Search className="w-4 h-4 text-gray-400" />
+          </div>
+        )}
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-64 pl-12 pr-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-slate-500"
+          className={`w-64 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-slate-500 ${!searchQuery ? 'pl-12' : 'pl-4'} pr-4`}
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
