@@ -443,9 +443,9 @@ export default function ClientDashboard() {
                       
                       {analysis.results && (
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          {Object.entries(analysis.results).map(([key, value]) => (
+                          {Object.entries(analysis.results as Record<string, any>).map(([key, value]) => (
                             <div key={key} className="text-center">
-                              <div className="text-lg font-bold text-blue-400">{value}</div>
+                              <div className="text-lg font-bold text-blue-400">{String(value)}</div>
                               <div className="text-xs text-gray-400 capitalize">{key.replace('Score', '')}</div>
                             </div>
                           ))}
