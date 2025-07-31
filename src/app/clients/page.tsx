@@ -229,6 +229,10 @@ function ClientsContent() {
           value={searchQuery}
           onChange={handleSearch}
           className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-slate-500"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
         />
       </div>
 
