@@ -437,6 +437,79 @@ export class EmailService {
     `
   }
 
+  // Send welcome email with login credentials
+  async sendWelcomeEmail(email: string, firstName: string, tempPassword: string): Promise<boolean> {
+    try {
+      const html = this.getWelcomeEmailTemplate(firstName, tempPassword, email)
+      
+      const client = getResendClient()
+      await client.emails.send({
+        from: 'Kevin Rutherford <onboarding@resend.dev>',
+        to: email,
+        subject: 'Welcome to DestinationHealth - Your Account is Ready!',
+        html
+      })
+
+      return true
+    } catch (error) {
+      console.error('Welcome email error:', error)
+      return false
+    }
+  }
+
+  private getWelcomeEmailTemplate(firstName: string, tempPassword: string, email: string): string {
+    return `
+      <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
+        <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 40px 20px; text-align: center;">
+          <div style="background: #10b981; width: 60px; height: 60px; border-radius: 12px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+            <span style="color: white; font-size: 24px; font-weight: bold;">🎉</span>
+          </div>
+          <h1 style="color: white; margin: 0 0 10px 0;">Welcome to DestinationHealth!</h1>
+          <p style="color: #cbd5e1; margin: 0;">Your account has been created and you're ready to begin your health journey</p>
+        </div>
+        
+        <div style="background: white; padding: 40px 20px;">
+          <h2 style="color: #1e293b;">Hi ${firstName},</h2>
+          
+          <p>Welcome to DestinationHealth! Your account has been successfully created and you're ready to start your personalized health journey.</p>
+          
+          <div style="background: #f1f5f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #1e293b; margin-top: 0;">Your Login Credentials:</h3>
+            <p style="color: #475569; margin: 10px 0;">
+              <strong>Email:</strong> ${email}<br>
+              <strong>Temporary Password:</strong> ${tempPassword}
+            </p>
+            <p style="color: #dc2626; font-size: 14px;">
+              ⚠️ Please change your password after your first login for security.
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.NEXT_PUBLIC_APP_URL}/auth" style="display: inline-block; background: #10b981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+              Login to Your Account
+            </a>
+          </div>
+          
+          <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #92400e; margin-top: 0;">What's Next?</h3>
+            <ul style="color: #92400e;">
+              <li>Complete your onboarding questionnaire</li>
+              <li>Review your personalized health recommendations</li>
+              <li>Schedule your first consultation</li>
+              <li>Start implementing your health protocol</li>
+            </ul>
+          </div>
+          
+          <p>I'm excited to work with you and help you achieve your health goals!</p>
+          
+          <p>To your health,<br>
+          <strong>Kevin Rutherford, FNTP</strong><br>
+          <em>DestinationHealth</em></p>
+        </div>
+      </div>
+    `
+  }
+
   // Start email sequence for a user
   async startEmailSequence(userId: string, sequenceType: string): Promise<boolean> {
     try {
