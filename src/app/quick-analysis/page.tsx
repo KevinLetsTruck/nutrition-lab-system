@@ -105,8 +105,18 @@ export default function QuickAnalysisPage() {
           throw new Error('Upload failed')
         }
 
-        const uploadData = await uploadResponse.json()
+                const uploadData = await uploadResponse.json()
         
+        console.log('Upload response:', uploadData)
+
+        // Check if upload was successful and get the file path
+        if (!uploadData.success || !uploadData.files || uploadData.files.length === 0) {
+          throw new Error('Upload failed: ' + (uploadData.error || 'Unknown error'))
+        }
+
+        const uploadedFile = uploadData.files[0] // Get the first uploaded file
+        console.log('Uploaded file data:', uploadedFile)
+
         // Analyze the uploaded file
         const analysisResponse = await fetch('/api/analyze', {
           method: 'POST',
@@ -114,7 +124,7 @@ export default function QuickAnalysisPage() {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            filePath: uploadData.filePath,
+            filePath: uploadedFile.filePath,
             fileName: file.name,
             quickAnalysis: true
           })
