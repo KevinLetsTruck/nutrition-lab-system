@@ -79,7 +79,7 @@ export async function fetchClientData(clientId: string): Promise<ReportData> {
 
     // Transform NutriQ data
     let nutriqData: NutriQData | null = null
-    if (nutriqResults && nutriqResults.length > 0 && nutriqResults[0].nutriq_results) {
+    if (nutriqResults && nutriqResults.length > 0 && nutriqResults[0].nutriq_results && nutriqResults[0].nutriq_results.length > 0) {
       const nutriqResult = nutriqResults[0].nutriq_results[0]
       const analysisResults = nutriqResults[0].analysis_results
       
