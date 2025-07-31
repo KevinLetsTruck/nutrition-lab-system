@@ -92,4 +92,42 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { noteId } = await request.json()
+
+    if (!noteId) {
+      return NextResponse.json(
+        { error: 'Note ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // Use server-side Supabase client
+    const supabase = createServerSupabaseClient()
+
+    // Delete the note
+    const { error } = await supabase
+      .from('client_notes')
+      .delete()
+      .eq('id', noteId)
+
+    if (error) {
+      console.error('Database error:', error)
+      return NextResponse.json(
+        { error: 'Failed to delete note' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('API error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
 } 

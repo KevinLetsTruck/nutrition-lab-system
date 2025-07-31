@@ -53,6 +53,34 @@ export default function NotesPage() {
     }, 500)
   }, [])
 
+  const deleteNote = async (noteId: string) => {
+    if (!confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/notes`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ noteId })
+      })
+
+      if (response.ok) {
+        alert('Note deleted successfully!')
+        // Remove the note from the local state
+        setNotes(notes.filter(note => note.id !== noteId))
+      } else {
+        const error = await response.json()
+        alert(`Failed to delete note: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error deleting note:', error)
+      alert('Failed to delete note. Please try again.')
+    }
+  }
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -117,7 +145,16 @@ export default function NotesPage() {
                     {note.noteType}
                   </span>
                 </div>
-                <span className="text-sm text-gray-400">{formatDate(note.createdAt)}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-400">{formatDate(note.createdAt)}</span>
+                  <button 
+                    onClick={() => deleteNote(note.id)}
+                    className="text-red-400 hover:text-red-300 text-sm"
+                    title="Delete Note"
+                  >
+                    ✗
+                  </button>
+                </div>
               </div>
               <p className="text-gray-300 text-sm leading-relaxed">
                 {note.content.length > 200 

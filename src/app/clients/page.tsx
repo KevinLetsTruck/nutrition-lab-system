@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import Navigation from '@/components/Navigation'
 import { supabase } from '@/lib/supabase'
 
@@ -13,10 +14,19 @@ interface Client {
   lastContact: string
 }
 
-export default function ClientsPage() {
+function ClientsContent() {
+  const searchParams = useSearchParams()
   const [clients, setClients] = useState<Client[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Get search query from URL parameters
+    const urlSearch = searchParams.get('search')
+    if (urlSearch) {
+      setSearchQuery(urlSearch)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -76,59 +86,70 @@ export default function ClientsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900">
-        <Navigation />
-        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-gray-400">Loading clients...</p>
-          </div>
+      <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading clients...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-900">
-      <Navigation />
-      
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white mb-4">Client Management</h1>
-          <input
-            type="text"
-            placeholder="Search clients by name, email, or phone..."
-            value={searchQuery}
-            onChange={handleSearch}
-            className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-slate-500"
-          />
-        </div>
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-white mb-4">Client Management</h1>
+        <input
+          type="text"
+          placeholder="Search clients by name, email, or phone..."
+          value={searchQuery}
+          onChange={handleSearch}
+          className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-slate-500"
+        />
+      </div>
 
-        <div className="grid gap-4">
-          {filteredClients.map(client => (
-            <Link href={`/client/${client.id}`} key={client.id}>
-              <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 hover:border-slate-500 transition-colors cursor-pointer">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-semibold text-lg text-white">{client.name}</h3>
-                    <p className="text-gray-400 text-sm">{client.email} • {client.phone}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-sm text-gray-400">Last contact:</span>
-                    <p className="text-sm text-white">{formatDate(client.lastContact)}</p>
-                  </div>
+      <div className="grid gap-4">
+        {filteredClients.map(client => (
+          <Link href={`/client/${client.id}`} key={client.id}>
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 hover:border-slate-500 transition-colors cursor-pointer">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="font-semibold text-lg text-white">{client.name}</h3>
+                  <p className="text-gray-400 text-sm">{client.email} • {client.phone}</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-sm text-gray-400">Last contact:</span>
+                  <p className="text-sm text-white">{formatDate(client.lastContact)}</p>
                 </div>
               </div>
-            </Link>
-          ))}
-        </div>
-
-        {filteredClients.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-400">No clients found matching your search.</p>
-          </div>
-        )}
+            </div>
+          </Link>
+        ))}
       </div>
+
+      {filteredClients.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-gray-400">No clients found matching your search.</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default function ClientsPage() {
+  return (
+    <div className="min-h-screen bg-slate-900">
+      <Navigation />
+      <Suspense fallback={
+        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading...</p>
+          </div>
+        </div>
+      }>
+        <ClientsContent />
+      </Suspense>
     </div>
   )
 } 

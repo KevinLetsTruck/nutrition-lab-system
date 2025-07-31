@@ -53,6 +53,30 @@ export default function ProtocolsPage() {
     }, 500)
   }, [])
 
+  const deleteProtocol = async (protocolId: string) => {
+    if (!confirm('Are you sure you want to delete this protocol? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/protocols/${protocolId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        alert('Protocol deleted successfully!')
+        // Remove the protocol from the local state
+        setProtocols(protocols.filter(protocol => protocol.id !== protocolId))
+      } else {
+        const error = await response.json()
+        alert(`Failed to delete protocol: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error deleting protocol:', error)
+      alert('Failed to delete protocol. Please try again.')
+    }
+  }
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -89,26 +113,37 @@ export default function ProtocolsPage() {
 
         <div className="grid gap-4">
           {protocols.map(protocol => (
-            <Link href={`/protocol/${protocol.id}`} key={protocol.id}>
-              <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 hover:border-slate-500 transition-colors cursor-pointer">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-semibold text-lg text-white">{protocol.clientName}</h3>
-                    <p className="text-gray-400 text-sm">{protocol.phaseName}</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="flex items-center gap-2 mb-1">
-                      {protocol.isActive && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          Active
-                        </span>
-                      )}
+            <div key={protocol.id} className="bg-slate-800 border border-slate-700 rounded-lg p-4">
+              <div className="flex justify-between items-center">
+                <div className="flex-1">
+                  <Link href={`/protocol/${protocol.id}`}>
+                    <div className="hover:border-slate-500 transition-colors cursor-pointer">
+                      <h3 className="font-semibold text-lg text-white">{protocol.clientName}</h3>
+                      <p className="text-gray-400 text-sm">{protocol.phaseName}</p>
                     </div>
+                  </Link>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-center gap-2 mb-1">
+                    {protocol.isActive && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Active
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
                     <p className="text-sm text-gray-400">{formatDate(protocol.createdAt)}</p>
+                    <button 
+                      onClick={() => deleteProtocol(protocol.id)}
+                      className="text-red-400 hover:text-red-300 text-sm"
+                      title="Delete Protocol"
+                    >
+                      ✗
+                    </button>
                   </div>
                 </div>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
 

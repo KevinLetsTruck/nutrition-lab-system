@@ -319,6 +319,79 @@ export default function ClientDashboard() {
     }
   }
 
+  const deleteNote = async (noteId: string) => {
+    if (!confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/notes`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ noteId })
+      })
+
+      if (response.ok) {
+        alert('Note deleted successfully!')
+        loadClientData() // Refresh the data
+      } else {
+        const error = await response.json()
+        alert(`Failed to delete note: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error deleting note:', error)
+      alert('Failed to delete note. Please try again.')
+    }
+  }
+
+  const deleteDocument = async (documentId: string, documentName: string) => {
+    if (!confirm(`Are you sure you want to delete "${documentName}"? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/reports/${documentId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        alert('Document deleted successfully!')
+        loadClientData() // Refresh the data
+      } else {
+        const error = await response.json()
+        alert(`Failed to delete document: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error deleting document:', error)
+      alert('Failed to delete document. Please try again.')
+    }
+  }
+
+  const deleteProtocol = async (protocolId: string) => {
+    if (!confirm('Are you sure you want to delete this protocol? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/protocols/${protocolId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        alert('Protocol deleted successfully!')
+        loadClientData() // Refresh the data
+      } else {
+        const error = await response.json()
+        alert(`Failed to delete protocol: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error deleting protocol:', error)
+      alert('Failed to delete protocol. Please try again.')
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-900">
@@ -358,7 +431,7 @@ export default function ClientDashboard() {
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
           <button 
             onClick={openInterviewNotes} 
             className="bg-blue-600 hover:bg-blue-700 p-4 rounded-lg text-white font-medium transition-colors"
@@ -390,12 +463,6 @@ export default function ClientDashboard() {
             className="bg-indigo-600 hover:bg-indigo-700 p-4 rounded-lg text-white font-medium transition-colors"
           >
             Generate Coaching Report
-          </button>
-          <button 
-            onClick={() => setActiveTab('documents')}
-            className="bg-green-600 hover:bg-green-700 p-4 rounded-lg text-white font-medium transition-colors"
-          >
-            View Documents
           </button>
         </div>
 
@@ -560,6 +627,15 @@ export default function ClientDashboard() {
                       <pre className="text-sm text-gray-300 whitespace-pre-wrap">{client.currentProtocol.content}</pre>
                     </div>
                   )}
+                  <div className="flex justify-end mt-4">
+                    <button 
+                      onClick={() => deleteProtocol(client.currentProtocol!.id)}
+                      className="text-red-400 hover:text-red-300 text-sm"
+                      title="Delete Protocol"
+                    >
+                      Delete Protocol
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <p className="text-gray-400">No protocols available</p>
@@ -578,6 +654,15 @@ export default function ClientDashboard() {
                       <span>{formatDate(note.date)}</span>
                     </div>
                     <p className="text-gray-300">{note.content}</p>
+                    <div className="flex justify-end mt-2">
+                      <button 
+                        onClick={() => deleteNote(note.id)}
+                        className="text-red-400 hover:text-red-300 text-sm"
+                        title="Delete Note"
+                      >
+                        ✗
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -631,6 +716,13 @@ export default function ClientDashboard() {
                             title="Open in new tab"
                           >
                             ↗
+                          </button>
+                          <button 
+                            onClick={() => deleteDocument(doc.id, doc.name)}
+                            className="text-red-400 hover:text-red-300 text-sm"
+                            title="Delete Document"
+                          >
+                            ✗
                           </button>
                         </div>
                       ) : (
