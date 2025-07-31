@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 
@@ -8,8 +8,39 @@ export default function AuthPage() {
   const [mode, setMode] = useState<'register' | 'login'>('register')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const { login, register } = useAuth()
+  const { login, register, user, loading: authLoading } = useAuth()
   const router = useRouter()
+
+  // Redirect if user is already authenticated
+  useEffect(() => {
+    if (!authLoading && user) {
+      console.log('🔄 User already authenticated, redirecting to /clients')
+      router.push('/clients')
+    }
+  }, [user, authLoading, router])
+
+  // Don't render the form if user is authenticated or still loading
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center px-6">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Checking authentication...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (user) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center px-6">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Redirecting to dashboard...</p>
+        </div>
+      </div>
+    )
+  }
 
   const [formData, setFormData] = useState({
     firstName: '',
