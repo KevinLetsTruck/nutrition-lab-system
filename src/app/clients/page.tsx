@@ -12,6 +12,8 @@ interface Client {
   email: string
   phone: string
   lastContact: string
+  status?: string
+  archived_at?: string
 }
 
 function ClientsContent() {
@@ -19,6 +21,9 @@ function ClientsContent() {
   const [clients, setClients] = useState<Client[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
+  const [showArchived, setShowArchived] = useState(false)
+  const [archiving, setArchiving] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
 
   useEffect(() => {
     // Get search query from URL parameters
@@ -36,7 +41,7 @@ function ClientsContent() {
         // Fetch clients from the database
         const { data: clientsData, error } = await supabase
           .from('clients')
-          .select('id, first_name, last_name, email, phone, created_at')
+          .select('id, first_name, last_name, email, phone, created_at, status, archived_at')
           .order('created_at', { ascending: false })
 
         if (error) {
@@ -51,7 +56,9 @@ function ClientsContent() {
           name: `${client.first_name} ${client.last_name}`,
           email: client.email,
           phone: client.phone || '',
-          lastContact: client.created_at
+          lastContact: client.created_at,
+          status: client.status,
+          archived_at: client.archived_at
         }))
 
         setClients(transformedClients)
@@ -70,11 +77,114 @@ function ClientsContent() {
     setSearchQuery(e.target.value)
   }
 
-  const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.phone.includes(searchQuery)
-  )
+  const filteredClients = clients.filter(client => {
+    const matchesSearch = client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.phone.includes(searchQuery)
+    
+    const matchesArchiveFilter = showArchived ? client.archived_at : !client.archived_at
+    
+    return matchesSearch && matchesArchiveFilter
+  })
+
+  const archiveClient = async (clientId: string, clientName: string) => {
+    if (!confirm(`Are you sure you want to archive ${clientName}? This will hide them from the main client list.`)) {
+      return
+    }
+
+    setArchiving(clientId)
+    try {
+      const response = await fetch(`/api/clients/${clientId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          status: 'archived',
+          archived_at: new Date().toISOString()
+        })
+      })
+
+      if (response.ok) {
+        alert(`${clientName} has been archived successfully!`)
+        // Update the local state
+        setClients(clients.map(client => 
+          client.id === clientId 
+            ? { ...client, status: 'archived', archived_at: new Date().toISOString() }
+            : client
+        ))
+      } else {
+        const error = await response.json()
+        alert(`Failed to archive client: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error archiving client:', error)
+      alert('Failed to archive client. Please try again.')
+    } finally {
+      setArchiving(null)
+    }
+  }
+
+  const unarchiveClient = async (clientId: string, clientName: string) => {
+    setArchiving(clientId)
+    try {
+      const response = await fetch(`/api/clients/${clientId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          status: 'active',
+          archived_at: null
+        })
+      })
+
+      if (response.ok) {
+        alert(`${clientName} has been restored successfully!`)
+        // Update the local state
+        setClients(clients.map(client => 
+          client.id === clientId 
+            ? { ...client, status: 'active', archived_at: undefined }
+            : client
+        ))
+      } else {
+        const error = await response.json()
+        alert(`Failed to restore client: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error restoring client:', error)
+      alert('Failed to restore client. Please try again.')
+    } finally {
+      setArchiving(null)
+    }
+  }
+
+  const deleteClient = async (clientId: string, clientName: string) => {
+    if (!confirm(`Are you sure you want to permanently delete ${clientName}? This action cannot be undone and will delete all associated data (notes, protocols, lab reports).`)) {
+      return
+    }
+
+    setDeleting(clientId)
+    try {
+      const response = await fetch(`/api/clients/${clientId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        alert(`${clientName} has been permanently deleted.`)
+        // Remove from local state
+        setClients(clients.filter(client => client.id !== clientId))
+      } else {
+        const error = await response.json()
+        alert(`Failed to delete client: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error deleting client:', error)
+      alert('Failed to delete client. Please try again.')
+    } finally {
+      setDeleting(null)
+    }
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -98,7 +208,21 @@ function ClientsContent() {
   return (
     <div className="max-w-7xl mx-auto p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white mb-4">Client Management</h1>
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold text-white">Client Management</h1>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowArchived(!showArchived)}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                showArchived 
+                  ? 'bg-orange-600 text-white' 
+                  : 'bg-slate-700 text-gray-300 hover:text-white'
+              }`}
+            >
+              {showArchived ? 'Show Active Clients' : 'Show Archived Clients'}
+            </button>
+          </div>
+        </div>
         <input
           type="text"
           placeholder="Search clients by name, email, or phone..."
@@ -110,26 +234,63 @@ function ClientsContent() {
 
       <div className="grid gap-4">
         {filteredClients.map(client => (
-          <Link href={`/client/${client.id}`} key={client.id}>
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 hover:border-slate-500 transition-colors cursor-pointer">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-semibold text-lg text-white">{client.name}</h3>
-                  <p className="text-gray-400 text-sm">{client.email} • {client.phone}</p>
-                </div>
-                <div className="text-right">
+          <div key={client.id} className="bg-slate-800 border border-slate-700 rounded-lg p-4">
+            <div className="flex justify-between items-center">
+              <div className="flex-1">
+                <Link href={`/client/${client.id}`}>
+                  <div className="hover:border-slate-500 transition-colors cursor-pointer">
+                    <h3 className="font-semibold text-lg text-white">{client.name}</h3>
+                    <p className="text-gray-400 text-sm">{client.email} • {client.phone}</p>
+                  </div>
+                </Link>
+              </div>
+              <div className="text-right">
+                <div className="flex items-center gap-2 mb-2">
+                  {client.archived_at && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                      Archived
+                    </span>
+                  )}
                   <span className="text-sm text-gray-400">Last contact:</span>
                   <p className="text-sm text-white">{formatDate(client.lastContact)}</p>
                 </div>
+                <div className="flex gap-2">
+                  {client.archived_at ? (
+                    <button
+                      onClick={() => unarchiveClient(client.id, client.name)}
+                      disabled={archiving === client.id}
+                      className={`px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-white text-sm transition-colors ${archiving === client.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      {archiving === client.id ? 'Restoring...' : 'Restore'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => archiveClient(client.id, client.name)}
+                      disabled={archiving === client.id}
+                      className={`px-3 py-1 bg-orange-600 hover:bg-orange-700 rounded text-white text-sm transition-colors ${archiving === client.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      {archiving === client.id ? 'Archiving...' : 'Archive'}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => deleteClient(client.id, client.name)}
+                    disabled={deleting === client.id}
+                    className={`px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-white text-sm transition-colors ${deleting === client.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {deleting === client.id ? 'Deleting...' : 'Delete'}
+                  </button>
+                </div>
               </div>
             </div>
-          </Link>
+          </div>
         ))}
       </div>
 
       {filteredClients.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-400">No clients found matching your search.</p>
+          <p className="text-gray-400">
+            {showArchived ? 'No archived clients found.' : 'No clients found matching your search.'}
+          </p>
         </div>
       )}
     </div>
