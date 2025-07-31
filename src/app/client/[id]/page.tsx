@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/Navigation'
 import NoteModal from '@/components/NoteModal'
+import { PDFViewer } from '@/components/ui/pdf-viewer'
 import { supabase } from '@/lib/supabase'
 
 interface Client {
@@ -59,6 +60,8 @@ export default function ClientDashboard() {
   const [uploading, setUploading] = useState(false)
   const [generatingProtocol, setGeneratingProtocol] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'analyses' | 'protocols' | 'notes' | 'documents'>('overview')
+  const [showPDFViewer, setShowPDFViewer] = useState(false)
+  const [selectedPDF, setSelectedPDF] = useState<{ url: string; title: string; fileName: string } | null>(null)
 
   const loadClientData = useCallback(async () => {
     try {
@@ -285,7 +288,12 @@ export default function ClientDashboard() {
 
   const openDocument = (document: Document) => {
     if (document.fileUrl) {
-      window.open(document.fileUrl, '_blank')
+      setSelectedPDF({
+        url: document.fileUrl,
+        title: document.name,
+        fileName: document.name
+      })
+      setShowPDFViewer(true)
     } else {
       alert('Document URL not available')
     }
@@ -362,6 +370,12 @@ export default function ClientDashboard() {
             className="bg-indigo-600 hover:bg-indigo-700 p-4 rounded-lg text-white font-medium transition-colors"
           >
             Generate Coaching Report
+          </button>
+          <button 
+            onClick={() => setActiveTab('documents')}
+            className="bg-green-600 hover:bg-green-700 p-4 rounded-lg text-white font-medium transition-colors"
+          >
+            View Documents
           </button>
         </div>
 
@@ -552,27 +566,53 @@ export default function ClientDashboard() {
 
           {activeTab === 'documents' && (
             <div>
-              <h2 className="text-xl font-semibold text-white mb-4">Documents</h2>
-              <div className="space-y-3">
-                {client.documents.map(doc => (
-                  <div key={doc.id} className="flex justify-between items-center bg-slate-700 rounded-lg p-4">
-                    <div>
-                      <span className="text-white font-medium">{doc.name}</span>
-                      <span className="text-gray-400 ml-2">({doc.type})</span>
+              <h2 className="text-xl font-semibold text-white mb-4">Documents & Forms</h2>
+              {client.documents.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {client.documents.map(doc => (
+                    <div key={doc.id} className="bg-slate-700 rounded-lg p-4 hover:bg-slate-600 transition-colors">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="text-white font-medium text-sm mb-1 truncate">{doc.name}</h3>
+                          <span className="text-gray-400 text-xs px-2 py-1 bg-slate-600 rounded">
+                            {doc.type.toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {doc.fileUrl ? (
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => openDocument(doc)}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-white text-sm font-medium transition-colors"
+                          >
+                            View PDF
+                          </button>
+                          <button 
+                            onClick={() => window.open(doc.fileUrl, '_blank')}
+                            className="bg-slate-600 hover:bg-slate-500 px-3 py-2 rounded text-white text-sm transition-colors"
+                            title="Open in new tab"
+                          >
+                            ↗
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-gray-500 text-sm">No file available</span>
+                      )}
                     </div>
-                    {doc.fileUrl ? (
-                      <button 
-                        onClick={() => openDocument(doc)}
-                        className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-white text-sm"
-                      >
-                        View
-                      </button>
-                    ) : (
-                      <span className="text-gray-500 text-sm">No file available</span>
-                    )}
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-400 mb-4">No documents uploaded yet</p>
+                  <button 
+                    onClick={uploadDocument}
+                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white font-medium transition-colors"
+                  >
+                    Upload First Document
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -585,6 +625,20 @@ export default function ClientDashboard() {
           noteType={noteType}
           onClose={() => setShowNoteModal(false)}
           onSave={loadClientData}
+        />
+      )}
+
+      {/* PDF Viewer Modal */}
+      {showPDFViewer && selectedPDF && (
+        <PDFViewer
+          isOpen={showPDFViewer}
+          onClose={() => {
+            setShowPDFViewer(false)
+            setSelectedPDF(null)
+          }}
+          pdfUrl={selectedPDF.url}
+          title={selectedPDF.title}
+          fileName={selectedPDF.fileName}
         />
       )}
     </div>
