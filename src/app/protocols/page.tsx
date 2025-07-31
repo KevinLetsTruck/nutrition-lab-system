@@ -3,14 +3,21 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Navigation from '@/components/Navigation'
+import { supabase } from '@/lib/supabase'
 
 interface Protocol {
   id: string
-  clientId: string
-  clientName: string
-  phaseName: string
-  isActive: boolean
-  createdAt: string
+  client_id: string
+  phase: string
+  content: string
+  status: string
+  start_date: string
+  created_at: string
+  client?: {
+    first_name: string
+    last_name: string
+    email: string
+  }
 }
 
 export default function ProtocolsPage() {
@@ -18,39 +25,36 @@ export default function ProtocolsPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // TODO: Fetch protocols from API
-    // For now, using mock data
-    const mockProtocols: Protocol[] = [
-      {
-        id: '1',
-        clientId: '1',
-        clientName: 'John Smith',
-        phaseName: 'Phase 1: Gut Restoration',
-        isActive: true,
-        createdAt: '2024-01-15T10:30:00Z'
-      },
-      {
-        id: '2',
-        clientId: '2',
-        clientName: 'Sarah Johnson',
-        phaseName: 'Phase 2: Energy Optimization',
-        isActive: true,
-        createdAt: '2024-01-10T14:20:00Z'
-      },
-      {
-        id: '3',
-        clientId: '3',
-        clientName: 'Mike Wilson',
-        phaseName: 'Phase 1: Inflammation Reduction',
-        isActive: false,
-        createdAt: '2024-01-08T09:15:00Z'
+    const fetchProtocols = async () => {
+      try {
+        setLoading(true)
+        
+        // Fetch protocols with client information
+        const { data: protocolsData, error } = await supabase
+          .from('protocols')
+          .select(`
+            *,
+            client:clients(first_name, last_name, email)
+          `)
+          .order('created_at', { ascending: false })
+
+        if (error) {
+          console.error('Error fetching protocols:', error)
+          setProtocols([])
+          setLoading(false)
+          return
+        }
+
+        setProtocols(protocolsData || [])
+        setLoading(false)
+      } catch (error) {
+        console.error('Error in fetchProtocols:', error)
+        setProtocols([])
+        setLoading(false)
       }
-    ]
-    
-    setTimeout(() => {
-      setProtocols(mockProtocols)
-      setLoading(false)
-    }, 500)
+    }
+
+    fetchProtocols()
   }, [])
 
   const deleteProtocol = async (protocolId: string) => {
@@ -60,20 +64,19 @@ export default function ProtocolsPage() {
 
     try {
       const response = await fetch(`/api/protocols/${protocolId}`, {
-        method: 'DELETE',
+        method: 'DELETE'
       })
 
       if (response.ok) {
-        alert('Protocol deleted successfully!')
-        // Remove the protocol from the local state
-        setProtocols(protocols.filter(protocol => protocol.id !== protocolId))
+        setProtocols(prev => prev.filter(protocol => protocol.id !== protocolId))
+        alert('Protocol deleted successfully')
       } else {
         const error = await response.json()
         alert(`Failed to delete protocol: ${error.error}`)
       }
     } catch (error) {
       console.error('Error deleting protocol:', error)
-      alert('Failed to delete protocol. Please try again.')
+      alert('Failed to delete protocol')
     }
   }
 
@@ -81,20 +84,36 @@ export default function ProtocolsPage() {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: 'numeric'
     })
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return 'bg-green-600'
+      case 'draft':
+        return 'bg-yellow-600'
+      case 'completed':
+        return 'bg-blue-600'
+      default:
+        return 'bg-gray-600'
+    }
   }
 
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-900">
         <Navigation />
-        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-gray-400">Loading protocols...</p>
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-slate-700 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-slate-700 rounded w-1/2 mb-8"></div>
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-24 bg-slate-700 rounded"></div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -105,53 +124,79 @@ export default function ProtocolsPage() {
     <div className="min-h-screen bg-slate-900">
       <Navigation />
       
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white mb-4">Protocols</h1>
-          <p className="text-gray-400">All generated FNTP protocols for your clients</p>
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">Protocols</h1>
+          <p className="text-gray-400">
+            View and manage client treatment protocols and health plans.
+          </p>
         </div>
 
-        <div className="grid gap-4">
-          {protocols.map(protocol => (
-            <div key={protocol.id} className="bg-slate-800 border border-slate-700 rounded-lg p-4">
-              <div className="flex justify-between items-center">
-                <div className="flex-1">
-                  <Link href={`/protocol/${protocol.id}`}>
-                    <div className="hover:border-slate-500 transition-colors cursor-pointer">
-                      <h3 className="font-semibold text-lg text-white">{protocol.clientName}</h3>
-                      <p className="text-gray-400 text-sm">{protocol.phaseName}</p>
-                    </div>
-                  </Link>
-                </div>
-                <div className="text-right">
-                  <div className="flex items-center gap-2 mb-1">
-                    {protocol.isActive && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Active
+        <div className="space-y-4">
+          {protocols.length === 0 ? (
+            <div className="bg-slate-800 rounded-lg p-8 text-center">
+              <p className="text-gray-400 text-lg">No protocols found.</p>
+            </div>
+          ) : (
+            protocols.map((protocol) => (
+              <div key={protocol.id} className="bg-slate-800 rounded-lg p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      {protocol.client && (
+                        <Link 
+                          href={`/client/${protocol.client_id}`}
+                          className="text-lg font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+                        >
+                          {protocol.client.first_name} {protocol.client.last_name}
+                        </Link>
+                      )}
+                      <span className={`px-2 py-1 text-white text-xs rounded-full ${getStatusColor(protocol.status)}`}>
+                        {protocol.status}
                       </span>
+                    </div>
+                    
+                    <h3 className="text-white font-medium mb-1">{protocol.phase}</h3>
+                    
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <span>Started: {formatDate(protocol.start_date)}</span>
+                      <span>Created: {formatDate(protocol.created_at)}</span>
+                      {protocol.client && (
+                        <span>Email: {protocol.client.email}</span>
+                      )}
+                    </div>
+                    
+                    {protocol.content && (
+                      <p className="text-gray-300 text-sm mt-2 line-clamp-2">
+                        {protocol.content.length > 200 
+                          ? `${protocol.content.substring(0, 200)}...` 
+                          : protocol.content
+                        }
+                      </p>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm text-gray-400">{formatDate(protocol.createdAt)}</p>
-                    <button 
+                  
+                  <div className="flex items-center gap-2 ml-4">
+                    <Link
+                      href={`/protocol/${protocol.id}`}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      View Protocol
+                    </Link>
+                    
+                    <button
                       onClick={() => deleteProtocol(protocol.id)}
-                      className="text-red-400 hover:text-red-300 text-sm"
-                      title="Delete Protocol"
+                      className="text-red-400 hover:text-red-300 transition-colors"
+                      title="Delete protocol"
                     >
                       ✗
                     </button>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
-
-        {protocols.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-400">No protocols found.</p>
-          </div>
-        )}
       </div>
     </div>
   )
