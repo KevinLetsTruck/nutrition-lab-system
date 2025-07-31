@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { Search } from 'lucide-react'
 import Navigation from '@/components/Navigation'
 import { supabase } from '@/lib/supabase'
 
@@ -310,17 +311,22 @@ function ClientsContent() {
             </button>
           </div>
         </div>
-        <input
-          type="text"
-          placeholder="Search clients by name, email, or phone..."
-          value={searchQuery}
-          onChange={handleSearch}
-          className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-slate-500"
-          autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="off"
-          spellCheck="false"
-        />
+        <div className="relative flex items-center">
+          <div className="absolute left-4 flex items-center justify-center w-5 h-5 pointer-events-none">
+            <Search className="w-4 h-4 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search clients by name, email, or phone..."
+            value={searchQuery}
+            onChange={handleSearch}
+            className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-slate-500"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck="false"
+          />
+        </div>
       </div>
 
       <div className="grid gap-4">
