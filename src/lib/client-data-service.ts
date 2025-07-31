@@ -14,17 +14,23 @@ export async function fetchClientData(clientId: string): Promise<ReportData> {
       throw new Error(`Failed to fetch client: ${clientError.message}`)
     }
 
-    // Fetch NutriQ results from lab_reports table
+    // Fetch NutriQ results from nutriq_results table
     const { data: nutriqResults, error: nutriqError } = await supabase
-      .from('lab_reports')
-      .select('*')
-      .eq('client_id', clientId)
-      .eq('report_type', 'nutriq')
+      .from('nutriq_results')
+      .select(`
+        *,
+        lab_reports!inner(
+          client_id,
+          report_date,
+          analysis_results
+        )
+      `)
+      .eq('lab_reports.client_id', clientId)
       .order('created_at', { ascending: false })
       .limit(1)
 
     if (nutriqError) {
-      throw new Error(`Failed to fetch NutriQ results: ${nutriqError.message}`)
+      console.error('[CLIENT-DATA] Error fetching NutriQ results:', nutriqError)
     }
 
     // Fetch all lab reports
@@ -82,50 +88,47 @@ export async function fetchClientData(clientId: string): Promise<ReportData> {
     
     let nutriqData: NutriQData | null = null
     if (nutriqResults && nutriqResults.length > 0) {
-      const nutriqReport = nutriqResults[0]
-      const nutriqResult = nutriqReport.nutriq_results?.[0] || nutriqReport.nutriq_results
-      const analysisResults = nutriqReport.analysis_results
-      
-      // Handle both array and direct object formats
-      const scores = nutriqResult || {}
+      const nutriqResult = nutriqResults[0]
+      const labReport = nutriqResult.lab_reports
+      const analysisResults = labReport.analysis_results
       
       nutriqData = {
-        totalScore: scores.total_score || scores.totalScore || 0,
+        totalScore: nutriqResult.total_score || 0,
         bodySystems: {
           energy: {
-            score: scores.energy_score || scores.energyScore || 0,
+            score: nutriqResult.energy_score || 0,
             issues: analysisResults?.bodySystems?.energy?.issues || [],
             recommendations: analysisResults?.bodySystems?.energy?.recommendations || []
           },
           mood: {
-            score: scores.mood_score || scores.moodScore || 0,
+            score: nutriqResult.mood_score || 0,
             issues: analysisResults?.bodySystems?.mood?.issues || [],
             recommendations: analysisResults?.bodySystems?.mood?.recommendations || []
           },
           sleep: {
-            score: scores.sleep_score || scores.sleepScore || 0,
+            score: nutriqResult.sleep_score || 0,
             issues: analysisResults?.bodySystems?.sleep?.issues || [],
             recommendations: analysisResults?.bodySystems?.sleep?.recommendations || []
           },
           stress: {
-            score: scores.stress_score || scores.stressScore || 0,
+            score: nutriqResult.stress_score || 0,
             issues: analysisResults?.bodySystems?.stress?.issues || [],
             recommendations: analysisResults?.bodySystems?.stress?.recommendations || []
           },
           digestion: {
-            score: scores.digestion_score || scores.digestionScore || 0,
+            score: nutriqResult.digestion_score || 0,
             issues: analysisResults?.bodySystems?.digestion?.issues || [],
             recommendations: analysisResults?.bodySystems?.digestion?.recommendations || []
           },
           immunity: {
-            score: scores.immunity_score || scores.immunityScore || 0,
+            score: nutriqResult.immunity_score || 0,
             issues: analysisResults?.bodySystems?.immunity?.issues || [],
             recommendations: analysisResults?.bodySystems?.immunity?.recommendations || []
           }
         },
         overallRecommendations: analysisResults?.overallRecommendations || [],
         priorityActions: analysisResults?.priorityActions || [],
-        assessmentDate: nutriqReport.report_date || nutriqReport.created_at
+        assessmentDate: labReport.report_date || nutriqResult.created_at
       }
     }
 
