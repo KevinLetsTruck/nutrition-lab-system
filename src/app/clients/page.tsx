@@ -71,6 +71,21 @@ function ClientsContent() {
         console.log('🔄 Starting to fetch clients...')
         setLoading(true)
         
+        // Test Supabase connection first
+        const { data: testData, error: testError } = await supabase
+          .from('users')
+          .select('count')
+          .limit(1)
+        
+        console.log('🧪 Supabase connection test:', { data: testData, error: testError })
+        
+        if (testError) {
+          console.error('❌ Supabase connection failed:', testError)
+          setClients([])
+          setLoading(false)
+          return
+        }
+        
         // Fetch clients from the database
         const { data: clientsData, error } = await supabase
           .from('clients')
