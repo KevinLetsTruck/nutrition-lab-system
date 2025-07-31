@@ -234,6 +234,29 @@ export default function AuthPage() {
               </button>
             </div>
           )}
+          
+          {/* Debug test button */}
+          <div className="text-center mt-4 pt-4 border-t border-slate-700">
+            <button 
+              type="button"
+              onClick={async () => {
+                console.log('🧪 Test button clicked!')
+                console.log('🧪 Testing login with hardcoded credentials...')
+                const result = await login('kevin@letstruck.com', 'testpassword123')
+                console.log('🧪 Test login result:', result)
+                if (result.success) {
+                  console.log('🧪 Test login successful!')
+                  router.push('/clients')
+                } else {
+                  console.log('🧪 Test login failed:', result.error)
+                  setError('Test login failed: ' + result.error)
+                }
+              }}
+              className="text-blue-400 hover:text-blue-300 text-sm bg-blue-500/10 px-3 py-1 rounded"
+            >
+              🧪 Test Login
+            </button>
+          </div>
         </div>
       </div>
     </div>

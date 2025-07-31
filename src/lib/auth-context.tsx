@@ -35,17 +35,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkAuth = async () => {
     try {
+      console.log('🔍 Checking authentication status...')
       const response = await fetch('/api/auth/me')
+      
       if (response.ok) {
         const data = await response.json()
+        console.log('✅ User is authenticated:', data.user?.email)
         setUser(data.user)
         setProfile(data.profile)
+      } else if (response.status === 401) {
+        // This is expected when not logged in - don't log as error
+        console.log('ℹ️ User is not authenticated (401) - this is normal')
+        setUser(null)
+        setProfile(null)
       } else {
+        console.warn('⚠️ Unexpected auth check response:', response.status)
         setUser(null)
         setProfile(null)
       }
     } catch (error) {
-      console.error('Auth check failed:', error)
+      console.error('🚨 Auth check failed:', error)
       setUser(null)
       setProfile(null)
     } finally {
