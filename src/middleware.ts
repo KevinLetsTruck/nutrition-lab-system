@@ -30,6 +30,11 @@ const PUBLIC_ROUTES = [
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Skip middleware for API routes (let them handle their own auth)
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.next()
+  }
+
   // Allow public routes
   if (PUBLIC_ROUTES.some(route => pathname.startsWith(route))) {
     return NextResponse.next()
