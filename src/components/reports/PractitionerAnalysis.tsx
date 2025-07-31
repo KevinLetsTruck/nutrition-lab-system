@@ -10,7 +10,7 @@ import ExecutiveSummary from './sections/ExecutiveSummary'
 import DataAnalysis from './sections/DataAnalysis'
 import ClinicalInsights from './sections/ClinicalInsights'
 import InterventionProtocol from './sections/InterventionProtocol'
-import { generateAIAnalysis } from '@/lib/ai-analysis-service'
+
 import { fetchClientData } from '@/lib/client-data-service'
 import { exportToPDF } from '@/lib/export-service'
 
@@ -173,11 +173,24 @@ const PractitionerAnalysis: React.FC<PractitionerAnalysisProps> = ({
       setIsGenerating(true)
       setError(null)
       
-      const aiAnalysis = await generateAIAnalysis(report)
+      const response = await fetch('/api/generate-ai-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reportData: report })
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to generate AI analysis')
+      }
+      
+      const { analysis } = await response.json()
       
       setReport(prev => prev ? {
         ...prev,
-        analysis: aiAnalysis,
+        analysis,
         version: {
           id: crypto.randomUUID(),
           generatedAt: new Date(),
