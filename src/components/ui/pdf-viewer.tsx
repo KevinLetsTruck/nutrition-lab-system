@@ -16,6 +16,7 @@ interface PDFViewerProps {
 export function PDFViewer({ isOpen, onClose, pdfUrl, title, fileName }: PDFViewerProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [zoom, setZoom] = useState(100)
 
   const handleDownload = () => {
     const link = document.createElement('a')
@@ -34,8 +35,8 @@ export function PDFViewer({ isOpen, onClose, pdfUrl, title, fileName }: PDFViewe
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="relative w-full max-w-6xl h-[90vh] bg-white rounded-lg shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="relative w-full max-w-7xl h-[95vh] bg-white rounded-lg shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <div>
@@ -43,6 +44,38 @@ export function PDFViewer({ isOpen, onClose, pdfUrl, title, fileName }: PDFViewe
             <p className="text-sm text-gray-500">{fileName}</p>
           </div>
           <div className="flex items-center gap-2">
+            {/* Zoom Controls */}
+            <div className="flex items-center gap-1 mr-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setZoom(Math.max(50, zoom - 25))}
+                className="px-2"
+                title="Zoom Out"
+              >
+                -
+              </Button>
+              <span className="text-sm text-gray-600 min-w-[3rem] text-center">{zoom}%</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setZoom(Math.min(200, zoom + 25))}
+                className="px-2"
+                title="Zoom In"
+              >
+                +
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setZoom(100)}
+                className="px-2 ml-1"
+                title="Reset Zoom"
+              >
+                Reset
+              </Button>
+            </div>
+            
             <Button
               variant="outline"
               size="sm"
@@ -74,7 +107,7 @@ export function PDFViewer({ isOpen, onClose, pdfUrl, title, fileName }: PDFViewe
         </div>
 
         {/* PDF Content */}
-        <div className="flex-1 p-4">
+        <div className="flex-1 p-2">
           {error ? (
             <Card className="h-full flex items-center justify-center">
               <div className="text-center">
@@ -85,10 +118,11 @@ export function PDFViewer({ isOpen, onClose, pdfUrl, title, fileName }: PDFViewe
               </div>
             </Card>
           ) : (
-            <div className="h-full border rounded-lg overflow-hidden">
+            <div className="h-full border rounded-lg overflow-hidden relative">
               <iframe
-                src={`${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1`}
+                src={`${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1&view=FitH&zoom=${zoom}`}
                 className="w-full h-full"
+                style={{ minHeight: '600px' }}
                 onLoad={() => setIsLoading(false)}
                 onError={() => {
                   setError('Failed to load PDF. Please try opening in a new tab.')
