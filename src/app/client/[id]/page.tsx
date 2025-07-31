@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/Navigation'
 import NoteModal from '@/components/NoteModal'
@@ -60,60 +60,94 @@ export default function ClientDashboard() {
   const [generatingProtocol, setGeneratingProtocol] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'analyses' | 'protocols' | 'notes' | 'documents'>('overview')
 
-  useEffect(() => {
-    const loadClientData = async () => {
-      try {
-        setLoading(true)
-        
-        // Validate UUID format
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-        if (!uuidRegex.test(clientId)) {
-          console.error('Invalid UUID format:', clientId)
-          setLoading(false)
-          return
-        }
-
-        // Fetch client data from the database
-        const { data: client, error: clientError } = await supabase
-          .from('clients')
-          .select('*')
-          .eq('id', clientId)
-          .single()
-
-        if (clientError) {
-          console.error('Error fetching client:', clientError)
-          setLoading(false)
-          return
-        }
-
-        if (!client) {
-          console.error('Client not found')
-          setLoading(false)
-          return
-        }
-
-        // Transform the client data
-        const transformedClient: Client = {
-          id: client.id,
-          name: `${client.first_name} ${client.last_name}`,
-          email: client.email,
-          phone: client.phone || '',
-          notes: [], // Will be populated from client_notes table
-          documents: [], // Will be populated from client_documents table
-          currentProtocol: undefined, // Will be populated from protocols table
-          analyses: [] // Will be populated from lab_reports table
-        }
-
-        setClient(transformedClient)
-      } catch (error) {
-        console.error('Error loading client data:', error)
-      } finally {
+  const loadClientData = useCallback(async () => {
+    try {
+      setLoading(true)
+      
+      // Validate UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      if (!uuidRegex.test(clientId)) {
+        console.error('Invalid UUID format:', clientId)
         setLoading(false)
+        return
       }
-    }
 
-    loadClientData()
+      // Fetch client data from the database
+      const { data: client, error: clientError } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('id', clientId)
+        .single()
+
+      if (clientError) {
+        console.error('Error fetching client:', clientError)
+        setLoading(false)
+        return
+      }
+
+      if (!client) {
+        console.error('Client not found')
+        setLoading(false)
+        return
+      }
+
+      // Fetch notes for this client
+      const { data: notes, error: notesError } = await supabase
+        .from('client_notes')
+        .select('*')
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false })
+
+      if (notesError) {
+        console.error('Error fetching notes:', notesError)
+      }
+
+      // Fetch protocols for this client
+      const { data: protocols, error: protocolsError } = await supabase
+        .from('protocols')
+        .select('*')
+        .eq('client_id', clientId)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (protocolsError) {
+        console.error('Error fetching protocols:', protocolsError)
+      }
+
+      // Transform the client data
+      const transformedClient: Client = {
+        id: client.id,
+        name: `${client.first_name} ${client.last_name}`,
+        email: client.email,
+        phone: client.phone || '',
+        notes: notes?.map(note => ({
+          id: note.id,
+          type: note.type,
+          content: note.content,
+          date: note.created_at
+        })) || [],
+        documents: [], // Will be populated from client_documents table
+        currentProtocol: protocols?.[0] ? {
+          id: protocols[0].id,
+          phase: protocols[0].phase,
+          startDate: protocols[0].start_date,
+          content: protocols[0].content
+        } : undefined,
+        analyses: [] // Will be populated from lab_reports table
+      }
+
+      setClient(transformedClient)
+    } catch (error) {
+      console.error('Error loading client data:', error)
+    } finally {
+      setLoading(false)
+    }
   }, [clientId])
+
+  useEffect(() => {
+    loadClientData()
+  }, [loadClientData])
 
   const openInterviewNotes = () => {
     setNoteType('interview')
@@ -527,6 +561,7 @@ export default function ClientDashboard() {
           clientId={clientId}
           noteType={noteType}
           onClose={() => setShowNoteModal(false)}
+          onSave={loadClientData}
         />
       )}
     </div>

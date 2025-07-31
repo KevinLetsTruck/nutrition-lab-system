@@ -6,9 +6,10 @@ interface NoteModalProps {
   clientId: string
   noteType: 'interview' | 'coaching_call'
   onClose: () => void
+  onSave?: () => void
 }
 
-const NoteModal = ({ clientId, noteType, onClose }: NoteModalProps) => {
+const NoteModal = ({ clientId, noteType, onClose, onSave }: NoteModalProps) => {
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -57,19 +58,28 @@ const NoteModal = ({ clientId, noteType, onClose }: NoteModalProps) => {
     setSaving(true)
     
     try {
-      // TODO: Save note to API
-      console.log('Saving note:', {
-        clientId,
-        noteType,
-        content: note
+      const response = await fetch('/api/notes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          clientId,
+          type: noteType,
+          content: note,
+          author: 'Kevin Rutherford, FNTP'
+        })
       })
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      if (!response.ok) {
+        throw new Error('Failed to save note')
+      }
       
       onClose()
+      onSave?.()
     } catch (error) {
       console.error('Failed to save note:', error)
+      alert('Failed to save note. Please try again.')
     } finally {
       setSaving(false)
     }
