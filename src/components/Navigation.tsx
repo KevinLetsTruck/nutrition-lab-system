@@ -24,9 +24,6 @@ const Navigation = () => {
                    <Link href="/protocols" className="text-gray-300 hover:text-white transition-colors">
                      Protocols
                    </Link>
-                   <Link href="/reports" className="text-gray-300 hover:text-white transition-colors">
-                     Reports
-                   </Link>
                    <Link href="/quick-analysis" className="text-gray-300 hover:text-white transition-colors">
                      Quick Analysis
                    </Link>
