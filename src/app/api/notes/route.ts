@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createServerSupabaseClient } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,6 +20,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Use server-side Supabase client
+    const supabase = createServerSupabaseClient()
 
     // Insert note into database
     const { data, error } = await supabase
@@ -62,6 +65,9 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Use server-side Supabase client
+    const supabase = createServerSupabaseClient()
 
     // Fetch notes for the client
     const { data, error } = await supabase
