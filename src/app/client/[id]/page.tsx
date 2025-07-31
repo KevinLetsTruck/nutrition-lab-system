@@ -115,6 +115,17 @@ export default function ClientDashboard() {
         console.error('Error fetching protocols:', protocolsError)
       }
 
+      // Fetch lab reports (documents) for this client
+      const { data: labReports, error: labReportsError } = await supabase
+        .from('lab_reports')
+        .select('*')
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false })
+
+      if (labReportsError) {
+        console.error('Error fetching lab reports:', labReportsError)
+      }
+
       // Transform the client data
       const transformedClient: Client = {
         id: client.id,
@@ -127,14 +138,26 @@ export default function ClientDashboard() {
           content: note.content,
           date: note.created_at
         })) || [],
-        documents: [], // Will be populated from client_documents table
+        documents: labReports?.map(report => ({
+          id: report.id,
+          name: `${report.report_type.toUpperCase()} Report`,
+          type: report.report_type,
+          filePath: report.file_path,
+          fileUrl: report.file_path ? `https://ajwudhwruxxdshqjeqij.supabase.co/storage/v1/object/public/general/${report.file_path}` : undefined
+        })) || [],
         currentProtocol: protocols?.[0] ? {
           id: protocols[0].id,
           phase: protocols[0].phase,
           startDate: protocols[0].start_date,
           content: protocols[0].content
         } : undefined,
-        analyses: [] // Will be populated from lab_reports table
+        analyses: labReports?.map(report => ({
+          id: report.id,
+          reportType: report.report_type,
+          status: report.status,
+          results: report.analysis_results || {},
+          createdAt: report.created_at
+        })) || []
       }
 
       setClient(transformedClient)
