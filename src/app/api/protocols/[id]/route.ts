@@ -22,7 +22,7 @@ export async function GET(
     if (error) {
       console.error('Error fetching protocol:', error)
       return NextResponse.json(
-        { error: 'Failed to fetch protocol' },
+        { error: `Failed to fetch protocol: ${error.message}` },
         { status: 500 }
       )
     }
@@ -51,7 +51,10 @@ export async function PUT(
   try {
     const supabase = createServerSupabaseClient()
     const resolvedParams = await params
-    const { content, status } = await request.json()
+    const body = await request.json()
+    const { content, status } = body
+    
+    console.log('Updating protocol:', resolvedParams.id, { content, status })
     
     // Update the protocol
     const { data, error } = await supabase
@@ -68,7 +71,7 @@ export async function PUT(
     if (error) {
       console.error('Error updating protocol:', error)
       return NextResponse.json(
-        { error: 'Failed to update protocol' },
+        { error: `Failed to update protocol: ${error.message}` },
         { status: 500 }
       )
     }
@@ -91,6 +94,30 @@ export async function DELETE(
     const supabase = createServerSupabaseClient()
     const resolvedParams = await params
     
+    console.log('Deleting protocol:', resolvedParams.id)
+    
+    // First check if protocol exists
+    const { data: existingProtocol, error: checkError } = await supabase
+      .from('protocols')
+      .select('id')
+      .eq('id', resolvedParams.id)
+      .single()
+
+    if (checkError) {
+      console.error('Error checking protocol existence:', checkError)
+      return NextResponse.json(
+        { error: `Protocol not found: ${checkError.message}` },
+        { status: 404 }
+      )
+    }
+
+    if (!existingProtocol) {
+      return NextResponse.json(
+        { error: 'Protocol not found' },
+        { status: 404 }
+      )
+    }
+    
     // Delete the protocol
     const { error } = await supabase
       .from('protocols')
@@ -100,7 +127,7 @@ export async function DELETE(
     if (error) {
       console.error('Error deleting protocol:', error)
       return NextResponse.json(
-        { error: 'Failed to delete protocol' },
+        { error: `Failed to delete protocol: ${error.message}` },
         { status: 500 }
       )
     }

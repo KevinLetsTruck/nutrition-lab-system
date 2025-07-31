@@ -19,7 +19,7 @@ export async function GET(
     if (error) {
       console.error('Error fetching client:', error)
       return NextResponse.json(
-        { error: 'Failed to fetch client' },
+        { error: `Failed to fetch client: ${error.message}` },
         { status: 500 }
       )
     }
@@ -48,7 +48,32 @@ export async function PUT(
   try {
     const supabase = createServerSupabaseClient()
     const resolvedParams = await params
-    const { status, archived_at } = await request.json()
+    const body = await request.json()
+    const { status, archived_at } = body
+    
+    console.log('Updating client:', resolvedParams.id, { status, archived_at })
+    
+    // First check if client exists
+    const { data: existingClient, error: checkError } = await supabase
+      .from('clients')
+      .select('id')
+      .eq('id', resolvedParams.id)
+      .single()
+
+    if (checkError) {
+      console.error('Error checking client existence:', checkError)
+      return NextResponse.json(
+        { error: `Client not found: ${checkError.message}` },
+        { status: 404 }
+      )
+    }
+
+    if (!existingClient) {
+      return NextResponse.json(
+        { error: 'Client not found' },
+        { status: 404 }
+      )
+    }
     
     // Update the client
     const { data, error } = await supabase
@@ -65,7 +90,7 @@ export async function PUT(
     if (error) {
       console.error('Error updating client:', error)
       return NextResponse.json(
-        { error: 'Failed to update client' },
+        { error: `Failed to update client: ${error.message}` },
         { status: 500 }
       )
     }
@@ -88,6 +113,30 @@ export async function DELETE(
     const supabase = createServerSupabaseClient()
     const resolvedParams = await params
     
+    console.log('Deleting client:', resolvedParams.id)
+    
+    // First check if client exists
+    const { data: existingClient, error: checkError } = await supabase
+      .from('clients')
+      .select('id')
+      .eq('id', resolvedParams.id)
+      .single()
+
+    if (checkError) {
+      console.error('Error checking client existence:', checkError)
+      return NextResponse.json(
+        { error: `Client not found: ${checkError.message}` },
+        { status: 404 }
+      )
+    }
+
+    if (!existingClient) {
+      return NextResponse.json(
+        { error: 'Client not found' },
+        { status: 404 }
+      )
+    }
+    
     // Delete the client and all related data
     const { error: clientError } = await supabase
       .from('clients')
@@ -97,7 +146,7 @@ export async function DELETE(
     if (clientError) {
       console.error('Error deleting client:', clientError)
       return NextResponse.json(
-        { error: 'Failed to delete client' },
+        { error: `Failed to delete client: ${clientError.message}` },
         { status: 500 }
       )
     }
