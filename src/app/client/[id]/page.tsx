@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/Navigation'
 import NoteModal from '@/components/NoteModal'
 
@@ -48,6 +48,7 @@ interface Analysis {
 
 export default function ClientDashboard() {
   const params = useParams()
+  const router = useRouter()
   const clientId = params.id as string
   
   const [client, setClient] = useState<Client | null>(null)
@@ -284,7 +285,7 @@ export default function ClientDashboard() {
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
           <button 
             onClick={openInterviewNotes} 
             className="bg-blue-600 hover:bg-blue-700 p-4 rounded-lg text-white font-medium transition-colors"
@@ -316,6 +317,12 @@ export default function ClientDashboard() {
             className={`bg-orange-600 hover:bg-orange-700 p-4 rounded-lg text-white font-medium transition-colors ${generatingProtocol ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {generatingProtocol ? 'Generating...' : 'Generate Protocol'}
+          </button>
+          <button 
+            onClick={() => router.push(`/reports/practitioner-analysis/${clientId}`)}
+            className="bg-indigo-600 hover:bg-indigo-700 p-4 rounded-lg text-white font-medium transition-colors"
+          >
+            Generate Coaching Report
           </button>
         </div>
 

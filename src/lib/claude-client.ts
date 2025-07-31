@@ -562,6 +562,10 @@ ${imageDescription}`
       throw new Error(`Failed to parse food photo analysis: ${error instanceof Error ? error.message : 'Invalid JSON'}`)
     }
   }
+
+  public async analyzePractitionerReport(prompt: string, systemPrompt: string): Promise<string> {
+    return this.analyzeWithClaude(prompt, systemPrompt)
+  }
 }
 
 export default ClaudeClient 
