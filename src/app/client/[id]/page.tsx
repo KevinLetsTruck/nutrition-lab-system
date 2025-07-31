@@ -146,7 +146,7 @@ export default function ClientDashboard() {
           name: `${report.report_type.toUpperCase()} Report`,
           type: report.report_type,
           filePath: report.file_path,
-          fileUrl: report.file_path ? `https://ajwudhwruxxdshqjeqij.supabase.co/storage/v1/object/public/general/${report.file_path}` : undefined
+          fileUrl: report.file_path ? `/api/file-url` : undefined
         })) || [],
         currentProtocol: protocols?.[0] ? {
           id: protocols[0].id,
@@ -286,14 +286,34 @@ export default function ClientDashboard() {
     })
   }
 
-  const openDocument = (document: Document) => {
-    if (document.fileUrl) {
-      setSelectedPDF({
-        url: document.fileUrl,
-        title: document.name,
-        fileName: document.name
-      })
-      setShowPDFViewer(true)
+  const openDocument = async (document: Document) => {
+    if (document.filePath && document.fileUrl) {
+      try {
+        // Get signed URL from API
+        const response = await fetch(document.fileUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ filePath: document.filePath })
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to get file URL')
+        }
+
+        const { url } = await response.json()
+        
+        setSelectedPDF({
+          url: url,
+          title: document.name,
+          fileName: document.name
+        })
+        setShowPDFViewer(true)
+      } catch (error) {
+        console.error('Error getting file URL:', error)
+        alert('Failed to load document. Please try again.')
+      }
     } else {
       alert('Document URL not available')
     }
@@ -589,7 +609,24 @@ export default function ClientDashboard() {
                             View PDF
                           </button>
                           <button 
-                            onClick={() => window.open(doc.fileUrl, '_blank')}
+                            onClick={async () => {
+                              if (doc.filePath && doc.fileUrl) {
+                                try {
+                                  const response = await fetch(doc.fileUrl, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ filePath: doc.filePath })
+                                  })
+                                  if (response.ok) {
+                                    const { url } = await response.json()
+                                    window.open(url, '_blank')
+                                  }
+                                } catch (error) {
+                                  console.error('Error getting file URL:', error)
+                                  alert('Failed to open document')
+                                }
+                              }
+                            }}
                             className="bg-slate-600 hover:bg-slate-500 px-3 py-2 rounded text-white text-sm transition-colors"
                             title="Open in new tab"
                           >
