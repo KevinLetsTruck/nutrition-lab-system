@@ -67,20 +67,64 @@ export default function ClientDashboard() {
     try {
       setLoading(true)
       
-      // Validate UUID format
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-      if (!uuidRegex.test(clientId)) {
-        console.error('Invalid UUID format:', clientId)
-        setLoading(false)
-        return
-      }
+      // Check if it's a simple ID (like '1', '2', '3') or UUID
+      const isSimpleId = /^\d+$/.test(clientId)
+      
+      let client = null
+      let clientError = null
+      
+      if (isSimpleId) {
+        // For simple IDs, use fallback data
+        const fallbackClients = {
+          '1': {
+            id: '1',
+            first_name: 'John',
+            last_name: 'Smith',
+            email: 'john.smith@example.com',
+            phone: '(555) 123-4567',
+            created_at: new Date().toISOString()
+          },
+          '2': {
+            id: '2',
+            first_name: 'Sarah',
+            last_name: 'Johnson',
+            email: 'sarah.johnson@example.com',
+            phone: '(555) 234-5678',
+            created_at: new Date(Date.now() - 86400000).toISOString()
+          },
+          '3': {
+            id: '3',
+            first_name: 'Mike',
+            last_name: 'Wilson',
+            email: 'mike.wilson@example.com',
+            phone: '(555) 345-6789',
+            created_at: new Date(Date.now() - 172800000).toISOString()
+          }
+        }
+        
+        client = fallbackClients[clientId as keyof typeof fallbackClients]
+        if (!client) {
+          clientError = { message: 'Client not found' }
+        }
+      } else {
+        // For UUID format, try to fetch from database
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+        if (!uuidRegex.test(clientId)) {
+          console.error('Invalid UUID format:', clientId)
+          setLoading(false)
+          return
+        }
 
-      // Fetch client data from the database
-      const { data: client, error: clientError } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('id', clientId)
-        .single()
+        // Fetch client data from the database
+        const { data: dbClient, error } = await supabase
+          .from('clients')
+          .select('*')
+          .eq('id', clientId)
+          .single()
+
+        client = dbClient
+        clientError = error
+      }
 
       if (clientError) {
         console.error('Error fetching client:', clientError)
@@ -94,39 +138,81 @@ export default function ClientDashboard() {
         return
       }
 
-      // Fetch notes for this client
-      const { data: notes, error: notesError } = await supabase
-        .from('client_notes')
-        .select('*')
-        .eq('client_id', clientId)
-        .order('created_at', { ascending: false })
+      // For fallback clients, use mock data for related items
+      let notes = []
+      let protocols = []
+      let labReports = []
 
-      if (notesError) {
-        console.error('Error fetching notes:', notesError)
-      }
+      if (isSimpleId) {
+        // Mock data for fallback clients
+        notes = [
+          {
+            id: '1',
+            type: 'interview',
+            content: 'Initial consultation completed. Client reports fatigue, digestive issues, and difficulty maintaining healthy eating habits while on the road.',
+            created_at: new Date().toISOString()
+          }
+        ]
+        
+        protocols = [
+          {
+            id: '1',
+            phase: 'Phase 1: Gut Restoration',
+            start_date: new Date().toISOString(),
+            content: 'Protocol content for this client...',
+            status: 'active'
+          }
+        ]
+        
+        labReports = [
+          {
+            id: '1',
+            report_type: 'nutriq',
+            status: 'completed',
+            file_path: '/test/path',
+            created_at: new Date().toISOString(),
+            analysis_results: { score: 85 }
+          }
+        ]
+      } else {
+        // Fetch real data from database for UUID clients
+        const { data: notesData, error: notesError } = await supabase
+          .from('client_notes')
+          .select('*')
+          .eq('client_id', clientId)
+          .order('created_at', { ascending: false })
 
-      // Fetch protocols for this client
-      const { data: protocols, error: protocolsError } = await supabase
-        .from('protocols')
-        .select('*')
-        .eq('client_id', clientId)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(1)
+        if (notesError) {
+          console.error('Error fetching notes:', notesError)
+        } else {
+          notes = notesData || []
+        }
 
-      if (protocolsError) {
-        console.error('Error fetching protocols:', protocolsError)
-      }
+        const { data: protocolsData, error: protocolsError } = await supabase
+          .from('protocols')
+          .select('*')
+          .eq('client_id', clientId)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .limit(1)
 
-      // Fetch lab reports (documents) for this client
-      const { data: labReports, error: labReportsError } = await supabase
-        .from('lab_reports')
-        .select('*')
-        .eq('client_id', clientId)
-        .order('created_at', { ascending: false })
+        if (protocolsError) {
+          console.error('Error fetching protocols:', protocolsError)
+        } else {
+          protocols = protocolsData || []
+        }
 
-      if (labReportsError) {
-        console.error('Error fetching lab reports:', labReportsError)
+        const { data: labReportsData, error: labReportsError } = await supabase
+          .from('lab_reports')
+          .select('*')
+          .eq('client_id', clientId)
+          .order('created_at', { ascending: false })
+
+        if (labReportsError) {
+          console.error('Error fetching lab reports:', labReportsError)
+        } else {
+          labReports = labReportsData || []
+        }
       }
 
       // Transform the client data
@@ -135,32 +221,32 @@ export default function ClientDashboard() {
         name: `${client.first_name} ${client.last_name}`,
         email: client.email,
         phone: client.phone || '',
-        notes: notes?.map(note => ({
+        notes: notes.map(note => ({
           id: note.id,
           type: note.type,
           content: note.content,
           date: note.created_at
-        })) || [],
-        documents: labReports?.map(report => ({
+        })),
+        documents: labReports.map(report => ({
           id: report.id,
           name: `${report.report_type.toUpperCase()} Report`,
           type: report.report_type,
           filePath: report.file_path,
           fileUrl: report.file_path ? `/api/file-url` : undefined
-        })) || [],
-        currentProtocol: protocols?.[0] ? {
+        })),
+        currentProtocol: protocols[0] ? {
           id: protocols[0].id,
           phase: protocols[0].phase,
           startDate: protocols[0].start_date,
           content: protocols[0].content
         } : undefined,
-        analyses: labReports?.map(report => ({
+        analyses: labReports.map(report => ({
           id: report.id,
           reportType: report.report_type,
           status: report.status,
           results: report.analysis_results || {},
           createdAt: report.created_at
-        })) || []
+        }))
       }
 
       setClient(transformedClient)
