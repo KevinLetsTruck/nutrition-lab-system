@@ -317,7 +317,6 @@ function ClientsContent() {
           </div>
           <input
             type="text"
-            placeholder="Search clients by name, email, or phone..."
             value={searchQuery}
             onChange={handleSearch}
             className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-slate-500"

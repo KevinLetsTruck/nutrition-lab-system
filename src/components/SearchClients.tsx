@@ -25,7 +25,6 @@ export const SearchClients = () => {
         </div>
         <input
           type="text"
-          placeholder="Search clients..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-64 pl-12 pr-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-slate-500"
