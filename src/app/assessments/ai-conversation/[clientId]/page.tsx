@@ -244,7 +244,7 @@ export default function AIConversationPage() {
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 bg-gray-50">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 bg-gray-100">
           {messages.length === 0 && !isLoading && (
             <div className="flex justify-center items-center h-full">
               <p className="text-gray-500">Initializing conversation...</p>
@@ -266,10 +266,12 @@ export default function AIConversationPage() {
                   className={`rounded-lg p-4 ${
                     message.role === 'client'
                       ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-white border shadow-sm'
+                      : 'bg-white border border-gray-200 shadow-sm text-gray-900'
                   }`}
                 >
-                  <p className="whitespace-pre-wrap">{message.content}</p>
+                  <p className={`whitespace-pre-wrap ${
+                    message.role === 'client' ? 'text-white' : 'text-gray-900'
+                  }`}>{message.content}</p>
                   <span className={`text-xs mt-2 block ${
                     message.role === 'client' ? 'text-blue-100' : 'text-gray-500'
                   }`}>
@@ -287,11 +289,16 @@ export default function AIConversationPage() {
           
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-white border rounded-lg p-4">
-                <div className="flex space-x-2">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100" />
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200" />
+              <div className="flex gap-3 max-w-[80%] lg:max-w-[70%]">
+                <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
+                  <span className="text-white text-sm">AI</span>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                  <div className="flex space-x-2">
+                    <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" />
+                    <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce delay-100" />
+                    <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce delay-200" />
+                  </div>
                 </div>
               </div>
             </div>
