@@ -189,7 +189,7 @@ export default function AIConversationPage() {
         <div className="hidden lg:flex items-center justify-between p-6 bg-white border-b">
           <h1 className="text-2xl font-bold">AI Health Assessment</h1>
           <div className="flex items-center gap-4">
-            <Badge variant={isPaused ? 'secondary' : 'default'}>
+            <Badge variant={isPaused ? 'orange' : 'green'}>
               {isPaused ? 'Paused' : 'Active'}
             </Badge>
             <Button
