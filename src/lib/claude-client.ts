@@ -126,6 +126,7 @@ class ClaudeClient {
 
   static getInstance(): ClaudeClient {
     if (!ClaudeClient.instance) {
+      console.log('[CLAUDE] getInstance called - creating new instance')
       ClaudeClient.instance = new ClaudeClient()
     }
     return ClaudeClient.instance

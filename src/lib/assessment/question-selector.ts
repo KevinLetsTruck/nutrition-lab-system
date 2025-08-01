@@ -13,10 +13,20 @@ export class AIQuestionSelector {
   private truckDriverContext: boolean = true;
   
   constructor() {
-    // Only initialize Claude client if API key is available (server-side)
-    if (typeof process !== 'undefined' && process.env?.ANTHROPIC_API_KEY) {
-      this.claudeClient = ClaudeClient.getInstance();
+    // Don't initialize Claude client in constructor
+    // We'll do it lazily when needed
+  }
+  
+  private getClaudeClient(): ClaudeClient | null {
+    if (!this.claudeClient && typeof process !== 'undefined' && process.env?.ANTHROPIC_API_KEY) {
+      try {
+        this.claudeClient = ClaudeClient.getInstance();
+      } catch (error) {
+        console.error('Failed to initialize Claude client:', error);
+        return null;
+      }
     }
+    return this.claudeClient;
   }
   
   async selectNextQuestion(
@@ -61,12 +71,13 @@ export class AIQuestionSelector {
     `;
     
     try {
-      if (!this.claudeClient) {
-        // If no Claude client (client-side), return fallback
+      const client = this.getClaudeClient();
+      if (!client) {
+        // If no Claude client available, return fallback
         return this.getFallbackQuestion(currentSection);
       }
       
-      const aiResponse = await this.claudeClient.analyzePractitionerReport(
+      const aiResponse = await client.analyzePractitionerReport(
         prompt,
         "You are an expert FNTP creating structured health assessment questions."
       );
