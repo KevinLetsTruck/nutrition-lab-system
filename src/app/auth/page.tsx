@@ -11,12 +11,11 @@ export default function AuthPage() {
   const { login, register, user, loading: authLoading } = useAuth()
   const router = useRouter()
 
-  // Redirect if user is already authenticated
+  // Show success message if user is already authenticated
   useEffect(() => {
     if (!authLoading && user) {
-      console.log('🔄 User already authenticated, redirecting to /clients-simple')
-      // Use window.location.href for hard redirect
-      window.location.href = '/clients-simple'
+      console.log('🔄 User already authenticated')
+      // Don't auto-redirect, let user click the link
     }
   }, [user, authLoading])
 
@@ -36,8 +35,27 @@ export default function AuthPage() {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center px-6">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Redirecting to dashboard...</p>
+          <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-2">Already Logged In</h2>
+          <p className="text-gray-400 mb-6">You are already authenticated as {user.email}</p>
+          <div className="space-y-3">
+            <a 
+              href="/clients-simple" 
+              className="block w-full max-w-xs mx-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Go to Dashboard
+            </a>
+            <a 
+              href="/dashboard" 
+              className="block w-full max-w-xs mx-auto px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors"
+            >
+              Go to Main Dashboard
+            </a>
+          </div>
         </div>
       </div>
     )
@@ -109,12 +127,9 @@ export default function AuthPage() {
         console.log('📥 Login result:', result)
         
         if (result.success) {
-          console.log('✅ Login successful, redirecting to /clients-simple')
-          // Add a small delay and force redirect
-          setTimeout(() => {
-            console.log('🚀 Executing redirect now...')
-            window.location.replace('/clients-simple')
-          }, 100)
+          console.log('✅ Login successful, redirecting to success page')
+          // Redirect to success page which will handle the final redirect
+          router.push('/auth/success')
         } else {
           console.log('❌ Login failed:', result.error)
           setError(result.error || 'Login failed')
