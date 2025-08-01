@@ -10,9 +10,9 @@ export default function TestPage() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/auth')
+      window.location.href = '/auth'
     }
-  }, [user, loading, router])
+  }, [user, loading])
 
   if (loading) {
     return (
@@ -36,7 +36,7 @@ export default function TestPage() {
         <p className="text-gray-400 mb-4">Authentication is working!</p>
         <p className="text-green-400">Logged in as: {user.email}</p>
         <button 
-          onClick={() => router.push('/clients')}
+          onClick={() => window.location.href = '/clients'}
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
           Go to Clients

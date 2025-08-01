@@ -15,9 +15,10 @@ export default function AuthPage() {
   useEffect(() => {
     if (!authLoading && user) {
       console.log('🔄 User already authenticated, redirecting to /clients')
-      router.push('/clients')
+      // Use window.location.href for hard redirect
+      window.location.href = '/clients'
     }
-  }, [user, authLoading, router])
+  }, [user, authLoading])
 
   // Don't render the form if user is authenticated or still loading
   if (authLoading) {
@@ -109,8 +110,8 @@ export default function AuthPage() {
         
         if (result.success) {
           console.log('✅ Login successful, redirecting to /clients')
-          // Redirect to clients page for client selection
-          router.push('/clients')
+          // Use window.location.href for hard redirect
+          window.location.href = '/clients'
         } else {
           console.log('❌ Login failed:', result.error)
           setError(result.error || 'Login failed')
