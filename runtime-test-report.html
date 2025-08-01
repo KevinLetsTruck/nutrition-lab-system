@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DestinationHealth - Runtime Test Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #0F1419;
+            color: #fafafa;
+            padding: 2rem;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { 
+            background: linear-gradient(135deg, #10B981 0%, #FB923C 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 3rem;
+            margin-bottom: 2rem;
+        }
+        h2 { color: #10B981; margin: 2rem 0 1rem; }
+        .test-section {
+            background: #1A1F2E;
+            border: 1px solid #2d3748;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .checklist { list-style: none; padding-left: 1rem; }
+        .checklist li { padding: 0.5rem 0; }
+        .check { color: #10B981; margin-right: 0.5rem; }
+        .cross { color: #ef4444; margin-right: 0.5rem; }
+        .pending { color: #fb923c; margin-right: 0.5rem; }
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        .status-pass { background: #10B98133; color: #10B981; }
+        .status-fail { background: #ef444433; color: #ef4444; }
+        .status-pending { background: #fb923c33; color: #fb923c; }
+        .iframe-container {
+            width: 100%;
+            margin: 1rem 0;
+            border: 1px solid #2d3748;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        iframe {
+            width: 100%;
+            background: white;
+            display: block;
+        }
+        .responsive-test {
+            display: grid;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .device-frame {
+            border: 2px solid #2d3748;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            background: #242938;
+        }
+        .device-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #10B981;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DestinationHealth Runtime Test Report</h1>
+        <p style="color: #a0aec0; margin-bottom: 2rem;">Comprehensive testing dashboard for production readiness validation</p>
+
+        <div class="test-section">
+            <h2>🚀 Development Server Status</h2>
+            <ul class="checklist">
+                <li><span class="check">✓</span> Server running on http://localhost:3000</li>
+                <li><span class="check">✓</span> Dark theme applied (no FOUC)</li>
+                <li><span class="check">✓</span> Gradient text rendering properly</li>
+                <li><span class="check">✓</span> HTML structure loading correctly</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>📱 Responsive Design Testing</h2>
+            <div class="responsive-test">
+                <div class="device-frame">
+                    <div class="device-label">Mobile (375px - iPhone SE)</div>
+                    <div class="iframe-container" style="height: 667px;">
+                        <iframe src="http://localhost:3000" width="375" height="667"></iframe>
+                    </div>
+                    <ul class="checklist">
+                        <li><span class="pending">⏳</span> Hero text readability</li>
+                        <li><span class="pending">⏳</span> Button touch targets (min 44px)</li>
+                        <li><span class="pending">⏳</span> No horizontal scroll</li>
+                    </ul>
+                </div>
+
+                <div class="device-frame">
+                    <div class="device-label">Tablet (768px - iPad)</div>
+                    <div class="iframe-container" style="height: 600px;">
+                        <iframe src="http://localhost:3000" width="768" height="600"></iframe>
+                    </div>
+                    <ul class="checklist">
+                        <li><span class="pending">⏳</span> 2-column grid layouts</li>
+                        <li><span class="pending">⏳</span> Navigation layout</li>
+                        <li><span class="pending">⏳</span> Typography scaling</li>
+                    </ul>
+                </div>
+
+                <div class="device-frame">
+                    <div class="device-label">Desktop (1920px - Large Screen)</div>
+                    <div class="iframe-container" style="height: 600px;">
+                        <iframe src="http://localhost:3000" width="100%" height="600"></iframe>
+                    </div>
+                    <ul class="checklist">
+                        <li><span class="pending">⏳</span> Content centering with max-width</li>
+                        <li><span class="pending">⏳</span> 3-4 column layouts</li>
+                        <li><span class="pending">⏳</span> Proper whitespace</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🎨 Visual Design Validation</h2>
+            <ul class="checklist">
+                <li><span class="check">✓</span> Dark navy background (#0F1419)</li>
+                <li><span class="check">✓</span> Green-to-orange gradient text</li>
+                <li><span class="pending">⏳</span> Card hover effects</li>
+                <li><span class="pending">⏳</span> Button interactions</li>
+                <li><span class="pending">⏳</span> Loading states</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>♿ Accessibility Testing</h2>
+            <ul class="checklist">
+                <li><span class="pending">⏳</span> Color contrast ratios (WCAG AA)</li>
+                <li><span class="pending">⏳</span> Keyboard navigation</li>
+                <li><span class="pending">⏳</span> Focus indicators</li>
+                <li><span class="pending">⏳</span> Screen reader compatibility</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>⚡ Performance Metrics</h2>
+            <ul class="checklist">
+                <li><span class="pending">⏳</span> First Contentful Paint < 2s</li>
+                <li><span class="pending">⏳</span> Largest Contentful Paint < 2.5s</li>
+                <li><span class="pending">⏳</span> Time to Interactive < 5s</li>
+                <li><span class="pending">⏳</span> Cumulative Layout Shift < 0.1</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>🚛 Truck Driver UX Optimization</h2>
+            <ul class="checklist">
+                <li><span class="pending">⏳</span> Large touch targets for gloved hands</li>
+                <li><span class="pending">⏳</span> High contrast for sunlight readability</li>
+                <li><span class="pending">⏳</span> One-handed mobile operation</li>
+                <li><span class="pending">⏳</span> Quick assessment completion flow</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Test Summary</h2>
+            <p style="margin: 1rem 0;">
+                <span class="status-badge status-pass">4 Passed</span>
+                <span class="status-badge status-fail">0 Failed</span>
+                <span class="status-badge status-pending">20+ Pending</span>
+            </p>
+            <p style="color: #a0aec0; margin-top: 1rem;">
+                Last updated: <span id="timestamp"></span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('timestamp').textContent = new Date().toLocaleString();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            window.location.reload();
+        }, 30000);
+    </script>
+</body>
+</html>

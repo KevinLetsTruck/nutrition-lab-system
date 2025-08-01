@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DestinationHealth - Responsive Design Tester</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #0F1419;
+            color: #fafafa;
+        }
+        .header {
+            background: #1A1F2E;
+            border-bottom: 1px solid #2d3748;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header h1 {
+            background: linear-gradient(135deg, #10B981 0%, #FB923C 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .device-button {
+            padding: 0.5rem 1rem;
+            background: #242938;
+            border: 1px solid #2d3748;
+            color: #fafafa;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .device-button:hover {
+            background: #2d3748;
+            border-color: #10B981;
+        }
+        .device-button.active {
+            background: #10B981;
+            color: white;
+            border-color: #10B981;
+        }
+        .size-display {
+            color: #10B981;
+            font-weight: 600;
+        }
+        .test-container {
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+            min-height: calc(100vh - 120px);
+        }
+        .device-frame {
+            background: #242938;
+            border: 2px solid #2d3748;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+        .device-screen {
+            background: white;
+            width: 100%;
+            height: 100%;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+        .test-checklist {
+            position: fixed;
+            right: 2rem;
+            top: 120px;
+            background: #1A1F2E;
+            border: 1px solid #2d3748;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            max-width: 300px;
+            max-height: calc(100vh - 140px);
+            overflow-y: auto;
+        }
+        .test-checklist h3 {
+            color: #10B981;
+            margin-bottom: 1rem;
+            font-size: 1.125rem;
+        }
+        .test-checklist ul {
+            list-style: none;
+        }
+        .test-checklist li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #10B981;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .checkbox.checked {
+            background: #10B981;
+        }
+        .checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-weight: bold;
+        }
+        .rotate-button {
+            padding: 0.5rem 1rem;
+            background: #3B82F6;
+            border: none;
+            color: white;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            margin-left: auto;
+        }
+        .landscape {
+            transform: rotate(90deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>DestinationHealth Responsive Tester</h1>
+        <div class="controls">
+            <button class="device-button active" onclick="setDevice('mobile')">
+                📱 Mobile (375px)
+            </button>
+            <button class="device-button" onclick="setDevice('tablet')">
+                📱 Tablet (768px)
+            </button>
+            <button class="device-button" onclick="setDevice('desktop')">
+                💻 Desktop (1920px)
+            </button>
+            <button class="device-button" onclick="setDevice('custom')">
+                ⚙️ Custom Size
+            </button>
+            <span class="size-display" id="sizeDisplay">375 x 667</span>
+            <button class="rotate-button" onclick="toggleRotation()" id="rotateBtn" style="display: none;">
+                🔄 Rotate
+            </button>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <div class="device-frame" id="deviceFrame">
+            <div class="device-screen">
+                <iframe src="http://localhost:3000" id="testFrame"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-checklist" id="checklist">
+        <h3 id="checklistTitle">Mobile Tests</h3>
+        <ul id="checklistItems">
+            <li><div class="checkbox" onclick="toggleCheck(this)"></div> Hero text readable</li>
+            <li><div class="checkbox" onclick="toggleCheck(this)"></div> Buttons ≥ 44px height</li>
+            <li><div class="checkbox" onclick="toggleCheck(this)"></div> No horizontal scroll</li>
+            <li><div class="checkbox" onclick="toggleCheck(this)"></div> Single column layout</li>
+            <li><div class="checkbox" onclick="toggleCheck(this)"></div> Touch-friendly spacing</li>
+            <li><div class="checkbox" onclick="toggleCheck(this)"></div> Gradient text visible</li>
+            <li><div class="checkbox" onclick="toggleCheck(this)"></div> Navigation usable</li>
+            <li><div class="checkbox" onclick="toggleCheck(this)"></div> Forms easy to fill</li>
+        </ul>
+    </div>
+
+    <script>
+        const devices = {
+            mobile: { width: 375, height: 667, name: 'Mobile' },
+            tablet: { width: 768, height: 1024, name: 'Tablet' },
+            desktop: { width: 1920, height: 1080, name: 'Desktop' }
+        };
+
+        const checklists = {
+            mobile: [
+                'Hero text readable',
+                'Buttons ≥ 44px height',
+                'No horizontal scroll',
+                'Single column layout',
+                'Touch-friendly spacing',
+                'Gradient text visible',
+                'Navigation usable',
+                'Forms easy to fill'
+            ],
+            tablet: [
+                '2-column grid layouts',
+                'Navigation layout proper',
+                'Typography scales well',
+                'Touch targets adequate',
+                'Content well-spaced',
+                'Gradient text visible',
+                'Forms layout good',
+                'Cards display properly'
+            ],
+            desktop: [
+                'Content centered (max-width)',
+                '3-4 column grids work',
+                'Typography not oversized',
+                'Proper whitespace',
+                'Navigation spreads well',
+                'Gradient text visible',
+                'All content visible',
+                'Professional appearance'
+            ]
+        };
+
+        let currentDevice = 'mobile';
+        let isRotated = false;
+
+        function setDevice(device) {
+            if (device === 'custom') {
+                const width = prompt('Enter width (px):', '1024');
+                const height = prompt('Enter height (px):', '768');
+                if (width && height) {
+                    updateFrame(parseInt(width), parseInt(height), 'Custom');
+                }
+            } else {
+                currentDevice = device;
+                const { width, height, name } = devices[device];
+                updateFrame(width, height, name);
+                updateChecklist(device);
+            }
+
+            // Update active button
+            document.querySelectorAll('.device-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Show/hide rotate button
+            document.getElementById('rotateBtn').style.display = 
+                device === 'mobile' || device === 'tablet' ? 'inline-block' : 'none';
+        }
+
+        function updateFrame(width, height, name) {
+            const frame = document.getElementById('deviceFrame');
+            frame.style.width = width + 'px';
+            frame.style.height = height + 'px';
+            document.getElementById('sizeDisplay').textContent = `${width} x ${height}`;
+        }
+
+        function updateChecklist(device) {
+            const title = document.getElementById('checklistTitle');
+            const items = document.getElementById('checklistItems');
+            
+            title.textContent = devices[device].name + ' Tests';
+            items.innerHTML = checklists[device].map(item => 
+                `<li><div class="checkbox" onclick="toggleCheck(this)"></div> ${item}</li>`
+            ).join('');
+        }
+
+        function toggleCheck(checkbox) {
+            checkbox.classList.toggle('checked');
+        }
+
+        function toggleRotation() {
+            const frame = document.getElementById('deviceFrame');
+            const { width, height } = devices[currentDevice];
+            
+            isRotated = !isRotated;
+            if (isRotated) {
+                updateFrame(height, width, devices[currentDevice].name + ' (Landscape)');
+            } else {
+                updateFrame(width, height, devices[currentDevice].name);
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '1') setDevice('mobile');
+            if (e.key === '2') setDevice('tablet');
+            if (e.key === '3') setDevice('desktop');
+            if (e.key === 'r' && (currentDevice === 'mobile' || currentDevice === 'tablet')) {
+                toggleRotation();
+            }
+        });
+
+        // Initialize
+        updateChecklist('mobile');
+    </script>
+</body>
+</html>

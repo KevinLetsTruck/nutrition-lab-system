@@ -1,0 +1,83 @@
+{
+  "timestamp": "2025-08-01T23:42:59.280Z",
+  "results": [
+    {
+      "path": "/",
+      "statusCode": 200,
+      "loadTime": 57,
+      "contentLength": 26247,
+      "hasTitle": true,
+      "hasDarkTheme": true,
+      "hasGradientText": true,
+      "hasNoScriptErrors": true,
+      "success": true,
+      "name": "Homepage"
+    },
+    {
+      "path": "/dashboard",
+      "statusCode": 200,
+      "loadTime": 507,
+      "contentLength": 26570,
+      "hasTitle": true,
+      "hasDarkTheme": true,
+      "hasGradientText": true,
+      "hasNoScriptErrors": true,
+      "success": true,
+      "name": "Dashboard"
+    },
+    {
+      "path": "/assessments",
+      "statusCode": 200,
+      "loadTime": 217,
+      "contentLength": 26588,
+      "hasTitle": true,
+      "hasDarkTheme": true,
+      "hasGradientText": true,
+      "hasNoScriptErrors": true,
+      "success": true,
+      "name": "Assessments"
+    },
+    {
+      "path": "/clients",
+      "statusCode": 200,
+      "loadTime": 441,
+      "contentLength": 26569,
+      "hasTitle": true,
+      "hasDarkTheme": true,
+      "hasGradientText": true,
+      "hasNoScriptErrors": true,
+      "success": true,
+      "name": "Clients"
+    },
+    {
+      "path": "/reports",
+      "statusCode": 200,
+      "loadTime": 173,
+      "contentLength": 23514,
+      "hasTitle": true,
+      "hasDarkTheme": true,
+      "hasGradientText": false,
+      "hasNoScriptErrors": true,
+      "success": true,
+      "name": "Reports"
+    },
+    {
+      "path": "/auth",
+      "statusCode": 200,
+      "loadTime": 176,
+      "contentLength": 21462,
+      "hasTitle": true,
+      "hasDarkTheme": true,
+      "hasGradientText": false,
+      "hasNoScriptErrors": true,
+      "success": true,
+      "name": "Auth/Login"
+    }
+  ],
+  "summary": {
+    "totalPages": 6,
+    "successfulPages": 6,
+    "averageLoadTime": 262,
+    "recommendation": "PASS"
+  }
+}

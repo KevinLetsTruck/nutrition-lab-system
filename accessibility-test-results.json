@@ -1,0 +1,158 @@
+{
+  "timestamp": "2025-08-01T23:44:40.023Z",
+  "colorContrast": {
+    "results": [
+      {
+        "name": "Primary text on dark background",
+        "foreground": {
+          "h": 0,
+          "s": 0,
+          "l": 98
+        },
+        "background": {
+          "h": 220,
+          "s": 26,
+          "l": 8
+        },
+        "isLargeText": false,
+        "ratio": "17.83",
+        "aa": true,
+        "aaa": true,
+        "recommendation": "PASS"
+      },
+      {
+        "name": "Secondary text on dark background",
+        "foreground": {
+          "h": 0,
+          "s": 0,
+          "l": 80
+        },
+        "background": {
+          "h": 220,
+          "s": 26,
+          "l": 8
+        },
+        "isLargeText": false,
+        "ratio": "11.59",
+        "aa": true,
+        "aaa": true,
+        "recommendation": "PASS"
+      },
+      {
+        "name": "Muted text on dark background",
+        "foreground": {
+          "h": 0,
+          "s": 0,
+          "l": 60
+        },
+        "background": {
+          "h": 220,
+          "s": 26,
+          "l": 8
+        },
+        "isLargeText": false,
+        "ratio": "6.53",
+        "aa": true,
+        "aaa": false,
+        "recommendation": "PASS"
+      },
+      {
+        "name": "Primary green on dark background",
+        "foreground": {
+          "h": 160,
+          "s": 84,
+          "l": 39
+        },
+        "background": {
+          "h": 220,
+          "s": 26,
+          "l": 8
+        },
+        "isLargeText": false,
+        "ratio": "7.18",
+        "aa": true,
+        "aaa": true,
+        "recommendation": "PASS"
+      },
+      {
+        "name": "Accent blue on dark background",
+        "foreground": {
+          "h": 217,
+          "s": 91,
+          "l": 60
+        },
+        "background": {
+          "h": 220,
+          "s": 26,
+          "l": 8
+        },
+        "isLargeText": false,
+        "ratio": "5.11",
+        "aa": true,
+        "aaa": false,
+        "recommendation": "PASS"
+      },
+      {
+        "name": "White text on primary green",
+        "foreground": {
+          "h": 0,
+          "s": 0,
+          "l": 98
+        },
+        "background": {
+          "h": 160,
+          "s": 84,
+          "l": 39
+        },
+        "isLargeText": false,
+        "ratio": "2.48",
+        "aa": false,
+        "aaa": false,
+        "recommendation": "FAIL"
+      },
+      {
+        "name": "White text on secondary background",
+        "foreground": {
+          "h": 0,
+          "s": 0,
+          "l": 98
+        },
+        "background": {
+          "h": 220,
+          "s": 20,
+          "l": 12
+        },
+        "isLargeText": false,
+        "ratio": "16.21",
+        "aa": true,
+        "aaa": true,
+        "recommendation": "PASS"
+      }
+    ],
+    "summary": {
+      "total": 7,
+      "passed": 6,
+      "failed": 1
+    }
+  },
+  "recommendations": [
+    "Install axe DevTools browser extension for detailed testing",
+    "Test with actual screen readers (NVDA, JAWS, VoiceOver)",
+    "Validate HTML structure with W3C validator",
+    "Run Lighthouse accessibility audit",
+    "Test with keyboard-only navigation",
+    "Check for focus indicators on all interactive elements",
+    "Ensure all forms are properly labeled",
+    "Add skip navigation links",
+    "Test with browser zoom at 200%",
+    "Verify color is not the only indicator of meaning"
+  ],
+  "truckDriverSpecific": [
+    "Ensure touch targets are at least 44x44px for gloved hands",
+    "Test in bright sunlight conditions (high contrast mode)",
+    "Verify one-handed mobile operation",
+    "Keep forms short and simple",
+    "Use clear, non-technical language",
+    "Provide audio alternatives where possible"
+  ]
+}
