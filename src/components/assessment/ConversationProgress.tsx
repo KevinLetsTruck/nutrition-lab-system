@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -73,9 +73,9 @@ export function ConversationProgress({
     return () => {
       subscription.unsubscribe();
     };
-  }, [conversationId]);
+  }, [conversationId, loadProgress]);
 
-  const loadProgress = async () => {
+  const loadProgress = useCallback(async () => {
     if (!conversationId) return;
 
     try {
@@ -145,7 +145,7 @@ export function ConversationProgress({
     } catch (error) {
       console.error('Failed to load progress:', error);
     }
-  };
+  }, [conversationId, currentSection]);
 
   const getStatusIcon = (status: SectionProgress['status']) => {
     switch (status) {

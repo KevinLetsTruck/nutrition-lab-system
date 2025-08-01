@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { ClaudeClient } from './claude-client';
+import ClaudeClient from './claude-client';
 import { HEALTH_ASSESSMENT_PROMPTS } from './ai-prompts/health-assessment';
 import { PatternRecognitionEngine } from './pattern-recognition';
 

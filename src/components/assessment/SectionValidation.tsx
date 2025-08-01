@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -37,9 +37,9 @@ export function SectionValidation({
 
   useEffect(() => {
     loadValidation();
-  }, [conversationId, section]);
+  }, [conversationId, section, loadValidation]);
 
-  const loadValidation = async () => {
+  const loadValidation = useCallback(async () => {
     try {
       const engine = new AIConversationEngine();
       const validationData = await engine.validateSection(conversationId, section);
@@ -49,7 +49,7 @@ export function SectionValidation({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [conversationId, section]);
 
   const getSeverityColor = (severity: number) => {
     if (severity >= 7) return 'text-red-600 bg-red-50';
@@ -117,7 +117,7 @@ export function SectionValidation({
                   {section.charAt(0).toUpperCase() + section.slice(1).replace('_', ' ')} Health Summary
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  Please review and confirm the information we've gathered
+                  Please review and confirm the information we&apos;ve gathered
                 </p>
               </div>
             </div>
@@ -221,7 +221,7 @@ export function SectionValidation({
                 <div>
                   <h4 className="font-semibold text-red-900">Important Note</h4>
                   <p className="text-sm text-red-800 mt-1">
-                    Some symptoms reported are severe. While we'll address these in your protocol,
+                    Some symptoms reported are severe. While we&apos;ll address these in your protocol,
                     please consult with a healthcare provider if symptoms worsen or if you have
                     immediate concerns.
                   </p>
