@@ -195,7 +195,7 @@ export function ConversationProgress({
                 </span>
               </div>
               {section.messageCount > 0 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="default" className="text-xs">
                   {section.messageCount}
                 </Badge>
               )}

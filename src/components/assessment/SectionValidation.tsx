@@ -121,7 +121,7 @@ export function SectionValidation({
                 </p>
               </div>
             </div>
-            <Badge variant="outline" className="ml-4">
+            <Badge variant="default" className="ml-4">
               {Math.round(validation.confidence * 100)}% Complete
             </Badge>
           </div>
