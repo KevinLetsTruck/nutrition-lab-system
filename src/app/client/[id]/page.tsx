@@ -183,11 +183,34 @@ export default function ClientDashboard() {
         ]
       } else {
         // Fetch real data from database for UUID clients
-        const { data: notesData, error: notesError } = await supabase
+        // Try fetching notes with profile ID first
+        let { data: notesData, error: notesError } = await supabase
           .from('client_notes')
           .select('*')
           .eq('client_id', clientId)
           .order('created_at', { ascending: false })
+
+        // If no notes found and we have email, try with clients table ID
+        if ((!notesData || notesData.length === 0) && client.users?.email) {
+          const { data: clientRecord } = await supabase
+            .from('clients')
+            .select('id')
+            .eq('email', client.users.email)
+            .single()
+          
+          if (clientRecord) {
+            const { data: notesByClientId, error: notesError2 } = await supabase
+              .from('client_notes')
+              .select('*')
+              .eq('client_id', clientRecord.id)
+              .order('created_at', { ascending: false })
+            
+            if (!notesError2 && notesByClientId) {
+              notesData = notesByClientId
+              notesError = null
+            }
+          }
+        }
 
         if (notesError) {
           console.error('Error fetching notes:', notesError)
@@ -209,11 +232,39 @@ export default function ClientDashboard() {
           protocols = protocolsData || []
         }
 
-        const { data: labReportsData, error: labReportsError } = await supabase
+        // First try with the profile ID
+        let { data: labReportsData, error: labReportsError } = await supabase
           .from('lab_reports')
           .select('*')
           .eq('client_id', clientId)
           .order('created_at', { ascending: false })
+        
+        // If no reports found and we have the user's email, try finding by email
+        if ((!labReportsData || labReportsData.length === 0) && client.users?.email) {
+          console.log('[CLIENT-DASHBOARD] No lab reports found with profile ID, checking by email...')
+          
+          // Find the client ID in the clients table
+          const { data: clientRecord, error: clientError } = await supabase
+            .from('clients')
+            .select('id')
+            .eq('email', client.users.email)
+            .single()
+          
+          if (!clientError && clientRecord) {
+            // Now fetch lab reports with the clients table ID
+            const { data: reportsByClientId, error: reportsError } = await supabase
+              .from('lab_reports')
+              .select('*')
+              .eq('client_id', clientRecord.id)
+              .order('created_at', { ascending: false })
+            
+            if (!reportsError && reportsByClientId) {
+              labReportsData = reportsByClientId
+              labReportsError = null
+              console.log(`[CLIENT-DASHBOARD] Found ${reportsByClientId.length} lab reports using clients table ID`)
+            }
+          }
+        }
 
         if (labReportsError) {
           console.error('Error fetching lab reports:', labReportsError)
