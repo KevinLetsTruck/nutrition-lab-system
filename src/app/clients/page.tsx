@@ -166,7 +166,11 @@ function ClientsContent() {
         ) : (
           <div className="space-y-4">
             {clients.map((client) => (
-              <div key={client.id} className="bg-slate-800 rounded-lg p-6">
+              <div 
+                key={client.id} 
+                className="bg-slate-800 rounded-lg p-6 hover:bg-slate-700 transition-colors cursor-pointer"
+                onClick={() => router.push(`/client/${client.id}`)}
+              >
                 <h3 className="text-xl font-semibold text-white">
                   {client.first_name} {client.last_name}
                 </h3>
@@ -174,6 +178,9 @@ function ClientsContent() {
                 {client.phone && (
                   <p className="text-gray-400">{client.phone}</p>
                 )}
+                <div className="mt-4 flex items-center text-sm text-gray-500">
+                  <span>Click to view details →</span>
+                </div>
               </div>
             ))}
           </div>
