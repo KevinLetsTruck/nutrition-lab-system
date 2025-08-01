@@ -2,6 +2,9 @@ import { SymptomQuestion, SYMPTOM_QUESTION_BANK } from './symptom-question-bank'
 import { SYMPTOM_QUESTION_BANK_PART2 } from './symptom-question-bank-2';
 import { SYMPTOM_QUESTION_BANK_PART3 } from './symptom-question-bank-3';
 
+// Re-export SymptomQuestion type
+export type { SymptomQuestion } from './symptom-question-bank';
+
 // Combine all question banks
 export const COMPLETE_SYMPTOM_QUESTION_BANK = {
   ...SYMPTOM_QUESTION_BANK,
