@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase';
+import { getSupabaseClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
@@ -12,7 +12,7 @@ export default function AIAssessmentTest() {
 
   useEffect(() => {
     const fetchClients = async () => {
-      const supabase = createClient();
+      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from('clients')
         .select('id, first_name, last_name, created_at')
@@ -72,7 +72,7 @@ export default function AIAssessmentTest() {
         <h3 className="font-semibold mb-2">How to use AI Assessment:</h3>
         <ol className="list-decimal list-inside space-y-1 text-sm">
           <li>Select a client from the list above</li>
-          <li>Click "Start AI Assessment" to begin the conversation</li>
+          <li>Click &quot;Start AI Assessment&quot; to begin the conversation</li>
           <li>The AI will guide the client through a health assessment</li>
           <li>Responses are saved automatically</li>
         </ol>
