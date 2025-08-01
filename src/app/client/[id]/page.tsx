@@ -609,13 +609,22 @@ export default function ClientDashboard() {
             Generate Coaching Report
           </button>
           <button 
-            onClick={() => router.push(`/assessments/ai-conversation/${clientId}`)}
+            onClick={() => router.push(`/assessments/structured/${clientId}`)}
             className="bg-green-600 hover:bg-green-700 p-4 rounded-lg text-white font-medium transition-colors flex items-center justify-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+            Quick Assessment (15 min)
+          </button>
+          <button 
+            onClick={() => router.push(`/assessments/ai-conversation/${clientId}`)}
+            className="bg-blue-600 hover:bg-blue-700 p-4 rounded-lg text-white font-medium transition-colors flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
             </svg>
-            Start AI Assessment
+            Full Conversation (30 min)
           </button>
         </div>
 
