@@ -100,6 +100,53 @@ export class AIQuestionSelector {
       
       const parsed = JSON.parse(jsonMatch[0]);
       
+      // Check if question is about difficulty/challenge but has scale type
+      const questionLower = parsed.questionText.toLowerCase();
+      const isDifficultyQuestion = questionLower.includes('challeng') || 
+                                  questionLower.includes('difficult') ||
+                                  questionLower.includes('how hard') ||
+                                  questionLower.includes('struggle');
+      
+      const isFrequencyQuestion = questionLower.includes('how often') ||
+                                 questionLower.includes('how frequently') ||
+                                 questionLower.includes('how many times');
+      
+      const isYesNoQuestion = questionLower.includes('do you') ||
+                             questionLower.includes('are you') ||
+                             questionLower.includes('have you');
+      
+      // Auto-correct response type for difficulty questions
+      if (isDifficultyQuestion && parsed.responseType === 'scale') {
+        parsed.responseType = 'multiple_choice';
+        parsed.options = [
+          { value: 'not_challenging', label: 'Not challenging', description: 'Easy to manage' },
+          { value: 'somewhat_challenging', label: 'Somewhat challenging', description: 'Manageable with effort' },
+          { value: 'very_challenging', label: 'Very challenging', description: 'Difficult to maintain' },
+          { value: 'extremely_challenging', label: 'Extremely challenging', description: 'Nearly impossible' }
+        ];
+      }
+      
+      // Auto-correct for frequency questions
+      if (isFrequencyQuestion && parsed.responseType === 'scale') {
+        parsed.responseType = 'frequency';
+        parsed.options = [
+          { value: 'never', label: 'Never' },
+          { value: 'rarely', label: 'Rarely' },
+          { value: 'sometimes', label: 'Sometimes' },
+          { value: 'often', label: 'Often' },
+          { value: 'always', label: 'Always' }
+        ];
+      }
+      
+      // Auto-correct for yes/no questions
+      if (isYesNoQuestion && parsed.responseType === 'scale') {
+        parsed.responseType = 'binary';
+        parsed.options = [
+          { value: 'yes', label: 'Yes' },
+          { value: 'no', label: 'No' }
+        ];
+      }
+      
       // Format options based on response type
       let formattedOptions: ResponseOption[] = [];
       
