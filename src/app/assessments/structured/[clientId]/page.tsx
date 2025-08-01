@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -35,8 +35,8 @@ export default function StructuredAssessmentPage() {
   const [showValidation, setShowValidation] = useState(false);
   const [underreportingRisk, setUnderreportingRisk] = useState(0);
   
-  const questionSelector = new AIQuestionSelector();
-  const patternMatcher = new PatternMatcher();
+  const questionSelector = useMemo(() => new AIQuestionSelector(), []);
+  const patternMatcher = useMemo(() => new PatternMatcher(), []);
   
   const currentSection = ASSESSMENT_SECTIONS[currentSectionIndex];
   const totalEstimatedQuestions = ASSESSMENT_SECTIONS.reduce((sum, s) => sum + s.estimatedQuestions, 0);
@@ -68,7 +68,7 @@ export default function StructuredAssessmentPage() {
     };
     
     initAssessment();
-  }, [clientId]);
+  }, [clientId, currentSection.id, questionSelector]);
   
   // Handle response selection
   const handleResponse = useCallback(async (value: number | string) => {
@@ -134,31 +134,27 @@ export default function StructuredAssessmentPage() {
         setCurrentQuestion(nextQuestion);
       } else {
         // Move to next section if no more questions
-        moveToNextSection();
+        if (currentSectionIndex < ASSESSMENT_SECTIONS.length - 1) {
+          setCurrentSectionIndex(currentSectionIndex + 1);
+          setQuestionsInSection(0);
+          setShowSectionComplete(false);
+          
+          // Get first question of new section
+          questionSelector.getInitialQuestion(ASSESSMENT_SECTIONS[currentSectionIndex + 1].id)
+            .then(question => setCurrentQuestion(question));
+        } else {
+          // Assessment complete - will be handled by completeAssessment
+          setShowSectionComplete(true);
+        }
       }
     } catch (error) {
       console.error('Error getting next question:', error);
     }
     
     setIsLoading(false);
-  }, [currentQuestion, responses, questionsInSection, currentSection, assessmentId, showValidation]);
+  }, [currentQuestion, responses, questionsInSection, currentSection, assessmentId, showValidation, questionSelector, patternMatcher]);
   
-  const moveToNextSection = () => {
-    if (currentSectionIndex < ASSESSMENT_SECTIONS.length - 1) {
-      setCurrentSectionIndex(currentSectionIndex + 1);
-      setQuestionsInSection(0);
-      setShowSectionComplete(false);
-      
-      // Get first question of new section
-      questionSelector.getInitialQuestion(ASSESSMENT_SECTIONS[currentSectionIndex + 1].id)
-        .then(question => setCurrentQuestion(question));
-    } else {
-      // Assessment complete
-      completeAssessment();
-    }
-  };
-  
-  const completeAssessment = async () => {
+  const completeAssessment = useCallback(async () => {
     try {
       await fetch('/api/structured-assessment', {
         method: 'POST',
@@ -174,7 +170,22 @@ export default function StructuredAssessmentPage() {
     } catch (error) {
       console.error('Error completing assessment:', error);
     }
-  };
+  }, [assessmentId, detectedPatterns, router]);
+  
+  const moveToNextSection = useCallback(() => {
+    if (currentSectionIndex < ASSESSMENT_SECTIONS.length - 1) {
+      setCurrentSectionIndex(currentSectionIndex + 1);
+      setQuestionsInSection(0);
+      setShowSectionComplete(false);
+      
+      // Get first question of new section
+      questionSelector.getInitialQuestion(ASSESSMENT_SECTIONS[currentSectionIndex + 1].id)
+        .then(question => setCurrentQuestion(question));
+    } else {
+      // Assessment complete
+      completeAssessment();
+    }
+  }, [currentSectionIndex, questionSelector, ASSESSMENT_SECTIONS, completeAssessment]);
   
   return (
     <div className="min-h-screen bg-gray-50 pb-20">

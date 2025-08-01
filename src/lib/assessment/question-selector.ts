@@ -1,16 +1,11 @@
 import ClaudeClient from '@/lib/claude-client';
 import { StructuredQuestion, ResponseOption } from '@/components/assessment/StructuredQuestion';
+import { DetectedPattern } from '@/lib/assessment/pattern-matcher';
 
 export interface Response {
   questionId: string;
   value: number | string;
   timestamp: Date;
-}
-
-export interface Pattern {
-  name: string;
-  confidence: number;
-  evidence: string[];
 }
 
 export class AIQuestionSelector {
@@ -23,7 +18,7 @@ export class AIQuestionSelector {
   
   async selectNextQuestion(
     currentResponses: Response[], 
-    detectedPatterns: Pattern[],
+    detectedPatterns: DetectedPattern[],
     currentSection: string
   ): Promise<StructuredQuestion | null> {
     
