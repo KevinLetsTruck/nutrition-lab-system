@@ -4,10 +4,15 @@ import ClaudeClient from '@/lib/claude-client';
 import { HEALTH_ASSESSMENT_PROMPTS } from '@/lib/ai-prompts/health-assessment';
 
 // Initialize Supabase with service role key for server-side operations
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// If service role key is not available, fall back to anon key (with limited permissions)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Missing Supabase configuration');
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,6 +20,8 @@ export async function POST(request: NextRequest) {
     
     switch (action) {
       case 'start': {
+        console.log('Starting conversation for client:', clientId);
+        
         // Create new conversation record
         const { data: conversation, error } = await supabase
           .from('ai_conversations')
@@ -27,9 +34,34 @@ export async function POST(request: NextRequest) {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error creating conversation:', error);
+          throw error;
+        }
 
-        return NextResponse.json({ conversationId: conversation.id });
+        console.log('Created conversation:', conversation.id);
+        
+        // Create initial AI welcome message
+        const welcomeMessage = `Hi there! I'm here to help understand your health better, especially considering the unique challenges you face as a truck driver. 
+
+This conversation is completely confidential, and I'll be asking questions to get a comprehensive picture of how you're feeling.
+
+Let's start with the basics - how have you been feeling overall lately? Any particular concerns or symptoms that brought you here today?`;
+
+        await supabase
+          .from('conversation_messages')
+          .insert({
+            conversation_id: conversation.id,
+            role: 'ai',
+            content: welcomeMessage,
+            section: 'introduction',
+            message_type: 'chat'
+          });
+
+        return NextResponse.json({ 
+          conversationId: conversation.id,
+          welcomeMessage 
+        });
       }
         
       case 'message': {

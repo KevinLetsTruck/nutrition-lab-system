@@ -48,20 +48,24 @@ export default function AIConversationPage() {
           body: JSON.stringify({ action: 'start', clientId })
         });
         
-        if (!response.ok) throw new Error('Failed to start conversation');
+        if (!response.ok) {
+          const error = await response.json();
+          console.error('Failed to start conversation:', error);
+          throw new Error(error.details || 'Failed to start conversation');
+        }
         
-        const { conversationId: convId } = await response.json();
+        const { conversationId: convId, welcomeMessage } = await response.json();
         setConversationId(convId);
         
-        // Add welcome message
-        const welcomeMessage: Message = {
+        // Add welcome message from API or use default
+        const message: Message = {
           id: '1',
           role: 'ai',
-          content: "Hi! I'm here to help you with your health assessment. This is a conversational approach where we'll discuss your health concerns in a natural, comfortable way. Let's start with how you've been feeling lately. What brings you here today?",
+          content: welcomeMessage || "Hi! I'm here to help you with your health assessment. This is a conversational approach where we'll discuss your health concerns in a natural, comfortable way. Let's start with how you've been feeling lately. What brings you here today?",
           timestamp: new Date(),
           section: 'introduction'
         };
-        setMessages([welcomeMessage]);
+        setMessages([message]);
       } catch (error) {
         console.error('Failed to initialize conversation:', error);
       }
