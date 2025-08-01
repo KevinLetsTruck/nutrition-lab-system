@@ -9,6 +9,8 @@ import { ChevronLeft, Clock, Target, AlertCircle } from 'lucide-react';
 import { StructuredQuestion } from '@/components/assessment/StructuredQuestion';
 import { Response } from '@/lib/assessment/question-selector';
 import { DetectedPattern } from '@/lib/assessment/pattern-matcher';
+import { apiClient } from '@/lib/api-client';
+import { APIRequestError } from '@/lib/error-handler';
 
 const ASSESSMENT_SECTIONS = [
   { id: 'energy', name: 'Energy & Fatigue', estimatedQuestions: 8 },
@@ -47,35 +49,38 @@ export default function StructuredAssessmentPage() {
   useEffect(() => {
     const initAssessment = async () => {
       try {
-        const response = await fetch('/api/structured-assessment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'start', clientId })
+        const { assessmentId } = await apiClient.post('/api/structured-assessment', {
+          action: 'start',
+          clientId
         });
         
-        if (!response.ok) throw new Error('Failed to start assessment');
-        
-        const { assessmentId: id } = await response.json();
-        setAssessmentId(id);
+        setAssessmentId(assessmentId);
         
         // Get first question from API
-        const questionResponse = await fetch('/api/structured-assessment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            action: 'getQuestion', 
-            section: currentSection.id,
-            responses: [],
-            patterns: []
-          })
+        const { question } = await apiClient.post('/api/structured-assessment', {
+          action: 'getQuestion',
+          section: currentSection.id,
+          responses: [],
+          patterns: []
         });
         
-        if (questionResponse.ok) {
-          const { question } = await questionResponse.json();
+        if (question) {
           setCurrentQuestion(question);
         }
       } catch (error) {
         console.error('Failed to initialize assessment:', error);
+        
+        if (error instanceof APIRequestError) {
+          // Show detailed error in development
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Error details:', error.details);
+          }
+          
+          // Show user-friendly error
+          alert(`Failed to start assessment: ${error.message}`);
+        } else {
+          alert('An unexpected error occurred. Please try again.');
+        }
       }
     };
     

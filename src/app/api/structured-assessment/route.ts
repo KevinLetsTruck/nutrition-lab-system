@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { AIQuestionSelector } from '@/lib/assessment/question-selector';
 import { PatternMatcher } from '@/lib/assessment/pattern-matcher';
+import { handleAPIError, APIRequestError } from '@/lib/error-handler';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -37,7 +38,15 @@ export async function POST(request: NextRequest) {
           .single();
           
         if (clientError || !client) {
-          throw new Error(`Client not found: ${clientId}`);
+          throw new APIRequestError(
+            'Client not found', 
+            404, 
+            { 
+              clientId, 
+              error: clientError?.message,
+              code: clientError?.code 
+            }
+          );
         }
         
         // Create new structured assessment
@@ -58,7 +67,26 @@ export async function POST(request: NextRequest) {
 
         if (error) {
           console.error('Error creating assessment:', error);
-          throw new Error(`Failed to create assessment: ${error.message}`);
+          throw new APIRequestError(
+            'Failed to create assessment',
+            500,
+            { 
+              supabaseError: error.message,
+              code: error.code,
+              hint: error.hint,
+              clientId,
+              fields: {
+                client_id: clientId,
+                conversation_type: 'structured_assessment',
+                assessment_type: 'structured',
+                status: 'in_progress',
+                current_section: 'energy',
+                started_at: new Date().toISOString(),
+                questions_answered: 0,
+                estimated_questions_remaining: 37
+              }
+            }
+          );
         }
 
         return NextResponse.json({ assessmentId: assessment.id });
@@ -178,22 +206,14 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
   } catch (error) {
-    console.error('Structured assessment API error:', error);
+    const errorResponse = handleAPIError(error, { 
+      action: body?.action, 
+      body, 
+      path: '/api/structured-assessment' 
+    });
     
-    // More detailed error info for debugging
-    const errorDetails = {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      action: body?.action,
-      body: body
-    };
-    
-    console.error('Error details:', errorDetails);
-    
-    return NextResponse.json({ 
-      error: 'Failed to process assessment',
-      details: error instanceof Error ? error.message : 'Unknown error',
-      action: body?.action
-    }, { status: 500 });
+    return NextResponse.json(errorResponse, { 
+      status: error instanceof APIRequestError ? error.statusCode : 500 
+    });
   }
 }
