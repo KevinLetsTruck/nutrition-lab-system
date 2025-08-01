@@ -17,8 +17,10 @@ let questionSelector: AIQuestionSelector | null = null;
 let patternMatcher: PatternMatcher | null = null;
 
 export async function POST(request: NextRequest) {
+  let body: any;
+  
   try {
-    const body = await request.json();
+    body = await request.json();
     const { action } = body;
     
     console.log('Structured assessment API - Action:', action, 'Body:', body);
@@ -177,9 +179,21 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Structured assessment API error:', error);
+    
+    // More detailed error info for debugging
+    const errorDetails = {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      action: body?.action,
+      body: body
+    };
+    
+    console.error('Error details:', errorDetails);
+    
     return NextResponse.json({ 
       error: 'Failed to process assessment',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
+      action: body?.action
     }, { status: 500 });
   }
 }
