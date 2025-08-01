@@ -28,12 +28,7 @@ export function Header() {
             <Link href="/" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
               Home
             </Link>
-            <Link href="/onboarding" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
-              New Client
-            </Link>
-            <Link href="/streamlined-onboarding" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
-              Quick Onboarding
-            </Link>
+
             <Link href="/results" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
               View Results
             </Link>

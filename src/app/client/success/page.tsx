@@ -113,10 +113,10 @@ export default function ClientSuccessPage() {
             <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-6">
               <h3 className="text-blue-300 font-semibold mb-3">Important Information</h3>
               <ul className="space-y-2 text-blue-200 text-sm">
-                <li>• Check your email for login credentials and next steps</li>
-                <li>• Save your login information for future access</li>
-                <li>• You can log back in anytime to view your progress</li>
+                <li>• Check your email for a confirmation and next steps</li>
                 <li>• Kevin will contact you within 24-48 hours</li>
+                <li>• Your information has been securely saved</li>
+                <li>• You'll receive a personalized health plan soon</li>
               </ul>
             </div>
 

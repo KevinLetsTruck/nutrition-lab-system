@@ -3,18 +3,47 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useAuth } from '@/lib/auth-context'
 
 export default function AuthSuccessPage() {
   const router = useRouter()
+  const { user } = useAuth()
   const [countdown, setCountdown] = useState(3)
+  const [redirectPath, setRedirectPath] = useState('/clients')
+
+  useEffect(() => {
+    // Determine redirect path based on user role
+    const checkUserAndRedirect = async () => {
+      if (!user) return
+
+      try {
+        const response = await fetch('/api/auth/me')
+        const data = await response.json()
+        
+        if (data.user?.role === 'client') {
+          // Check if client has completed onboarding
+          if (!data.user.onboarding_completed) {
+            setRedirectPath('/client/onboarding')
+          } else {
+            setRedirectPath('/client/success')
+          }
+        } else if (data.user?.role === 'admin') {
+          setRedirectPath('/clients')
+        }
+      } catch (error) {
+        console.error('Error checking user status:', error)
+      }
+    }
+
+    checkUserAndRedirect()
+  }, [user])
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
-          // Redirect to clients page
-          router.push('/clients')
+          router.push(redirectPath)
           return 0
         }
         return prev - 1
@@ -22,7 +51,7 @@ export default function AuthSuccessPage() {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [router])
+  }, [router, redirectPath])
 
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center px-6">
@@ -37,15 +66,17 @@ export default function AuthSuccessPage() {
         <p className="text-gray-400 mb-6">You have been successfully authenticated.</p>
         
         <div className="mb-6">
-          <p className="text-gray-300">Redirecting to clients in {countdown} seconds...</p>
+          <p className="text-gray-300">
+            Redirecting to {redirectPath === '/client/onboarding' ? 'onboarding' : redirectPath === '/client/success' ? 'your dashboard' : 'clients'} in {countdown} seconds...
+          </p>
         </div>
         
         <div className="space-y-3">
           <Link 
-            href="/clients" 
+            href={redirectPath} 
             className="block w-full max-w-xs mx-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Go to Clients Now
+            Continue Now
           </Link>
         </div>
       </div>

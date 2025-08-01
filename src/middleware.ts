@@ -1,20 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
 
-// Define client-allowed routes
-const CLIENT_ALLOWED_ROUTES = [
-  '/client/onboarding',
-  '/client/success',
-  '/auth',
-  '/api/auth',
-  '/api/client/onboarding'
-]
 
-// Define admin-only routes
-const ADMIN_ONLY_ROUTES = [
-  '/admin',
-  '/api/admin'
-]
 
 // Define public routes that don't require authentication
 const PUBLIC_ROUTES = [
@@ -40,14 +27,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // For now, allow all other routes without authentication check
-  // This prevents the redirect loop we were experiencing
-  return NextResponse.next()
-
-  // The code below is temporarily disabled to prevent redirect loops
-  // It will be re-enabled once we fix the authentication flow completely
-  
-  /*
   try {
     // Get user from session
     const supabase = createServerSupabaseClient()
@@ -73,32 +52,26 @@ export async function middleware(request: NextRequest) {
 
     // Handle client access restrictions
     if (role === 'client') {
-      // Check if client is trying to access admin routes
-      if (ADMIN_ONLY_ROUTES.some(route => pathname.startsWith(route))) {
-        return NextResponse.redirect(new URL('/client/onboarding', request.url))
-      }
-
-      // Check if client is trying to access non-allowed routes
-      const isAllowedRoute = CLIENT_ALLOWED_ROUTES.some(route => pathname.startsWith(route))
-      
-      if (!isAllowedRoute) {
-        // Redirect clients to onboarding if not completed, otherwise to success page
-        if (!onboarding_completed) {
-          return NextResponse.redirect(new URL('/client/onboarding', request.url))
-        } else {
+      // Clients who completed onboarding should only see success page
+      if (onboarding_completed) {
+        if (pathname !== '/client/success' && pathname !== '/api/auth/logout') {
           return NextResponse.redirect(new URL('/client/success', request.url))
         }
-      }
-
-      // If client is accessing onboarding but has already completed it, redirect to success
-      if (pathname === '/client/onboarding' && onboarding_completed) {
-        return NextResponse.redirect(new URL('/client/success', request.url))
+      } else {
+        // Clients who haven't completed onboarding go to onboarding
+        if (pathname !== '/client/onboarding' && !pathname.startsWith('/api/client/onboarding')) {
+          return NextResponse.redirect(new URL('/client/onboarding', request.url))
+        }
       }
     }
 
     // Handle admin access
     if (role === 'admin') {
-      // Admins can access all routes
+      // Prevent admins from accessing client-specific routes
+      if (pathname.startsWith('/client/')) {
+        return NextResponse.redirect(new URL('/clients', request.url))
+      }
+      // Admins can access all other routes
       return NextResponse.next()
     }
 
@@ -110,7 +83,6 @@ export async function middleware(request: NextRequest) {
     // On error, redirect to login
     return NextResponse.redirect(new URL('/auth', request.url))
   }
-  */
 }
 
 export const config = {
