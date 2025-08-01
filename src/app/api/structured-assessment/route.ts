@@ -50,7 +50,10 @@ export async function POST(request: NextRequest) {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error creating assessment:', error);
+          throw new Error(`Failed to create assessment: ${error.message}`);
+        }
 
         return NextResponse.json({ assessmentId: assessment.id });
       }
@@ -66,14 +69,11 @@ export async function POST(request: NextRequest) {
             role: 'client',
             content: String(value),
             question_id: questionId,
-            question_type: 'structured',
             structured_response: {
               value,
               questionId,
               timestamp: new Date().toISOString()
-            },
-            section,
-            message_type: 'structured_response'
+            }
           });
 
         if (messageError) throw messageError;

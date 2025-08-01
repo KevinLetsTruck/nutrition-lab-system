@@ -7,7 +7,9 @@ ADD COLUMN IF NOT EXISTS structured_response JSONB,
 ADD COLUMN IF NOT EXISTS question_type VARCHAR(30),
 ADD COLUMN IF NOT EXISTS response_options JSONB,
 ADD COLUMN IF NOT EXISTS question_id VARCHAR(100),
-ADD COLUMN IF NOT EXISTS follow_up_trigger JSONB;
+ADD COLUMN IF NOT EXISTS follow_up_trigger JSONB,
+ADD COLUMN IF NOT EXISTS message_type VARCHAR(50),
+ADD COLUMN IF NOT EXISTS section VARCHAR(50);
 
 -- Create structured questions table for question templates
 CREATE TABLE IF NOT EXISTS structured_questions (
