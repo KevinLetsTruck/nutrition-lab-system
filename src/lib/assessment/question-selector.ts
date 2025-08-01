@@ -130,6 +130,11 @@ export class AIQuestionSelector {
       const isYesNoQuestion = questionLower.includes('do you') ||
                              questionLower.includes('are you') ||
                              questionLower.includes('have you');
+                             
+      const isQualityQuestion = (questionLower.includes('quality') || 
+                                questionLower.includes('rate') && questionLower.includes('overall')) &&
+                               (questionLower.includes('sleep') || questionLower.includes('digestion') || 
+                                questionLower.includes('energy') || questionLower.includes('health'));
       
       // Auto-correct response type for difficulty questions
       if (isDifficultyQuestion && parsed.responseType === 'scale') {
@@ -160,6 +165,17 @@ export class AIQuestionSelector {
         parsed.options = [
           { value: 'yes', label: 'Yes' },
           { value: 'no', label: 'No' }
+        ];
+      }
+      
+      // Auto-correct for quality rating questions
+      if (isQualityQuestion && parsed.responseType === 'scale') {
+        parsed.responseType = 'multiple_choice';
+        parsed.options = [
+          { value: 'poor', label: 'Poor', description: 'Significant issues' },
+          { value: 'fair', label: 'Fair', description: 'Some problems' },
+          { value: 'good', label: 'Good', description: 'Generally satisfactory' },
+          { value: 'excellent', label: 'Excellent', description: 'Very high quality' }
         ];
       }
       

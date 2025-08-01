@@ -41,8 +41,22 @@ export function StructuredQuestion({ question, onResponse, isLoading }: Props) {
   };
 
   const renderScaleButtons = () => {
-    const scaleLabels = ['None', 'Mild', 'Moderate', 'Severe'];
-    const scaleDescriptions = ['No symptoms', 'Occasional', 'Regular issue', 'Major impact'];
+    // Check if this is asking about severity/symptoms vs quality/rating
+    const questionText = question.questionText.toLowerCase();
+    const isSymptomQuestion = questionText.includes('pain') || 
+                             questionText.includes('discomfort') || 
+                             questionText.includes('symptom') ||
+                             questionText.includes('issue') ||
+                             questionText.includes('problem');
+    
+    const scaleLabels = isSymptomQuestion 
+      ? ['None', 'Mild', 'Moderate', 'Severe']
+      : ['Poor', 'Fair', 'Good', 'Excellent'];
+      
+    const scaleDescriptions = isSymptomQuestion
+      ? ['No symptoms', 'Occasional', 'Regular issue', 'Major impact']
+      : ['Significant issues', 'Some problems', 'Generally good', 'Very good'];
+      
     const scaleColors = [
       'bg-green-900/20 border-green-600 hover:bg-green-900/30',
       'bg-yellow-900/20 border-yellow-600 hover:bg-yellow-900/30',
