@@ -63,8 +63,15 @@ function ClientsContent() {
         
         // Fetch clients from the database
         const { data: clientsData, error } = await supabase
-          .from('clients')
-          .select('*')
+          .from('client_profiles')
+          .select(`
+            *,
+            users!client_profiles_user_id_fkey (
+              email,
+              email_verified,
+              created_at
+            )
+          `)
           .order('created_at', { ascending: false })
 
 
@@ -80,10 +87,10 @@ function ClientsContent() {
           id: client.id,
           first_name: client.first_name,
           last_name: client.last_name,
-          email: client.email,
+          email: client.users?.email || '',
           phone: client.phone,
-          status: client.status || 'active',
-          archived_at: client.archived_at,
+          status: 'active', // client_profiles doesn't have status field
+          archived_at: null, // client_profiles doesn't have archived_at field
           created_at: client.created_at
         }))
 

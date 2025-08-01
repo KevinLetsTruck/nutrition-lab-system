@@ -29,6 +29,7 @@ export const SearchClients = () => {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search clients..."
           className={`w-64 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-slate-500 ${!searchQuery ? 'pl-12' : 'pl-4'} pr-4`}
           autoComplete="off"
           autoCorrect="off"
