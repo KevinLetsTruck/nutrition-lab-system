@@ -27,6 +27,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Allow email verification routes
+  if (pathname.startsWith('/verify-email') || pathname.startsWith('/api/auth/verify-email') || pathname.startsWith('/api/auth/resend-verification')) {
+    return NextResponse.next()
+  }
+
   try {
     // Get user from session
     const supabase = createServerSupabaseClient()
@@ -40,7 +45,7 @@ export async function middleware(request: NextRequest) {
     // Get user role from database
     const { data: userData } = await supabase
       .from('users')
-      .select('role, onboarding_completed')
+      .select('role, onboarding_completed, email_verified')
       .eq('id', user.id)
       .single()
 
@@ -48,7 +53,17 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/auth', request.url))
     }
 
-    const { role, onboarding_completed } = userData
+    const { role, onboarding_completed, email_verified } = userData
+
+    // Check if email is verified
+    if (!email_verified) {
+      // Allow access to verification page and logout
+      if (pathname === '/verify-email' || pathname === '/api/auth/logout') {
+        return NextResponse.next()
+      }
+      // Redirect to verification page
+      return NextResponse.redirect(new URL('/verify-email', request.url))
+    }
 
     // Handle client access restrictions
     if (role === 'client') {

@@ -54,6 +54,7 @@ export interface RegisterData {
   email: string
   phone: string
   password: string
+  role?: 'client' | 'admin'
 }
 
 export interface LoginData {
@@ -198,24 +199,38 @@ export class AuthService {
         .insert({
           email: data.email.toLowerCase(),
           password_hash: passwordHash,
-          role: 'client'
+          role: data.role || 'admin', // Default to admin if not specified
+          email_verified: false // Require email verification
         })
         .select()
         .single()
       
       if (userError) throw userError
       
-      // Create client profile
-      const { error: profileError } = await this.supabase
-        .from('client_profiles')
-        .insert({
-          user_id: user.id,
-          first_name: data.firstName,
-          last_name: data.lastName,
-          phone: data.phone
-        })
-      
-      if (profileError) throw profileError
+      // Create appropriate profile based on role
+      if (user.role === 'client') {
+        const { error: profileError } = await this.supabase
+          .from('client_profiles')
+          .insert({
+            user_id: user.id,
+            first_name: data.firstName,
+            last_name: data.lastName,
+            phone: data.phone
+          })
+        
+        if (profileError) throw profileError
+      } else if (user.role === 'admin') {
+        const { error: profileError } = await this.supabase
+          .from('admin_profiles')
+          .insert({
+            user_id: user.id,
+            first_name: data.firstName,
+            last_name: data.lastName,
+            phone: data.phone
+          })
+        
+        if (profileError) throw profileError
+      }
       
       // Increment rate limit
       await this.incrementRateLimit(data.email, 'register')

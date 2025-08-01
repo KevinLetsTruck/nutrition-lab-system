@@ -19,6 +19,7 @@ interface RegisterData {
   email: string
   phone: string
   password: string
+  role?: 'client' | 'admin'
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)

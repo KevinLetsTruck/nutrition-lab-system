@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { authService } from '@/lib/auth-service'
+import { createServerSupabaseClient } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { token } = body
+    const { token } = await request.json()
 
     if (!token) {
       return NextResponse.json(
@@ -13,25 +12,50 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const result = await authService.verifyEmail(token)
+    const supabase = createServerSupabaseClient()
 
-    if (!result.success) {
+    // Verify the token and get the user
+    const { data: userData, error: verifyError } = await supabase
+      .from('email_verifications')
+      .select('user_id, email')
+      .eq('token', token)
+      .eq('used', false)
+      .gte('expires_at', new Date().toISOString())
+      .single()
+
+    if (verifyError || !userData) {
       return NextResponse.json(
-        { error: result.error },
+        { error: 'Invalid or expired verification token' },
         { status: 400 }
       )
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Email verified successfully. You can now log in to your account.'
-    })
+    // Update user's email_verified status
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ email_verified: true })
+      .eq('id', userData.user_id)
 
+    if (updateError) {
+      console.error('Error updating user verification status:', updateError)
+      return NextResponse.json(
+        { error: 'Failed to verify email' },
+        { status: 500 }
+      )
+    }
+
+    // Mark the token as used
+    await supabase
+      .from('email_verifications')
+      .update({ used: true })
+      .eq('token', token)
+
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Email verification error:', error)
     return NextResponse.json(
-      { error: 'Email verification failed' },
+      { error: 'An error occurred during verification' },
       { status: 500 }
     )
   }
-} 
+}

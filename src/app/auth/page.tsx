@@ -5,9 +5,10 @@ import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 
 export default function AuthPage() {
-  const [mode, setMode] = useState<'register' | 'login'>('register')
+  const [mode, setMode] = useState<'register' | 'login'>('login')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isClient, setIsClient] = useState(false)
   const { login, register, user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [formData, setFormData] = useState({
@@ -18,6 +19,15 @@ export default function AuthPage() {
     password: '',
     confirmPassword: ''
   })
+
+  // Check if this is a client registration link
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('client') === 'true') {
+      setIsClient(true)
+      setMode('register')
+    }
+  }, [])
 
   // Show success message if user is already authenticated
   useEffect(() => {
@@ -96,10 +106,13 @@ export default function AuthPage() {
           lastName: formData.lastName,
           email: formData.email,
           phone: formData.phone,
-          password: formData.password
+          password: formData.password,
+          role: isClient ? 'client' : 'admin'
         })
 
         if (result.success) {
+          // Store email in session storage for verification page
+          sessionStorage.setItem('pendingVerificationEmail', formData.email)
           // Redirect to email verification page
           router.push('/verify-email')
         } else {
@@ -132,10 +145,16 @@ export default function AuthPage() {
               <span className="text-white font-bold text-xl">D</span>
             </div>
             <h2 className="text-2xl font-bold text-white">
-              {mode === 'register' ? 'Create Your Account' : 'Welcome Back'}
+              {isClient && mode === 'register' 
+                ? 'Client Registration' 
+                : mode === 'register' 
+                ? 'Create Your Account' 
+                : 'Welcome Back'}
             </h2>
             <p className="text-gray-400 mt-2">
-              {mode === 'register' 
+              {isClient && mode === 'register'
+                ? 'Register to begin your personalized health assessment'
+                : mode === 'register' 
                 ? 'Start your health transformation journey' 
                 : 'Continue your wellness journey'
               }
@@ -233,28 +252,30 @@ export default function AuthPage() {
             </button>
           </form>
 
-          <div className="text-center mt-6">
-            <button 
-              onClick={() => {
-                setMode(mode === 'register' ? 'login' : 'register')
-                setError('')
-                setFormData({
-                  firstName: '',
-                  lastName: '',
-                  email: '',
-                  phone: '',
-                  password: '',
-                  confirmPassword: ''
-                })
-              }}
-              className="text-green-400 hover:text-green-300 text-sm"
-            >
-              {mode === 'register' 
-                ? 'Already have an account? Sign in' 
-                : "Don't have an account? Sign up"
-              }
-            </button>
-          </div>
+          {!isClient && (
+            <div className="text-center mt-6">
+              <button 
+                onClick={() => {
+                  setMode(mode === 'register' ? 'login' : 'register')
+                  setError('')
+                  setFormData({
+                    firstName: '',
+                    lastName: '',
+                    email: '',
+                    phone: '',
+                    password: '',
+                    confirmPassword: ''
+                  })
+                }}
+                className="text-green-400 hover:text-green-300 text-sm"
+              >
+                {mode === 'register' 
+                  ? 'Already have an account? Sign in' 
+                  : "Don't have an account? Sign up"
+                }
+              </button>
+            </div>
+          )}
 
           {mode === 'login' && (
             <div className="text-center mt-4">

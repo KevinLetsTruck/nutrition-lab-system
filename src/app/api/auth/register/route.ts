@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       password: body.password ? 'present' : 'missing'
     })
     
-    const { firstName, lastName, email, phone, password } = body
+    const { firstName, lastName, email, phone, password, role } = body
 
     // Basic validation
     if (!firstName || !lastName || !email || !phone || !password) {
@@ -80,7 +80,8 @@ export async function POST(request: NextRequest) {
       lastName,
       email,
       phone,
-      password
+      password,
+      role: role || 'admin' // Default to admin if not specified
     })
 
     console.log('Registration result:', { 

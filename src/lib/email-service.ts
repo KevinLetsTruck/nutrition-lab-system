@@ -528,4 +528,11 @@ export class EmailService {
 }
 
 // Export singleton instance
-export const emailService = new EmailService() 
+export const emailService = new EmailService()
+
+// Export a standalone function for easier use in API routes
+export async function sendVerificationEmail(email: string, verificationUrl: string): Promise<void> {
+  const token = verificationUrl.split('token=')[1]
+  const firstName = email.split('@')[0] // Use email prefix as fallback name
+  await emailService.sendVerificationEmail(email, token, firstName)
+} 
