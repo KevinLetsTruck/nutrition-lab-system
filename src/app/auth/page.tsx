@@ -110,8 +110,11 @@ export default function AuthPage() {
         
         if (result.success) {
           console.log('✅ Login successful, redirecting to /clients-simple')
-          // Use window.location.href for hard redirect
-          window.location.href = '/clients-simple'
+          // Add a small delay and force redirect
+          setTimeout(() => {
+            console.log('🚀 Executing redirect now...')
+            window.location.replace('/clients-simple')
+          }, 100)
         } else {
           console.log('❌ Login failed:', result.error)
           setError(result.error || 'Login failed')
@@ -287,6 +290,17 @@ export default function AuthPage() {
               className="text-blue-400 hover:text-blue-300 text-sm bg-blue-500/10 px-3 py-1 rounded"
             >
               🧪 Test Login
+            </button>
+            
+            <button 
+              type="button"
+              onClick={() => {
+                console.log('🚀 Manual redirect clicked!')
+                window.location.replace('/clients-simple')
+              }}
+              className="ml-2 text-green-400 hover:text-green-300 text-sm bg-green-500/10 px-3 py-1 rounded"
+            >
+              🚀 Manual Redirect
             </button>
           </div>
         </div>
