@@ -31,7 +31,6 @@ function ClientsContent() {
   // Check authentication
   useEffect(() => {
     if (!authLoading && !user) {
-      console.log('🔒 User not authenticated, redirecting to auth')
       router.push('/auth')
       return
     }
@@ -47,7 +46,6 @@ function ClientsContent() {
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        console.log('🔄 Starting to fetch clients...')
         setLoading(true)
         
         // Test Supabase connection first
@@ -56,10 +54,8 @@ function ClientsContent() {
           .select('count')
           .limit(1)
         
-        console.log('🧪 Supabase connection test:', { data: testData, error: testError })
         
         if (testError) {
-          console.error('❌ Supabase connection failed:', testError)
           setClients([])
           setLoading(false)
           return
@@ -71,16 +67,13 @@ function ClientsContent() {
           .select('*')
           .order('created_at', { ascending: false })
 
-        console.log('📊 Supabase response:', { data: clientsData, error })
 
         if (error) {
-          console.error('❌ Error fetching clients:', error)
           setClients([])
           setLoading(false)
           return
         }
 
-        console.log('✅ Clients fetched successfully:', clientsData)
 
         // Transform the data to match the expected format
         const transformedClients: Client[] = clientsData.map(client => ({
@@ -94,11 +87,9 @@ function ClientsContent() {
           created_at: client.created_at
         }))
 
-        console.log('🔄 Transformed clients:', transformedClients)
         setClients(transformedClients)
         setLoading(false)
       } catch (error) {
-        console.error('🚨 Unexpected error in fetchClients:', error)
         setClients([])
         setLoading(false)
       }
@@ -128,7 +119,6 @@ function ClientsContent() {
     return null // Will redirect to auth
   }
 
-  console.log('✅ User authenticated, loading clients page:', user.email)
 
   // Show a simple loading state while fetching clients
   if (loading) {

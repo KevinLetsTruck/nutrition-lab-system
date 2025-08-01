@@ -22,8 +22,7 @@ export default function AuthPage() {
   // Show success message if user is already authenticated
   useEffect(() => {
     if (!authLoading && user) {
-      console.log('🔄 User already authenticated')
-      // Don't auto-redirect, let user click the link
+          // Don't auto-redirect, let user click the link
     }
   }, [user, authLoading])
 
@@ -52,16 +51,10 @@ export default function AuthPage() {
           <p className="text-gray-400 mb-6">You are already authenticated as {user.email}</p>
           <div className="space-y-3">
             <a 
-              href="/clients-simple" 
+              href="/clients" 
               className="block w-full max-w-xs mx-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Go to Dashboard
-            </a>
-            <a 
-              href="/dashboard" 
-              className="block w-full max-w-xs mx-auto px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors"
-            >
-              Go to Main Dashboard
+              Go to Clients
             </a>
           </div>
         </div>
@@ -79,14 +72,8 @@ export default function AuthPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('🚀 FORM SUBMITTED - handleSubmit called!')
-    console.log('📝 Form data:', { email: formData.email, password: formData.password ? '[HIDDEN]' : '[EMPTY]' })
-    
     setLoading(true)
     setError('')
-
-    console.log('🚀 Form submitted, mode:', mode)
-    console.log('📧 Email:', formData.email)
 
     try {
       if (mode === 'register') {
@@ -119,18 +106,12 @@ export default function AuthPage() {
           setError(result.error || 'Registration failed')
         }
       } else {
-        console.log('🔐 Calling login function...')
-        console.log('🔐 Login params:', { email: formData.email, password: formData.password ? '[HIDDEN]' : '[EMPTY]' })
-        
         const result = await login(formData.email, formData.password)
-        console.log('📥 Login result:', result)
         
         if (result.success) {
-          console.log('✅ Login successful, redirecting to success page')
           // Redirect to success page which will handle the final redirect
           router.push('/auth/success')
         } else {
-          console.log('❌ Login failed:', result.error)
           setError(result.error || 'Login failed')
         }
       }
@@ -138,7 +119,6 @@ export default function AuthPage() {
       console.error('🚨 Unexpected error in handleSubmit:', error)
       setError('An unexpected error occurred')
     } finally {
-      console.log('🏁 handleSubmit completed, setting loading to false')
       setLoading(false)
     }
   }
@@ -239,7 +219,7 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              onClick={() => console.log('🔘 Submit button clicked!')}
+
               className="w-full py-3 bg-green-500 hover:bg-green-600 disabled:bg-green-600/50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
             >
               {loading ? (
@@ -283,40 +263,7 @@ export default function AuthPage() {
               </button>
             </div>
           )}
-          
-          {/* Debug test button */}
-          <div className="text-center mt-4 pt-4 border-t border-slate-700">
-            <button 
-              type="button"
-              onClick={async () => {
-                console.log('🧪 Test button clicked!')
-                console.log('🧪 Testing login with hardcoded credentials...')
-                const result = await login('kevin@letstruck.com', 'testpassword123')
-                console.log('🧪 Test login result:', result)
-                if (result.success) {
-                  console.log('🧪 Test login successful!')
-                  router.push('/clients')
-                } else {
-                  console.log('🧪 Test login failed:', result.error)
-                  setError('Test login failed: ' + result.error)
-                }
-              }}
-              className="text-blue-400 hover:text-blue-300 text-sm bg-blue-500/10 px-3 py-1 rounded"
-            >
-              🧪 Test Login
-            </button>
-            
-            <button 
-              type="button"
-              onClick={() => {
-                console.log('🚀 Manual redirect clicked!')
-                window.location.replace('/clients-simple')
-              }}
-              className="ml-2 text-green-400 hover:text-green-300 text-sm bg-green-500/10 px-3 py-1 rounded"
-            >
-              🚀 Manual Redirect
-            </button>
-          </div>
+
         </div>
       </div>
     </div>

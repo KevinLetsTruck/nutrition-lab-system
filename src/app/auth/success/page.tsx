@@ -13,8 +13,8 @@ export default function AuthSuccessPage() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
-          // Try to redirect
-          router.push('/clients-simple')
+          // Redirect to clients page
+          router.push('/clients')
           return 0
         }
         return prev - 1
@@ -37,22 +37,15 @@ export default function AuthSuccessPage() {
         <p className="text-gray-400 mb-6">You have been successfully authenticated.</p>
         
         <div className="mb-6">
-          <p className="text-gray-300">Redirecting to dashboard in {countdown} seconds...</p>
+          <p className="text-gray-300">Redirecting to clients in {countdown} seconds...</p>
         </div>
         
         <div className="space-y-3">
           <Link 
-            href="/clients-simple" 
+            href="/clients" 
             className="block w-full max-w-xs mx-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Go to Dashboard Now
-          </Link>
-          
-          <Link 
-            href="/dashboard" 
-            className="block w-full max-w-xs mx-auto px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors"
-          >
-            Go to Main Dashboard
+            Go to Clients Now
           </Link>
         </div>
       </div>
