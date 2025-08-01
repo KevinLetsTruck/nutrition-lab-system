@@ -326,7 +326,7 @@ export default function AIConversationPage() {
               onKeyPress={handleKeyPress}
               placeholder={isPaused ? "Conversation paused..." : "Type your response..."}
               disabled={isPaused || isLoading}
-              className="flex-1"
+              className="flex-1 text-gray-900 placeholder:text-gray-400"
             />
             
             <Button
