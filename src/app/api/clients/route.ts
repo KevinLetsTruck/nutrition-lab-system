@@ -15,8 +15,7 @@ export async function GET(request: NextRequest) {
     // Build query
     let query = supabase
       .from('clients')
-      .select('id, first_name, last_name, email, created_at, archived')
-      .eq('archived', false)
+      .select('id, first_name, last_name, email, created_at')
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
     
