@@ -43,29 +43,43 @@ export async function GET(request: NextRequest) {
     // Test creating a conversation
     const testResult = {
       canCreate: false,
-      error: null as string | null
+      error: null as string | null,
+      clientCheck: null as any
     };
     
-    const { data: testConv, error: createError } = await supabase
-      .from('ai_conversations')
-      .insert({
-        client_id: '9be32ffa-adf6-4d27-ab02-bc88f405e9b4', // Mike Wilson
-        conversation_type: 'test',
-        status: 'test',
-        current_section: 'test'
-      })
-      .select()
+    // First get a real client ID
+    const { data: firstClient } = await supabase
+      .from('clients')
+      .select('id, first_name, last_name')
+      .limit(1)
       .single();
+      
+    testResult.clientCheck = firstClient ? 
+      { found: true, name: `${firstClient.first_name} ${firstClient.last_name}` } : 
+      { found: false, error: 'No clients in database' };
     
-    if (createError) {
-      testResult.error = createError.message;
-    } else {
-      testResult.canCreate = true;
-      // Clean up
-      await supabase
+    if (firstClient) {
+      const { data: testConv, error: createError } = await supabase
         .from('ai_conversations')
-        .delete()
-        .eq('id', testConv.id);
+        .insert({
+          client_id: firstClient.id,
+          conversation_type: 'test',
+          status: 'test',
+          current_section: 'test'
+        })
+        .select()
+        .single();
+      
+      if (createError) {
+        testResult.error = createError.message;
+      } else {
+        testResult.canCreate = true;
+        // Clean up
+        await supabase
+          .from('ai_conversations')
+          .delete()
+          .eq('id', testConv.id);
+      }
     }
     
     return NextResponse.json({

@@ -29,6 +29,20 @@ export async function POST(request: NextRequest) {
       case 'start': {
         console.log('Starting conversation for client:', clientId);
         
+        // First verify the client exists
+        const { data: client, error: clientError } = await supabase
+          .from('clients')
+          .select('id, first_name, last_name')
+          .eq('id', clientId)
+          .single();
+          
+        if (clientError || !client) {
+          console.error('Client not found:', clientId, clientError);
+          throw new Error(`Client not found: ${clientId}`);
+        }
+        
+        console.log('Found client:', client.first_name, client.last_name);
+        
         // Create new conversation record
         const { data: conversation, error } = await supabase
           .from('ai_conversations')
