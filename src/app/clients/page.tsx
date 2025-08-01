@@ -37,27 +37,6 @@ function ClientsContent() {
     }
   }, [user, authLoading, router])
 
-  // Don't render anything if still loading auth or not authenticated
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-slate-900">
-        <Navigation />
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-slate-700 rounded w-1/4 mb-4"></div>
-            <div className="h-4 bg-slate-700 rounded w-1/2 mb-8"></div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return null // Will redirect to auth
-  }
-
-  console.log('✅ User authenticated, loading clients page:', user.email)
-
   useEffect(() => {
     const search = searchParams.get('search')
     if (search) {
@@ -125,8 +104,31 @@ function ClientsContent() {
       }
     }
 
-    fetchClients()
-  }, [])
+    if (user) {
+      fetchClients()
+    }
+  }, [user])
+
+  // Don't render anything if still loading auth or not authenticated
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-slate-900">
+        <Navigation />
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-slate-700 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-slate-700 rounded w-1/2 mb-8"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return null // Will redirect to auth
+  }
+
+  console.log('✅ User authenticated, loading clients page:', user.email)
 
   // Show a simple loading state while fetching clients
   if (loading) {

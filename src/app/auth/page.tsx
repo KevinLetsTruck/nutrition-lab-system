@@ -10,6 +10,14 @@ export default function AuthPage() {
   const [error, setError] = useState('')
   const { login, register, user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: ''
+  })
 
   // Show success message if user is already authenticated
   useEffect(() => {
@@ -60,15 +68,6 @@ export default function AuthPage() {
       </div>
     )
   }
-
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: ''
-  })
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({

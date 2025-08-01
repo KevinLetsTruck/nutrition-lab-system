@@ -9,11 +9,6 @@ export default function ClientSuccessPage() {
   const router = useRouter()
   const [userName, setUserName] = useState('')
 
-  useEffect(() => {
-    // Check if user is authenticated and is a client
-    checkAuth()
-  }, [])
-
   const checkAuth = async () => {
     try {
       const response = await fetch('/api/auth/me')
@@ -36,6 +31,11 @@ export default function ClientSuccessPage() {
       router.push('/auth')
     }
   }
+
+  useEffect(() => {
+    // Check if user is authenticated and is a client
+    checkAuth()
+  }, [checkAuth])
 
   const handleLogout = async () => {
     try {

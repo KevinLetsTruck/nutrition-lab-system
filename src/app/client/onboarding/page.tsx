@@ -43,11 +43,6 @@ export default function ClientOnboardingPage() {
     dotCompliance: false
   })
 
-  useEffect(() => {
-    // Check if user is authenticated and is a client
-    checkAuth()
-  }, [])
-
   const checkAuth = async () => {
     try {
       const response = await fetch('/api/auth/me')
@@ -62,6 +57,11 @@ export default function ClientOnboardingPage() {
       router.push('/auth')
     }
   }
+
+  useEffect(() => {
+    // Check if user is authenticated and is a client
+    checkAuth()
+  }, [checkAuth])
 
   const handleInputChange = (field: keyof OnboardingData, value: any) => {
     setFormData(prev => ({
