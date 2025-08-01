@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,7 +9,7 @@ export default function ClientSuccessPage() {
   const router = useRouter()
   const [userName, setUserName] = useState('')
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me')
       const result = await response.json()
@@ -30,7 +30,7 @@ export default function ClientSuccessPage() {
       console.error('Auth check failed:', error)
       router.push('/auth')
     }
-  }
+  }, [router])
 
   useEffect(() => {
     // Check if user is authenticated and is a client

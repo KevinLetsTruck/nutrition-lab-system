@@ -47,6 +47,10 @@ export async function middleware(request: NextRequest) {
   // This prevents the redirect loop we were experiencing
   return NextResponse.next()
 
+  // The code below is temporarily disabled to prevent redirect loops
+  // It will be re-enabled once we fix the authentication flow completely
+  
+  /*
   try {
     // Get user from session
     const supabase = createServerSupabaseClient()
@@ -109,6 +113,7 @@ export async function middleware(request: NextRequest) {
     // On error, redirect to login
     return NextResponse.redirect(new URL('/auth', request.url))
   }
+  */
 }
 
 export const config = {
