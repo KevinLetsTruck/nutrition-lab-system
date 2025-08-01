@@ -5,6 +5,9 @@ import { createServerSupabaseClient } from '@/lib/supabase'
 const CLIENT_ALLOWED_ROUTES = [
   '/client/onboarding',
   '/client/success',
+  '/clients',
+  '/clients-simple',
+  '/test',
   '/auth',
   '/api/auth',
   '/api/client/onboarding'
