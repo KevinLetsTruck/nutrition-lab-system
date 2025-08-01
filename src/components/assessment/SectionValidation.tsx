@@ -14,7 +14,20 @@ import {
   Brain,
   Heart
 } from 'lucide-react';
-import { AIConversationEngine, ValidationSummary } from '@/lib/ai-conversation-engine';
+// import { AIConversationEngine, ValidationSummary } from '@/lib/ai-conversation-engine';
+
+interface ValidationSummary {
+  section: string;
+  symptoms: Array<{
+    name: string;
+    severity: number;
+    duration?: string;
+    frequency?: string;
+  }>;
+  patterns: string[];
+  truckDriverFactors: string[];
+  confidence: number;
+}
 
 interface SectionValidationProps {
   conversationId: string;
@@ -37,8 +50,19 @@ export function SectionValidation({
 
   const loadValidation = useCallback(async () => {
     try {
-      const engine = new AIConversationEngine();
-      const validationData = await engine.validateSection(conversationId, section);
+      const response = await fetch('/api/ai-conversation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'validate', 
+          conversationId, 
+          section 
+        })
+      });
+      
+      if (!response.ok) throw new Error('Failed to load validation');
+      
+      const validationData = await response.json();
       setValidation(validationData);
     } catch (error) {
       console.error('Failed to load validation:', error);

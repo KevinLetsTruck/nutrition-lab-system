@@ -176,7 +176,20 @@ export function ConversationProgress({
       <Card className="p-4">
         <h3 className="font-semibold mb-3">Sections</h3>
         <div className="space-y-2">
-          {sections.map((section) => (
+          {sections.length === 0 ? (
+            SECTIONS.map(section => (
+              <div
+                key={section.name}
+                className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <Circle className="h-5 w-5 text-gray-400" />
+                  <span className="text-sm text-gray-600">{section.label}</span>
+                </div>
+              </div>
+            ))
+          ) : (
+            sections.map((section) => (
             <div
               key={section.name}
               className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
@@ -200,7 +213,7 @@ export function ConversationProgress({
                 </Badge>
               )}
             </div>
-          ))}
+          )))}
         </div>
       </Card>
 

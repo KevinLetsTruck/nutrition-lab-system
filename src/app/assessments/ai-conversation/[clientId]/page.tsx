@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Send, Mic, Pause, Play, ChevronLeft } from 'lucide-react';
-import { AIConversationEngine } from '@/lib/ai-conversation-engine';
+// import { AIConversationEngine } from '@/lib/ai-conversation-engine';
 import { ConversationProgress } from '@/components/assessment/ConversationProgress';
 import { SectionValidation } from '@/components/assessment/SectionValidation';
 
@@ -36,14 +36,21 @@ export default function AIConversationPage() {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const conversationEngine = useRef<AIConversationEngine | null>(null);
+  // const conversationEngine = useRef<AIConversationEngine | null>(null);
 
   // Initialize conversation
   useEffect(() => {
     const initConversation = async () => {
       try {
-        conversationEngine.current = new AIConversationEngine();
-        const convId = await conversationEngine.current.startConversation(clientId);
+        const response = await fetch('/api/ai-conversation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'start', clientId })
+        });
+        
+        if (!response.ok) throw new Error('Failed to start conversation');
+        
+        const { conversationId: convId } = await response.json();
         setConversationId(convId);
         
         // Add welcome message
@@ -83,30 +90,39 @@ export default function AIConversationPage() {
     setIsLoading(true);
 
     try {
-      const response = await conversationEngine.current?.processClientResponse(
-        conversationId,
-        inputValue
-      );
+      const response = await fetch('/api/ai-conversation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'message', 
+          conversationId, 
+          message: inputValue 
+        })
+      });
+      
+      if (!response.ok) throw new Error('Failed to send message');
+      
+      const aiResponse = await response.json();
 
-      if (response) {
+      if (aiResponse) {
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: 'ai',
-          content: response.content,
+          content: aiResponse.content,
           timestamp: new Date(),
-          section: response.section,
-          messageType: response.messageType
+          section: aiResponse.section,
+          messageType: aiResponse.messageType
         };
 
         setMessages(prev => [...prev, aiMessage]);
         
         // Update current section if changed
-        if (response.section !== currentSection) {
-          setCurrentSection(response.section);
+        if (aiResponse.section !== currentSection) {
+          setCurrentSection(aiResponse.section);
         }
 
         // Show validation if needed
-        if (response.messageType === 'validation') {
+        if (aiResponse.messageType === 'validation') {
           setShowValidation(true);
         }
       }
@@ -126,9 +142,7 @@ export default function AIConversationPage() {
 
   const togglePause = async () => {
     setIsPaused(!isPaused);
-    if (conversationId) {
-      await conversationEngine.current?.pauseConversation(conversationId, !isPaused);
-    }
+    // Pause functionality would be implemented here
   };
 
   const handleVoiceInput = () => {
@@ -212,25 +226,43 @@ export default function AIConversationPage() {
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 bg-gray-50">
+          {messages.length === 0 && !isLoading && (
+            <div className="flex justify-center items-center h-full">
+              <p className="text-gray-500">Initializing conversation...</p>
+            </div>
+          )}
+          
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.role === 'client' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.role === 'client' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
             >
-              <div
-                className={`max-w-[80%] lg:max-w-[70%] rounded-lg p-4 ${
-                  message.role === 'client'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white border'
-                }`}
-              >
-                <p className="whitespace-pre-wrap">{message.content}</p>
-                <span className={`text-xs mt-2 block ${
-                  message.role === 'client' ? 'text-blue-100' : 'text-gray-500'
-                }`}>
-                  {message.timestamp.toLocaleTimeString()}
-                </span>
+              <div className={`flex gap-3 max-w-[80%] lg:max-w-[70%]`}>
+                {message.role === 'ai' && (
+                  <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-sm">AI</span>
+                  </div>
+                )}
+                <div
+                  className={`rounded-lg p-4 ${
+                    message.role === 'client'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-white border shadow-sm'
+                  }`}
+                >
+                  <p className="whitespace-pre-wrap">{message.content}</p>
+                  <span className={`text-xs mt-2 block ${
+                    message.role === 'client' ? 'text-blue-100' : 'text-gray-500'
+                  }`}>
+                    {message.timestamp.toLocaleTimeString()}
+                  </span>
+                </div>
+                {message.role === 'client' && (
+                  <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-sm">You</span>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -298,17 +330,8 @@ export default function AIConversationPage() {
           onValidate={async (validated) => {
             setShowValidation(false);
             if (validated) {
-              // Continue to next section
-              const response = await conversationEngine.current?.moveToNextSection(conversationId!);
-              if (response) {
-                setMessages(prev => [...prev, {
-                  id: Date.now().toString(),
-                  role: 'ai',
-                  content: response.content,
-                  timestamp: new Date(),
-                  section: response.section
-                }]);
-              }
+              // Continue to next section - would be implemented here
+              // This would call the API to move to the next section
             }
           }}
         />
