@@ -35,6 +35,15 @@ const Navigation = () => {
         <div className="flex items-center gap-4">
           <SearchClients />
           <span className="text-sm text-gray-400">Kevin Rutherford, FNTP</span>
+          <button
+            onClick={() => {
+              fetch('/api/auth/logout', { method: 'POST' })
+                .then(() => router.push('/auth'))
+            }}
+            className="text-sm text-gray-400 hover:text-white transition-colors"
+          >
+            Logout
+          </button>
         </div>
       </div>
     </nav>
