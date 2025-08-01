@@ -3,12 +3,39 @@ import { ReportData, ClientData, NutriQData, LabData, NoteData, ProtocolData, An
 
 export async function fetchClientData(clientId: string): Promise<ReportData> {
   try {
-    // Fetch client basic information
-    const { data: client, error: clientError } = await supabase
+    // First, try to fetch client from clients table by ID
+    let { data: client, error: clientError } = await supabase
       .from('clients')
       .select('*')
       .eq('id', clientId)
       .single()
+
+    // If not found by ID, check if this is a client_profiles ID
+    if (clientError?.code === 'PGRST116') {
+      console.log('[CLIENT-DATA] Client not found by ID, checking client_profiles...')
+      
+      // Get the client profile first
+      const { data: profile, error: profileError } = await supabase
+        .from('client_profiles')
+        .select('*, users!client_profiles_user_id_fkey(email)')
+        .eq('id', clientId)
+        .single()
+      
+      if (!profileError && profile?.users?.email) {
+        // Now find the client by email
+        const { data: clientByEmail, error: emailError } = await supabase
+          .from('clients')
+          .select('*')
+          .eq('email', profile.users.email)
+          .single()
+        
+        if (!emailError) {
+          client = clientByEmail
+          clientError = null
+          console.log('[CLIENT-DATA] Found client by email:', client.email)
+        }
+      }
+    }
 
     if (clientError) {
       throw new Error(`Failed to fetch client: ${clientError.message}`)
