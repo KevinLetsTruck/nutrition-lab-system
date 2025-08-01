@@ -7,8 +7,8 @@ import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { ChevronLeft, Clock, Target, AlertCircle } from 'lucide-react';
 import { StructuredQuestion } from '@/components/assessment/StructuredQuestion';
-import { AIQuestionSelector, Response } from '@/lib/assessment/question-selector';
-import { PatternMatcher, DetectedPattern } from '@/lib/assessment/pattern-matcher';
+import { Response } from '@/lib/assessment/question-selector';
+import { DetectedPattern } from '@/lib/assessment/pattern-matcher';
 
 const ASSESSMENT_SECTIONS = [
   { id: 'energy', name: 'Energy & Fatigue', estimatedQuestions: 8 },
@@ -35,8 +35,7 @@ export default function StructuredAssessmentPage() {
   const [showValidation, setShowValidation] = useState(false);
   const [underreportingRisk, setUnderreportingRisk] = useState(0);
   
-  const questionSelector = useMemo(() => new AIQuestionSelector(), []);
-  const patternMatcher = useMemo(() => new PatternMatcher(), []);
+
   
   const currentSection = ASSESSMENT_SECTIONS[currentSectionIndex];
   const totalEstimatedQuestions = ASSESSMENT_SECTIONS.reduce((sum, s) => sum + s.estimatedQuestions, 0);
@@ -59,16 +58,29 @@ export default function StructuredAssessmentPage() {
         const { assessmentId: id } = await response.json();
         setAssessmentId(id);
         
-        // Get first question
-        const firstQuestion = await questionSelector.getInitialQuestion(currentSection.id);
-        setCurrentQuestion(firstQuestion);
+        // Get first question from API
+        const questionResponse = await fetch('/api/structured-assessment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            action: 'getQuestion', 
+            section: currentSection.id,
+            responses: [],
+            patterns: []
+          })
+        });
+        
+        if (questionResponse.ok) {
+          const { question } = await questionResponse.json();
+          setCurrentQuestion(question);
+        }
       } catch (error) {
         console.error('Failed to initialize assessment:', error);
       }
     };
     
     initAssessment();
-  }, [clientId, currentSection.id, questionSelector]);
+  }, [clientId, currentSection.id]);
   
   // Handle response selection
   const handleResponse = useCallback(async (value: number | string) => {
@@ -100,13 +112,27 @@ export default function StructuredAssessmentPage() {
       })
     });
     
-    // Detect patterns in real-time
-    const patterns = patternMatcher.detectPatterns(updatedResponses);
-    setDetectedPatterns(patterns);
+    // Detect patterns via API
+    const patternResponse = await fetch('/api/structured-assessment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'detectPatterns',
+        responses: updatedResponses
+      })
+    });
     
-    // Check for underreporting
-    const underreporting = patternMatcher.calculateUnderreportingRisk(updatedResponses);
-    setUnderreportingRisk(underreporting);
+    if (patternResponse.ok) {
+      const { patterns } = await patternResponse.json();
+      setDetectedPatterns(patterns);
+      
+      // Calculate underreporting locally for now
+      const mildResponses = updatedResponses.filter(r => Number(r.value) === 1).length;
+      const underreporting = updatedResponses.length > 0 
+        ? (mildResponses / updatedResponses.length > 0.7 && patterns.length > 0 ? 0.8 : 0.2)
+        : 0;
+      setUnderreportingRisk(underreporting);
+    }
     
     // Check if we should validate or continue
     if (questionsInSection >= 5 && underreporting > 0.7 && !showValidation) {
@@ -122,26 +148,43 @@ export default function StructuredAssessmentPage() {
       return;
     }
     
-    // Get next question
+    // Get next question from API
     try {
-      const nextQuestion = await questionSelector.selectNextQuestion(
-        updatedResponses,
-        patterns,
-        currentSection.id
-      );
+      const questionResponse = await fetch('/api/structured-assessment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'getQuestion',
+          section: currentSection.id,
+          responses: updatedResponses,
+          patterns: detectedPatterns
+        })
+      });
       
-      if (nextQuestion) {
-        setCurrentQuestion(nextQuestion);
-      } else {
+      if (questionResponse.ok) {
+        const { question } = await questionResponse.json();
+        if (question) {
+          setCurrentQuestion(question);
+        } else {
         // Move to next section if no more questions
         if (currentSectionIndex < ASSESSMENT_SECTIONS.length - 1) {
           setCurrentSectionIndex(currentSectionIndex + 1);
           setQuestionsInSection(0);
           setShowSectionComplete(false);
           
-          // Get first question of new section
-          questionSelector.getInitialQuestion(ASSESSMENT_SECTIONS[currentSectionIndex + 1].id)
-            .then(question => setCurrentQuestion(question));
+          // Get first question of new section from API
+          fetch('/api/structured-assessment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'getQuestion',
+              section: ASSESSMENT_SECTIONS[currentSectionIndex + 1].id,
+              responses: [],
+              patterns: []
+            })
+          })
+            .then(res => res.json())
+            .then(({ question }) => setCurrentQuestion(question));
         } else {
           // Assessment complete - will be handled by completeAssessment
           setShowSectionComplete(true);
@@ -152,7 +195,7 @@ export default function StructuredAssessmentPage() {
     }
     
     setIsLoading(false);
-  }, [currentQuestion, responses, questionsInSection, currentSection, assessmentId, showValidation, questionSelector, patternMatcher]);
+  }, [currentQuestion, responses, questionsInSection, currentSection, assessmentId, showValidation, detectedPatterns, currentSectionIndex]);
   
   const completeAssessment = useCallback(async () => {
     try {
@@ -178,14 +221,24 @@ export default function StructuredAssessmentPage() {
       setQuestionsInSection(0);
       setShowSectionComplete(false);
       
-      // Get first question of new section
-      questionSelector.getInitialQuestion(ASSESSMENT_SECTIONS[currentSectionIndex + 1].id)
-        .then(question => setCurrentQuestion(question));
+      // Get first question of new section from API
+      fetch('/api/structured-assessment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'getQuestion',
+          section: ASSESSMENT_SECTIONS[currentSectionIndex + 1].id,
+          responses: [],
+          patterns: []
+        })
+      })
+        .then(res => res.json())
+        .then(({ question }) => setCurrentQuestion(question));
     } else {
       // Assessment complete
       completeAssessment();
     }
-  }, [currentSectionIndex, questionSelector, ASSESSMENT_SECTIONS, completeAssessment]);
+  }, [currentSectionIndex, ASSESSMENT_SECTIONS, completeAssessment]);
   
   return (
     <div className="min-h-screen bg-gray-50 pb-20">

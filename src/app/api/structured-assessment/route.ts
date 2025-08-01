@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { AIQuestionSelector } from '@/lib/assessment/question-selector';
+import { PatternMatcher } from '@/lib/assessment/pattern-matcher';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -9,6 +11,8 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
+const questionSelector = new AIQuestionSelector();
+const patternMatcher = new PatternMatcher();
 
 export async function POST(request: NextRequest) {
   try {
@@ -123,6 +127,39 @@ export async function POST(request: NextRequest) {
           .eq('id', assessmentId);
 
         return NextResponse.json({ success: true });
+      }
+      
+      case 'getQuestion': {
+        const { section, responses = [], patterns = [] } = body;
+        
+        try {
+          let question;
+          
+          // If no responses yet, get initial question
+          if (responses.length === 0) {
+            question = await questionSelector.getInitialQuestion(section);
+          } else {
+            // Get next question based on responses and patterns
+            question = await questionSelector.selectNextQuestion(
+              responses,
+              patterns,
+              section
+            );
+          }
+          
+          return NextResponse.json({ question });
+        } catch (error) {
+          console.error('Error getting question:', error);
+          // Return a fallback question
+          const fallbackQuestion = await questionSelector.getInitialQuestion(section);
+          return NextResponse.json({ question: fallbackQuestion });
+        }
+      }
+      
+      case 'detectPatterns': {
+        const { responses } = body;
+        const patterns = patternMatcher.detectPatterns(responses);
+        return NextResponse.json({ patterns });
       }
         
       default:

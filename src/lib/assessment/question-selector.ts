@@ -9,11 +9,14 @@ export interface Response {
 }
 
 export class AIQuestionSelector {
-  private claudeClient: ClaudeClient;
+  private claudeClient: ClaudeClient | null = null;
   private truckDriverContext: boolean = true;
   
   constructor() {
-    this.claudeClient = ClaudeClient.getInstance();
+    // Only initialize Claude client if API key is available (server-side)
+    if (typeof process !== 'undefined' && process.env?.ANTHROPIC_API_KEY) {
+      this.claudeClient = ClaudeClient.getInstance();
+    }
   }
   
   async selectNextQuestion(
@@ -58,6 +61,11 @@ export class AIQuestionSelector {
     `;
     
     try {
+      if (!this.claudeClient) {
+        // If no Claude client (client-side), return fallback
+        return this.getFallbackQuestion(currentSection);
+      }
+      
       const aiResponse = await this.claudeClient.analyzePractitionerReport(
         prompt,
         "You are an expert FNTP creating structured health assessment questions."
