@@ -52,29 +52,6 @@ export function ConversationProgress({
   const [totalDuration, setTotalDuration] = useState(0);
   const [detectedPatterns, setDetectedPatterns] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (!conversationId) return;
-
-    loadProgress();
-    
-    // Set up real-time subscription
-    const subscription = supabase
-      .channel(`conversation-${conversationId}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'conversation_messages',
-        filter: `conversation_id=eq.${conversationId}`
-      }, () => {
-        loadProgress();
-      })
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [conversationId, loadProgress]);
-
   const loadProgress = useCallback(async () => {
     if (!conversationId) return;
 
@@ -146,6 +123,29 @@ export function ConversationProgress({
       console.error('Failed to load progress:', error);
     }
   }, [conversationId, currentSection]);
+
+  useEffect(() => {
+    if (!conversationId) return;
+
+    loadProgress();
+    
+    // Set up real-time subscription
+    const subscription = supabase
+      .channel(`conversation-${conversationId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'conversation_messages',
+        filter: `conversation_id=eq.${conversationId}`
+      }, () => {
+        loadProgress();
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [conversationId, loadProgress]);
 
   const getStatusIcon = (status: SectionProgress['status']) => {
     switch (status) {

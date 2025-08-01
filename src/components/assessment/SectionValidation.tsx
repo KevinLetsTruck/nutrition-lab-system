@@ -35,10 +35,6 @@ export function SectionValidation({
   const [expandedPatterns, setExpandedPatterns] = useState(true);
   const [userEdits, setUserEdits] = useState<Record<string, any>>({});
 
-  useEffect(() => {
-    loadValidation();
-  }, [conversationId, section, loadValidation]);
-
   const loadValidation = useCallback(async () => {
     try {
       const engine = new AIConversationEngine();
@@ -50,6 +46,10 @@ export function SectionValidation({
       setIsLoading(false);
     }
   }, [conversationId, section]);
+
+  useEffect(() => {
+    loadValidation();
+  }, [conversationId, section, loadValidation]);
 
   const getSeverityColor = (severity: number) => {
     if (severity >= 7) return 'text-red-600 bg-red-50';
