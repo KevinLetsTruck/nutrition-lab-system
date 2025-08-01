@@ -190,6 +190,7 @@ export default function StructuredAssessmentPage() {
           setShowSectionComplete(true);
         }
       }
+    }
     } catch (error) {
       console.error('Error getting next question:', error);
     }
