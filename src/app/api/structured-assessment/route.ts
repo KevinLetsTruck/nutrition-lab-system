@@ -173,12 +173,24 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ question });
         } catch (error) {
           console.error('Error getting question:', error);
-          // Return a fallback question
-          if (!questionSelector) {
-            questionSelector = new AIQuestionSelector();
+          // If there's an error and we have responses, it might be time to end the section
+          if (responses.length > 4) {
+            return NextResponse.json({ question: null });
           }
-          const fallbackQuestion = await questionSelector.getInitialQuestion(section);
-          return NextResponse.json({ question: fallbackQuestion });
+          
+          // Otherwise return a generic fallback for the section
+          return NextResponse.json({ 
+            question: {
+              id: `fallback_${section}_${Date.now()}`,
+              section,
+              questionText: 'Any other concerns in this area?',
+              responseType: 'binary',
+              options: [
+                { value: 'yes', label: 'Yes' },
+                { value: 'no', label: 'No' }
+              ]
+            }
+          });
         }
       }
       

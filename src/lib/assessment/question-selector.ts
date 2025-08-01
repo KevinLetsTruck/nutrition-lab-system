@@ -35,12 +35,18 @@ export class AIQuestionSelector {
     currentSection: string
   ): Promise<StructuredQuestion | null> {
     
+    // Get list of already asked question IDs
+    const askedQuestionIds = currentResponses.map(r => r.questionId);
+    
     const prompt = `
     You are Kevin Rutherford, FNTP specializing in truck driver health.
     
     Current assessment section: ${currentSection}
     Responses so far: ${JSON.stringify(currentResponses, null, 2)}
     Detected patterns: ${JSON.stringify(detectedPatterns, null, 2)}
+    
+    IMPORTANT: These questions have already been asked and MUST NOT be repeated:
+    ${askedQuestionIds.join(', ')}
     
     Based on the responses and patterns, determine the next most important question to ask.
     
@@ -49,6 +55,7 @@ export class AIQuestionSelector {
     2. What patterns are emerging that need confirmation?
     3. What truck driver-specific factors should be explored?
     4. What related symptoms often occur together?
+    5. DO NOT repeat any question that has already been asked
     
     Return a JSON object with:
     {
@@ -68,13 +75,14 @@ export class AIQuestionSelector {
     For frequency: include frequency options (never, rarely, sometimes, often, always)
     
     Make questions clear, specific, and focused on one symptom/issue at a time.
+    Make sure the question ID is unique and different from all previously asked questions.
     `;
     
     try {
       const client = this.getClaudeClient();
       if (!client) {
         // If no Claude client available, return fallback
-        return this.getFallbackQuestion(currentSection);
+        return this.getFallbackQuestionForSection(currentSection, askedQuestionIds);
       }
       
       const aiResponse = await client.analyzePractitionerReport(
@@ -82,10 +90,18 @@ export class AIQuestionSelector {
         "You are an expert FNTP creating structured health assessment questions."
       );
       
-      return this.parseAIResponse(aiResponse);
+      const question = this.parseAIResponse(aiResponse);
+      
+      // Double-check we're not returning a duplicate
+      if (question && askedQuestionIds.includes(question.id)) {
+        console.warn('AI returned duplicate question, getting fallback');
+        return this.getFallbackQuestionForSection(currentSection, askedQuestionIds);
+      }
+      
+      return question;
     } catch (error) {
       console.error('Error selecting next question:', error);
-      return this.getFallbackQuestion(currentSection);
+      return this.getFallbackQuestionForSection(currentSection, askedQuestionIds);
     }
   }
   
@@ -224,6 +240,132 @@ export class AIQuestionSelector {
     };
     
     return fallbackQuestions[section] || fallbackQuestions.energy;
+  }
+  
+  private getFallbackQuestionForSection(section: string, askedQuestionIds: string[]): StructuredQuestion | null {
+    // Multiple fallback questions for each section to avoid duplicates
+    const fallbackQuestionSets: Record<string, StructuredQuestion[]> = {
+      energy: [
+        {
+          id: 'energy_baseline',
+          section: 'energy',
+          questionText: 'How would you rate your overall energy level?',
+          responseType: 'scale',
+          options: [],
+          truckDriverContext: 'Consider your energy throughout a typical driving shift'
+        },
+        {
+          id: 'energy_crashes',
+          section: 'energy',
+          questionText: 'Do you experience energy crashes during the day?',
+          responseType: 'binary',
+          options: [
+            { value: 'yes', label: 'Yes' },
+            { value: 'no', label: 'No' }
+          ]
+        },
+        {
+          id: 'energy_morning',
+          section: 'energy',
+          questionText: 'How is your energy when you first wake up?',
+          responseType: 'scale',
+          options: [],
+          truckDriverContext: 'Before coffee or stimulants'
+        },
+        {
+          id: 'energy_pattern',
+          section: 'energy',
+          questionText: 'When is your energy typically lowest?',
+          responseType: 'multiple_choice',
+          options: [
+            { value: 'morning', label: 'Morning', description: 'First few hours after waking' },
+            { value: 'afternoon', label: 'Afternoon', description: '2-4 PM' },
+            { value: 'evening', label: 'Evening', description: 'After dinner' },
+            { value: 'all_day', label: 'All day', description: 'Consistently low' }
+          ]
+        }
+      ],
+      digestive: [
+        {
+          id: 'digestive_comfort',
+          section: 'digestive',
+          questionText: 'How often do you experience digestive discomfort?',
+          responseType: 'frequency',
+          options: [
+            { value: 'never', label: 'Never' },
+            { value: 'rarely', label: 'Rarely (1-2 times/month)' },
+            { value: 'sometimes', label: 'Sometimes (weekly)' },
+            { value: 'often', label: 'Often (several times/week)' },
+            { value: 'always', label: 'Daily' }
+          ]
+        },
+        {
+          id: 'digestive_bloating',
+          section: 'digestive',
+          questionText: 'Do you experience bloating after meals?',
+          responseType: 'scale',
+          options: []
+        },
+        {
+          id: 'digestive_bowel',
+          section: 'digestive',
+          questionText: 'How regular are your bowel movements?',
+          responseType: 'multiple_choice',
+          options: [
+            { value: 'daily', label: 'Daily', description: 'Once per day' },
+            { value: 'multiple_daily', label: 'Multiple times daily', description: '2-3 times' },
+            { value: 'every_other', label: 'Every other day' },
+            { value: 'irregular', label: 'Irregular', description: 'No pattern' }
+          ]
+        }
+      ],
+      sleep: [
+        {
+          id: 'sleep_quality',
+          section: 'sleep',
+          questionText: 'How would you rate your sleep quality?',
+          responseType: 'scale',
+          options: [],
+          truckDriverContext: 'Consider both home sleep and sleeper cab rest'
+        },
+        {
+          id: 'sleep_difficulty',
+          section: 'sleep',
+          questionText: 'Do you have trouble falling asleep?',
+          responseType: 'binary',
+          options: [
+            { value: 'yes', label: 'Yes' },
+            { value: 'no', label: 'No' }
+          ]
+        },
+        {
+          id: 'sleep_waking',
+          section: 'sleep',
+          questionText: 'How often do you wake up during the night?',
+          responseType: 'frequency',
+          options: [
+            { value: 'never', label: 'Never' },
+            { value: 'rarely', label: 'Rarely (1-2 times)' },
+            { value: 'sometimes', label: 'Sometimes (3-4 times)' },
+            { value: 'often', label: 'Often (5+ times)' },
+            { value: 'always', label: 'Constantly' }
+          ]
+        }
+      ]
+    };
+    
+    const sectionQuestions = fallbackQuestionSets[section] || fallbackQuestionSets.energy;
+    
+    // Find a question that hasn't been asked yet
+    for (const question of sectionQuestions) {
+      if (!askedQuestionIds.includes(question.id)) {
+        return question;
+      }
+    }
+    
+    // If all fallback questions have been asked, return null to end section
+    console.log(`All fallback questions for section ${section} have been asked`);
+    return null;
   }
   
   async getInitialQuestion(section: string): Promise<StructuredQuestion> {
