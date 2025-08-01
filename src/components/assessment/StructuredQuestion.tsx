@@ -21,6 +21,8 @@ export interface StructuredQuestion {
   options: ResponseOption[];
   followUpLogic?: any;
   truckDriverContext?: string;
+  isFollowUp?: boolean;
+  parentQuestionId?: string;
 }
 
 interface Props {

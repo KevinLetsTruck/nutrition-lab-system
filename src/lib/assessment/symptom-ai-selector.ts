@@ -1,4 +1,4 @@
-import { ClaudeClient } from '@/lib/claude-client';
+import ClaudeClient from '@/lib/claude-client';
 import { 
   getQuestionById, 
   getQuestionsByCategory, 

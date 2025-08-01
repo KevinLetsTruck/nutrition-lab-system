@@ -185,7 +185,7 @@ export default function StructuredAssessmentPage() {
     }
     
     setIsLoading(false);
-  }, [currentQuestion, responses, questionsInSection, currentSection, assessmentId, showValidation, detectedPatterns, currentSectionIndex, isLoading, underreportingRisk]);
+  }, [currentQuestion, responses, questionsInSection, currentSection, assessmentId, showValidation, detectedPatterns, isLoading, underreportingRisk]);
   
   const completeAssessment = useCallback(async () => {
     try {
