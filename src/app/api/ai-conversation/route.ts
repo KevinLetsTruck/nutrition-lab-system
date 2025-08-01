@@ -8,6 +8,13 @@ import { HEALTH_ASSESSMENT_PROMPTS } from '@/lib/ai-prompts/health-assessment';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+console.log('Supabase initialization:', {
+  hasUrl: !!supabaseUrl,
+  hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+  hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  usingKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'service' : 'anon'
+});
+
 if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase configuration');
 }
