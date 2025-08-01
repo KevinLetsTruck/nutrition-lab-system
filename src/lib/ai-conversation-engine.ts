@@ -352,7 +352,7 @@ export class AIConversationEngine {
     clientResponse: string,
     currentSection: string
   ): Promise<AIResponse> {
-    const sectionPrompt = HEALTH_ASSESSMENT_PROMPTS.sectionPrompts[currentSection] || '';
+    const sectionPrompt = HEALTH_ASSESSMENT_PROMPTS.sectionPrompts[currentSection as keyof typeof HEALTH_ASSESSMENT_PROMPTS.sectionPrompts] || '';
     
     const conversationContext = history
       .filter(m => m.role !== 'system')
