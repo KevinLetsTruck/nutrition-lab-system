@@ -135,6 +135,9 @@ export class AIQuestionSelector {
                                 questionLower.includes('rate') && questionLower.includes('overall')) &&
                                (questionLower.includes('sleep') || questionLower.includes('digestion') || 
                                 questionLower.includes('energy') || questionLower.includes('health'));
+                                
+      const isControlQuestion = questionLower.includes('how well') && 
+                               (questionLower.includes('control') || questionLower.includes('manage'));
       
       // Auto-correct response type for difficulty questions
       if (isDifficultyQuestion && parsed.responseType === 'scale') {
@@ -176,6 +179,17 @@ export class AIQuestionSelector {
           { value: 'fair', label: 'Fair', description: 'Some problems' },
           { value: 'good', label: 'Good', description: 'Generally satisfactory' },
           { value: 'excellent', label: 'Excellent', description: 'Very high quality' }
+        ];
+      }
+      
+      // Auto-correct for control/ability questions
+      if (isControlQuestion && parsed.responseType === 'scale') {
+        parsed.responseType = 'multiple_choice';
+        parsed.options = [
+          { value: 'no_control', label: 'No control', description: 'Cannot adjust at all' },
+          { value: 'limited_control', label: 'Limited control', description: 'Some adjustments possible' },
+          { value: 'good_control', label: 'Good control', description: 'Can adjust most factors' },
+          { value: 'excellent_control', label: 'Excellent control', description: 'Full control over environment' }
         ];
       }
       
