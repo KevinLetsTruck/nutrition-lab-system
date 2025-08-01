@@ -96,27 +96,31 @@ class ClaudeClient {
 
   private constructor() {
     const apiKey = process.env.ANTHROPIC_API_KEY
-    if (!apiKey) {
-      console.error('[CLAUDE] ANTHROPIC_API_KEY is missing!')
+    
+    // Log environment info for debugging
+    console.log('[CLAUDE] Environment:', process.env.NODE_ENV)
+    console.log('[CLAUDE] API key available:', !!apiKey)
+    
+    if (apiKey) {
+      console.log('[CLAUDE] API key length:', apiKey.length)
+      console.log('[CLAUDE] API key format valid:', apiKey.startsWith('sk-ant-'))
+      
+      try {
+        this.client = new Anthropic({ 
+          apiKey,
+          defaultHeaders: {
+            'anthropic-version': '2023-06-01'
+          }
+        })
+        console.log('[CLAUDE] Client initialized successfully')
+      } catch (initError) {
+        console.error('[CLAUDE] Failed to initialize Anthropic client:', initError)
+        throw initError
+      }
+    } else {
+      console.error('[CLAUDE] ANTHROPIC_API_KEY is not available in environment')
+      console.log('[CLAUDE] Available env vars:', Object.keys(process.env).filter(k => k.includes('ANTHROPIC')))
       throw new Error('ANTHROPIC_API_KEY environment variable is required')
-    }
-    
-    // Log API key info for debugging (first 10 chars only for security)
-    console.log('[CLAUDE] Initializing client with API key:', apiKey.substring(0, 10) + '...')
-    console.log('[CLAUDE] API key length:', apiKey.length)
-    console.log('[CLAUDE] API key format valid:', apiKey.startsWith('sk-ant-'))
-    
-    try {
-      this.client = new Anthropic({ 
-        apiKey,
-        defaultHeaders: {
-          'anthropic-version': '2023-06-01'
-        }
-      })
-      console.log('[CLAUDE] Client initialized successfully')
-    } catch (initError) {
-      console.error('[CLAUDE] Failed to initialize Anthropic client:', initError)
-      throw initError
     }
   }
 
