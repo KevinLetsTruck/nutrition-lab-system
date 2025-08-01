@@ -11,13 +11,17 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
-const questionSelector = new AIQuestionSelector();
-const patternMatcher = new PatternMatcher();
+
+// Only create these if needed to avoid API key issues
+let questionSelector: AIQuestionSelector | null = null;
+let patternMatcher: PatternMatcher | null = null;
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { action } = body;
+    
+    console.log('Structured assessment API - Action:', action, 'Body:', body);
     
     switch (action) {
       case 'start': {
@@ -104,17 +108,9 @@ export async function POST(request: NextRequest) {
         
         // Store detected patterns
         if (patterns && patterns.length > 0) {
-          const patternInserts = patterns.map((pattern: any) => ({
-            conversation_id: assessmentId,
-            pattern_name: pattern.name,
-            confidence: pattern.confidence,
-            evidence: pattern.evidence,
-            detected_at: new Date().toISOString()
-          }));
-          
-          await supabase
-            .from('detected_patterns')
-            .insert(patternInserts);
+          // For now, just log patterns instead of inserting
+          // We need to populate assessment_patterns table first
+          console.log('Detected patterns:', patterns);
         }
         
         // Mark assessment as complete
@@ -133,6 +129,11 @@ export async function POST(request: NextRequest) {
         const { section, responses = [], patterns = [] } = body;
         
         try {
+          // Initialize question selector if not already done
+          if (!questionSelector) {
+            questionSelector = new AIQuestionSelector();
+          }
+          
           let question;
           
           // If no responses yet, get initial question
@@ -151,6 +152,9 @@ export async function POST(request: NextRequest) {
         } catch (error) {
           console.error('Error getting question:', error);
           // Return a fallback question
+          if (!questionSelector) {
+            questionSelector = new AIQuestionSelector();
+          }
           const fallbackQuestion = await questionSelector.getInitialQuestion(section);
           return NextResponse.json({ question: fallbackQuestion });
         }
@@ -158,6 +162,12 @@ export async function POST(request: NextRequest) {
       
       case 'detectPatterns': {
         const { responses } = body;
+        
+        // Initialize pattern matcher if not already done
+        if (!patternMatcher) {
+          patternMatcher = new PatternMatcher();
+        }
+        
         const patterns = patternMatcher.detectPatterns(responses);
         return NextResponse.json({ patterns });
       }
