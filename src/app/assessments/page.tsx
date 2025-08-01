@@ -25,13 +25,28 @@ export default function AssessmentsPage() {
 
   const fetchClients = async () => {
     try {
-      const response = await fetch('/api/clients');
+      const response = await fetch('/api/clients', {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch clients');
+        // If we get a 401, it might be Vercel's auth protection
+        if (response.status === 401) {
+          console.error('Authentication required by Vercel');
+          // Try to get clients data another way or show a message
+          throw new Error('Authentication required. Please ensure you are logged in.');
+        }
+        throw new Error(`Failed to fetch clients: ${response.status}`);
       }
+      
       const data = await response.json();
       setClients(data.clients || []);
     } catch (err) {
+      console.error('Error fetching clients:', err);
       setError(err instanceof Error ? err.message : 'Failed to load clients');
     } finally {
       setLoading(false);
