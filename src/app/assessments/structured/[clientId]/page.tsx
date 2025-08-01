@@ -135,7 +135,7 @@ export default function StructuredAssessmentPage() {
     }
     
     // Check if we should validate or continue
-    if (questionsInSection >= 5 && underreporting > 0.7 && !showValidation) {
+    if (questionsInSection >= 5 && underreportingRisk > 0.7 && !showValidation) {
       setShowValidation(true);
       setIsLoading(false);
       return;
@@ -196,7 +196,7 @@ export default function StructuredAssessmentPage() {
     }
     
     setIsLoading(false);
-  }, [currentQuestion, responses, questionsInSection, currentSection, assessmentId, showValidation, detectedPatterns, currentSectionIndex]);
+  }, [currentQuestion, responses, questionsInSection, currentSection, assessmentId, showValidation, detectedPatterns, currentSectionIndex, isLoading, underreportingRisk]);
   
   const completeAssessment = useCallback(async () => {
     try {
@@ -239,7 +239,7 @@ export default function StructuredAssessmentPage() {
       // Assessment complete
       completeAssessment();
     }
-  }, [currentSectionIndex, ASSESSMENT_SECTIONS, completeAssessment]);
+  }, [currentSectionIndex, completeAssessment]);
   
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
