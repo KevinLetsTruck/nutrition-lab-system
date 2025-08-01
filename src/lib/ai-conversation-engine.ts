@@ -51,7 +51,7 @@ export class AIConversationEngine {
   private currentConversation: any = null;
   
   constructor() {
-    this.claudeClient = new ClaudeClient();
+    this.claudeClient = ClaudeClient.getInstance();
   }
 
   async startConversation(clientId: string): Promise<string> {
@@ -170,13 +170,13 @@ export class AIConversationEngine {
         ${messages?.map(m => `${m.role}: ${m.content}`).join('\n')}
       `;
 
-      const validation = await this.claudeClient.analyze(validationPrompt, {
-        model: 'claude-3-opus-20240229',
-        system: HEALTH_ASSESSMENT_PROMPTS.validation
-      });
+      const validation = await this.claudeClient.analyzePractitionerReport(
+        validationPrompt,
+        HEALTH_ASSESSMENT_PROMPTS.validation
+      );
 
       // Parse and structure the validation
-      return this.parseValidationResponse(validation.response);
+      return this.parseValidationResponse(validation);
     } catch (error) {
       console.error('Failed to validate section:', error);
       throw error;
@@ -213,12 +213,12 @@ export class AIConversationEngine {
         ${messages?.map(m => `${m.role}: ${m.content}`).join('\n')}
       `;
 
-      const analysis = await this.claudeClient.analyze(analysisPrompt, {
-        model: 'claude-3-opus-20240229',
-        system: HEALTH_ASSESSMENT_PROMPTS.patternRecognition
-      });
+      const analysis = await this.claudeClient.analyzePractitionerReport(
+        analysisPrompt,
+        HEALTH_ASSESSMENT_PROMPTS.patternRecognition
+      );
 
-      return this.parsePatternAnalysis(analysis.response);
+      return this.parsePatternAnalysis(analysis);
     } catch (error) {
       console.error('Failed to generate pattern analysis:', error);
       throw error;
@@ -372,16 +372,16 @@ export class AIConversationEngine {
       Be empathetic and understanding, especially for truck drivers' unique challenges.
     `;
 
-    const response = await this.claudeClient.analyze(prompt, {
-      model: 'claude-3-opus-20240229',
-      system: HEALTH_ASSESSMENT_PROMPTS.system
-    });
+    const response = await this.claudeClient.analyzePractitionerReport(
+      prompt,
+      HEALTH_ASSESSMENT_PROMPTS.system
+    );
 
     // Determine if we should validate or continue
     const shouldValidate = this.checkIfSectionComplete(history, currentSection);
 
     return {
-      content: response.response,
+      content: response,
       section: currentSection,
       messageType: shouldValidate ? 'validation' : 'chat'
     };
