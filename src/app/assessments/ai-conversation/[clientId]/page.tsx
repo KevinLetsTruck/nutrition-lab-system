@@ -51,6 +51,20 @@ export default function AIConversationPage() {
         if (!response.ok) {
           const error = await response.json();
           console.error('Failed to start conversation:', error);
+          
+          // Check if it's a client not found error
+          if (error.details && error.details.includes('Client not found')) {
+            setMessages([{
+              id: 'error',
+              role: 'ai',
+              content: `I couldn't find this client in the database. Please make sure you're accessing this page from a valid client profile.`,
+              timestamp: new Date(),
+              section: 'error'
+            }]);
+            setIsLoading(false);
+            return;
+          }
+          
           throw new Error(error.details || 'Failed to start conversation');
         }
         
