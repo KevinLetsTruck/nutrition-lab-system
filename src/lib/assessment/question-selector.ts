@@ -132,7 +132,8 @@ export class AIQuestionSelector {
                              questionLower.includes('have you');
                              
       const isQualityQuestion = (questionLower.includes('quality') || 
-                                questionLower.includes('rate') && questionLower.includes('overall')) &&
+                                (questionLower.includes('rate') && questionLower.includes('overall')) ||
+                                (questionLower.includes('how is') && questionLower.includes('overall'))) &&
                                (questionLower.includes('sleep') || questionLower.includes('digestion') || 
                                 questionLower.includes('energy') || questionLower.includes('health'));
                                 
@@ -452,8 +453,13 @@ export class AIQuestionSelector {
         id: 'digestive_overall',
         section: 'digestive',
         questionText: 'How is your digestion overall?',
-        responseType: 'scale',
-        options: [],
+        responseType: 'multiple_choice',
+        options: [
+          { value: 'poor', label: 'Poor', description: 'Significant issues' },
+          { value: 'fair', label: 'Fair', description: 'Some problems' },
+          { value: 'good', label: 'Good', description: 'Generally good' },
+          { value: 'excellent', label: 'Excellent', description: 'Very good' }
+        ],
         truckDriverContext: 'Consider issues like irregular meal times, truck stop food, and limited bathroom access',
         aiContext: 'Digestive health significantly impacts energy, mood, and nutrient absorption'
       },
