@@ -247,21 +247,21 @@ export default function StructuredAssessmentPage() {
   }, [currentSectionIndex, completeAssessment]);
   
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-[#1e1b4b] pb-20">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="bg-[#312e81] border-b border-[#4338ca] sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Button
               variant="ghost"
               onClick={() => router.back()}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-white hover:bg-[#4338ca]/20"
             >
               <ChevronLeft className="h-4 w-4" />
               Back
             </Button>
             
-            <div className="flex items-center gap-4 text-sm text-gray-600">
+            <div className="flex items-center gap-4 text-sm text-gray-300">
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
                 <span>{estimatedTimeRemaining} min remaining</span>
@@ -276,19 +276,24 @@ export default function StructuredAssessmentPage() {
       </div>
       
       {/* Progress Bar */}
-      <div className="bg-white border-b">
+      <div className="bg-[#312e81] border-b border-[#4338ca]">
         <div className="container mx-auto px-4 py-3">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="font-medium">{currentSection.name}</span>
-              <span className="text-gray-600">{Math.round(estimatedProgress)}% complete</span>
+              <span className="font-medium text-white">{currentSection.name}</span>
+              <span className="text-gray-300">{Math.round(estimatedProgress)}% complete</span>
             </div>
-            <Progress value={estimatedProgress} className="h-2" />
+            <div className="w-full bg-[#1e1b4b] rounded-full h-2 overflow-hidden">
+              <div 
+                className="h-full bg-[#10b981] transition-all duration-300"
+                style={{ width: `${estimatedProgress}%` }}
+              />
+            </div>
           </div>
           
           {/* Pattern Detection Indicator */}
           {detectedPatterns.length > 0 && (
-            <div className="mt-3 flex items-center gap-2 text-sm text-amber-700">
+            <div className="mt-3 flex items-center gap-2 text-sm text-amber-400">
               <AlertCircle className="h-4 w-4" />
               <span>Patterns detected: {detectedPatterns.map(p => p.displayName).join(', ')}</span>
             </div>
@@ -325,7 +330,7 @@ export default function StructuredAssessmentPage() {
           />
         ) : (
           <div className="flex justify-center items-center h-64">
-            <div className="text-gray-500">Loading question...</div>
+            <div className="text-gray-400">Loading question...</div>
           </div>
         )}
       </div>

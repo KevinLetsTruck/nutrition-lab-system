@@ -43,7 +43,12 @@ export function StructuredQuestion({ question, onResponse, isLoading }: Props) {
   const renderScaleButtons = () => {
     const scaleLabels = ['None', 'Mild', 'Moderate', 'Severe'];
     const scaleDescriptions = ['No symptoms', 'Occasional', 'Regular issue', 'Major impact'];
-    const scaleColors = ['bg-green-50 border-green-300', 'bg-yellow-50 border-yellow-300', 'bg-orange-50 border-orange-300', 'bg-red-50 border-red-300'];
+    const scaleColors = [
+      'bg-green-900/20 border-green-600 hover:bg-green-900/30',
+      'bg-yellow-900/20 border-yellow-600 hover:bg-yellow-900/30',
+      'bg-orange-900/20 border-orange-600 hover:bg-orange-900/30',
+      'bg-red-900/20 border-red-600 hover:bg-red-900/30'
+    ];
 
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
@@ -54,16 +59,16 @@ export function StructuredQuestion({ question, onResponse, isLoading }: Props) {
             disabled={isLoading}
             className={`
               relative p-4 rounded-lg border-2 transition-all duration-200
-              ${selectedValue === value ? 'ring-2 ring-blue-500 transform scale-105' : ''}
+              ${selectedValue === value ? 'ring-2 ring-[#10b981] transform scale-105' : ''}
               ${scaleColors[value]}
-              hover:transform hover:scale-105 hover:shadow-md
+              hover:transform hover:scale-105 hover:shadow-lg
               disabled:opacity-50 disabled:cursor-not-allowed
               flex flex-col items-center justify-center min-h-[100px]
             `}
           >
-            <span className="text-2xl font-bold text-gray-900">{value}</span>
-            <span className="text-sm font-medium text-gray-700 mt-1">{scaleLabels[value]}</span>
-            <span className="text-xs text-gray-600 mt-1">{scaleDescriptions[value]}</span>
+            <span className="text-2xl font-bold text-white">{value}</span>
+            <span className="text-sm font-medium text-gray-200 mt-1">{scaleLabels[value]}</span>
+            <span className="text-xs text-gray-400 mt-1">{scaleDescriptions[value]}</span>
           </button>
         ))}
       </div>
@@ -80,16 +85,18 @@ export function StructuredQuestion({ question, onResponse, isLoading }: Props) {
             disabled={isLoading}
             className={`
               w-full p-4 rounded-lg border-2 transition-all duration-200 text-left
-              ${selectedValue === option.value ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500' : 'border-gray-200 bg-white hover:border-gray-300'}
-              hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed
+              ${selectedValue === option.value 
+                ? 'border-[#10b981] bg-[#10b981]/20 ring-2 ring-[#10b981]' 
+                : 'border-[#4338ca] bg-[#1e1b4b] hover:border-[#10b981] hover:bg-[#4338ca]/20'}
+              hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed
               flex items-start gap-3
             `}
           >
             {option.icon && <span className="text-2xl mt-0.5">{option.icon}</span>}
             <div className="flex-1">
-              <span className="text-base font-medium text-gray-900 block">{option.label}</span>
+              <span className="text-base font-medium text-white block">{option.label}</span>
               {option.description && (
-                <span className="text-sm text-gray-600 block mt-1">{option.description}</span>
+                <span className="text-sm text-gray-300 block mt-1">{option.description}</span>
               )}
             </div>
           </button>
@@ -108,14 +115,16 @@ export function StructuredQuestion({ question, onResponse, isLoading }: Props) {
             disabled={isLoading}
             className={`
               p-6 rounded-lg border-2 transition-all duration-200
-              ${selectedValue === option.value ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500' : 'border-gray-200 bg-white hover:border-gray-300'}
-              hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed
+              ${selectedValue === option.value 
+                ? 'border-[#10b981] bg-[#10b981]/20 ring-2 ring-[#10b981]' 
+                : 'border-[#4338ca] bg-[#1e1b4b] hover:border-[#10b981] hover:bg-[#4338ca]/20'}
+              hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed
               flex flex-col items-center justify-center min-h-[100px]
             `}
           >
-            <span className="text-lg font-medium text-gray-900">{option.label}</span>
+            <span className="text-lg font-medium text-white">{option.label}</span>
             {option.description && (
-              <span className="text-sm text-gray-600 mt-1">{option.description}</span>
+              <span className="text-sm text-gray-300 mt-1">{option.description}</span>
             )}
           </button>
         ))}
@@ -139,25 +148,25 @@ export function StructuredQuestion({ question, onResponse, isLoading }: Props) {
   };
 
   return (
-    <Card className="p-6 max-w-4xl mx-auto">
+    <Card className="p-6 max-w-4xl mx-auto bg-[#312e81] border-[#4338ca]">
       {/* AI Context */}
       {question.aiContext && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex items-start gap-2">
-          <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-blue-900">{question.aiContext}</p>
+        <div className="bg-[#4338ca]/20 border border-[#4338ca] rounded-lg p-3 mb-4 flex items-start gap-2">
+          <Info className="h-5 w-5 text-[#818cf8] mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-gray-200">{question.aiContext}</p>
         </div>
       )}
 
       {/* Main Question */}
-      <h3 className="text-xl md:text-2xl font-semibold text-gray-900 mb-2">
+      <h3 className="text-xl md:text-2xl font-semibold text-white mb-2">
         {question.questionText}
       </h3>
 
       {/* Truck Driver Context */}
       {question.truckDriverContext && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex items-start gap-2">
-          <TruckIcon className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-amber-900">{question.truckDriverContext}</p>
+        <div className="bg-amber-900/20 border border-amber-700 rounded-lg p-3 mb-4 flex items-start gap-2">
+          <TruckIcon className="h-5 w-5 text-amber-400 mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-amber-200">{question.truckDriverContext}</p>
         </div>
       )}
 
