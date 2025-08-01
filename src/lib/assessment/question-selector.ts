@@ -179,6 +179,40 @@ export class AIQuestionSelector {
         ];
       }
       
+      // Check if multiple choice options should include "all of the above"
+      if (parsed.responseType === 'multiple_choice' && parsed.options && parsed.options.length > 2) {
+        const hasSymptomOptions = parsed.options.some((opt: any) => 
+          opt.label && (opt.label.toLowerCase().includes('snoring') || 
+                       opt.label.toLowerCase().includes('gasping') ||
+                       opt.label.toLowerCase().includes('choking') ||
+                       opt.label.toLowerCase().includes('breathing')));
+        
+        const hasAllOption = parsed.options.some((opt: any) => 
+          opt.label && opt.label.toLowerCase().includes('all'));
+          
+        if (hasSymptomOptions && !hasAllOption) {
+          // Add "None of these" at the beginning if not present
+          const hasNoneOption = parsed.options.some((opt: any) => 
+            opt.label && (opt.label.toLowerCase().includes('none') || 
+                         opt.label.toLowerCase().includes('neither')));
+                         
+          if (!hasNoneOption) {
+            parsed.options.unshift({
+              value: 'none',
+              label: 'None of these',
+              description: 'No symptoms present'
+            });
+          }
+          
+          // Add "All of the above" at the end
+          parsed.options.push({
+            value: 'all_above',
+            label: 'All of the above',
+            description: 'Multiple or all symptoms apply'
+          });
+        }
+      }
+      
       // Format options based on response type
       let formattedOptions: ResponseOption[] = [];
       
