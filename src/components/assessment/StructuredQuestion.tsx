@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Info, TruckIcon } from 'lucide-react';
+import { Info } from 'lucide-react';
 
 export interface ResponseOption {
   value: number | string;
@@ -183,14 +183,6 @@ export function StructuredQuestion({ question, onResponse, isLoading }: Props) {
       <h3 className="text-xl md:text-2xl font-semibold text-white mb-2">
         {question.questionText}
       </h3>
-
-      {/* Truck Driver Context */}
-      {question.truckDriverContext && (
-        <div className="bg-amber-900/20 border border-amber-700 rounded-lg p-3 mb-4 flex items-start gap-2">
-          <TruckIcon className="h-5 w-5 text-amber-400 mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-amber-200">{question.truckDriverContext}</p>
-        </div>
-      )}
 
       {/* Response Options */}
       {renderResponseOptions()}
