@@ -12,24 +12,6 @@ export default function VerifyEmailPage() {
   const [success, setSuccess] = useState(false)
   const [email, setEmail] = useState('')
 
-  useEffect(() => {
-    // Get email from session storage or URL params
-    const storedEmail = sessionStorage.getItem('pendingVerificationEmail')
-    const urlEmail = searchParams.get('email')
-    
-    if (storedEmail) {
-      setEmail(storedEmail)
-    } else if (urlEmail) {
-      setEmail(urlEmail)
-    }
-
-    // Check if there's a verification token in the URL
-    const token = searchParams.get('token')
-    if (token) {
-      verifyEmail(token)
-    }
-  }, [searchParams, verifyEmail])
-
   const verifyEmail = useCallback(async (token: string) => {
     setVerifying(true)
     setError('')
@@ -62,6 +44,24 @@ export default function VerifyEmailPage() {
       setVerifying(false)
     }
   }, [router])
+
+  useEffect(() => {
+    // Get email from session storage or URL params
+    const storedEmail = sessionStorage.getItem('pendingVerificationEmail')
+    const urlEmail = searchParams.get('email')
+    
+    if (storedEmail) {
+      setEmail(storedEmail)
+    } else if (urlEmail) {
+      setEmail(urlEmail)
+    }
+
+    // Check if there's a verification token in the URL
+    const token = searchParams.get('token')
+    if (token) {
+      verifyEmail(token)
+    }
+  }, [searchParams, verifyEmail])
 
   const resendVerification = async () => {
     if (!email) {
