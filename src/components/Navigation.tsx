@@ -3,51 +3,66 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { SearchClients } from './SearchClients'
+import { Button } from '@/components/ui/button'
 
 const Navigation = () => {
   const router = useRouter()
 
   return (
-    <nav className="bg-slate-900 border-b border-slate-700 px-6 py-3">
-      <div className="flex items-center justify-between max-w-7xl mx-auto">
-        <div className="flex items-center gap-8">
-          <Link href="/" className="text-xl font-semibold text-white hover:text-blue-400 transition-colors">
-            FNTP Clinical
-          </Link>
-                           <div className="flex items-center gap-6">
-                   <Link href="/clients" className="text-gray-300 hover:text-white transition-colors">
-                     Clients
-                   </Link>
-                                     <Link href="/admin/quick-add-client" className="text-gray-300 hover:text-white transition-colors">
-                    Quick Add Client
-                  </Link>
-                  <Link href="/notes" className="text-gray-300 hover:text-white transition-colors">
-                    Notes
-                  </Link>
-                   <Link href="/protocols" className="text-gray-300 hover:text-white transition-colors">
-                     Protocols
-                   </Link>
-                   <Link href="/quick-analysis" className="text-gray-300 hover:text-white transition-colors">
-                     Quick Analysis
-                   </Link>
-                 </div>
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-sm">
+      <div className="container flex h-16 items-center justify-between">
+        {/* Logo */}
+        <div className="flex items-center space-x-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-brand">
+            <span className="text-white font-bold text-sm">DH</span>
+          </div>
+          <span className="text-xl font-heading font-bold gradient-text">
+            DestinationHealth
+          </span>
         </div>
+
+        {/* Navigation */}
+        <nav className="flex items-center space-x-1">
+          <Button variant="ghost" asChild>
+            <Link href="/clients">Clients</Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/admin/quick-add-client">Quick Add</Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/notes">Notes</Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/protocols">Protocols</Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/assessments">Assessments</Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/quick-analysis">Analysis</Link>
+          </Button>
+        </nav>
+
+        {/* User Menu & Search */}
         <div className="flex items-center gap-4">
           <SearchClients />
-          <span className="text-sm text-gray-400">Kevin Rutherford, FNTP</span>
-          <button
-            onClick={() => {
-              fetch('/api/auth/logout', { method: 'POST' })
-                .then(() => router.push('/auth'))
-            }}
-            className="text-sm text-gray-400 hover:text-white transition-colors"
-          >
-            Logout
-          </button>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-foreground-secondary">Kevin Rutherford, FNTP</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                fetch('/api/auth/logout', { method: 'POST' })
+                  .then(() => router.push('/auth'))
+              }}
+            >
+              Logout
+            </Button>
+          </div>
         </div>
       </div>
-    </nav>
+    </header>
   )
 }
 
-export default Navigation 
+export default Navigation

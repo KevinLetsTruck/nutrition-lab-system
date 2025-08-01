@@ -3,6 +3,13 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { CheckCircle, AlertCircle } from 'lucide-react'
+import Link from 'next/link'
 
 export default function AuthPage() {
   const [mode, setMode] = useState<'register' | 'login'>('login')
@@ -32,261 +39,261 @@ export default function AuthPage() {
   // Show success message if user is already authenticated
   useEffect(() => {
     if (!authLoading && user) {
-          // Don't auto-redirect, let user click the link
+      // Don't auto-redirect, let user click the link
     }
   }, [user, authLoading])
 
   // Don't render the form if user is authenticated or still loading
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center px-6">
+      <div className="min-h-screen bg-background flex items-center justify-center px-6">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Checking authentication...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-foreground-secondary">Checking authentication...</p>
         </div>
       </div>
     )
   }
 
+  // Show success message if authenticated
   if (user) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center px-6">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Already Logged In</h2>
-          <p className="text-gray-400 mb-6">You are already authenticated as {user.email}</p>
-          <div className="space-y-3">
-            <a 
-              href="/clients" 
-              className="block w-full max-w-xs mx-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Go to Clients
-            </a>
-          </div>
-        </div>
+      <div className="min-h-screen bg-gradient-dark flex items-center justify-center px-6">
+        <Card className="w-full max-w-md border-primary/20">
+          <CardHeader className="text-center">
+            <div className="w-20 h-20 bg-gradient-brand rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-10 h-10 text-white" />
+            </div>
+            <CardTitle className="text-2xl gradient-text">You're logged in!</CardTitle>
+            <CardDescription>
+              Welcome back, {user.user_metadata?.firstName || user.email}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button className="w-full" size="lg" asChild>
+              <Link href="/dashboard">Go to Dashboard</Link>
+            </Button>
+            <Button variant="secondary" className="w-full" size="lg" asChild>
+              <Link href="/clients">View Clients</Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
-    setError('') // Clear error when user starts typing
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setError('')
+    setLoading(true)
 
     try {
       if (mode === 'register') {
-        // Validate password confirmation
         if (formData.password !== formData.confirmPassword) {
           setError('Passwords do not match')
           setLoading(false)
           return
         }
 
-        // Validate password strength
-        if (formData.password.length < 8) {
-          setError('Password must be at least 8 characters long')
-          setLoading(false)
-          return
-        }
-
-        const result = await register({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
+        const userData = {
           email: formData.email,
-          phone: formData.phone,
           password: formData.password,
-          role: isClient ? 'client' : 'admin'
-        })
+          options: {
+            data: {
+              firstName: formData.firstName,
+              lastName: formData.lastName,
+              phone: formData.phone,
+              isClient: isClient
+            }
+          }
+        }
 
-        if (result.success) {
-          // Store email in session storage for verification page
-          sessionStorage.setItem('pendingVerificationEmail', formData.email)
-          // Redirect to email verification page
-          router.push('/verify-email')
-        } else {
-          setError(result.error || 'Registration failed')
-        }
-      } else {
-        const result = await login(formData.email, formData.password)
+        await register(userData)
         
-        if (result.success) {
-          // Redirect to success page which will handle the final redirect
-          router.push('/auth/success')
-        } else {
-          setError(result.error || 'Login failed')
-        }
+        // Show success message
+        return (
+          <div className="min-h-screen bg-gradient-dark flex items-center justify-center px-6">
+            <Card className="w-full max-w-md border-success/20">
+              <CardHeader className="text-center">
+                <div className="w-20 h-20 bg-gradient-brand rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-10 h-10 text-white" />
+                </div>
+                <CardTitle className="text-2xl gradient-text">Registration Successful!</CardTitle>
+                <CardDescription>
+                  Please check your email to verify your account.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        )
+      } else {
+        await login(formData.email, formData.password)
+        router.push(isClient ? '/client-dashboard' : '/dashboard')
       }
-    } catch (error) {
-      console.error('🚨 Unexpected error in handleSubmit:', error)
-      setError('An unexpected error occurred')
+    } catch (err: any) {
+      console.error('Auth error:', err)
+      setError(err.message || 'An error occurred')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center px-6">
+    <div className="min-h-screen bg-gradient-dark flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-8 shadow-2xl">
-          <div className="text-center mb-8">
-            <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <span className="text-white font-bold text-xl">D</span>
+        {/* Logo and Title */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-brand">
+              <span className="text-white font-bold text-lg">DH</span>
             </div>
-            <h2 className="text-2xl font-bold text-white">
-              {isClient && mode === 'register' 
-                ? 'Client Registration' 
-                : mode === 'register' 
-                ? 'Create Your Account' 
-                : 'Welcome Back'}
-            </h2>
-            <p className="text-gray-400 mt-2">
-              {isClient && mode === 'register'
-                ? 'Register to begin your personalized health assessment'
-                : mode === 'register' 
-                ? 'Start your health transformation journey' 
-                : 'Continue your wellness journey'
-              }
-            </p>
+            <span className="text-2xl font-heading font-bold gradient-text">
+              DestinationHealth
+            </span>
           </div>
+          <h1 className="text-3xl font-heading font-bold text-foreground mb-2">
+            {mode === 'login' ? 'Welcome Back' : isClient ? 'Create Your Health Account' : 'Create Practitioner Account'}
+          </h1>
+          <p className="text-foreground-secondary">
+            {mode === 'login' 
+              ? 'Sign in to access your health dashboard' 
+              : isClient 
+              ? 'Start your journey to better health' 
+              : 'Join our network of health professionals'}
+          </p>
+        </div>
 
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-              <p className="text-red-400 text-sm">{error}</p>
-            </div>
-          )}
+        {/* Auth Form */}
+        <Card className="border-border shadow-2xl">
+          <CardContent className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === 'register' && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">First Name</Label>
+                      <Input
+                        id="firstName"
+                        type="text"
+                        placeholder="John"
+                        value={formData.firstName}
+                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Last Name</Label>
+                      <Input
+                        id="lastName"
+                        type="text"
+                        placeholder="Doe"
+                        value={formData.lastName}
+                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="(555) 123-4567"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    />
+                  </div>
+                </>
+              )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === 'register' && (
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  name="firstName"
-                  placeholder="First Name"
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
-                  required
-                />
-                <input
-                  type="text"
-                  name="lastName"
-                  placeholder="Last Name"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                 />
               </div>
-            )}
 
-            <input
-              type="email"
-              name="email"
-              placeholder="Email Address"
-              value={formData.email}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
-              required
-            />
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
+                />
+              </div>
 
-            {mode === 'register' && (
-              <input
-                type="tel"
-                name="phone"
-                placeholder="Phone Number"
-                value={formData.phone}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
-                required
-              />
-            )}
-
-            <input
-              type="password"
-              name="password"
-              placeholder={mode === 'register' ? 'Create Password' : 'Password'}
-              value={formData.password}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
-              required
-            />
-
-            {mode === 'register' && (
-              <input
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
-                required
-              />
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-
-              className="w-full py-3 bg-green-500 hover:bg-green-600 disabled:bg-green-600/50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
-            >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  {mode === 'register' ? 'Creating Account...' : 'Signing In...'}
+              {mode === 'register' && (
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    required
+                  />
                 </div>
-              ) : (
-                mode === 'register' ? 'Create Account' : 'Sign In'
               )}
-            </button>
-          </form>
 
-          {!isClient && (
-            <div className="text-center mt-6">
-              <button 
-                onClick={() => {
-                  setMode(mode === 'register' ? 'login' : 'register')
-                  setError('')
-                  setFormData({
-                    firstName: '',
-                    lastName: '',
-                    email: '',
-                    phone: '',
-                    password: '',
-                    confirmPassword: ''
-                  })
-                }}
-                className="text-green-400 hover:text-green-300 text-sm"
+              {error && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <AlertCircle className="w-4 h-4 text-destructive" />
+                  <p className="text-sm text-destructive">{error}</p>
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full"
+                size="lg"
+                disabled={loading}
               >
-                {mode === 'register' 
-                  ? 'Already have an account? Sign in' 
-                  : "Don't have an account? Sign up"
-                }
-              </button>
-            </div>
-          )}
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    {mode === 'login' ? 'Signing in...' : 'Creating account...'}
+                  </span>
+                ) : (
+                  mode === 'login' ? 'Sign In' : 'Create Account'
+                )}
+              </Button>
 
-          {mode === 'login' && (
-            <div className="text-center mt-4">
-              <button className="text-gray-400 hover:text-gray-300 text-sm">
-                Forgot your password?
-              </button>
-            </div>
-          )}
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+                  className="text-sm text-primary hover:text-primary-hover transition-colors"
+                >
+                  {mode === 'login' ? 'Need an account? Sign up' : 'Already have an account? Sign in'}
+                </button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
 
+        {/* Footer */}
+        <div className="mt-8 text-center">
+          <p className="text-sm text-foreground-muted">
+            By signing up, you agree to our{' '}
+            <Link href="/terms" className="text-primary hover:text-primary-hover">
+              Terms of Service
+            </Link>{' '}
+            and{' '}
+            <Link href="/privacy" className="text-primary hover:text-primary-hover">
+              Privacy Policy
+            </Link>
+          </p>
         </div>
       </div>
     </div>
   )
-} 
+}

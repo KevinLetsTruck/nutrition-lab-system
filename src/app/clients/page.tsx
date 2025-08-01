@@ -3,10 +3,14 @@
 import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Search } from 'lucide-react'
+import { Search, Plus, Archive, Users, UserCheck, Clock } from 'lucide-react'
 import Navigation from '@/components/Navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 
 interface Client {
   id: string
@@ -48,143 +52,233 @@ function ClientsContent() {
       try {
         setLoading(true)
         
-        // Test Supabase connection first
-        const { data: testData, error: testError } = await supabase
-          .from('users')
-          .select('count')
-          .limit(1)
-        
-        
-        if (testError) {
-          setClients([])
-          setLoading(false)
-          return
-        }
-        
-        // Fetch clients from the database
-        const { data: clientsData, error } = await supabase
-          .from('client_profiles')
-          .select(`
-            *,
-            users!client_profiles_user_id_fkey (
-              email,
-              email_verified,
-              created_at
-            )
-          `)
+        let query = supabase
+          .from('clients')
+          .select('*')
           .order('created_at', { ascending: false })
 
+        if (!showArchived) {
+          query = query.is('archived_at', null)
+        }
+
+        const { data, error } = await query
 
         if (error) {
-          setClients([])
-          setLoading(false)
+          console.error('Error fetching clients:', error)
           return
         }
 
-
-        // Transform the data to match the expected format
-        const transformedClients: Client[] = clientsData.map(client => ({
-          id: client.id,
-          first_name: client.first_name,
-          last_name: client.last_name,
-          email: client.users?.email || '',
-          phone: client.phone,
-          status: 'active', // client_profiles doesn't have status field
-          archived_at: null, // client_profiles doesn't have archived_at field
-          created_at: client.created_at
-        }))
-
-        setClients(transformedClients)
-        setLoading(false)
+        setClients(data || [])
       } catch (error) {
-        setClients([])
+        console.error('Error:', error)
+      } finally {
         setLoading(false)
       }
     }
 
-    if (user) {
-      fetchClients()
+    fetchClients()
+  }, [showArchived])
+
+  const filteredClients = clients.filter(client => {
+    const searchLower = searchQuery.toLowerCase()
+    return (
+      client.first_name?.toLowerCase().includes(searchLower) ||
+      client.last_name?.toLowerCase().includes(searchLower) ||
+      client.email?.toLowerCase().includes(searchLower) ||
+      client.phone?.includes(searchQuery)
+    )
+  })
+
+  const activeClients = filteredClients.filter(c => !c.archived_at)
+  const archivedClients = filteredClients.filter(c => c.archived_at)
+
+  const getStatusBadge = (status?: string) => {
+    switch (status) {
+      case 'active':
+        return <Badge variant="success">Active</Badge>
+      case 'pending':
+        return <Badge variant="warning">Pending</Badge>
+      case 'inactive':
+        return <Badge variant="secondary">Inactive</Badge>
+      default:
+        return <Badge variant="outline">New</Badge>
     }
-  }, [user])
+  }
 
-  // Don't render anything if still loading auth or not authenticated
-  if (authLoading) {
+  if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-slate-900">
+      <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-slate-700 rounded w-1/4 mb-4"></div>
-            <div className="h-4 bg-slate-700 rounded w-1/2 mb-8"></div>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-foreground-secondary">Loading clients...</p>
           </div>
         </div>
       </div>
     )
   }
 
-  if (!user) {
-    return null // Will redirect to auth
-  }
-
-
-  // Show a simple loading state while fetching clients
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-900">
-        <Navigation />
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <h1 className="text-3xl font-bold text-white mb-8">Clients</h1>
-          <div className="animate-pulse">
-            <div className="h-8 bg-slate-700 rounded w-1/4 mb-4"></div>
-            <div className="h-4 bg-slate-700 rounded w-1/2 mb-8"></div>
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-slate-800 rounded-lg p-6">
-                  <div className="h-6 bg-slate-700 rounded w-1/3 mb-2"></div>
-                  <div className="h-4 bg-slate-700 rounded w-1/2"></div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Show a simple success message even if no clients
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <h1 className="text-3xl font-bold text-white mb-8">Clients</h1>
-        
-        {clients.length === 0 ? (
-          <div className="bg-slate-800 rounded-lg p-8 text-center">
-            <p className="text-gray-400 text-lg mb-4">No clients found.</p>
-            <p className="text-gray-500 text-sm">Clients will appear here once added to the system.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {clients.map((client) => (
-              <div 
-                key={client.id} 
-                className="bg-slate-800 rounded-lg p-6 hover:bg-slate-700 transition-colors cursor-pointer"
-                onClick={() => router.push(`/client/${client.id}`)}
-              >
-                <h3 className="text-xl font-semibold text-white">
-                  {client.first_name} {client.last_name}
-                </h3>
-                <p className="text-gray-400">{client.email}</p>
-                {client.phone && (
-                  <p className="text-gray-400">{client.phone}</p>
-                )}
-                <div className="mt-4 flex items-center text-sm text-gray-500">
-                  <span>Click to view details →</span>
-                </div>
+      
+      <div className="container mx-auto py-8 px-6">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-heading font-bold gradient-text mb-2">
+            Client Management
+          </h1>
+          <p className="text-foreground-secondary text-lg">
+            Manage your client base and track health journeys
+          </p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border-emerald-500/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-foreground-secondary">Total Clients</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-emerald-400">{clients.length}</div>
+              <div className="flex items-center gap-1 mt-1">
+                <Users className="w-4 h-4 text-emerald-400/60" />
+                <span className="text-xs text-foreground-muted">All time</span>
               </div>
-            ))}
-          </div>
-        )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-foreground-secondary">Active Clients</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-blue-400">{activeClients.length}</div>
+              <div className="flex items-center gap-1 mt-1">
+                <UserCheck className="w-4 h-4 text-blue-400/60" />
+                <span className="text-xs text-foreground-muted">Currently active</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-foreground-secondary">This Month</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-purple-400">
+                {clients.filter(c => {
+                  const createdDate = new Date(c.created_at)
+                  const thisMonth = new Date()
+                  return createdDate.getMonth() === thisMonth.getMonth() && 
+                         createdDate.getFullYear() === thisMonth.getFullYear()
+                }).length}
+              </div>
+              <div className="flex items-center gap-1 mt-1">
+                <Clock className="w-4 h-4 text-purple-400/60" />
+                <span className="text-xs text-foreground-muted">New this month</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-500/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-foreground-secondary">Archived</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-orange-400">{archivedClients.length}</div>
+              <div className="flex items-center gap-1 mt-1">
+                <Archive className="w-4 h-4 text-orange-400/60" />
+                <span className="text-xs text-foreground-muted">Inactive clients</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Search and Actions */}
+        <Card className="mb-8">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-muted w-5 h-5" />
+                <Input
+                  type="text"
+                  placeholder="Search clients by name, email, or phone..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button variant={showArchived ? "secondary" : "outline"} onClick={() => setShowArchived(!showArchived)}>
+                  <Archive className="w-4 h-4 mr-2" />
+                  {showArchived ? 'Hide' : 'Show'} Archived
+                </Button>
+                <Button asChild>
+                  <Link href="/streamlined-onboarding">
+                    <Plus className="w-4 h-4 mr-2" />
+                    New Client
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Clients List */}
+        <div className="grid gap-4">
+          {filteredClients.length === 0 ? (
+            <Card>
+              <CardContent className="text-center py-12">
+                <p className="text-foreground-secondary mb-4">
+                  {searchQuery ? 'No clients found matching your search.' : 'No clients yet.'}
+                </p>
+                <Button asChild>
+                  <Link href="/streamlined-onboarding">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Your First Client
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            filteredClients.map((client) => (
+              <Card key={client.id} className="hover:border-primary/30 transition-all">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-semibold text-foreground">
+                          {client.first_name} {client.last_name}
+                        </h3>
+                        {getStatusBadge(client.status)}
+                        {client.archived_at && (
+                          <Badge variant="secondary">Archived</Badge>
+                        )}
+                      </div>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-sm text-foreground-secondary">
+                        <span>{client.email}</span>
+                        {client.phone && <span>{client.phone}</span>}
+                        <span>Added {new Date(client.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="secondary" size="sm" asChild>
+                        <Link href={`/clients/${client.id}`}>View Details</Link>
+                      </Button>
+                      <Button variant="primary" size="sm" asChild>
+                        <Link href={`/assessments/select-client?clientId=${client.id}`}>
+                          Start Assessment
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
     </div>
   )
@@ -193,17 +287,11 @@ function ClientsContent() {
 export default function ClientsPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-slate-900">
-        <Navigation />
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-slate-700 rounded w-1/4 mb-4"></div>
-            <div className="h-4 bg-slate-700 rounded w-1/2 mb-8"></div>
-          </div>
-        </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     }>
       <ClientsContent />
     </Suspense>
   )
-} 
+}

@@ -2,37 +2,97 @@
 @tailwind components;
 @tailwind utilities;
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
-}
-
 :root {
-  --background: #1e1b4b;
-  --foreground: #ffffff;
-  --card-background: #312e81;
-  --card-border: #4338ca;
-  --accent: #10b981;
+  /* Dark Theme Base Colors */
+  --background: 220 26% 8%;        /* Dark navy #0F1419 */
+  --background-secondary: 220 20% 12%; /* Slightly lighter navy #1A1F2E */
+  --background-tertiary: 220 15% 16%;  /* Card backgrounds #242938 */
+  
+  /* Text Colors */
+  --foreground: 0 0% 98%;          /* Primary white text */
+  --foreground-secondary: 0 0% 80%; /* Secondary gray text */
+  --foreground-muted: 0 0% 60%;    /* Muted text */
+  
+  /* Brand Colors */
+  --primary: 160 84% 39%;          /* Emerald green #10B981 */
+  --primary-hover: 160 84% 35%;    /* Darker emerald */
+  --primary-light: 160 84% 95%;    /* Very light emerald for backgrounds */
+  
+  /* Accent Colors */
+  --accent: 217 91% 60%;           /* Blue accent #3B82F6 */
+  --accent-purple: 268 83% 58%;    /* Purple accent #8B5CF6 */
+  --accent-orange: 25 95% 53%;     /* Orange accent #FB923C */
+  
+  /* Status Colors */
+  --success: 142 76% 36%;          /* Green success */
+  --warning: 38 92% 50%;           /* Amber warning */
+  --error: 0 84% 60%;              /* Red error */
+  
+  /* Border & Divider Colors */
+  --border: 220 13% 18%;           /* Subtle borders */
+  --border-strong: 220 13% 25%;    /* Stronger borders */
+  
+  /* Component Colors */
+  --card: var(--background-tertiary);
+  --card-hover: 220 15% 20%;
+  --input: var(--background-secondary);
+  --input-border: var(--border-strong);
+  --input-focus: var(--primary);
+  
+  /* CSS Variables for radius */
+  --radius: 0.75rem;
+}
+
+/* Global base styles */
+* {
+  border-color: hsl(var(--border));
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  min-height: 100vh;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-feature-settings: "rlig" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Enhanced Dark Theme Form Input Styles */
+/* Gradient Text Classes */
+.gradient-text {
+  background: linear-gradient(135deg, #10B981 0%, #FB923C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
+
+.gradient-text-primary {
+  background: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border-strong));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary));
+}
+
+/* Enhanced Form Styles */
 @layer components {
   /* Text Input Styling */
   input[type="email"],
@@ -40,166 +100,92 @@ body {
   input[type="date"],
   input[type="number"],
   input[type="tel"],
+  input[type="password"],
   textarea {
-    @apply w-full px-4 py-3 bg-dark-800 border border-dark-600 text-white rounded-lg shadow-sm;
-    @apply focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20;
+    @apply w-full px-4 py-3 bg-background-secondary border border-border-strong text-foreground rounded-lg shadow-sm;
+    @apply focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20;
     @apply transition-all duration-200;
+    @apply placeholder-foreground-muted;
     font-size: 16px;
-  }
-  
-  input[type="email"]::placeholder,
-  input[type="text"]::placeholder,
-  textarea::placeholder {
-    @apply text-dark-400;
   }
   
   /* Select/Dropdown Styling */
   select {
-    @apply w-full px-4 py-3 bg-dark-800 border border-dark-600 text-white rounded-lg shadow-sm;
-    @apply focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20;
+    @apply w-full px-4 py-3 bg-background-secondary border border-border-strong text-foreground rounded-lg shadow-sm;
+    @apply focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20;
     @apply transition-all duration-200 cursor-pointer;
     font-size: 16px;
   }
   
-  /* FIXED: Radix Select Component Styling - Improved for dark theme */
+  /* Radix Select Component Styling */
   [data-radix-select-trigger] {
-    @apply w-full px-4 py-3 bg-dark-800 border border-dark-600 text-white rounded-lg shadow-sm;
-    @apply focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20;
+    @apply w-full px-4 py-3 bg-background-secondary border border-border-strong text-foreground rounded-lg shadow-sm;
+    @apply focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20;
     @apply transition-all duration-200 cursor-pointer;
     font-size: 16px;
-    font-weight: 400;
-    color: #f8fafc !important; /* slate-50 - proper contrast */
   }
   
   [data-radix-select-trigger]:hover {
-    @apply bg-dark-750 border-dark-500;
-  }
-  
-  [data-radix-select-trigger]:focus {
-    @apply border-primary-500 ring-2 ring-primary-500 ring-opacity-20;
+    @apply border-primary/50;
   }
   
   [data-radix-select-content] {
-    @apply bg-dark-800 border border-dark-600 rounded-lg shadow-lg;
+    @apply bg-card border border-border rounded-lg shadow-xl;
     @apply max-h-60 overflow-y-auto;
-    background: #1e293b !important; /* slate-800 */
-    border: 1px solid rgba(148, 163, 184, 0.3) !important; /* slate-400 with opacity */
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25) !important;
     z-index: 1000;
   }
   
   [data-radix-select-item] {
-    @apply px-4 py-3 text-white cursor-pointer;
-    @apply hover:bg-dark-700 focus:bg-dark-700;
+    @apply px-4 py-3 text-foreground cursor-pointer;
+    @apply hover:bg-card-hover focus:bg-card-hover;
     @apply transition-colors duration-150;
-    display: block !important;
-    width: 100% !important;
-    text-align: left !important;
-    background: transparent !important;
-    border: none !important;
-    font-size: 16px !important;
-    color: #f8fafc !important; /* slate-50 */
   }
   
-  [data-radix-select-item]:hover {
-    background: rgba(71, 85, 105, 0.5) !important; /* slate-600 with opacity */
-  }
-  
-  [data-radix-select-item][data-highlighted] {
-    background: rgba(71, 85, 105, 0.7) !important; /* slate-600 with more opacity */
-  }
-  
-  [data-radix-select-item]:first-child {
-    border-radius: 8px 8px 0 0 !important;
-  }
-  
-  [data-radix-select-item]:last-child {
-    border-radius: 0 0 8px 8px !important;
-  }
-  
-  /* FIXED: Select trigger icon styling */
-  [data-radix-select-trigger] svg {
-    color: #94a3b8 !important; /* slate-400 */
-    opacity: 0.5;
-  }
-  
-  /* FIXED: Select value placeholder styling */
-  [data-radix-select-trigger] span {
-    color: #94a3b8 !important; /* slate-400 for placeholder */
-  }
-  
-  [data-radix-select-trigger][data-value] span {
-    color: #f8fafc !important; /* slate-50 for selected value */
-  }
-  
-  /* Card styles */
-  .card {
-    @apply bg-dark-800 border border-dark-700 rounded-xl shadow-lg backdrop-blur-sm;
-  }
-  
-  /* Additional dark theme colors */
-  .bg-dark-750 {
-    background-color: rgb(51 65 85 / 0.8);
-  }
-  
-  /* Button variants */
-  .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl;
-  }
-  
-  .btn-secondary {
-    @apply bg-dark-700 hover:bg-dark-600 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 border border-dark-600;
-  }
-  
-  .btn-ghost {
-    @apply bg-transparent hover:bg-dark-700 text-dark-300 hover:text-white font-medium px-6 py-3 rounded-lg transition-all duration-200;
-  }
-  
-  /* Form field spacing */
-  .form-field {
-    @apply space-y-2;
-  }
-  
-  /* Medication/Supplement item styling */
-  .medication-item {
-    @apply flex items-center justify-between p-3 bg-dark-700 border border-dark-600 rounded-lg;
-    @apply transition-all duration-200;
-  }
-  
-  .medication-item:hover {
-    @apply bg-dark-700 border-dark-500;
-  }
-  
-  /* FIXED: Checkbox styling for better visibility */
+  /* Checkbox styling */
   [data-radix-checkbox] {
-    @apply border-dark-500 bg-dark-800;
+    @apply border-border-strong bg-background-secondary;
   }
   
   [data-radix-checkbox][data-state="checked"] {
-    @apply bg-primary-600 border-primary-600;
+    @apply bg-primary border-primary;
   }
   
   [data-radix-checkbox]:hover {
-    @apply border-primary-500;
+    @apply border-primary/50;
   }
   
-  /* FIXED: Label styling for better contrast */
+  /* Label styling */
   label {
-    color: #f8fafc !important; /* slate-50 */
-    font-weight: 500;
+    @apply text-foreground font-medium;
   }
   
-  /* FIXED: Error message styling */
-  .text-red-400 {
-    color: #f87171 !important; /* red-400 */
+  /* Loading spinner */
+  .animate-spin {
+    animation: spin 1s linear infinite;
   }
   
-  /* FIXED: Success/primary color consistency */
-  .text-primary-400 {
-    color: #34d399 !important; /* primary-400 */
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
   
-  .text-primary-500 {
-    color: #10b981 !important; /* primary-500 */
+  /* Fade animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
   }
 }
