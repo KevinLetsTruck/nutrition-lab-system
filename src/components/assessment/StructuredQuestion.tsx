@@ -43,11 +43,13 @@ export function StructuredQuestion({ question, onResponse, isLoading }: Props) {
   const renderScaleButtons = () => {
     // Check if this is asking about severity/symptoms vs quality/rating
     const questionText = question.questionText.toLowerCase();
-    const isSymptomQuestion = questionText.includes('pain') || 
-                             questionText.includes('discomfort') || 
-                             questionText.includes('symptom') ||
-                             questionText.includes('issue') ||
-                             questionText.includes('problem');
+    const isSymptomQuestion = (questionText.includes('pain') || 
+                              questionText.includes('discomfort') || 
+                              questionText.includes('symptom') ||
+                              questionText.includes('issue') ||
+                              questionText.includes('problem')) &&
+                             !questionText.includes('quality') &&
+                             !questionText.includes('rate');
     
     const scaleLabels = isSymptomQuestion 
       ? ['None', 'Mild', 'Moderate', 'Severe']
@@ -57,11 +59,17 @@ export function StructuredQuestion({ question, onResponse, isLoading }: Props) {
       ? ['No symptoms', 'Occasional', 'Regular issue', 'Major impact']
       : ['Significant issues', 'Some problems', 'Generally good', 'Very good'];
       
-    const scaleColors = [
+    // Reverse colors for quality questions (poor=red, excellent=green)
+    const scaleColors = isSymptomQuestion ? [
       'bg-green-900/20 border-green-600 hover:bg-green-900/30',
       'bg-yellow-900/20 border-yellow-600 hover:bg-yellow-900/30',
       'bg-orange-900/20 border-orange-600 hover:bg-orange-900/30',
       'bg-red-900/20 border-red-600 hover:bg-red-900/30'
+    ] : [
+      'bg-red-900/20 border-red-600 hover:bg-red-900/30',
+      'bg-orange-900/20 border-orange-600 hover:bg-orange-900/30',
+      'bg-yellow-900/20 border-yellow-600 hover:bg-yellow-900/30',
+      'bg-green-900/20 border-green-600 hover:bg-green-900/30'
     ];
 
     return (
