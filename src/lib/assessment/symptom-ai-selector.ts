@@ -35,18 +35,13 @@ export interface StructuredQuestion {
 }
 
 export class SymptomFocusedAI {
-  private claudeClient: ClaudeClient | null = null;
-  
   private getClaudeClient(): ClaudeClient | null {
-    if (!this.claudeClient) {
-      const apiKey = process.env.ANTHROPIC_API_KEY;
-      if (!apiKey) {
-        console.error('ANTHROPIC_API_KEY not configured');
-        return null;
-      }
-      this.claudeClient = new ClaudeClient(apiKey);
+    try {
+      return ClaudeClient.getInstance();
+    } catch (error) {
+      console.error('Failed to get ClaudeClient instance:', error);
+      return null;
     }
-    return this.claudeClient;
   }
   
   async selectNextQuestion(
@@ -101,7 +96,7 @@ export class SymptomFocusedAI {
     }
     
     // If we have patterns, try to select relevant questions
-    if (patterns.length > 0 && this.claudeClient) {
+    if (patterns.length > 0 && this.getClaudeClient()) {
       const selectedQuestion = await this.aiSelectRelevantQuestion(unaskedQuestions, responses, patterns, section);
       if (selectedQuestion) return selectedQuestion;
     }
