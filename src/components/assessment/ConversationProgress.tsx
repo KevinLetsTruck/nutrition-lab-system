@@ -156,7 +156,7 @@ export function ConversationProgress({
       case 'validated':
         return <CheckCircle className="h-5 w-5 text-green-700 fill-current" />;
       default:
-        return <Circle className="h-5 w-5 text-gray-400" />;
+        return <Circle className="h-5 w-5 text-foreground-muted" />;
     }
   };
 
@@ -166,7 +166,7 @@ export function ConversationProgress({
       <Card className="p-4">
         <h3 className="font-semibold mb-3">Assessment Progress</h3>
         <Progress value={overallProgress} className="mb-2" />
-        <div className="flex justify-between text-sm text-gray-600">
+        <div className="flex justify-between text-sm text-foreground-secondary">
           <span>{Math.round(overallProgress)}% Complete</span>
           <span>{totalDuration} min</span>
         </div>
@@ -183,8 +183,8 @@ export function ConversationProgress({
                 className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <Circle className="h-5 w-5 text-gray-400" />
-                  <span className="text-sm text-gray-600">{section.label}</span>
+                  <Circle className="h-5 w-5 text-foreground-muted" />
+                  <span className="text-sm text-foreground-secondary">{section.label}</span>
                 </div>
               </div>
             ))
@@ -226,13 +226,13 @@ export function ConversationProgress({
           </div>
           <div className="space-y-2">
             {detectedPatterns.slice(0, 3).map((pattern, idx) => (
-              <div key={idx} className="text-sm text-gray-700 flex items-start gap-2">
+              <div key={idx} className="text-sm text-foreground-secondary flex items-start gap-2">
                 <span className="text-amber-600 mt-1">•</span>
                 <span>{pattern}</span>
               </div>
             ))}
             {detectedPatterns.length > 3 && (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-foreground-muted">
                 +{detectedPatterns.length - 3} more patterns
               </p>
             )}
@@ -242,7 +242,7 @@ export function ConversationProgress({
 
       {/* Time Estimate */}
       <Card className="p-4 bg-gray-50">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
+        <div className="flex items-center gap-2 text-sm text-foreground-secondary">
           <Clock className="h-4 w-4" />
           <span>Estimated time remaining: {15 - Math.floor(overallProgress / 100 * 15)} min</span>
         </div>

@@ -47,7 +47,7 @@ const ClinicalInsights: React.FC<ClinicalInsightsProps> = ({ data, mode, onHighl
   return (
     <Card className={`${isCoachingMode ? 'text-lg' : ''} border-orange-500/50`}>
       <CardHeader>
-        <CardTitle className={`text-white ${isCoachingMode ? 'text-2xl' : ''} flex items-center gap-2`}>
+        <CardTitle className={`text-foreground ${isCoachingMode ? 'text-2xl' : ''} flex items-center gap-2`}>
           <span>🧬</span>
           Clinical Insights (Practitioner Only)
         </CardTitle>
@@ -58,13 +58,13 @@ const ClinicalInsights: React.FC<ClinicalInsightsProps> = ({ data, mode, onHighl
           {/* Functional Medicine Correlations */}
           <div>
             <div 
-              className="flex items-center justify-between cursor-pointer p-3 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors"
+              className="flex items-center justify-between cursor-pointer p-3 bg-card rounded-lg hover:bg-card-hover transition-colors"
               onClick={() => toggleSection('functional')}
             >
-              <h3 className={`font-semibold text-white ${isCoachingMode ? 'text-xl' : ''}`}>
+              <h3 className={`font-semibold text-foreground ${isCoachingMode ? 'text-xl' : ''}`}>
                 Functional Medicine Correlations
               </h3>
-              <span className="text-gray-400">
+              <span className="text-foreground-secondary">
                 {expandedSections.has('functional') ? '−' : '+'}
               </span>
             </div>
@@ -73,30 +73,30 @@ const ClinicalInsights: React.FC<ClinicalInsightsProps> = ({ data, mode, onHighl
               <div className="mt-4 space-y-4">
                 {/* HPA Axis Assessment */}
                 <div className="p-4 bg-purple-900/20 border-l-4 border-purple-500 rounded-lg">
-                  <h4 className={`font-medium text-white mb-2 ${isCoachingMode ? 'text-lg' : ''}`}>
+                  <h4 className={`font-medium text-foreground mb-2 ${isCoachingMode ? 'text-lg' : ''}`}>
                     HPA Axis Assessment
                   </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Stress Score:</span>
-                      <Badge variant={data.nutriqData.bodySystems.stress.score >= 7 ? 'orange' : 'default'}>
+                      <span className="text-foreground-secondary">Stress Score:</span>
+                      <Badge variant={data.nutriqData.bodySystems.stress.score >= 7 ? 'warning' : 'default'}>
                         {data.nutriqData.bodySystems.stress.score}/10
                       </Badge>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Sleep Score:</span>
-                      <Badge variant={data.nutriqData.bodySystems.sleep.score >= 7 ? 'orange' : 'default'}>
+                      <span className="text-foreground-secondary">Sleep Score:</span>
+                      <Badge variant={data.nutriqData.bodySystems.sleep.score >= 7 ? 'warning' : 'default'}>
                         {data.nutriqData.bodySystems.sleep.score}/10
                       </Badge>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Energy Score:</span>
-                      <Badge variant={data.nutriqData.bodySystems.energy.score >= 7 ? 'orange' : 'default'}>
+                      <span className="text-foreground-secondary">Energy Score:</span>
+                      <Badge variant={data.nutriqData.bodySystems.energy.score >= 7 ? 'warning' : 'default'}>
                         {data.nutriqData.bodySystems.energy.score}/10
                       </Badge>
                     </div>
                   </div>
-                  <p className="text-gray-300 text-sm mt-3">
+                  <p className="text-foreground-secondary text-sm mt-3">
                     {data.nutriqData.bodySystems.stress.score >= 7 && data.nutriqData.bodySystems.sleep.score >= 7 
                       ? 'High likelihood of HPA axis dysregulation. Consider cortisol testing and adaptogenic support.'
                       : 'HPA axis appears relatively stable. Focus on foundational support.'
@@ -106,24 +106,24 @@ const ClinicalInsights: React.FC<ClinicalInsightsProps> = ({ data, mode, onHighl
 
                 {/* Gut-Brain Axis */}
                 <div className="p-4 bg-green-900/20 border-l-4 border-green-500 rounded-lg">
-                  <h4 className={`font-medium text-white mb-2 ${isCoachingMode ? 'text-lg' : ''}`}>
+                  <h4 className={`font-medium text-foreground mb-2 ${isCoachingMode ? 'text-lg' : ''}`}>
                     Gut-Brain Axis Assessment
                   </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Digestion Score:</span>
-                      <Badge variant={data.nutriqData.bodySystems.digestion.score >= 7 ? 'orange' : 'default'}>
+                      <span className="text-foreground-secondary">Digestion Score:</span>
+                      <Badge variant={data.nutriqData.bodySystems.digestion.score >= 7 ? 'warning' : 'default'}>
                         {data.nutriqData.bodySystems.digestion.score}/10
                       </Badge>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Mood Score:</span>
-                      <Badge variant={data.nutriqData.bodySystems.mood.score >= 7 ? 'orange' : 'default'}>
+                      <span className="text-foreground-secondary">Mood Score:</span>
+                      <Badge variant={data.nutriqData.bodySystems.mood.score >= 7 ? 'warning' : 'default'}>
                         {data.nutriqData.bodySystems.mood.score}/10
                       </Badge>
                     </div>
                   </div>
-                  <p className="text-gray-300 text-sm mt-3">
+                  <p className="text-foreground-secondary text-sm mt-3">
                     {data.nutriqData.bodySystems.digestion.score >= 7 && data.nutriqData.bodySystems.mood.score >= 7
                       ? 'Strong gut-brain connection indicated. Prioritize gut healing protocols.'
                       : 'Moderate gut-brain connection. Consider targeted gut support.'
@@ -133,18 +133,18 @@ const ClinicalInsights: React.FC<ClinicalInsightsProps> = ({ data, mode, onHighl
 
                 {/* Immune-Inflammatory Axis */}
                 <div className="p-4 bg-red-900/20 border-l-4 border-red-500 rounded-lg">
-                  <h4 className={`font-medium text-white mb-2 ${isCoachingMode ? 'text-lg' : ''}`}>
+                  <h4 className={`font-medium text-foreground mb-2 ${isCoachingMode ? 'text-lg' : ''}`}>
                     Immune-Inflammatory Axis
                   </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Immunity Score:</span>
-                      <Badge variant={data.nutriqData.bodySystems.immunity.score >= 7 ? 'orange' : 'default'}>
+                      <span className="text-foreground-secondary">Immunity Score:</span>
+                      <Badge variant={data.nutriqData.bodySystems.immunity.score >= 7 ? 'warning' : 'default'}>
                         {data.nutriqData.bodySystems.immunity.score}/10
                       </Badge>
                     </div>
                   </div>
-                  <p className="text-gray-300 text-sm mt-3">
+                  <p className="text-foreground-secondary text-sm mt-3">
                     {data.nutriqData.bodySystems.immunity.score >= 7
                       ? 'High inflammatory load detected. Consider anti-inflammatory protocols and immune support.'
                       : 'Moderate immune function. Focus on foundational immune support.'
@@ -159,13 +159,13 @@ const ClinicalInsights: React.FC<ClinicalInsightsProps> = ({ data, mode, onHighl
           {data.client.truckDriver && (
             <div>
               <div 
-                className="flex items-center justify-between cursor-pointer p-3 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors"
+                className="flex items-center justify-between cursor-pointer p-3 bg-card rounded-lg hover:bg-card-hover transition-colors"
                 onClick={() => toggleSection('truck')}
               >
-                <h3 className={`font-semibold text-white ${isCoachingMode ? 'text-xl' : ''}`}>
+                <h3 className={`font-semibold text-foreground ${isCoachingMode ? 'text-xl' : ''}`}>
                   🚛 Truck Driver Risk Factors
                 </h3>
-                <span className="text-gray-400">
+                <span className="text-foreground-secondary">
                   {expandedSections.has('truck') ? '−' : '+'}
                 </span>
               </div>
@@ -174,10 +174,10 @@ const ClinicalInsights: React.FC<ClinicalInsightsProps> = ({ data, mode, onHighl
                 <div className="mt-4 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 bg-orange-900/20 border-l-4 border-orange-500 rounded-lg">
-                      <h4 className={`font-medium text-white mb-2 ${isCoachingMode ? 'text-lg' : ''}`}>
+                      <h4 className={`font-medium text-foreground mb-2 ${isCoachingMode ? 'text-lg' : ''}`}>
                         Lifestyle Risk Factors
                       </h4>
-                      <ul className="space-y-1 text-sm text-gray-300">
+                      <ul className="space-y-1 text-sm text-foreground-secondary">
                         <li>• Irregular sleep patterns</li>
                         <li>• Limited access to healthy food</li>
                         <li>• Prolonged sitting</li>
@@ -187,10 +187,10 @@ const ClinicalInsights: React.FC<ClinicalInsightsProps> = ({ data, mode, onHighl
                     </div>
                     
                     <div className="p-4 bg-yellow-900/20 border-l-4 border-yellow-500 rounded-lg">
-                      <h4 className={`font-medium text-white mb-2 ${isCoachingMode ? 'text-lg' : ''}`}>
+                      <h4 className={`font-medium text-foreground mb-2 ${isCoachingMode ? 'text-lg' : ''}`}>
                         Health Risk Factors
                       </h4>
-                      <ul className="space-y-1 text-sm text-gray-300">
+                      <ul className="space-y-1 text-sm text-foreground-secondary">
                         <li>• Increased cardiovascular risk</li>
                         <li>• Metabolic syndrome risk</li>
                         <li>• Vitamin D deficiency</li>
@@ -201,10 +201,10 @@ const ClinicalInsights: React.FC<ClinicalInsightsProps> = ({ data, mode, onHighl
                   </div>
                   
                   <div className="p-4 bg-blue-900/20 border-l-4 border-blue-500 rounded-lg">
-                    <h4 className={`font-medium text-white mb-2 ${isCoachingMode ? 'text-lg' : ''}`}>
+                    <h4 className={`font-medium text-foreground mb-2 ${isCoachingMode ? 'text-lg' : ''}`}>
                       Intervention Considerations
                     </h4>
-                    <ul className="space-y-1 text-sm text-gray-300">
+                    <ul className="space-y-1 text-sm text-foreground-secondary">
                       <li>• Focus on non-refrigerated supplements</li>
                       <li>• Schedule protocols around drive times</li>
                       <li>• Emphasize meal prep strategies</li>
@@ -220,17 +220,17 @@ const ClinicalInsights: React.FC<ClinicalInsightsProps> = ({ data, mode, onHighl
           {/* Intervention Success Likelihood */}
           <div>
             <div 
-              className="flex items-center justify-between cursor-pointer p-3 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors"
+              className="flex items-center justify-between cursor-pointer p-3 bg-card rounded-lg hover:bg-card-hover transition-colors"
               onClick={() => toggleSection('intervention')}
             >
-              <h3 className={`font-semibold text-white ${isCoachingMode ? 'text-xl' : ''}`}>
+              <h3 className={`font-semibold text-foreground ${isCoachingMode ? 'text-xl' : ''}`}>
                 Intervention Success Assessment
               </h3>
               <div className="flex items-center gap-2">
-                <Badge variant={interventionLikelihood.color === 'destructive' ? 'orange' : interventionLikelihood.color === 'secondary' ? 'default' : 'blue'}>
+                <Badge variant={interventionLikelihood.color === 'destructive' ? 'warning' : interventionLikelihood.color === 'secondary' ? 'default' : 'secondary'}>
                   {interventionLikelihood.level}
                 </Badge>
-                <span className="text-gray-400">
+                <span className="text-foreground-secondary">
                   {expandedSections.has('intervention') ? '−' : '+'}
                 </span>
               </div>
@@ -239,17 +239,17 @@ const ClinicalInsights: React.FC<ClinicalInsightsProps> = ({ data, mode, onHighl
             {expandedSections.has('intervention') && (
               <div className="mt-4 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-slate-700 rounded-lg">
-                    <h4 className={`font-medium text-white mb-3 ${isCoachingMode ? 'text-lg' : ''}`}>
+                  <div className="p-4 bg-card rounded-lg">
+                    <h4 className={`font-medium text-foreground mb-3 ${isCoachingMode ? 'text-lg' : ''}`}>
                       Success Probability
                     </h4>
                     <div className="space-y-3">
                       <div>
                         <div className="flex justify-between text-sm mb-1">
-                          <span className="text-gray-300">Intervention Success:</span>
-                          <span className="text-white font-medium">{interventionLikelihood.percentage}</span>
+                          <span className="text-foreground-secondary">Intervention Success:</span>
+                          <span className="text-foreground font-medium">{interventionLikelihood.percentage}</span>
                         </div>
-                        <div className="w-full bg-slate-600 rounded-full h-2">
+                        <div className="w-full bg-background-secondary rounded-full h-2">
                           <div 
                             className={`h-2 rounded-full transition-all duration-300 ${
                               interventionLikelihood.color === 'destructive' ? 'bg-red-500' :
@@ -265,8 +265,8 @@ const ClinicalInsights: React.FC<ClinicalInsightsProps> = ({ data, mode, onHighl
                       
                       <div>
                         <div className="flex justify-between text-sm mb-1">
-                          <span className="text-gray-300">Risk Level:</span>
-                          <Badge variant={riskLevel.color === 'destructive' ? 'orange' : riskLevel.color === 'secondary' ? 'default' : 'blue'} className="text-xs">
+                          <span className="text-foreground-secondary">Risk Level:</span>
+                          <Badge variant={riskLevel.color === 'destructive' ? 'warning' : riskLevel.color === 'secondary' ? 'default' : 'secondary'} className="text-xs">
                             {riskLevel.level}
                           </Badge>
                         </div>
@@ -274,25 +274,25 @@ const ClinicalInsights: React.FC<ClinicalInsightsProps> = ({ data, mode, onHighl
                     </div>
                   </div>
                   
-                  <div className="p-4 bg-slate-700 rounded-lg">
-                    <h4 className={`font-medium text-white mb-3 ${isCoachingMode ? 'text-lg' : ''}`}>
+                  <div className="p-4 bg-card rounded-lg">
+                    <h4 className={`font-medium text-foreground mb-3 ${isCoachingMode ? 'text-lg' : ''}`}>
                       Key Factors
                     </h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-300">Motivation Level:</span>
-                        <Badge variant="blue">High</Badge>
+                        <span className="text-foreground-secondary">Motivation Level:</span>
+                        <Badge variant="secondary">High</Badge>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-300">Compliance History:</span>
+                        <span className="text-foreground-secondary">Compliance History:</span>
                         <Badge variant="default">Moderate</Badge>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-300">Support System:</span>
-                        <Badge variant="blue">Good</Badge>
+                        <span className="text-foreground-secondary">Support System:</span>
+                        <Badge variant="secondary">Good</Badge>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-300">Financial Resources:</span>
+                        <span className="text-foreground-secondary">Financial Resources:</span>
                         <Badge variant="default">Adequate</Badge>
                       </div>
                     </div>
@@ -300,10 +300,10 @@ const ClinicalInsights: React.FC<ClinicalInsightsProps> = ({ data, mode, onHighl
                 </div>
                 
                 <div className="p-4 bg-green-900/20 border-l-4 border-green-500 rounded-lg">
-                  <h4 className={`font-medium text-white mb-2 ${isCoachingMode ? 'text-lg' : ''}`}>
+                  <h4 className={`font-medium text-foreground mb-2 ${isCoachingMode ? 'text-lg' : ''}`}>
                     Recommendations for Success
                   </h4>
-                  <ul className="space-y-1 text-sm text-gray-300">
+                  <ul className="space-y-1 text-sm text-foreground-secondary">
                     <li>• Start with foundational protocols to build confidence</li>
                     <li>• Provide clear, simple instructions for truck stop compliance</li>
                     <li>• Schedule regular check-ins to maintain motivation</li>
@@ -318,13 +318,13 @@ const ClinicalInsights: React.FC<ClinicalInsightsProps> = ({ data, mode, onHighl
           {/* Red Flags & Referrals */}
           <div>
             <div 
-              className="flex items-center justify-between cursor-pointer p-3 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors"
+              className="flex items-center justify-between cursor-pointer p-3 bg-card rounded-lg hover:bg-card-hover transition-colors"
               onClick={() => toggleSection('redflags')}
             >
-              <h3 className={`font-semibold text-white ${isCoachingMode ? 'text-xl' : ''}`}>
+              <h3 className={`font-semibold text-foreground ${isCoachingMode ? 'text-xl' : ''}`}>
                 ⚠️ Red Flags & Referral Needs
               </h3>
-              <span className="text-gray-400">
+              <span className="text-foreground-secondary">
                 {expandedSections.has('redflags') ? '−' : '+'}
               </span>
             </div>
@@ -333,10 +333,10 @@ const ClinicalInsights: React.FC<ClinicalInsightsProps> = ({ data, mode, onHighl
               <div className="mt-4 space-y-4">
                 {data.nutriqData.totalScore >= 45 ? (
                   <div className="p-4 bg-red-900/20 border-l-4 border-red-500 rounded-lg">
-                    <h4 className={`font-medium text-white mb-2 ${isCoachingMode ? 'text-lg' : ''}`}>
+                    <h4 className={`font-medium text-foreground mb-2 ${isCoachingMode ? 'text-lg' : ''}`}>
                       High Priority Referrals
                     </h4>
-                    <ul className="space-y-1 text-sm text-gray-300">
+                    <ul className="space-y-1 text-sm text-foreground-secondary">
                       <li>• Consider referral to functional medicine physician</li>
                       <li>• Evaluate need for comprehensive lab testing</li>
                       <li>• Assess for underlying chronic conditions</li>
@@ -345,10 +345,10 @@ const ClinicalInsights: React.FC<ClinicalInsightsProps> = ({ data, mode, onHighl
                   </div>
                 ) : (
                   <div className="p-4 bg-green-900/20 border-l-4 border-green-500 rounded-lg">
-                    <h4 className={`font-medium text-white mb-2 ${isCoachingMode ? 'text-lg' : ''}`}>
+                    <h4 className={`font-medium text-foreground mb-2 ${isCoachingMode ? 'text-lg' : ''}`}>
                       No Immediate Red Flags
                     </h4>
-                    <p className="text-gray-300 text-sm">
+                    <p className="text-foreground-secondary text-sm">
                       Client appears suitable for nutrition coaching protocols. Monitor progress and adjust as needed.
                     </p>
                   </div>

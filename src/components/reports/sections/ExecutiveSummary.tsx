@@ -58,7 +58,7 @@ const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({ data, mode, onHighl
                       {system}
                     </span>
                     <Badge 
-                      variant={score >= 7 ? 'orange' : score >= 5 ? 'default' : 'blue'}
+                      variant={score >= 7 ? 'warning' : score >= 5 ? 'default' : 'secondary'}
                       className="ml-2"
                     >
                       {score}/10

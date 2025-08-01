@@ -64,9 +64,9 @@ export default function AuthPage() {
             <div className="w-20 h-20 bg-gradient-brand rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="w-10 h-10 text-white" />
             </div>
-            <CardTitle className="text-2xl gradient-text">You're logged in!</CardTitle>
+            <CardTitle className="text-2xl gradient-text">You&apos;re logged in!</CardTitle>
             <CardDescription>
-              Welcome back, {user.user_metadata?.firstName || user.email}
+              Welcome back, {user.email}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -98,14 +98,10 @@ export default function AuthPage() {
         const userData = {
           email: formData.email,
           password: formData.password,
-          options: {
-            data: {
-              firstName: formData.firstName,
-              lastName: formData.lastName,
-              phone: formData.phone,
-              isClient: isClient
-            }
-          }
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phone: formData.phone,
+          isClient: isClient
         }
 
         await register(userData)

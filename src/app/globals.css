@@ -102,56 +102,95 @@ body {
   input[type="tel"],
   input[type="password"],
   textarea {
-    @apply w-full px-4 py-3 bg-background-secondary border border-border-strong text-foreground rounded-lg shadow-sm;
-    @apply focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20;
+    @apply w-full px-4 py-3 rounded-lg shadow-sm;
     @apply transition-all duration-200;
-    @apply placeholder-foreground-muted;
+    background-color: hsl(var(--input));
+    border: 1px solid hsl(var(--input-border));
+    color: hsl(var(--foreground));
     font-size: 16px;
+  }
+  
+  input::placeholder,
+  textarea::placeholder {
+    color: hsl(var(--foreground-muted));
+  }
+  
+  input:focus,
+  textarea:focus {
+    outline: none;
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
   }
   
   /* Select/Dropdown Styling */
   select {
-    @apply w-full px-4 py-3 bg-background-secondary border border-border-strong text-foreground rounded-lg shadow-sm;
-    @apply focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20;
-    @apply transition-all duration-200 cursor-pointer;
+    @apply w-full px-4 py-3 rounded-lg shadow-sm transition-all duration-200 cursor-pointer;
+    background-color: hsl(var(--input));
+    border: 1px solid hsl(var(--input-border));
+    color: hsl(var(--foreground));
     font-size: 16px;
+  }
+  
+  select:focus {
+    outline: none;
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
   }
   
   /* Radix Select Component Styling */
   [data-radix-select-trigger] {
-    @apply w-full px-4 py-3 bg-background-secondary border border-border-strong text-foreground rounded-lg shadow-sm;
-    @apply focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20;
-    @apply transition-all duration-200 cursor-pointer;
+    @apply w-full px-4 py-3 rounded-lg shadow-sm transition-all duration-200 cursor-pointer;
+    background-color: hsl(var(--input));
+    border: 1px solid hsl(var(--input-border));
+    color: hsl(var(--foreground));
     font-size: 16px;
   }
   
   [data-radix-select-trigger]:hover {
-    @apply border-primary/50;
+    border-color: hsl(var(--primary) / 0.5);
+  }
+  
+  [data-radix-select-trigger]:focus {
+    outline: none;
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
   }
   
   [data-radix-select-content] {
-    @apply bg-card border border-border rounded-lg shadow-xl;
-    @apply max-h-60 overflow-y-auto;
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.5rem;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    max-height: 15rem;
+    overflow-y: auto;
     z-index: 1000;
   }
   
   [data-radix-select-item] {
-    @apply px-4 py-3 text-foreground cursor-pointer;
-    @apply hover:bg-card-hover focus:bg-card-hover;
-    @apply transition-colors duration-150;
+    padding: 0.75rem 1rem;
+    color: hsl(var(--foreground));
+    cursor: pointer;
+    transition: background-color 150ms;
+  }
+  
+  [data-radix-select-item]:hover,
+  [data-radix-select-item]:focus {
+    background-color: hsl(var(--card-hover));
   }
   
   /* Checkbox styling */
   [data-radix-checkbox] {
-    @apply border-border-strong bg-background-secondary;
+    background-color: hsl(var(--background-secondary));
+    border: 1px solid hsl(var(--border-strong));
   }
   
   [data-radix-checkbox][data-state="checked"] {
-    @apply bg-primary border-primary;
+    background-color: hsl(var(--primary));
+    border-color: hsl(var(--primary));
   }
   
   [data-radix-checkbox]:hover {
-    @apply border-primary/50;
+    border-color: hsl(var(--primary) / 0.5);
   }
   
   /* Label styling */

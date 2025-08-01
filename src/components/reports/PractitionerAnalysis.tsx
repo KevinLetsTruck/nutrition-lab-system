@@ -231,12 +231,12 @@ const PractitionerAnalysis: React.FC<PractitionerAnalysisProps> = ({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-900">
+      <div className="min-h-screen bg-background">
         <Navigation />
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-gray-400">Loading practitioner analysis...</p>
+            <p className="text-foreground-secondary">Loading practitioner analysis...</p>
           </div>
         </div>
       </div>
@@ -245,7 +245,7 @@ const PractitionerAnalysis: React.FC<PractitionerAnalysisProps> = ({
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-900">
+      <div className="min-h-screen bg-background">
         <Navigation />
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
           <div className="text-center">
@@ -261,11 +261,11 @@ const PractitionerAnalysis: React.FC<PractitionerAnalysisProps> = ({
 
   if (!report) {
     return (
-      <div className="min-h-screen bg-slate-900">
+      <div className="min-h-screen bg-background">
         <Navigation />
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
           <div className="text-center">
-            <p className="text-gray-400">No report data available</p>
+            <p className="text-foreground-secondary">No report data available</p>
           </div>
         </div>
       </div>
@@ -273,18 +273,18 @@ const PractitionerAnalysis: React.FC<PractitionerAnalysisProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-background">
       <Navigation />
       
       <div className="max-w-6xl mx-auto p-6">
         {/* Header with controls */}
-        <div className="bg-slate-800 rounded-lg p-6 mb-6">
+        <div className="bg-card rounded-lg p-6 mb-6">
           <div className="flex justify-between items-center mb-4">
             <div>
               <h1 className="text-2xl font-bold text-white mb-2">
                 Practitioner Analysis Report
               </h1>
-              <p className="text-gray-400">
+              <p className="text-foreground-secondary">
                 {report.client.name} • Session: {sessionDate.toLocaleDateString()}
               </p>
             </div>
@@ -298,13 +298,13 @@ const PractitionerAnalysis: React.FC<PractitionerAnalysisProps> = ({
                 {isGenerating ? 'Generating...' : 'Generate AI Analysis'}
               </Button>
               
-              <div className="flex border border-gray-600 rounded-lg">
+              <div className="flex border border-border rounded-lg">
                 <button
                   onClick={() => setMode('full')}
                   className={`px-4 py-2 text-sm font-medium transition-colors ${
                     mode === 'full' 
                       ? 'bg-blue-600 text-white' 
-                      : 'text-gray-400 hover:text-white'
+                      : 'text-foreground-secondary hover:text-foreground'
                   }`}
                 >
                   Full Report
@@ -314,7 +314,7 @@ const PractitionerAnalysis: React.FC<PractitionerAnalysisProps> = ({
                   className={`px-4 py-2 text-sm font-medium transition-colors ${
                     mode === 'coaching' 
                       ? 'bg-blue-600 text-white' 
-                      : 'text-gray-400 hover:text-white'
+                      : 'text-foreground-secondary hover:text-foreground'
                   }`}
                 >
                   Coaching View
@@ -331,13 +331,13 @@ const PractitionerAnalysis: React.FC<PractitionerAnalysisProps> = ({
           </div>
 
           {/* Version info */}
-          <div className="flex items-center gap-4 text-sm text-gray-400">
+          <div className="flex items-center gap-4 text-sm text-foreground-secondary">
             <span>Version: {report.version.generatedAt.toLocaleDateString()}</span>
-            <Badge variant={report.version.generatedBy === 'ai' ? 'blue' : 'default'}>
+            <Badge variant={report.version.generatedBy === 'ai' ? 'secondary' : 'default'}>
               {report.version.generatedBy === 'ai' ? 'AI Generated' : 'Manual'}
             </Badge>
             {report.client.truckDriver && (
-              <Badge variant="orange" className="text-orange-400 border-orange-400">
+              <Badge variant="warning" className="text-accent-orange border-accent-orange">
                 Truck Driver
               </Badge>
             )}
@@ -393,12 +393,12 @@ const PractitionerAnalysis: React.FC<PractitionerAnalysisProps> = ({
                       <p className="text-white text-sm">{highlight.text}</p>
                       <button
                         onClick={() => removeHighlight(highlight.id)}
-                        className="text-gray-400 hover:text-white text-xs"
+                        className="text-foreground-secondary hover:text-foreground text-xs"
                       >
                         ×
                       </button>
                     </div>
-                    <p className="text-gray-500 text-xs mt-1">
+                    <p className="text-foreground-muted text-xs mt-1">
                       {highlight.timestamp.toLocaleTimeString()}
                     </p>
                   </div>

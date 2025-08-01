@@ -63,7 +63,7 @@ const InterventionProtocol: React.FC<InterventionProtocolProps> = ({ data, mode,
             {getSourceLabel(supplement.source)}
           </Badge>
           {supplement.truckCompatible && (
-            <Badge variant="orange" className="text-xs">
+            <Badge variant="warning" className="text-xs">
               🚛 Truck Ready
             </Badge>
           )}
@@ -98,7 +98,7 @@ const InterventionProtocol: React.FC<InterventionProtocolProps> = ({ data, mode,
                 Immediate Actions (Week 1-2)
               </h3>
               <div className="flex items-center gap-2">
-                <Badge variant="orange">Priority</Badge>
+                <Badge variant="warning">Priority</Badge>
                 <span className="text-gray-400">
                   {expandedSections.has('immediate') ? '−' : '+'}
                 </span>
@@ -202,7 +202,7 @@ const InterventionProtocol: React.FC<InterventionProtocolProps> = ({ data, mode,
                 {/* Weeks 4-8 */}
                 <div>
                   <h4 className={`font-medium text-white mb-3 ${isCoachingMode ? 'text-lg' : ''} flex items-center gap-2`}>
-                    <Badge variant="blue">Weeks 4-8</Badge>
+                    <Badge variant="secondary">Weeks 4-8</Badge>
                     Advanced Support
                   </h4>
                   {data.analysis?.interventionProtocol.phased.week4_8 && (

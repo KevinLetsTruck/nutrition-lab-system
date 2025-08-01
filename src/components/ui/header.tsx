@@ -17,7 +17,7 @@ export function Header() {
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-bold text-white">DestinationHealth</span>
-                <Badge variant="fntp" size="sm" className="text-xs">
+                <Badge variant="success" className="text-xs">
                   FNTP Certified
                 </Badge>
               </div>

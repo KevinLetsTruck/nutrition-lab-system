@@ -51,7 +51,7 @@ export default function HomePage() {
       <section className="py-20 px-6">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-heading font-bold mb-4">
+            <h2 className="text-4xl font-heading font-bold mb-4 gradient-text">
               Professional Health Assessment Platform
             </h2>
             <p className="text-xl text-foreground-secondary">

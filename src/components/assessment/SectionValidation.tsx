@@ -140,7 +140,7 @@ export function SectionValidation({
                 <h2 className="text-xl font-semibold">
                   {section.charAt(0).toUpperCase() + section.slice(1).replace('_', ' ')} Health Summary
                 </h2>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-foreground-secondary mt-1">
                   Please review and confirm the information we&apos;ve gathered
                 </p>
               </div>
@@ -178,10 +178,10 @@ export function SectionValidation({
                             {getSeverityLabel(symptom.severity)} ({symptom.severity}/10)
                           </span>
                           {symptom.duration && (
-                            <span className="text-gray-600">Duration: {symptom.duration}</span>
+                            <span className="text-foreground-secondary">Duration: {symptom.duration}</span>
                           )}
                           {symptom.frequency && (
-                            <span className="text-gray-600">Frequency: {symptom.frequency}</span>
+                            <span className="text-foreground-secondary">Frequency: {symptom.frequency}</span>
                           )}
                         </div>
                       </div>
@@ -211,7 +211,7 @@ export function SectionValidation({
                   {validation.patterns.map((pattern, idx) => (
                     <div key={idx} className="flex items-start gap-2">
                       <span className="text-purple-600 mt-1">•</span>
-                      <p className="text-gray-700">{pattern}</p>
+                      <p className="text-foreground-secondary">{pattern}</p>
                     </div>
                   ))}
                 </div>
@@ -230,7 +230,7 @@ export function SectionValidation({
                 {validation.truckDriverFactors.map((factor, idx) => (
                   <div key={idx} className="flex items-start gap-2">
                     <span className="text-blue-600 mt-1">•</span>
-                    <p className="text-gray-700">{factor}</p>
+                    <p className="text-foreground-secondary">{factor}</p>
                   </div>
                 ))}
               </div>
@@ -258,8 +258,8 @@ export function SectionValidation({
         {/* Actions */}
         <div className="p-6 border-t bg-gray-50">
           <div className="space-y-4">
-            <div className="bg-white rounded-lg p-4 border">
-              <p className="text-center text-gray-700 font-medium">
+            <div className="bg-card rounded-lg p-4 border">
+              <p className="text-center text-foreground-secondary font-medium">
                 Does this summary accurately reflect what we discussed?
               </p>
             </div>

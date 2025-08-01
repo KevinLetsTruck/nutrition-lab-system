@@ -259,21 +259,21 @@ export default function StructuredAssessmentPage() {
   }, [currentSectionIndex, currentSection, completeAssessment, responses, detectedPatterns]);
   
   return (
-    <div className="min-h-screen bg-[#1e1b4b] pb-20">
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="bg-[#312e81] border-b border-[#4338ca] sticky top-0 z-10">
+      <div className="bg-card border-b border-border sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Button
               variant="ghost"
               onClick={() => router.back()}
-              className="flex items-center gap-2 text-white hover:bg-[#4338ca]/20"
+              className="flex items-center gap-2 text-foreground hover:bg-card-hover"
             >
               <ChevronLeft className="h-4 w-4" />
               Back
             </Button>
             
-            <div className="flex items-center gap-4 text-sm text-gray-300">
+            <div className="flex items-center gap-4 text-sm text-foreground-secondary">
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
                 <span>{estimatedTimeRemaining} min remaining</span>
@@ -288,16 +288,16 @@ export default function StructuredAssessmentPage() {
       </div>
       
       {/* Progress Bar */}
-      <div className="bg-[#312e81] border-b border-[#4338ca]">
+      <div className="bg-card border-b border-border">
         <div className="container mx-auto px-4 py-3">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="font-medium text-white">{currentSection.name}</span>
-              <span className="text-gray-300">{Math.round(estimatedProgress)}% complete</span>
+              <span className="font-medium text-foreground">{currentSection.name}</span>
+              <span className="text-foreground-secondary">{Math.round(estimatedProgress)}% complete</span>
             </div>
-            <div className="w-full bg-[#1e1b4b] rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-background-secondary rounded-full h-2 overflow-hidden">
               <div 
-                className="h-full bg-[#10b981] transition-all duration-300"
+                className="h-full bg-primary transition-all duration-300"
                 style={{ width: `${estimatedProgress}%` }}
               />
             </div>

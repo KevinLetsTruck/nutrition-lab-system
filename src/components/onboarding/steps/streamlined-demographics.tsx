@@ -46,10 +46,10 @@ export function StreamlinedDemographics({ onNext, initialData }: StreamlinedDemo
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-white text-center">
+        <CardTitle className="text-2xl font-bold text-foreground text-center">
           Basic Information
         </CardTitle>
-                    <p className="text-gray-400 text-center">
+                    <p className="text-foreground-secondary text-center">
               Let&apos;s start with your basic contact information
             </p>
       </CardHeader>
@@ -58,14 +58,14 @@ export function StreamlinedDemographics({ onNext, initialData }: StreamlinedDemo
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* First Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-foreground-secondary mb-2">
               First Name <span className="text-red-400">*</span>
             </label>
             <input
               type="text"
               value={formData.firstName}
               onChange={(e) => handleInputChange('firstName', e.target.value)}
-              className="w-full p-3 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 bg-input border border-input text-foreground rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary"
               placeholder="Enter your first name"
               required
             />
@@ -73,14 +73,14 @@ export function StreamlinedDemographics({ onNext, initialData }: StreamlinedDemo
 
           {/* Last Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-foreground-secondary mb-2">
               Last Name <span className="text-red-400">*</span>
             </label>
             <input
               type="text"
               value={formData.lastName}
               onChange={(e) => handleInputChange('lastName', e.target.value)}
-              className="w-full p-3 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 bg-input border border-input text-foreground rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary"
               placeholder="Enter your last name"
               required
             />
@@ -88,14 +88,14 @@ export function StreamlinedDemographics({ onNext, initialData }: StreamlinedDemo
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-foreground-secondary mb-2">
               Email Address <span className="text-red-400">*</span>
             </label>
             <input
               type="email"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
-              className="w-full p-3 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 bg-input border border-input text-foreground rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary"
               placeholder="Enter your email address"
               required
             />
@@ -103,14 +103,14 @@ export function StreamlinedDemographics({ onNext, initialData }: StreamlinedDemo
 
           {/* Phone */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-foreground-secondary mb-2">
               Phone Number
             </label>
             <input
               type="tel"
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
-              className="w-full p-3 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 bg-input border border-input text-foreground rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary"
               placeholder="Enter your phone number"
             />
           </div>

@@ -195,7 +195,7 @@ export default function Dashboard() {
             Welcome back, Kevin
           </h1>
           <p className="text-foreground-secondary text-lg">
-            Here's your practice overview for {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            Here&apos;s your practice overview for {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </p>
         </div>
 

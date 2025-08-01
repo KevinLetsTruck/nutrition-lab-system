@@ -140,7 +140,7 @@ export default function AssessmentsPage() {
             Health Assessments
           </h1>
           <p className="text-foreground-secondary text-lg">
-            Choose an assessment type to evaluate your clients' health
+            Choose an assessment type to evaluate your clients&apos; health
           </p>
         </div>
 
@@ -218,7 +218,7 @@ export default function AssessmentsPage() {
         <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
           <CardContent className="p-8 text-center">
             <h3 className="text-2xl font-heading font-bold mb-4">
-              Ready to assess a client's health?
+              Ready to assess a client&apos;s health?
             </h3>
             <p className="text-foreground-secondary mb-6">
               Choose from our comprehensive assessment tools to get started

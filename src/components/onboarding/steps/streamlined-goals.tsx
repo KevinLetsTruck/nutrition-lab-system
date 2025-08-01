@@ -44,10 +44,10 @@ export function StreamlinedGoals({ onNext, onBack, initialData }: StreamlinedGoa
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-white text-center">
+        <CardTitle className="text-2xl font-bold text-foreground text-center">
           Health Goals
         </CardTitle>
-        <p className="text-gray-400 text-center">
+        <p className="text-foreground-secondary text-center">
           What are your primary health and wellness goals?
         </p>
       </CardHeader>
@@ -56,13 +56,13 @@ export function StreamlinedGoals({ onNext, onBack, initialData }: StreamlinedGoa
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Primary Health Goal */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-foreground-secondary mb-2">
               What is your primary health goal? <span className="text-red-400">*</span>
             </label>
             <select
               value={formData.healthGoals}
               onChange={(e) => handleInputChange('healthGoals', e.target.value)}
-              className="w-full p-3 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 bg-input border border-input text-foreground rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary"
               required
             >
               <option value="">Select your primary goal</option>
@@ -83,26 +83,26 @@ export function StreamlinedGoals({ onNext, onBack, initialData }: StreamlinedGoa
 
           {/* Primary Health Concern */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-foreground-secondary mb-2">
               What is your biggest health concern right now?
             </label>
             <textarea
               value={formData.primaryConcern}
               onChange={(e) => handleInputChange('primaryConcern', e.target.value)}
-              className="w-full p-3 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[80px] resize-y"
+              className="w-full p-3 bg-input border border-input text-foreground rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary min-h-[80px] resize-y"
               placeholder="Describe your main health concern or what you&apos;d like to improve..."
             />
           </div>
 
           {/* Timeline */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-foreground-secondary mb-2">
               What&apos;s your timeline for achieving these goals?
             </label>
             <select
               value={formData.timeline}
               onChange={(e) => handleInputChange('timeline', e.target.value)}
-              className="w-full p-3 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 bg-input border border-input text-foreground rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary"
             >
               <option value="">Select timeline</option>
               <option value="1-3 months">1-3 months</option>

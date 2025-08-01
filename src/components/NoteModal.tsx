@@ -87,15 +87,15 @@ const NoteModal = ({ clientId, noteType, onClose, onSave }: NoteModalProps) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50">
-      <div className="bg-slate-800 rounded-lg p-6 max-w-4xl w-full max-h-[80vh] overflow-auto">
+      <div className="bg-card rounded-lg p-6 max-w-4xl w-full max-h-[80vh] overflow-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-white">
+          <h2 className="text-xl font-semibold text-foreground">
             {noteType === 'interview' ? 'Interview Notes' : 
              'Coaching Call Notes'}
           </h2>
           <button 
             onClick={onClose} 
-            className="text-gray-400 hover:text-white text-2xl font-bold"
+            className="text-foreground-secondary hover:text-foreground text-2xl font-bold"
           >
             ×
           </button>
@@ -103,29 +103,29 @@ const NoteModal = ({ clientId, noteType, onClose, onSave }: NoteModalProps) => {
 
         {/* Quick Templates */}
         <div className="mb-4">
-          <p className="text-sm text-gray-400 mb-2">Quick Templates:</p>
+          <p className="text-sm text-foreground-secondary mb-2">Quick Templates:</p>
           <div className="flex flex-wrap gap-2">
             <button 
               onClick={() => insertTemplate('symptoms')} 
-              className="px-3 py-1 bg-slate-700 rounded text-sm text-white hover:bg-slate-600 transition-colors"
+              className="px-3 py-1 bg-card-hover rounded text-sm text-foreground hover:bg-card-hover transition-colors"
             >
               Symptoms
             </button>
             <button 
               onClick={() => insertTemplate('diet')} 
-              className="px-3 py-1 bg-slate-700 rounded text-sm text-white hover:bg-slate-600 transition-colors"
+              className="px-3 py-1 bg-card-hover rounded text-sm text-foreground hover:bg-card-hover transition-colors"
             >
               Diet History
             </button>
             <button 
               onClick={() => insertTemplate('goals')} 
-              className="px-3 py-1 bg-slate-700 rounded text-sm text-white hover:bg-slate-600 transition-colors"
+              className="px-3 py-1 bg-card-hover rounded text-sm text-foreground hover:bg-card-hover transition-colors"
             >
               Health Goals
             </button>
             <button 
               onClick={() => insertTemplate('trucking')} 
-              className="px-3 py-1 bg-slate-700 rounded text-sm text-white hover:bg-slate-600 transition-colors"
+              className="px-3 py-1 bg-card-hover rounded text-sm text-foreground hover:bg-card-hover transition-colors"
             >
               Trucking Lifestyle
             </button>
@@ -135,7 +135,7 @@ const NoteModal = ({ clientId, noteType, onClose, onSave }: NoteModalProps) => {
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          className="w-full h-96 p-4 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-slate-500 resize-none"
+          className="w-full h-96 p-4 bg-card-hover border border-border rounded-lg text-foreground placeholder-foreground-muted focus:outline-none focus:border-primary resize-none"
           placeholder="Enter notes during call..."
           autoFocus
         />
@@ -143,14 +143,14 @@ const NoteModal = ({ clientId, noteType, onClose, onSave }: NoteModalProps) => {
         <div className="flex justify-end gap-4 mt-6">
           <button 
             onClick={onClose} 
-            className="px-6 py-2 bg-slate-700 rounded text-white hover:bg-slate-600 transition-colors"
+            className="px-6 py-2 bg-card-hover rounded text-foreground hover:bg-card-hover transition-colors"
             disabled={saving}
           >
             Cancel
           </button>
           <button 
             onClick={saveNote} 
-            className="px-6 py-2 bg-blue-600 rounded text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="px-6 py-2 bg-blue-600 rounded text-foreground hover:bg-blue-700 transition-colors disabled:opacity-50"
             disabled={saving || !note.trim()}
           >
             {saving ? 'Saving...' : 'Save Notes'}

@@ -91,27 +91,27 @@ export default function ProtocolsPage() {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'active':
-        return 'bg-green-600'
+        return 'bg-success'
       case 'draft':
-        return 'bg-yellow-600'
+        return 'bg-warning'
       case 'completed':
-        return 'bg-blue-600'
+        return 'bg-accent'
       default:
-        return 'bg-gray-600'
+        return 'bg-muted'
     }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900">
+      <div className="min-h-screen bg-background">
         <Navigation />
         <div className="max-w-6xl mx-auto px-6 py-8">
           <div className="animate-pulse">
-            <div className="h-8 bg-slate-700 rounded w-1/4 mb-4"></div>
-            <div className="h-4 bg-slate-700 rounded w-1/2 mb-8"></div>
+            <div className="h-8 bg-card rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-card rounded w-1/2 mb-8"></div>
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-24 bg-slate-700 rounded"></div>
+                <div key={i} className="h-24 bg-card rounded"></div>
               ))}
             </div>
           </div>
@@ -121,44 +121,44 @@ export default function ProtocolsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-background">
       <Navigation />
       
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Protocols</h1>
-          <p className="text-gray-400">
+          <h1 className="text-3xl font-bold gradient-text mb-2">Protocols</h1>
+          <p className="text-foreground-secondary">
             View and manage client treatment protocols and health plans.
           </p>
         </div>
 
         <div className="space-y-4">
           {protocols.length === 0 ? (
-            <div className="bg-slate-800 rounded-lg p-8 text-center">
-              <p className="text-gray-400 text-lg">No protocols found.</p>
+            <div className="bg-card rounded-lg p-8 text-center">
+              <p className="text-foreground-secondary text-lg">No protocols found.</p>
             </div>
           ) : (
             protocols.map((protocol) => (
-              <div key={protocol.id} className="bg-slate-800 rounded-lg p-6">
+              <div key={protocol.id} className="bg-card rounded-lg p-6 hover:border-primary/30 border border-border transition-all">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       {protocol.client && (
                         <Link 
                           href={`/client/${protocol.client_id}`}
-                          className="text-lg font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+                          className="text-lg font-semibold text-primary hover:text-primary-hover transition-colors"
                         >
                           {protocol.client.first_name} {protocol.client.last_name}
                         </Link>
                       )}
-                      <span className={`px-2 py-1 text-white text-xs rounded-full ${getStatusColor(protocol.status)}`}>
+                      <span className={`px-2 py-1 text-foreground text-xs rounded-full ${getStatusColor(protocol.status)}`}>
                         {protocol.status}
                       </span>
                     </div>
                     
-                    <h3 className="text-white font-medium mb-1">{protocol.phase}</h3>
+                    <h3 className="text-foreground font-medium mb-1">{protocol.phase}</h3>
                     
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <div className="flex items-center gap-4 text-sm text-foreground-muted">
                       <span>Started: {formatDate(protocol.start_date)}</span>
                       <span>Created: {formatDate(protocol.created_at)}</span>
                       {protocol.client && (
@@ -167,7 +167,7 @@ export default function ProtocolsPage() {
                     </div>
                     
                     {protocol.content && (
-                      <p className="text-gray-300 text-sm mt-2 line-clamp-2">
+                      <p className="text-foreground-secondary text-sm mt-2 line-clamp-2">
                         {protocol.content.length > 200 
                           ? `${protocol.content.substring(0, 200)}...` 
                           : protocol.content

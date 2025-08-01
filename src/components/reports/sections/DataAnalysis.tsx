@@ -51,7 +51,7 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ data, mode, onHighlight }) 
                 NutriQ Assessment Summary
               </h3>
               <div className="flex items-center gap-2">
-                <Badge variant="blue">
+                <Badge variant="secondary">
                   Total Score: {data.nutriqData.totalScore}/60
                 </Badge>
                 <span className="text-gray-400">
@@ -76,7 +76,7 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ data, mode, onHighlight }) 
                             {system}
                           </span>
                           <Badge 
-                            variant={systemData.score >= 7 ? 'orange' : systemData.score >= 5 ? 'default' : 'blue'}
+                            variant={systemData.score >= 7 ? 'warning' : systemData.score >= 5 ? 'default' : 'secondary'}
                             className="ml-2"
                           >
                             {systemData.score}/10
@@ -138,7 +138,7 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ data, mode, onHighlight }) 
                         <h4 className={`font-medium text-white ${isCoachingMode ? 'text-lg' : ''}`}>
                           {lab.reportType.toUpperCase()} - {new Date(lab.reportDate).toLocaleDateString()}
                         </h4>
-                        <Badge variant={lab.status === 'completed' ? 'blue' : 'default'}>
+                        <Badge variant={lab.status === 'completed' ? 'secondary' : 'default'}>
                           {lab.status}
                         </Badge>
                       </div>
@@ -227,7 +227,7 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ data, mode, onHighlight }) 
                           <span className={`font-medium text-white ${isCoachingMode ? 'text-lg' : ''}`}>
                             {protocol.phase}
                           </span>
-                          <Badge variant={protocol.status === 'active' ? 'blue' : 'default'}>
+                          <Badge variant={protocol.status === 'active' ? 'secondary' : 'default'}>
                             {protocol.status}
                           </Badge>
                         </div>

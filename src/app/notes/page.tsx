@@ -96,29 +96,29 @@ export default function NotesPage() {
   const getNoteTypeColor = (type: string) => {
     switch (type.toLowerCase()) {
       case 'interview':
-        return 'bg-blue-600'
+        return 'bg-accent'
       case 'follow-up':
-        return 'bg-green-600'
+        return 'bg-success'
       case 'group coaching':
-        return 'bg-purple-600'
+        return 'bg-accent-purple'
       case 'coaching_call':
-        return 'bg-orange-600'
+        return 'bg-accent-orange'
       default:
-        return 'bg-gray-600'
+        return 'bg-muted'
     }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900">
+      <div className="min-h-screen bg-background">
         <Navigation />
         <div className="max-w-6xl mx-auto px-6 py-8">
           <div className="animate-pulse">
-            <div className="h-8 bg-slate-700 rounded w-1/4 mb-4"></div>
-            <div className="h-4 bg-slate-700 rounded w-1/2 mb-8"></div>
+            <div className="h-8 bg-card rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-card rounded w-1/2 mb-8"></div>
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-32 bg-slate-700 rounded"></div>
+                <div key={i} className="h-32 bg-card rounded"></div>
               ))}
             </div>
           </div>
@@ -133,8 +133,8 @@ export default function NotesPage() {
       
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Client Notes</h1>
-          <p className="text-gray-400">
+          <h1 className="text-3xl font-bold gradient-text mb-2">Client Notes</h1>
+          <p className="text-foreground-secondary">
             View and manage client consultation notes and follow-up records.
           </p>
         </div>

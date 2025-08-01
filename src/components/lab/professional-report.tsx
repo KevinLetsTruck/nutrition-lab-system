@@ -207,11 +207,11 @@ export function ReportHeader({ clientData }: ReportHeaderProps) {
           </p>
         </div>
         <div className="text-right">
-          <Badge variant="fntp" size="lg">Kevin Rutherford, FNTP</Badge>
-          <p className="text-sm text-gray-400 mt-2">
+          <Badge variant="success" className="text-base px-4 py-2">Kevin Rutherford, FNTP</Badge>
+          <p className="text-sm text-foreground-secondary mt-2">
             Truck Driver Health Specialist
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-foreground-muted mt-1">
             Functional Nutritional Therapy Practitioner
           </p>
         </div>
