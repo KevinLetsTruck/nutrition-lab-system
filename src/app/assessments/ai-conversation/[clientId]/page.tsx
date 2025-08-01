@@ -255,9 +255,9 @@ export default function AIConversationPage() {
           <div className="flex items-center gap-2 max-w-4xl mx-auto">
             <Button
               variant="outline"
-              size="icon"
+              size="sm"
               onClick={handleVoiceInput}
-              className={`lg:flex ${isRecording ? 'bg-red-100' : ''}`}
+              className={`lg:flex h-10 w-10 p-0 ${isRecording ? 'bg-red-100' : ''}`}
             >
               <Mic className={`h-4 w-4 ${isRecording ? 'text-red-600' : ''}`} />
             </Button>
@@ -275,7 +275,8 @@ export default function AIConversationPage() {
             <Button
               onClick={handleSendMessage}
               disabled={!inputValue.trim() || isLoading || isPaused}
-              size="icon"
+              size="sm"
+              className="h-10 w-10 p-0"
             >
               <Send className="h-4 w-4" />
             </Button>
