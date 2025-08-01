@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
-import { AIQuestionSelector } from '@/lib/assessment/question-selector';
+import { symptomAISelector } from '@/lib/assessment/symptom-ai-selector';
+import { symptomQuestionFlow } from '@/lib/assessment/symptom-question-flow';
 import { PatternMatcher } from '@/lib/assessment/pattern-matcher';
 import { handleAPIError, APIRequestError } from '@/lib/error-handler';
+import { AssessmentSection } from '@/lib/assessment/complete-symptom-bank';
 
-// Only create these if needed to avoid API key issues
-let questionSelector: AIQuestionSelector | null = null;
+// Only create pattern matcher if needed to avoid API key issues
 let patternMatcher: PatternMatcher | null = null;
 
 export async function POST(request: NextRequest) {
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
             conversation_type: 'structured_assessment',
             assessment_type: 'structured',
             status: 'in_progress',
-            current_section: 'energy',
+            current_section: 'digestive',
             started_at: new Date().toISOString(),
             questions_answered: 0,
             estimated_questions_remaining: 37 // Total estimated
@@ -151,19 +152,28 @@ export async function POST(request: NextRequest) {
         const { section, responses = [], patterns = [] } = body;
         
         try {
-          // Initialize question selector if not already done
-          if (!questionSelector) {
-            questionSelector = new AIQuestionSelector();
-          }
-          
           let question;
           
           // If no responses yet, get initial question
           if (responses.length === 0) {
-            question = await questionSelector.getInitialQuestion(section);
+            question = await symptomAISelector.getInitialQuestion(section);
           } else {
+            // Check if we should continue in this section
+            const sectionResponses = responses.filter((r: any) => {
+              // Find responses for current section (this is simplified, may need adjustment)
+              return true; // For now, use all responses
+            });
+            
+            if (!symptomQuestionFlow.shouldContinueSection(
+              section as AssessmentSection,
+              responses,
+              sectionResponses
+            )) {
+              return NextResponse.json({ question: null, sectionComplete: true });
+            }
+            
             // Get next question based on responses and patterns
-            question = await questionSelector.selectNextQuestion(
+            question = await symptomAISelector.selectNextQuestion(
               responses,
               patterns,
               section
@@ -173,24 +183,9 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ question });
         } catch (error) {
           console.error('Error getting question:', error);
-          // If there's an error and we have responses, it might be time to end the section
-          if (responses.length > 4) {
-            return NextResponse.json({ question: null });
-          }
           
-          // Otherwise return a generic fallback for the section
-          return NextResponse.json({ 
-            question: {
-              id: `fallback_${section}_${Date.now()}`,
-              section,
-              questionText: 'Any other concerns in this area?',
-              responseType: 'binary',
-              options: [
-                { value: 'yes', label: 'Yes' },
-                { value: 'no', label: 'No' }
-              ]
-            }
-          });
+          // Return null to indicate section complete
+          return NextResponse.json({ question: null });
         }
       }
       
@@ -204,6 +199,31 @@ export async function POST(request: NextRequest) {
         
         const patterns = patternMatcher.detectPatterns(responses);
         return NextResponse.json({ patterns });
+      }
+      
+      case 'getNextSection': {
+        const { currentSection, completedSections = [], allResponses = [] } = body;
+        
+        const nextSection = symptomQuestionFlow.getNextSection(
+          currentSection as AssessmentSection,
+          completedSections as AssessmentSection[],
+          allResponses
+        );
+        
+        const isComplete = symptomQuestionFlow.isAssessmentComplete(
+          completedSections as AssessmentSection[],
+          allResponses
+        );
+        
+        return NextResponse.json({ 
+          nextSection, 
+          isComplete,
+          estimatedRemaining: symptomQuestionFlow.estimateRemainingQuestions(
+            currentSection as AssessmentSection,
+            completedSections as AssessmentSection[],
+            allResponses.filter((r: any) => true) // Simplified for now
+          )
+        });
       }
         
       default:

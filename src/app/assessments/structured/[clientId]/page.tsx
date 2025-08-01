@@ -7,18 +7,21 @@ import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { ChevronLeft, Clock, Target, AlertCircle } from 'lucide-react';
 import { StructuredQuestion } from '@/components/assessment/StructuredQuestion';
-import { Response } from '@/lib/assessment/question-selector';
+import { Response } from '@/lib/assessment/symptom-ai-selector';
 import { DetectedPattern } from '@/lib/assessment/pattern-matcher';
 import { apiClient } from '@/lib/api-client';
 import { APIRequestError } from '@/lib/error-handler';
 
 const ASSESSMENT_SECTIONS = [
-  { id: 'energy', name: 'Energy & Fatigue', estimatedQuestions: 8 },
-  { id: 'sleep', name: 'Sleep & Recovery', estimatedQuestions: 6 },
-  { id: 'digestive', name: 'Digestive Health', estimatedQuestions: 7 },
-  { id: 'stress', name: 'Stress & Mood', estimatedQuestions: 6 },
-  { id: 'pain', name: 'Pain & Inflammation', estimatedQuestions: 5 },
-  { id: 'metabolic', name: 'Metabolic Health', estimatedQuestions: 5 }
+  { id: 'digestive', name: 'Digestive Health', estimatedQuestions: 25 },
+  { id: 'metabolicCardio', name: 'Metabolic & Cardiovascular', estimatedQuestions: 20 },
+  { id: 'neuroCognitive', name: 'Neurological & Cognitive', estimatedQuestions: 25 },
+  { id: 'immuneInflammatory', name: 'Immune & Inflammatory', estimatedQuestions: 20 },
+  { id: 'hormonal', name: 'Hormonal Balance', estimatedQuestions: 25 },
+  { id: 'detoxification', name: 'Detoxification', estimatedQuestions: 15 },
+  { id: 'painMusculoskeletal', name: 'Pain & Musculoskeletal', estimatedQuestions: 20 },
+  { id: 'driverSpecific', name: 'Driver-Specific Symptoms', estimatedQuestions: 15 },
+  { id: 'ancestralMismatch', name: 'Ancestral Mismatch', estimatedQuestions: 15 }
 ];
 
 export default function StructuredAssessmentPage() {
@@ -40,7 +43,7 @@ export default function StructuredAssessmentPage() {
 
   
   const currentSection = ASSESSMENT_SECTIONS[currentSectionIndex];
-  const totalEstimatedQuestions = ASSESSMENT_SECTIONS.reduce((sum, s) => sum + s.estimatedQuestions, 0);
+  const totalEstimatedQuestions = 150; // Total questions in our symptom bank
   const questionsAnswered = responses.length;
   const estimatedProgress = Math.min((questionsAnswered / totalEstimatedQuestions) * 100, 95);
   const estimatedTimeRemaining = Math.max(1, Math.round((totalEstimatedQuestions - questionsAnswered) * 0.5));
@@ -96,8 +99,10 @@ export default function StructuredAssessmentPage() {
     // Store response
     const newResponse: Response = {
       questionId: currentQuestion.id,
+      questionText: currentQuestion.questionText,
       value,
-      timestamp: new Date()
+      timestamp: new Date(),
+      isFollowUp: currentQuestion.isFollowUp
     };
     
     const updatedResponses = [...responses, newResponse];
@@ -171,27 +176,7 @@ export default function StructuredAssessmentPage() {
         if (question) {
           setCurrentQuestion(question);
         } else {
-        // Move to next section if no more questions
-        if (currentSectionIndex < ASSESSMENT_SECTIONS.length - 1) {
-          setCurrentSectionIndex(currentSectionIndex + 1);
-          setQuestionsInSection(0);
-          setShowSectionComplete(false);
-          
-          // Get first question of new section from API
-          fetch('/api/structured-assessment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'getQuestion',
-              section: ASSESSMENT_SECTIONS[currentSectionIndex + 1].id,
-              responses: [],
-              patterns: []
-            })
-          })
-            .then(res => res.json())
-            .then(({ question }) => setCurrentQuestion(question));
-        } else {
-          // Assessment complete - will be handled by completeAssessment
+          // Section complete, show section summary
           setShowSectionComplete(true);
         }
       }
@@ -221,30 +206,58 @@ export default function StructuredAssessmentPage() {
     }
   }, [assessmentId, detectedPatterns, router]);
   
-  const moveToNextSection = useCallback(() => {
-    if (currentSectionIndex < ASSESSMENT_SECTIONS.length - 1) {
-      setCurrentSectionIndex(currentSectionIndex + 1);
-      setQuestionsInSection(0);
-      setShowSectionComplete(false);
+  const moveToNextSection = useCallback(async () => {
+    try {
+      // Get completed sections list
+      const completedSections = ASSESSMENT_SECTIONS.slice(0, currentSectionIndex + 1).map(s => s.id);
       
-      // Get first question of new section from API
-      fetch('/api/structured-assessment', {
+      // Ask API for next section
+      const response = await fetch('/api/structured-assessment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'getQuestion',
-          section: ASSESSMENT_SECTIONS[currentSectionIndex + 1].id,
-          responses: [],
-          patterns: []
+          action: 'getNextSection',
+          currentSection: currentSection.id,
+          completedSections,
+          allResponses: responses
         })
-      })
-        .then(res => res.json())
-        .then(({ question }) => setCurrentQuestion(question));
-    } else {
-      // Assessment complete
-      completeAssessment();
+      });
+      
+      const { nextSection, isComplete } = await response.json();
+      
+      if (isComplete || !nextSection) {
+        // Assessment complete
+        completeAssessment();
+      } else {
+        // Find index of next section
+        const nextSectionIndex = ASSESSMENT_SECTIONS.findIndex(s => s.id === nextSection);
+        if (nextSectionIndex !== -1) {
+          setCurrentSectionIndex(nextSectionIndex);
+          setQuestionsInSection(0);
+          setShowSectionComplete(false);
+          
+          // Get first question of new section
+          const questionResponse = await fetch('/api/structured-assessment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'getQuestion',
+              section: nextSection,
+              responses: responses,
+              patterns: detectedPatterns
+            })
+          });
+          
+          const { question } = await questionResponse.json();
+          if (question) {
+            setCurrentQuestion(question);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error moving to next section:', error);
     }
-  }, [currentSectionIndex, completeAssessment]);
+  }, [currentSectionIndex, currentSection, completeAssessment, responses, detectedPatterns]);
   
   return (
     <div className="min-h-screen bg-[#1e1b4b] pb-20">
