@@ -31,6 +31,7 @@ export class APIClient {
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           ...fetchOptions.headers
         }
       });

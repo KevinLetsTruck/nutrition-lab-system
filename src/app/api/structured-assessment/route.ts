@@ -1,17 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerSupabaseClient } from '@/lib/supabase';
 import { AIQuestionSelector } from '@/lib/assessment/question-selector';
 import { PatternMatcher } from '@/lib/assessment/pattern-matcher';
 import { handleAPIError, APIRequestError } from '@/lib/error-handler';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing Supabase configuration');
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Only create these if needed to avoid API key issues
 let questionSelector: AIQuestionSelector | null = null;
@@ -19,6 +10,7 @@ let patternMatcher: PatternMatcher | null = null;
 
 export async function POST(request: NextRequest) {
   let body: any;
+  const supabase = createServerSupabaseClient();
   
   try {
     body = await request.json();

@@ -93,6 +93,15 @@ export async function parseAPIError(response: Response): Promise<APIRequestError
     console.error('API Error Details:', errorData);
   }
   
-  const message = errorData.details || errorData.error || 'Unknown error';
+  // Extract message from various possible formats
+  let message = 'Unknown error';
+  if (typeof errorData.details === 'string') {
+    message = errorData.details;
+  } else if (typeof errorData.error === 'string') {
+    message = errorData.error;
+  } else if (errorData.details && typeof errorData.details === 'object') {
+    message = JSON.stringify(errorData.details);
+  }
+  
   return new APIRequestError(message, response.status, errorData);
 }
