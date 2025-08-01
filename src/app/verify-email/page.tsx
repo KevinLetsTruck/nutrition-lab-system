@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
@@ -28,9 +28,9 @@ export default function VerifyEmailPage() {
     if (token) {
       verifyEmail(token)
     }
-  }, [searchParams])
+  }, [searchParams, verifyEmail])
 
-  const verifyEmail = async (token: string) => {
+  const verifyEmail = useCallback(async (token: string) => {
     setVerifying(true)
     setError('')
 
@@ -61,7 +61,7 @@ export default function VerifyEmailPage() {
     } finally {
       setVerifying(false)
     }
-  }
+  }, [router])
 
   const resendVerification = async () => {
     if (!email) {
@@ -132,7 +132,7 @@ export default function VerifyEmailPage() {
             </div>
             <h2 className="text-2xl font-bold text-white">Verify Your Email</h2>
             <p className="text-gray-400 mt-2">
-              We've sent a verification link to {email || 'your email address'}
+              We&apos;ve sent a verification link to {email || 'your email address'}
             </p>
           </div>
 
@@ -155,7 +155,7 @@ export default function VerifyEmailPage() {
                 </p>
                 
                 <div className="bg-slate-700 rounded-lg p-4 text-left">
-                  <h3 className="text-white font-semibold mb-2">Didn't receive the email?</h3>
+                  <h3 className="text-white font-semibold mb-2">Didn&apos;t receive the email?</h3>
                   <ul className="space-y-1 text-sm text-gray-400">
                     <li>• Check your spam folder</li>
                     <li>• Make sure you entered the correct email</li>

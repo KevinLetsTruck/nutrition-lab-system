@@ -116,7 +116,7 @@ export default function ClientSuccessPage() {
                 <li>• Check your email for a confirmation and next steps</li>
                 <li>• Kevin will contact you within 24-48 hours</li>
                 <li>• Your information has been securely saved</li>
-                <li>• You'll receive a personalized health plan soon</li>
+                <li>• You&apos;ll receive a personalized health plan soon</li>
               </ul>
             </div>
 
