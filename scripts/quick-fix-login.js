@@ -24,10 +24,10 @@ async function quickFixLogin() {
   console.log('🔧 Quick fix for login issue...\n')
   
   try {
-    // Change role back to client (this will fix the /api/auth/me 500 error)
+    // Change role to admin to access the clients page
     const { error: roleError } = await supabase
       .from('users')
-      .update({ role: 'client' })
+      .update({ role: 'admin' })
       .eq('email', 'kevin@letstruck.com')
     
     if (roleError) {
@@ -35,7 +35,7 @@ async function quickFixLogin() {
       return
     }
     
-    console.log('✅ Role changed to client successfully!')
+    console.log('✅ Role changed to admin successfully!')
     
     // Verify the change
     const { data: user, error: userError } = await supabase
