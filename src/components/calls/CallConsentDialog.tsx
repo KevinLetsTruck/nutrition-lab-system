@@ -46,9 +46,9 @@ export function CallConsentDialog({
             <div className="flex items-start gap-3">
               <Phone className="h-5 w-5 text-emerald-500 mt-0.5" />
               <div>
-                <p className="font-medium text-gray-200">
-                  You're about to start a recorded call with {clientName}
-                </p>
+                              <p className="font-medium text-gray-200">
+                You&apos;re about to start a recorded call with {clientName}
+              </p>
                 <p className="text-sm mt-1">
                   This call will be recorded for quality assurance and health documentation purposes.
                 </p>

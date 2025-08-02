@@ -294,7 +294,7 @@ export function CallRecorder({
         {/* Instructions */}
         <div className="text-center text-sm text-gray-400">
           {!isRecording ? (
-            <p>Click "Start Recording" when you're ready to begin the call</p>
+            <p>Click &quot;Start Recording&quot; when you&apos;re ready to begin the call</p>
           ) : (
             <p>Speak clearly into your microphone. You can pause or end the recording at any time.</p>
           )}

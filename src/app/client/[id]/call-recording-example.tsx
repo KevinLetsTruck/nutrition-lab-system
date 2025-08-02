@@ -2,6 +2,7 @@
 // Add this to your existing client detail page (src/app/client/[id]/page.tsx)
 
 import { CallRecordingIntegration } from '@/components/calls/CallRecordingIntegration'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 
 // In your client detail page component:
 export default function ClientDetailPage({ params }: { params: { id: string } }) {
