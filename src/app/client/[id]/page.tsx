@@ -70,7 +70,7 @@ export default function ClientDashboard() {
   const [selectedPDF, setSelectedPDF] = useState<{ url: string; title: string; fileName: string } | null>(null)
   const [showCallRecorder, setShowCallRecorder] = useState(false)
   const [showCallConsent, setShowCallConsent] = useState(false)
-  const [callType, setCallType] = useState<'interview' | 'coaching'>('interview')
+  const [callType, setCallType] = useState<'onboarding' | 'follow_up' | 'assessment'>('assessment')
 
   const loadClientData = useCallback(async () => {
     try {
@@ -331,7 +331,7 @@ export default function ClientDashboard() {
     setShowNoteModal(true)
   }
 
-  const startCallRecording = (type: 'interview' | 'coaching') => {
+  const startCallRecording = (type: 'onboarding' | 'follow_up' | 'assessment') => {
     setCallType(type)
     setShowCallConsent(true)
   }
@@ -341,7 +341,7 @@ export default function ClientDashboard() {
     setShowCallRecorder(true)
   }
 
-  const handleRecordingComplete = async (audioBlob: Blob, transcription?: string) => {
+  const handleRecordingComplete = async (recording: Blob, duration: number) => {
     setShowCallRecorder(false)
     
     // The CallRecorder component already handles the upload and processing
@@ -615,7 +615,7 @@ export default function ClientDashboard() {
           </Button>
           
           <Button 
-            onClick={() => startCallRecording('interview')}
+            onClick={() => startCallRecording('assessment')}
             size="lg"
             className="h-16 flex flex-col items-center justify-center gap-1 bg-gradient-brand hover:opacity-90 text-white"
           >
@@ -960,7 +960,7 @@ export default function ClientDashboard() {
       {showCallRecorder && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-background rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-4">Recording {callType === 'interview' ? 'Interview' : 'Coaching'} Call</h2>
+            <h2 className="text-2xl font-bold mb-4">Recording {callType === 'assessment' ? 'Assessment' : callType === 'onboarding' ? 'Onboarding' : 'Follow-up'} Call</h2>
             <CallRecorder
               clientId={clientId}
               callType={callType}
