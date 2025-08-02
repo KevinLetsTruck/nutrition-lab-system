@@ -246,7 +246,7 @@ function ClientsContent() {
                 <p>Active clients: {activeClients.length}</p>
                 <p>Archived clients: {archivedClients.length}</p>
                 <p>Show archived: {showArchived ? 'Yes' : 'No'}</p>
-                <p>Search query: "{searchQuery}"</p>
+                <p>Search query: &ldquo;{searchQuery}&rdquo;</p>
                 <p>Auth user: {user?.email || 'Not authenticated'}</p>
               </div>
             </CardContent>
