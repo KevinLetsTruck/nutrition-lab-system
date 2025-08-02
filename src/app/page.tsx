@@ -32,13 +32,13 @@ export default function HomePage() {
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button size="xl" asChild className="shadow-2xl shadow-blue-500/25">
-              <Link href="/clients">
+              <Link href="/start-assessment">
                 Begin Your Health Journey
                 <span className="ml-2">→</span>
               </Link>
             </Button>
             <Button variant="outline" size="xl" asChild className="border-primary/30 hover:border-primary">
-              <Link href="/assessments">View Sample Report</Link>
+              <Link href="/results">View Sample Report</Link>
             </Button>
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function HomePage() {
             Join hundreds of satisfied clients who have transformed their health
           </p>
           <Button size="lg" asChild>
-            <Link href="/clients">Get Started Now</Link>
+            <Link href="/start-assessment">Get Started Now</Link>
           </Button>
         </div>
       </section>
