@@ -7,5 +7,8 @@
     "src/app/api/calls/process-recording/route.ts": {
       "maxDuration": 60
     }
+  },
+  "github": {
+    "silent": true
   }
 }
