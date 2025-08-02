@@ -57,7 +57,7 @@ export default function RadioAnalysisPage() {
     const interval = setInterval(fetchAnalyses, 30000)
     
     return () => clearInterval(interval)
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString)

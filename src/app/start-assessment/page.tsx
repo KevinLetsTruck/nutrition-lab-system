@@ -22,7 +22,7 @@ export default function StartAssessmentPage() {
         router.push('/clients')
       }
     }
-  }, [user, loading, router])
+  }, [user, loading, router]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchClientIdAndRedirect = async () => {
     try {

@@ -278,11 +278,10 @@ export default function NotesPage() {
       {/* Note Modal */}
       {showNoteModal && noteType && clientId && (
         <NoteModal
-          isOpen={showNoteModal}
           onClose={() => setShowNoteModal(false)}
           clientId={clientId}
           noteType={noteType}
-          onNoteSaved={handleNoteSaved}
+          onSave={handleNoteSaved}
         />
       )}
     </div>
