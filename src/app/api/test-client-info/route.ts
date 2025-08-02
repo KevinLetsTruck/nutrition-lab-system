@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       message: 'Client found!',
       client,
-      aiAssessmentUrl: `/assessments/ai-conversation/${client.id}`
+      structuredAssessmentUrl: `/assessments/structured/${client.id}`
     });
     
   } catch (error) {
