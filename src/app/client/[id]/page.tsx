@@ -948,12 +948,11 @@ export default function ClientDashboard() {
       )}
 
       {/* Call Consent Dialog */}
-      {showCallConsent && (
+      {showCallConsent && client && (
         <CallConsentDialog
-          isOpen={showCallConsent}
-          onAccept={handleConsentAccepted}
+          clientName={client.name}
+          onConsent={handleConsentAccepted}
           onDecline={() => setShowCallConsent(false)}
-          callType={callType}
         />
       )}
 
