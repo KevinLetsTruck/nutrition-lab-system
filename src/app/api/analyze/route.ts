@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { labReportId, filename, clientEmail, clientFirstName, clientLastName, useClientPriority, filePath, fileName, quickAnalysis } = await request.json()
+    const { labReportId, filename, clientEmail, clientFirstName, clientLastName, useClientPriority, filePath, fileName, quickAnalysis, bucket } = await request.json()
     
     console.log('[ANALYZE] Request params:', { 
       labReportId, 
@@ -68,7 +68,8 @@ export async function POST(request: NextRequest) {
       useClientPriority,
       filePath,
       fileName,
-      quickAnalysis
+      quickAnalysis,
+      bucket
     })
     
     // Handle quick analysis mode
@@ -80,7 +81,10 @@ export async function POST(request: NextRequest) {
       try {
         // Download file from Supabase Storage for quick analysis
         console.log('[ANALYZE] Downloading file for quick analysis:', filePath)
-        fileBuffer = await loadFile('general', filePath)
+        // Determine bucket based on file type - PDFs typically go to lab-files
+        const bucket = filePath.toLowerCase().endsWith('.pdf') ? 'lab-files' : 'general'
+        console.log('[ANALYZE] Using bucket:', bucket)
+        fileBuffer = await loadFile(bucket, filePath)
         
         if (!fileBuffer) {
           return NextResponse.json(

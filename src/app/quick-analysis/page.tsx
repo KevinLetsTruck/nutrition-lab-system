@@ -136,12 +136,15 @@ export default function QuickAnalysisPage() {
           body: JSON.stringify({
             filePath: uploadedFile.filePath,
             fileName: file.name,
-            quickAnalysis: true
+            quickAnalysis: true,
+            bucket: uploadedFile.bucket // Include bucket from upload response
           })
         })
 
         if (!analysisResponse.ok) {
-          throw new Error('Analysis failed')
+          const errorData = await analysisResponse.json()
+          console.error('Analysis error response:', errorData)
+          throw new Error(errorData.error || errorData.details || 'Analysis failed')
         }
 
         const analysisData = await analysisResponse.json()
