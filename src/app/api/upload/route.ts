@@ -69,6 +69,13 @@ export async function POST(request: NextRequest) {
             timestamp: new Date().toISOString()
           }, true)
           
+          // Log the exact path that was saved
+          console.log('[UPLOAD] File saved to storage:', {
+            bucket: storageFile.bucket,
+            path: storageFile.path,
+            fullPath: `${storageFile.bucket}/${storageFile.path}`
+          })
+          
           console.log('[UPLOAD] Storage file response:', {
             path: storageFile.path,
             bucket: storageFile.bucket,

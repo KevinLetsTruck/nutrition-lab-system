@@ -111,7 +111,13 @@ export async function POST(request: NextRequest) {
         
         // Try to load the file with better error handling
         try {
-          fileBuffer = await loadFile(storageBucket, cleanPath)
+          // For quick analysis, we need to use the service role client
+          // because the files were uploaded with service role
+          const { SupabaseStorageService } = require('@/lib/supabase-storage')
+          const storageService = new SupabaseStorageService(true) // Use service role
+          
+          console.log('[ANALYZE] Attempting to download file with service role client')
+          fileBuffer = await storageService.downloadFile(storageBucket, cleanPath)
           
           if (!fileBuffer) {
             console.error('[ANALYZE] File buffer is null after loadFile call')
@@ -120,7 +126,7 @@ export async function POST(request: NextRequest) {
             const alternateBuckets = ['lab-files', 'general'].filter(b => b !== storageBucket)
             for (const altBucket of alternateBuckets) {
               console.log('[ANALYZE] Trying alternate bucket:', altBucket)
-              fileBuffer = await loadFile(altBucket, cleanPath)
+              fileBuffer = await storageService.downloadFile(altBucket, cleanPath)
               if (fileBuffer) {
                 console.log('[ANALYZE] Found file in alternate bucket:', altBucket)
                 storageBucket = altBucket
