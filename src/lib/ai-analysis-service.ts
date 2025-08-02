@@ -1,5 +1,6 @@
 import ClaudeClient from './claude-client'
 import { ReportData, AIAnalysis, SupplementRecommendation } from '@/components/reports/PractitionerAnalysis'
+import { performFunctionalMedicineAnalysis, FunctionalMedicineAnalysis, ClientData, DocumentAnalysis } from './functional-medicine-analysis'
 
 export async function generateAIAnalysis(reportData: ReportData): Promise<AIAnalysis> {
   try {
@@ -21,6 +22,49 @@ export async function generateAIAnalysis(reportData: ReportData): Promise<AIAnal
   } catch (error) {
     console.error('Error generating AI analysis:', error)
     throw new Error(`Failed to generate AI analysis: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
+}
+
+// New function to generate functional medicine analysis
+export async function generateFunctionalMedicineAnalysis(
+  clientData: ClientData
+): Promise<FunctionalMedicineAnalysis> {
+  return performFunctionalMedicineAnalysis(clientData)
+}
+
+// Helper function to convert ReportData to ClientData format
+export function convertReportDataToClientData(reportData: ReportData): ClientData {
+  const { client, nutriqData, labData, notes } = reportData
+  
+  // Convert lab data to document analysis format
+  const documents: DocumentAnalysis[] = labData.map(lab => ({
+    type: lab.reportType,
+    summary: `${lab.reportType} report from ${lab.reportDate} - Status: ${lab.status}`,
+    keyFindings: lab.results ? Object.entries(lab.results).map(([key, value]) => `${key}: ${value}`) : [],
+    rawData: lab.results
+  }))
+  
+  // Convert NutriQ data to assessment format
+  const assessments = [
+    {
+      type: 'nutriq',
+      date: nutriqData.assessmentDate,
+      totalScore: nutriqData.totalScore,
+      bodySystems: nutriqData.bodySystems,
+      recommendations: nutriqData.overallRecommendations,
+      priorityActions: nutriqData.priorityActions
+    }
+  ]
+  
+  return {
+    assessments,
+    documents,
+    notes: notes.map(note => ({
+      type: note.type,
+      date: note.date,
+      content: note.content
+    })),
+    isDriver: client.truckDriver || false
   }
 }
 
