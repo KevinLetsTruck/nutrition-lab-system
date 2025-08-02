@@ -2,7 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/Navigation'
+import NoteModal from '@/components/NoteModal'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { FileText, MessageSquare } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 interface Note {
@@ -22,20 +27,47 @@ interface Note {
 export default function NotesPage() {
   const [notes, setNotes] = useState<Note[]>([])
   const [loading, setLoading] = useState(true)
+  const [showNoteModal, setShowNoteModal] = useState(false)
+  const [noteType, setNoteType] = useState<'interview' | 'coaching_call' | null>(null)
+  const [clientData, setClientData] = useState<any>(null)
+  
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const clientId = searchParams.get('clientId')
 
   useEffect(() => {
-    const fetchNotes = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true)
         
-        // Fetch notes with client information
-        const { data: notesData, error } = await supabase
+        // If clientId is provided, fetch client data
+        if (clientId) {
+          const { data: client, error: clientError } = await supabase
+            .from('clients')
+            .select('*')
+            .eq('id', clientId)
+            .single()
+          
+          if (!clientError && client) {
+            setClientData(client)
+          }
+        }
+        
+        // Fetch notes query
+        let query = supabase
           .from('client_notes')
           .select(`
             *,
             client:clients(first_name, last_name, email)
           `)
           .order('created_at', { ascending: false })
+        
+        // Filter by clientId if provided
+        if (clientId) {
+          query = query.eq('client_id', clientId)
+        }
+
+        const { data: notesData, error } = await query
 
         if (error) {
           console.error('Error fetching notes:', error)
@@ -47,14 +79,30 @@ export default function NotesPage() {
         setNotes(notesData || [])
         setLoading(false)
       } catch (error) {
-        console.error('Error in fetchNotes:', error)
+        console.error('Error in fetchData:', error)
         setNotes([])
         setLoading(false)
       }
     }
 
-    fetchNotes()
-  }, [])
+    fetchData()
+  }, [clientId])
+
+  const openInterviewNotes = () => {
+    setNoteType('interview')
+    setShowNoteModal(true)
+  }
+
+  const openCoachingCallNotes = () => {
+    setNoteType('coaching_call')
+    setShowNoteModal(true)
+  }
+
+  const handleNoteSaved = () => {
+    setShowNoteModal(false)
+    // Refresh the notes
+    window.location.reload()
+  }
 
   const deleteNote = async (noteId: string) => {
     if (!confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
@@ -133,11 +181,48 @@ export default function NotesPage() {
       
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold gradient-text mb-2">Client Notes</h1>
+          <h1 className="text-3xl font-bold gradient-text mb-2">
+            {clientData ? `${clientData.first_name} ${clientData.last_name}'s Notes` : 'Client Notes'}
+          </h1>
           <p className="text-foreground-secondary">
-            View and manage client consultation notes and follow-up records.
+            {clientData ? 'Select a note type to add or view existing notes below.' : 'View and manage client consultation notes and follow-up records.'}
           </p>
         </div>
+
+        {/* Note Type Selection Buttons - only show when clientId is provided */}
+        {clientId && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <Card 
+              className="cursor-pointer hover:scale-105 transition-all duration-300"
+              onClick={openInterviewNotes}
+            >
+              <CardHeader className="text-center">
+                <div className="w-16 h-16 bg-gradient-brand rounded-lg flex items-center justify-center mb-4 mx-auto">
+                  <FileText className="w-8 h-8 text-white" />
+                </div>
+                <CardTitle>Interview Notes</CardTitle>
+                <CardDescription>
+                  Initial consultation and assessment notes
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card 
+              className="cursor-pointer hover:scale-105 transition-all duration-300"
+              onClick={openCoachingCallNotes}
+            >
+              <CardHeader className="text-center">
+                <div className="w-16 h-16 bg-gradient-brand rounded-lg flex items-center justify-center mb-4 mx-auto">
+                  <MessageSquare className="w-8 h-8 text-white" />
+                </div>
+                <CardTitle>Coaching Call Notes</CardTitle>
+                <CardDescription>
+                  Session notes and progress tracking
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        )}
 
         <div className="space-y-4">
           {notes.length === 0 ? (
@@ -189,6 +274,17 @@ export default function NotesPage() {
           )}
         </div>
       </div>
+
+      {/* Note Modal */}
+      {showNoteModal && noteType && clientId && (
+        <NoteModal
+          isOpen={showNoteModal}
+          onClose={() => setShowNoteModal(false)}
+          clientId={clientId}
+          noteType={noteType}
+          onNoteSaved={handleNoteSaved}
+        />
+      )}
     </div>
   )
 } 

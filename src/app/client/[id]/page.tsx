@@ -580,21 +580,12 @@ export default function ClientDashboard() {
         {/* Action Buttons */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
           <Button 
-            onClick={openInterviewNotes}
+            onClick={() => router.push(`/notes?clientId=${clientId}`)}
             size="lg"
             className="h-16 flex flex-col items-center justify-center gap-1 bg-gradient-brand hover:opacity-90 text-white"
           >
             <FileText className="w-5 h-5" />
-            <span>Interview Notes</span>
-          </Button>
-          
-          <Button 
-            onClick={openCoachingCallNotes}
-            size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1 bg-gradient-brand hover:opacity-90 text-white"
-          >
-            <MessageSquare className="w-5 h-5" />
-            <span>Coaching Call Notes</span>
+            <span>Notes</span>
           </Button>
           
           <Button 
