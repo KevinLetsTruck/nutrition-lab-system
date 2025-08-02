@@ -86,11 +86,17 @@ export async function POST(request: NextRequest) {
           fileName
         })
         
+        // Clean the file path - remove any URL encoding or special characters that might cause issues
+        const cleanPath = decodeURIComponent(filePath).trim()
+        
+        console.log('[ANALYZE] Original path:', filePath)
+        console.log('[ANALYZE] Cleaned path:', cleanPath)
+        
         // Determine the correct bucket
         let storageBucket = bucket
         if (!storageBucket) {
           // Check file extension and name patterns
-          const lowerFileName = (fileName || filePath || '').toLowerCase()
+          const lowerFileName = (fileName || cleanPath || '').toLowerCase()
           if (lowerFileName.includes('naq') || lowerFileName.includes('question') || 
               lowerFileName.includes('symptom') || lowerFileName.includes('burden')) {
             storageBucket = 'lab-files'
@@ -101,11 +107,11 @@ export async function POST(request: NextRequest) {
           }
         }
         
-        console.log('[ANALYZE] Using bucket:', storageBucket, 'for path:', filePath)
+        console.log('[ANALYZE] Using bucket:', storageBucket, 'for path:', cleanPath)
         
         // Try to load the file with better error handling
         try {
-          fileBuffer = await loadFile(storageBucket, filePath)
+          fileBuffer = await loadFile(storageBucket, cleanPath)
           
           if (!fileBuffer) {
             console.error('[ANALYZE] File buffer is null after loadFile call')
@@ -114,7 +120,7 @@ export async function POST(request: NextRequest) {
             const alternateBuckets = ['lab-files', 'general'].filter(b => b !== storageBucket)
             for (const altBucket of alternateBuckets) {
               console.log('[ANALYZE] Trying alternate bucket:', altBucket)
-              fileBuffer = await loadFile(altBucket, filePath)
+              fileBuffer = await loadFile(altBucket, cleanPath)
               if (fileBuffer) {
                 console.log('[ANALYZE] Found file in alternate bucket:', altBucket)
                 storageBucket = altBucket

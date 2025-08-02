@@ -182,7 +182,14 @@ export class SupabaseStorageService {
       const randomString = Math.random().toString(36).substring(2, 15)
       const extension = fileName.includes('.') ? fileName.split('.').pop() : ''
       const nameWithoutExt = fileName.includes('.') ? fileName.substring(0, fileName.lastIndexOf('.')) : fileName
-      const uniqueFileName = `${nameWithoutExt}_${timestamp}_${randomString}${extension ? '.' + extension : ''}`
+      
+      // Clean filename - remove special characters that might cause issues
+      const cleanedName = nameWithoutExt
+        .replace(/[()]/g, '') // Remove parentheses
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .replace(/[^a-zA-Z0-9-_]/g, '') // Remove other special chars
+      
+      const uniqueFileName = `${cleanedName}_${timestamp}_${randomString}${extension ? '.' + extension : ''}`
       
       // Create path with date-based organization
       const date = new Date()
@@ -190,6 +197,8 @@ export class SupabaseStorageService {
       const month = String(date.getMonth() + 1).padStart(2, '0')
       const day = String(date.getDate()).padStart(2, '0')
       const path = `${year}/${month}/${day}/${uniqueFileName}`
+      
+      console.log('[STORAGE] Generated path from fileName:', fileName, 'to:', path)
       
       // Upload file
       const { data, error } = await this.client.storage
@@ -237,8 +246,13 @@ export class SupabaseStorageService {
         bucket,
         path,
         category,
-        fileName
+        fileName,
+        fullPath: `${bucket}/${path}`,
+        publicUrl: urlData.publicUrl
       })
+      
+      // Log the exact storage file object being returned
+      console.log('[STORAGE] Returning storage file:', JSON.stringify(storageFile, null, 2))
       
       return {
         success: true,
@@ -259,6 +273,24 @@ export class SupabaseStorageService {
     console.log('[STORAGE] downloadFile called with:', { bucket, path })
     
     try {
+      // First, let's check if the file exists
+      console.log('[STORAGE] Checking if file exists in bucket:', bucket)
+      const { data: listData, error: listError } = await this.client.storage
+        .from(bucket)
+        .list(path.substring(0, path.lastIndexOf('/')), {
+          limit: 100,
+          search: path.substring(path.lastIndexOf('/') + 1)
+        })
+      
+      if (listError) {
+        console.error('[STORAGE] Error listing files:', listError)
+      } else {
+        console.log('[STORAGE] Files found in directory:', listData?.length || 0)
+        if (listData && listData.length > 0) {
+          console.log('[STORAGE] Found files:', listData.map((f: any) => f.name))
+        }
+      }
+      
       console.log('[STORAGE] Attempting to download from Supabase Storage...')
       const { data, error } = await this.client.storage
         .from(bucket)
@@ -270,7 +302,9 @@ export class SupabaseStorageService {
           message: error.message,
           status: error.status,
           statusCode: error.statusCode,
-          name: error.name
+          name: error.name,
+          bucketName: bucket,
+          filePath: path
         })
         return null
       }
