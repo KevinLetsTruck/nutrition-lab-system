@@ -23,7 +23,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
         {/* Search Icon - Positioned properly */}
         <Search 
           className={cn(
-            "absolute left-3 h-4 w-4 text-foreground-muted pointer-events-none z-0",
+            "absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-0",
             iconClassName
           )} 
         />
@@ -34,11 +34,11 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
           type="text"
           className={cn(
             // Base styling
-            "flex h-11 w-full rounded-lg border border-input bg-input text-foreground",
+            "flex h-11 w-full rounded-lg border border-border bg-background text-foreground",
             // Proper padding for icon space
             "pl-10 pr-4 py-2",
             // Typography
-            "text-sm placeholder:text-foreground-muted",
+            "text-sm placeholder:text-muted-foreground",
             // Focus states
             "focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none",
             // Hover states  
