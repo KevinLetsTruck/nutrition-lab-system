@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "install": "npm install --legacy-peer-deps",
     "start": "next start",
     "lint": "next lint",
     "db:query": "node scripts/query-runner.js",
