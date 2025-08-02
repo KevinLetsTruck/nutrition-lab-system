@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { saveFile, validateFile, generateUniqueFilename, getFileInfo } from '@/lib/file-utils'
+import { saveFile, validateFile, getFileInfo } from '@/lib/file-utils'
 import { getRateLimiter, getClientIdentifier, createRateLimitHeaders } from '@/lib/rate-limiter'
 import { db } from '@/lib/supabase'
 import MasterAnalyzer from '@/lib/lab-analyzers/master-analyzer'
@@ -62,14 +62,18 @@ export async function POST(request: NextRequest) {
             continue
           }
 
-          // Generate unique filename for quick analysis
-          const uniqueFilename = generateUniqueFilename(file.name)
-          
           // Upload file to Supabase Storage with quick analysis path
-          const storageFile = await saveFile(file, uniqueFilename, 'quick-analysis', {
+          // Note: saveFile will generate its own unique filename internally
+          const storageFile = await saveFile(file, file.name, 'quick-analysis', {
             uploadedBy: 'quick-analysis',
             timestamp: new Date().toISOString()
           }, true)
+          
+          console.log('[UPLOAD] Storage file response:', {
+            path: storageFile.path,
+            bucket: storageFile.bucket,
+            url: storageFile.url
+          })
           
           results.push({
             success: true,
