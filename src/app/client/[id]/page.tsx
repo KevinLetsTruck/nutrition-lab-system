@@ -393,16 +393,6 @@ export default function ClientDashboard() {
     }
   }
 
-  const openInterviewNotes = () => {
-    setNoteType('interview')
-    setShowNoteModal(true)
-  }
-
-  const openCoachingCallNotes = () => {
-    setNoteType('coaching_call')
-    setShowNoteModal(true)
-  }
-
   const generateProtocol = async () => {
     if (!client) {
       alert('Client data not available. Please refresh the page.')
