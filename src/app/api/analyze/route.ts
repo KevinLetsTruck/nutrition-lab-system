@@ -177,7 +177,10 @@ export async function POST(request: NextRequest) {
             lastError = attemptError
             console.error(`[ANALYZE] Quick analysis attempt ${attempt} failed:`, {
               error: attemptError instanceof Error ? attemptError.message : attemptError,
-              isClaudeError: attemptError instanceof Error && attemptError.message.includes('AI analysis failed')
+              stack: attemptError instanceof Error ? attemptError.stack : undefined,
+              isClaudeError: attemptError instanceof Error && attemptError.message.includes('AI analysis failed'),
+              isPDFError: attemptError instanceof Error && attemptError.message.includes('PDF'),
+              isVisionError: attemptError instanceof Error && attemptError.message.includes('vision')
             })
             
             if (attempt < RETRY_CONFIG.maxRetries) {

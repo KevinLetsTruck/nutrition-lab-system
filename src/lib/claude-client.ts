@@ -327,12 +327,13 @@ class ClaudeClient {
     
     const systemPrompt = `You are an expert at identifying different types of lab reports and medical documents. 
     Analyze the provided text and determine which type of report it is. Return only one of these exact values:
-    - nutriq (for NutriQ/NAQ assessments)
+    - nutriq (for NutriQ/NAQ assessments, nutritional questionnaires, symptom assessments)
     - kbmo (for KBMO food intolerance tests)
     - dutch (for Dutch hormone tests)
     - cgm (for Continuous Glucose Monitor data)
     - food_photo (for food photos)
     
+    Important: NAQ (Nutritional Assessment Questionnaire) files, symptom burden graphs, and similar nutritional questionnaires should be classified as 'nutriq'.
     Look for specific keywords, formatting, and content patterns that identify each type.`
 
     const prompt = `Please analyze this lab report text and tell me what type of report it is:
