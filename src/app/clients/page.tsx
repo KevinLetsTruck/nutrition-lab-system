@@ -289,11 +289,6 @@ function ClientsContent() {
                       <Button variant="secondary" size="sm" asChild>
                         <Link href={`/client/${client.id}`}>View Details</Link>
                       </Button>
-                      <Button variant="primary" size="sm" asChild>
-                        <Link href={`/assessments/select-client?clientId=${client.id}`}>
-                          Start Assessment
-                        </Link>
-                      </Button>
                     </div>
                   </div>
                 </CardContent>
