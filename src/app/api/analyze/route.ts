@@ -81,10 +81,10 @@ export async function POST(request: NextRequest) {
       try {
         // Download file from Supabase Storage for quick analysis
         console.log('[ANALYZE] Downloading file for quick analysis:', filePath)
-        // Determine bucket based on file type - PDFs typically go to lab-files
-        const bucket = filePath.toLowerCase().endsWith('.pdf') ? 'lab-files' : 'general'
-        console.log('[ANALYZE] Using bucket:', bucket)
-        fileBuffer = await loadFile(bucket, filePath)
+        // Use bucket from request or determine based on file type
+        const storageBucket = bucket || (filePath.toLowerCase().endsWith('.pdf') ? 'lab-files' : 'general')
+        console.log('[ANALYZE] Using bucket:', storageBucket)
+        fileBuffer = await loadFile(storageBucket, filePath)
         
         if (!fileBuffer) {
           return NextResponse.json(

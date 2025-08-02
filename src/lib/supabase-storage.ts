@@ -107,6 +107,10 @@ export class SupabaseStorageService {
           return SupabaseStorageService.BUCKETS.MEDICAL_RECORDS
         case 'supplements':
           return SupabaseStorageService.BUCKETS.SUPPLEMENTS
+        case 'quick-analysis':
+          // For quick analysis, determine bucket by file type
+          // This ensures consistency with the auto-detection logic below
+          break
         default:
           return SupabaseStorageService.BUCKETS.GENERAL
       }
@@ -165,6 +169,7 @@ export class SupabaseStorageService {
       
       // Determine bucket
       const bucket = this.getBucketForFile(fileName, mimeType, category)
+      console.log('[STORAGE] Determined bucket:', bucket, 'for file:', fileName, 'category:', category)
       
       // Generate unique path
       const timestamp = Date.now()
@@ -221,6 +226,13 @@ export class SupabaseStorageService {
           ...metadata
         }
       }
+      
+      console.log('[STORAGE] Upload successful:', {
+        bucket,
+        path,
+        category,
+        fileName
+      })
       
       return {
         success: true,
