@@ -50,6 +50,7 @@ function ClientsContent() {
   useEffect(() => {
     const fetchClients = async () => {
       try {
+        console.log('🔍 Starting to fetch clients...')
         setLoading(true)
         
         let query = supabase
@@ -57,20 +58,25 @@ function ClientsContent() {
           .select('*')
           .order('created_at', { ascending: false })
 
-        if (!showArchived) {
-          query = query.is('archived_at', null)
-        }
+        // Comment out archived filtering until column is added
+        // if (!showArchived) {
+        //   query = query.is('archived_at', null)
+        // }
 
         const { data, error } = await query
 
+        console.log('📊 Supabase response:', { data, error })
+        console.log('📊 Number of clients:', data?.length || 0)
+
         if (error) {
-          console.error('Error fetching clients:', error)
+          console.error('❌ Error fetching clients:', error)
           return
         }
 
         setClients(data || [])
+        console.log('✅ Clients set in state:', data?.length || 0)
       } catch (error) {
-        console.error('Error:', error)
+        console.error('❌ Catch block error:', error)
       } finally {
         setLoading(false)
       }
@@ -89,6 +95,7 @@ function ClientsContent() {
     )
   })
 
+  // Handle missing archived_at field
   const activeClients = filteredClients.filter(c => !c.archived_at)
   const archivedClients = filteredClients.filter(c => c.archived_at)
 
@@ -135,7 +142,7 @@ function ClientsContent() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border-emerald-500/20">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-foreground-secondary">Total Clients</CardTitle>
@@ -182,6 +189,7 @@ function ClientsContent() {
             </CardContent>
           </Card>
 
+          {/* Hide archived card until archived_at column is added
           <Card className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-500/20">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-foreground-secondary">Archived</CardTitle>
@@ -193,7 +201,7 @@ function ClientsContent() {
                 <span className="text-xs text-foreground-muted">Inactive clients</span>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
 
         {/* Search and Actions */}
@@ -211,10 +219,11 @@ function ClientsContent() {
                 />
               </div>
               <div className="flex gap-2">
+                {/* Hide archive button until archived_at column is added
                 <Button variant={showArchived ? "secondary" : "outline"} onClick={() => setShowArchived(!showArchived)}>
                   <Archive className="w-4 h-4 mr-2" />
                   {showArchived ? 'Hide' : 'Show'} Archived
-                </Button>
+                </Button> */}
                 <Button asChild>
                   <Link href="/streamlined-onboarding">
                     <Plus className="w-4 h-4 mr-2" />
@@ -225,6 +234,24 @@ function ClientsContent() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Debug Info - Remove this in production */}
+        {process.env.NODE_ENV === 'development' && (
+          <Card className="mb-4 border-orange-500/50 bg-orange-500/10">
+            <CardContent className="p-4">
+              <h3 className="font-bold text-orange-400 mb-2">🐛 Debug Info:</h3>
+              <div className="text-sm space-y-1">
+                <p>Total clients in state: {clients.length}</p>
+                <p>Filtered clients: {filteredClients.length}</p>
+                <p>Active clients: {activeClients.length}</p>
+                <p>Archived clients: {archivedClients.length}</p>
+                <p>Show archived: {showArchived ? 'Yes' : 'No'}</p>
+                <p>Search query: "{searchQuery}"</p>
+                <p>Auth user: {user?.email || 'Not authenticated'}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Clients List */}
         <div className="grid gap-4">
@@ -253,9 +280,6 @@ function ClientsContent() {
                           {client.first_name} {client.last_name}
                         </h3>
                         {getStatusBadge(client.status)}
-                        {client.archived_at && (
-                          <Badge variant="secondary">Archived</Badge>
-                        )}
                       </div>
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-sm text-foreground-secondary">
                         <span>{client.email}</span>
