@@ -8,6 +8,9 @@ interface AnalysisResult {
   id: string
   fileName: string
   status: 'pending' | 'processing' | 'completed' | 'failed'
+  callerName?: string
+  callerLocation?: string
+  timestamp?: string
   analysis?: {
     summary: string
     recommendations: string[]
@@ -22,6 +25,10 @@ export default function QuickAnalysisPage() {
   const [isUploading, setIsUploading] = useState(false)
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([])
   const [dragActive, setDragActive] = useState(false)
+  const [radioShowMode, setRadioShowMode] = useState(false)
+  const [callerName, setCallerName] = useState('')
+  const [callerLocation, setCallerLocation] = useState('')
+  const [showResults, setShowResults] = useState(false)
 
   const handleFileSelect = (selectedFiles: FileList | null) => {
     if (!selectedFiles) return
@@ -69,7 +76,10 @@ export default function QuickAnalysisPage() {
       newResults.push({
         id: `file-${Date.now()}-${index}`,
         fileName: file.name,
-        status: 'pending'
+        status: 'pending',
+        callerName: radioShowMode ? callerName : undefined,
+        callerLocation: radioShowMode ? callerLocation : undefined,
+        timestamp: new Date().toISOString()
       })
     })
 
@@ -139,22 +149,45 @@ export default function QuickAnalysisPage() {
         console.log('Analysis response:', analysisData)
 
         // Update with successful analysis
+        const completedResult = { 
+          ...newResults[i],
+          status: 'completed' as const,
+          analysis: {
+            summary: analysisData.summary || analysisData.analysis?.summary || 'Analysis completed successfully.',
+            recommendations: analysisData.recommendations || analysisData.analysis?.recommendations || ['Review the detailed findings below.'],
+            keyFindings: analysisData.keyFindings || analysisData.analysis?.keyFindings || ['Document processed successfully.'],
+            reportType: analysisData.reportType || analysisData.analysis?.reportType || 'General Analysis'
+          }
+        }
+        
         setAnalysisResults(prev => 
           prev.map(result => 
-            result.id === resultId 
-              ? { 
-                  ...result, 
-                  status: 'completed',
-                  analysis: {
-                    summary: analysisData.summary || analysisData.analysis?.summary || 'Analysis completed successfully.',
-                    recommendations: analysisData.recommendations || analysisData.analysis?.recommendations || ['Review the detailed findings below.'],
-                    keyFindings: analysisData.keyFindings || analysisData.analysis?.keyFindings || ['Document processed successfully.'],
-                    reportType: analysisData.reportType || analysisData.analysis?.reportType || 'General Analysis'
-                  }
-                }
-              : result
+            result.id === resultId ? completedResult : result
           )
         )
+        
+        // Save to localStorage if in radio show mode
+        if (radioShowMode && callerName) {
+          const radioAnalysis = {
+            id: resultId,
+            caller_name: callerName,
+            caller_location: callerLocation,
+            file_name: file.name,
+            analysis_results: completedResult.analysis,
+            created_at: new Date().toISOString()
+          }
+          
+          const existing = localStorage.getItem('radioShowAnalyses')
+          const analyses = existing ? JSON.parse(existing) : []
+          analyses.unshift(radioAnalysis)
+          
+          // Keep only the last 50 analyses
+          if (analyses.length > 50) {
+            analyses.splice(50)
+          }
+          
+          localStorage.setItem('radioShowAnalyses', JSON.stringify(analyses))
+        }
 
       } catch (error) {
         console.error('Error processing file:', error)
@@ -175,6 +208,14 @@ export default function QuickAnalysisPage() {
     }
 
     setIsUploading(false)
+    setShowResults(true)
+    
+    // Clear form if in radio show mode
+    if (radioShowMode) {
+      setFiles([])
+      setCallerName('')
+      setCallerLocation('')
+    }
   }
 
   const downloadAnalysis = (result: AnalysisResult) => {
@@ -216,11 +257,69 @@ Generated: ${new Date().toLocaleString()}
       
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Quick Document Analysis</h1>
-          <p className="text-gray-400">
-            Upload multiple documents for instant analysis and recommendations without creating client records.
-          </p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">Quick Document Analysis</h1>
+              <p className="text-gray-400">
+                Upload multiple documents for instant analysis and recommendations without creating client records.
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setRadioShowMode(!radioShowMode)}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  radioShowMode 
+                    ? 'bg-green-600 text-white hover:bg-green-700' 
+                    : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                }`}
+              >
+                📻 Radio Show Mode {radioShowMode ? 'ON' : 'OFF'}
+              </button>
+              {radioShowMode && (
+                <a
+                  href="/radio-analysis"
+                  target="_blank"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  📺 Open Analysis View
+                </a>
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* Caller Information (Radio Show Mode) */}
+        {radioShowMode && (
+          <div className="bg-slate-800 rounded-lg p-6 mb-6">
+            <h2 className="text-xl font-semibold text-white mb-4">Caller Information</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">
+                  Caller Name
+                </label>
+                <input
+                  type="text"
+                  value={callerName}
+                  onChange={(e) => setCallerName(e.target.value)}
+                  placeholder="Enter caller's name"
+                  className="w-full px-4 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">
+                  Caller Location
+                </label>
+                <input
+                  type="text"
+                  value={callerLocation}
+                  onChange={(e) => setCallerLocation(e.target.value)}
+                  placeholder="City, State"
+                  className="w-full px-4 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* File Upload Section */}
         <div className="bg-slate-800 rounded-lg p-6 mb-8">
@@ -307,10 +406,29 @@ Generated: ${new Date().toLocaleString()}
           )}
         </div>
 
-        {/* Analysis Results */}
+        {/* Toggle Results View Button */}
         {analysisResults.length > 0 && (
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={() => setShowResults(!showResults)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              {showResults ? 'Hide' : 'Show'} Results View
+            </button>
+          </div>
+        )}
+
+        {/* Analysis Results */}
+        {analysisResults.length > 0 && showResults && (
           <div className="bg-slate-800 rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Analysis Results ({analysisResults.length})</h2>
+            <h2 className="text-xl font-semibold text-white mb-4">
+              Analysis Results
+              {radioShowMode && analysisResults[0]?.callerName && (
+                <span className="text-base font-normal text-gray-400 ml-4">
+                  for {analysisResults[0].callerName} from {analysisResults[0].callerLocation}
+                </span>
+              )}
+            </h2>
             
             <div className="space-y-4">
               {analysisResults.map((result) => (
