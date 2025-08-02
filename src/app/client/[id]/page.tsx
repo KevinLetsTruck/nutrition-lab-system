@@ -121,15 +121,8 @@ export default function ClientDashboard() {
 
         // Fetch client data from the database
         const { data: dbClient, error } = await supabase
-          .from('client_profiles')
-          .select(`
-            *,
-            users!client_profiles_user_id_fkey (
-              email,
-              email_verified,
-              created_at
-            )
-          `)
+          .from('clients')
+          .select('*')
           .eq('id', clientId)
           .single()
 
@@ -280,8 +273,8 @@ export default function ClientDashboard() {
       // Transform the client data
       const transformedClient: Client = {
         id: client.id,
-        name: `${client.first_name} ${client.last_name}`,
-        email: client.users?.email || client.email || '',
+        name: `${client.first_name || ''} ${client.last_name || ''}`.trim() || 'Unknown Client',
+        email: client.email || '',
         phone: client.phone || '',
         notes: notes.map(note => ({
           id: note.id,
