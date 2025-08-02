@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Download, ExternalLink } from 'lucide-react'
+import { X, Download, ExternalLink, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react'
 import { Button } from './button'
-import { Card } from './card'
+import { Card, CardContent, CardHeader } from './card'
 
 interface PDFViewerProps {
   isOpen: boolean
@@ -35,49 +35,49 @@ export function PDFViewer({ isOpen, onClose, pdfUrl, title, fileName }: PDFViewe
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="relative w-full max-w-7xl h-[95vh] bg-white rounded-lg shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-7xl h-[95vh] bg-card rounded-xl border border-border shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center justify-between p-4 bg-background border-b border-border">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-            <p className="text-sm text-gray-500">{fileName}</p>
+            <h2 className="text-lg font-semibold text-foreground gradient-text">{title}</h2>
+            <p className="text-sm text-muted-foreground">{fileName}</p>
           </div>
           <div className="flex items-center gap-2">
             {/* Zoom Controls */}
-            <div className="flex items-center gap-1 mr-4">
+            <div className="flex items-center gap-1 mr-4 bg-background-secondary rounded-lg p-1">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => setZoom(Math.max(50, zoom - 25))}
-                className="px-2"
+                className="h-8 w-8 p-0"
                 title="Zoom Out"
               >
-                -
+                <ZoomOut className="h-4 w-4" />
               </Button>
-              <span className="text-sm text-gray-600 min-w-[3rem] text-center">{zoom}%</span>
+              <span className="text-sm text-foreground min-w-[3rem] text-center font-medium">{zoom}%</span>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => setZoom(Math.min(200, zoom + 25))}
-                className="px-2"
+                className="h-8 w-8 p-0"
                 title="Zoom In"
               >
-                +
+                <ZoomIn className="h-4 w-4" />
               </Button>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => setZoom(100)}
-                className="px-2 ml-1"
+                className="h-8 w-8 p-0 ml-1"
                 title="Reset Zoom"
               >
-                Reset
+                <RotateCcw className="h-4 w-4" />
               </Button>
             </div>
             
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={handleDownload}
               className="flex items-center gap-2"
@@ -98,7 +98,7 @@ export function PDFViewer({ isOpen, onClose, pdfUrl, title, fileName }: PDFViewe
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 hover:bg-destructive/10 hover:text-destructive"
             >
               <X className="h-4 w-4" />
               Close
@@ -107,18 +107,20 @@ export function PDFViewer({ isOpen, onClose, pdfUrl, title, fileName }: PDFViewe
         </div>
 
         {/* PDF Content */}
-        <div className="flex-1 p-2">
+        <div className="flex-1 p-4 bg-background">
           {error ? (
-            <Card className="h-full flex items-center justify-center">
-              <div className="text-center">
-                <p className="text-red-600 mb-4">{error}</p>
-                <Button onClick={handleOpenInNewTab} variant="outline">
-                  Open PDF in New Tab
-                </Button>
-              </div>
+            <Card className="h-full">
+              <CardContent className="h-full flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-destructive mb-4">{error}</p>
+                  <Button onClick={handleOpenInNewTab} variant="outline">
+                    Open PDF in New Tab
+                  </Button>
+                </div>
+              </CardContent>
             </Card>
           ) : (
-            <div className="h-full border rounded-lg overflow-hidden relative">
+            <div className="h-full rounded-lg overflow-hidden relative bg-white">
               <iframe
                 src={`${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1&view=FitH&zoom=${zoom}`}
                 className="w-full h-full"
@@ -130,10 +132,10 @@ export function PDFViewer({ isOpen, onClose, pdfUrl, title, fileName }: PDFViewe
                 }}
               />
               {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-white">
+                <div className="absolute inset-0 flex items-center justify-center bg-background">
                   <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                    <p className="text-gray-600">Loading PDF...</p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                    <p className="text-muted-foreground">Loading PDF...</p>
                   </div>
                 </div>
               )}
