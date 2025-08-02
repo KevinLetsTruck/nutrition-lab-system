@@ -131,107 +131,33 @@ function ClientsContent() {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="container mx-auto py-8 px-6">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-heading font-bold gradient-text mb-2">
-            Client Management
-          </h1>
-          <p className="text-foreground-secondary text-lg">
-            Manage your client base and track health journeys
-          </p>
+      <div className="container mx-auto py-6 px-4">
+        {/* Header with Search */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl font-heading font-bold gradient-text">
+              Clients
+            </h1>
+            <p className="text-foreground-secondary text-sm">
+              {filteredClients.length} of {clients.length} clients
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3 flex-1 max-w-2xl">
+            <SearchInput
+              placeholder="Search by name, email, or phone..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1"
+            />
+            <Button asChild className="whitespace-nowrap">
+              <Link href="/streamlined-onboarding">
+                <Plus className="w-4 h-4 mr-2" />
+                New Client
+              </Link>
+            </Button>
+          </div>
         </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border-emerald-500/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-foreground-secondary">Total Clients</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-emerald-400">{clients.length}</div>
-              <div className="flex items-center gap-1 mt-1">
-                <Users className="w-4 h-4 text-emerald-400/60" />
-                <span className="text-xs text-foreground-muted">All time</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-foreground-secondary">Active Clients</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-blue-400">{activeClients.length}</div>
-              <div className="flex items-center gap-1 mt-1">
-                <UserCheck className="w-4 h-4 text-blue-400/60" />
-                <span className="text-xs text-foreground-muted">Currently active</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-foreground-secondary">This Month</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-purple-400">
-                {clients.filter(c => {
-                  const createdDate = new Date(c.created_at)
-                  const thisMonth = new Date()
-                  return createdDate.getMonth() === thisMonth.getMonth() && 
-                         createdDate.getFullYear() === thisMonth.getFullYear()
-                }).length}
-              </div>
-              <div className="flex items-center gap-1 mt-1">
-                <Clock className="w-4 h-4 text-purple-400/60" />
-                <span className="text-xs text-foreground-muted">New this month</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Hide archived card until archived_at column is added
-          <Card className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-500/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-foreground-secondary">Archived</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-orange-400">{archivedClients.length}</div>
-              <div className="flex items-center gap-1 mt-1">
-                <Archive className="w-4 h-4 text-orange-400/60" />
-                <span className="text-xs text-foreground-muted">Inactive clients</span>
-              </div>
-            </CardContent>
-          </Card> */}
-        </div>
-
-        {/* Search and Actions */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <SearchInput
-                  placeholder="Search clients by name, email, or phone..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <div className="flex gap-2">
-                {/* Hide archive button until archived_at column is added
-                <Button variant={showArchived ? "secondary" : "outline"} onClick={() => setShowArchived(!showArchived)}>
-                  <Archive className="w-4 h-4 mr-2" />
-                  {showArchived ? 'Hide' : 'Show'} Archived
-                </Button> */}
-                <Button asChild>
-                  <Link href="/streamlined-onboarding">
-                    <Plus className="w-4 h-4 mr-2" />
-                    New Client
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Debug Info - Remove this in production */}
         {process.env.NODE_ENV === 'development' && (
@@ -251,51 +177,76 @@ function ClientsContent() {
           </Card>
         )}
 
-        {/* Clients List */}
-        <div className="grid gap-4">
-          {filteredClients.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <p className="text-foreground-secondary mb-4">
-                  {searchQuery ? 'No clients found matching your search.' : 'No clients yet.'}
+        {/* Clients Grid */}
+        {filteredClients.length === 0 ? (
+          <Card className="mt-8">
+            <CardContent className="text-center py-16">
+              <div className="max-w-sm mx-auto">
+                <Users className="w-12 h-12 text-foreground-muted mx-auto mb-4" />
+                <p className="text-foreground-secondary mb-6">
+                  {searchQuery ? 'No clients found matching your search.' : 'No clients yet. Start by adding your first client.'}
                 </p>
-                <Button asChild>
-                  <Link href="/streamlined-onboarding">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Your First Client
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            filteredClients.map((client) => (
-              <Card key={client.id} className="hover:border-primary/30 transition-all">
-                <CardContent className="p-6">
+                {!searchQuery && (
+                  <Button asChild>
+                    <Link href="/streamlined-onboarding">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Your First Client
+                    </Link>
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredClients.map((client) => (
+              <Card 
+                key={client.id} 
+                className="hover:border-primary/30 hover:shadow-lg transition-all cursor-pointer group"
+                onClick={() => router.push(`/client/${client.id}`)}
+              >
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-foreground truncate">
+                        {client.first_name} {client.last_name}
+                      </h3>
+                      <p className="text-sm text-foreground-secondary truncate">
+                        {client.email}
+                      </p>
+                    </div>
+                    <div className="ml-2 flex-shrink-0">
+                      {getStatusBadge(client.status)}
+                    </div>
+                  </div>
+                  
+                  {client.phone && (
+                    <p className="text-sm text-foreground-muted mb-3">
+                      {client.phone}
+                    </p>
+                  )}
+                  
                   <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-foreground">
-                          {client.first_name} {client.last_name}
-                        </h3>
-                        {getStatusBadge(client.status)}
-                      </div>
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-sm text-foreground-secondary">
-                        <span>{client.email}</span>
-                        {client.phone && <span>{client.phone}</span>}
-                        <span>Added {new Date(client.created_at).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="secondary" size="sm" asChild>
-                        <Link href={`/client/${client.id}`}>View Details</Link>
-                      </Button>
-                    </div>
+                    <span className="text-xs text-foreground-muted">
+                      Added {new Date(client.created_at).toLocaleDateString()}
+                    </span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        router.push(`/client/${client.id}`)
+                      }}
+                    >
+                      View →
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
