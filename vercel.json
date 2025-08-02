@@ -1,31 +1,11 @@
 {
-  "version": 2,
-  "name": "nutrition-lab-system",
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With"
-      }
-    },
-    {
-      "src": "/uploads/(.*)",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
-    }
-  ],
+  "buildCommand": "npm install --legacy-peer-deps && npm run build",
+  "installCommand": "npm install --legacy-peer-deps",
+  "framework": "nextjs",
+  "regions": ["iad1"],
   "functions": {
-    "src/app/api/analyze/route.ts": {
-      "maxDuration": 60
-    },
-    "src/app/api/upload/route.ts": {
+    "src/app/api/calls/process-recording/route.ts": {
       "maxDuration": 60
     }
-  },
-  "env": {
-    "NODE_ENV": "production"
   }
-} 
+}
