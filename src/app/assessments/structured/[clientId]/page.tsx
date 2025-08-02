@@ -51,20 +51,39 @@ export default function StructuredAssessmentPage() {
   useEffect(() => {
     const initAssessment = async () => {
       try {
-        const { assessmentId } = await apiClient.post('/api/structured-assessment', {
-          action: 'start',
-          clientId
+        const startResponse = await fetch('/api/structured-assessment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'start',
+            clientId
+          })
         });
         
+        if (!startResponse.ok) {
+          throw new Error('Failed to start assessment');
+        }
+        
+        const { assessmentId } = await startResponse.json();
         setAssessmentId(assessmentId);
         
         // Get first question from API
-        const { question } = await apiClient.post('/api/structured-assessment', {
-          action: 'getQuestion',
-          section: currentSection.id,
-          responses: [],
-          patterns: []
+        const questionResponse = await fetch('/api/structured-assessment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'getQuestion',
+            section: currentSection.id,
+            responses: [],
+            patterns: []
+          })
         });
+        
+        if (!questionResponse.ok) {
+          throw new Error('Failed to get question');
+        }
+        
+        const { question } = await questionResponse.json();
         
         if (question) {
           setCurrentQuestion(question);
