@@ -1,89 +1,35 @@
-import { parseAPIError } from './error-handler';
+/**
+ * API client for making requests to the backend
+ * Handles base URL configuration for different environments
+ */
 
-interface FetchOptions extends RequestInit {
-  timeout?: number;
+export function getBaseUrl() {
+  // In the browser, use relative URLs
+  if (typeof window !== 'undefined') {
+    return ''
+  }
+  
+  // On the server, use the deployment URL if available
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`
+  }
+  
+  // Fallback to localhost for local development
+  return 'http://localhost:3000'
 }
 
-export class APIClient {
-  private baseURL: string;
-  private defaultTimeout: number = 30000; // 30 seconds
+export async function apiRequest(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<Response> {
+  const baseUrl = getBaseUrl()
+  const url = `${baseUrl}${endpoint}`
   
-  constructor(baseURL: string = '') {
-    this.baseURL = baseURL;
-  }
-  
-  async fetch<T = any>(
-    path: string, 
-    options: FetchOptions = {}
-  ): Promise<T> {
-    const { timeout = this.defaultTimeout, ...fetchOptions } = options;
-    
-    // Create abort controller for timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-    
-    try {
-      const url = this.baseURL + path;
-      console.log(`API Request: ${fetchOptions.method || 'GET'} ${url}`);
-      
-      const response = await fetch(url, {
-        ...fetchOptions,
-        signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          ...fetchOptions.headers
-        }
-      });
-      
-      if (!response.ok) {
-        throw await parseAPIError(response);
-      }
-      
-      const data = await response.json();
-      console.log(`API Response: ${url}`, data);
-      return data;
-      
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error(`Request timeout after ${timeout}ms`);
-      }
-      throw error;
-    } finally {
-      clearTimeout(timeoutId);
-    }
-  }
-  
-  async post<T = any>(path: string, data: any, options?: FetchOptions): Promise<T> {
-    return this.fetch<T>(path, {
-      ...options,
-      method: 'POST',
-      body: JSON.stringify(data)
-    });
-  }
-  
-  async get<T = any>(path: string, options?: FetchOptions): Promise<T> {
-    return this.fetch<T>(path, {
-      ...options,
-      method: 'GET'
-    });
-  }
-  
-  async put<T = any>(path: string, data: any, options?: FetchOptions): Promise<T> {
-    return this.fetch<T>(path, {
-      ...options,
-      method: 'PUT',
-      body: JSON.stringify(data)
-    });
-  }
-  
-  async delete<T = any>(path: string, options?: FetchOptions): Promise<T> {
-    return this.fetch<T>(path, {
-      ...options,
-      method: 'DELETE'
-    });
-  }
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
 }
-
-// Create a singleton instance
-export const apiClient = new APIClient();
