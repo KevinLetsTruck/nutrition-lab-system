@@ -5,9 +5,18 @@ import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from 'next/link'
+import { useAuth } from '@/lib/auth-context'
 
 export default function HomePage() {
   const router = useRouter()
+  const { user, loading } = useAuth()
+
+  useEffect(() => {
+    // Redirect admins directly to clients page
+    if (!loading && user && user.role === 'admin') {
+      router.push('/clients')
+    }
+  }, [user, loading, router])
 
   return (
     <div className="min-h-screen bg-gradient-dark">

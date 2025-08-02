@@ -27,9 +27,6 @@ const Navigation = () => {
             <Link href="/clients">Clients</Link>
           </Button>
           <Button variant="ghost" asChild>
-            <Link href="/assessments">Assessments</Link>
-          </Button>
-          <Button variant="ghost" asChild>
             <Link href="/quick-analysis">Analysis</Link>
           </Button>
         </nav>

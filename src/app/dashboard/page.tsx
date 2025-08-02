@@ -278,7 +278,7 @@ export default function Dashboard() {
                 </Link>
               </Button>
               <Button variant="secondary" className="w-full justify-start" size="lg" asChild>
-                <Link href="/assessments">
+                <Link href="/start-assessment">
                   <Brain className="mr-3 w-5 h-5" />
                   Start Assessment
                 </Link>
