@@ -582,7 +582,7 @@ export default function ClientDashboard() {
           <Button 
             onClick={openInterviewNotes}
             size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1"
+            className="h-16 flex flex-col items-center justify-center gap-1 bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             <FileText className="w-5 h-5" />
             <span>Interview Notes</span>
@@ -590,9 +590,8 @@ export default function ClientDashboard() {
           
           <Button 
             onClick={openCoachingCallNotes}
-            variant="secondary"
             size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1"
+            className="h-16 flex flex-col items-center justify-center gap-1 bg-card hover:bg-card/80 border border-border"
           >
             <MessageSquare className="w-5 h-5" />
             <span>Coaching Call Notes</span>
@@ -601,9 +600,8 @@ export default function ClientDashboard() {
           <Button 
             onClick={uploadDocument} 
             disabled={uploading}
-            variant="outline"
             size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1"
+            className="h-16 flex flex-col items-center justify-center gap-1 bg-card hover:bg-card/80 border border-border"
           >
             <Upload className="w-5 h-5" />
             <span>{uploading ? 'Uploading...' : 'Add Document'}</span>
@@ -612,9 +610,8 @@ export default function ClientDashboard() {
           <Button 
             onClick={generateProtocol} 
             disabled={generatingProtocol}
-            variant="secondary"
             size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1"
+            className="h-16 flex flex-col items-center justify-center gap-1 bg-card hover:bg-card/80 border border-border"
           >
             <FileCheck className="w-5 h-5" />
             <span>{generatingProtocol ? 'Generating...' : 'Generate Protocol'}</span>
@@ -623,7 +620,7 @@ export default function ClientDashboard() {
           <Button 
             onClick={() => router.push(`/reports/practitioner-analysis/${clientId}`)}
             size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1 bg-gradient-brand hover:opacity-90"
+            className="h-16 flex flex-col items-center justify-center gap-1 bg-gradient-brand hover:opacity-90 text-white"
           >
             <Users className="w-5 h-5" />
             <span>Generate Coaching Call</span>
@@ -631,9 +628,8 @@ export default function ClientDashboard() {
           
           <Button 
             onClick={() => router.push(`/assessments/structured/${clientId}`)}
-            variant="outline"
             size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1"
+            className="h-16 flex flex-col items-center justify-center gap-1 bg-card hover:bg-card/80 border border-border"
           >
             <ClipboardList className="w-5 h-5" />
             <span>Quick Assessment</span>
@@ -641,80 +637,54 @@ export default function ClientDashboard() {
           
           <Button 
             onClick={() => router.push(`/assessments/ai-conversation/${clientId}`)}
-            variant="secondary"
             size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1"
+            className="h-16 flex flex-col items-center justify-center gap-1 bg-card hover:bg-card/80 border border-border"
           >
             <Brain className="w-5 h-5" />
             <span>AI Conversation</span>
-          </Button>
-          
-          <Button 
-            onClick={() => router.push(`/clients`)}
-            variant="ghost"
-            size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1"
-          >
-            <Users className="w-5 h-5" />
-            <span>All Clients</span>
           </Button>
         </div>
 
         {/* Tab Navigation */}
         <Card className="mb-6">
           <CardContent className="p-4">
-            <div className="flex space-x-4">
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'overview' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Overview
-            </button>
-            <button
-              onClick={() => setActiveTab('analyses')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'analyses' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Lab Analyses
-            </button>
-            <button
-              onClick={() => setActiveTab('protocols')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'protocols' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Protocols
-            </button>
-            <button
-              onClick={() => setActiveTab('notes')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'notes' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Notes
-            </button>
-            <button
-              onClick={() => setActiveTab('documents')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'documents' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Documents
-            </button>
-          </div>
+            <div className="flex space-x-2">
+              <Button
+                onClick={() => setActiveTab('overview')}
+                variant={activeTab === 'overview' ? 'default' : 'ghost'}
+                size="sm"
+              >
+                Overview
+              </Button>
+              <Button
+                onClick={() => setActiveTab('analyses')}
+                variant={activeTab === 'analyses' ? 'default' : 'ghost'}
+                size="sm"
+              >
+                Lab Analyses
+              </Button>
+              <Button
+                onClick={() => setActiveTab('protocols')}
+                variant={activeTab === 'protocols' ? 'default' : 'ghost'}
+                size="sm"
+              >
+                Protocols
+              </Button>
+              <Button
+                onClick={() => setActiveTab('notes')}
+                variant={activeTab === 'notes' ? 'default' : 'ghost'}
+                size="sm"
+              >
+                Notes
+              </Button>
+              <Button
+                onClick={() => setActiveTab('documents')}
+                variant={activeTab === 'documents' ? 'default' : 'ghost'}
+                size="sm"
+              >
+                Documents
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
@@ -723,11 +693,11 @@ export default function ClientDashboard() {
           <CardContent className="p-6">
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-white mb-4">Client Overview</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-4">Client Overview</h2>
               
               {/* Current Protocol Status */}
-              <div className="bg-slate-700 rounded-lg p-4">
-                <h3 className="text-lg font-medium text-white mb-2">Current Protocol</h3>
+              <div className="bg-background-secondary rounded-lg p-4">
+                <h3 className="text-lg font-medium text-foreground mb-2">Current Protocol</h3>
                 {client.currentProtocol ? (
                   <div>
                     <p className="text-green-400 mb-2">{client.currentProtocol.phase}</p>

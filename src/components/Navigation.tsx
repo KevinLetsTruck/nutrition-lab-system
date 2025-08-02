@@ -27,15 +27,6 @@ const Navigation = () => {
             <Link href="/clients">Clients</Link>
           </Button>
           <Button variant="ghost" asChild>
-            <Link href="/admin/quick-add-client">Quick Add</Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link href="/notes">Notes</Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link href="/protocols">Protocols</Link>
-          </Button>
-          <Button variant="ghost" asChild>
             <Link href="/assessments">Assessments</Link>
           </Button>
           <Button variant="ghost" asChild>
