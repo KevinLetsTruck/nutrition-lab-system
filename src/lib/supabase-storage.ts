@@ -118,6 +118,12 @@ export class SupabaseStorageService {
     
     // Auto-detect based on filename and MIME type
     if (mimeType === 'application/pdf') {
+      // Check for assessment/questionnaire PDFs
+      if (lowerFileName.includes('naq') || lowerFileName.includes('question') || 
+          lowerFileName.includes('symptom') || lowerFileName.includes('burden') ||
+          lowerFileName.includes('assessment') || lowerFileName.includes('answers')) {
+        return SupabaseStorageService.BUCKETS.LAB_FILES
+      }
       if (lowerFileName.includes('lab') || lowerFileName.includes('test') || 
           lowerFileName.includes('blood') || lowerFileName.includes('urine') ||
           lowerFileName.includes('stool') || lowerFileName.includes('hormone')) {
@@ -127,7 +133,7 @@ export class SupabaseStorageService {
           lowerFileName.includes('doctor') || lowerFileName.includes('consultation')) {
         return SupabaseStorageService.BUCKETS.MEDICAL_RECORDS
       }
-      return SupabaseStorageService.BUCKETS.GENERAL
+      return SupabaseStorageService.BUCKETS.LAB_FILES // Default PDFs to lab-files
     }
     
     if (mimeType.startsWith('image/')) {

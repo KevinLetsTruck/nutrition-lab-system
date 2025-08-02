@@ -85,17 +85,55 @@ export async function POST(request: NextRequest) {
           bucket,
           fileName
         })
-        // Use bucket from request or determine based on file type
-        const storageBucket = bucket || (filePath.toLowerCase().endsWith('.pdf') ? 'lab-files' : 'general')
+        
+        // Determine the correct bucket
+        let storageBucket = bucket
+        if (!storageBucket) {
+          // Check file extension and name patterns
+          const lowerFileName = (fileName || filePath || '').toLowerCase()
+          if (lowerFileName.includes('naq') || lowerFileName.includes('question') || 
+              lowerFileName.includes('symptom') || lowerFileName.includes('burden')) {
+            storageBucket = 'lab-files'
+          } else if (lowerFileName.endsWith('.pdf')) {
+            storageBucket = 'lab-files'
+          } else {
+            storageBucket = 'general'
+          }
+        }
+        
         console.log('[ANALYZE] Using bucket:', storageBucket, 'for path:', filePath)
-        fileBuffer = await loadFile(storageBucket, filePath)
+        
+        // Try to load the file with better error handling
+        try {
+          fileBuffer = await loadFile(storageBucket, filePath)
+          
+          if (!fileBuffer) {
+            console.error('[ANALYZE] File buffer is null after loadFile call')
+            
+            // Try alternative buckets if the first attempt fails
+            const alternateBuckets = ['lab-files', 'general'].filter(b => b !== storageBucket)
+            for (const altBucket of alternateBuckets) {
+              console.log('[ANALYZE] Trying alternate bucket:', altBucket)
+              fileBuffer = await loadFile(altBucket, filePath)
+              if (fileBuffer) {
+                console.log('[ANALYZE] Found file in alternate bucket:', altBucket)
+                storageBucket = altBucket
+                break
+              }
+            }
+          }
+        } catch (loadError) {
+          console.error('[ANALYZE] Error loading file:', loadError)
+        }
         
         if (!fileBuffer) {
           return NextResponse.json(
             { 
               error: 'Failed to retrieve file from storage',
-              details: 'The file could not be found in storage for quick analysis.',
-              filePath
+              details: `The file could not be found in storage. Tried buckets: ${storageBucket}, lab-files, general`,
+              filePath,
+              bucket: storageBucket,
+              fileName
             },
             { status: 404 }
           )
