@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/Navigation'
@@ -24,7 +24,7 @@ interface Note {
   }
 }
 
-export default function NotesPage() {
+function NotesContent() {
   const [notes, setNotes] = useState<Note[]>([])
   const [loading, setLoading] = useState(true)
   const [showNoteModal, setShowNoteModal] = useState(false)
@@ -285,5 +285,23 @@ export default function NotesPage() {
         />
       )}
     </div>
+  )
+}
+
+export default function NotesPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-900">
+        <Navigation />
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-slate-800 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-slate-800 rounded w-1/2"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <NotesContent />
+    </Suspense>
   )
 } 
