@@ -582,7 +582,7 @@ export default function ClientDashboard() {
           <Button 
             onClick={openInterviewNotes}
             size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="h-16 flex flex-col items-center justify-center gap-1 bg-gradient-brand hover:opacity-90 text-white"
           >
             <FileText className="w-5 h-5" />
             <span>Interview Notes</span>
@@ -591,7 +591,7 @@ export default function ClientDashboard() {
           <Button 
             onClick={openCoachingCallNotes}
             size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1 bg-card hover:bg-card/80 border border-border"
+            className="h-16 flex flex-col items-center justify-center gap-1 bg-gradient-brand hover:opacity-90 text-white"
           >
             <MessageSquare className="w-5 h-5" />
             <span>Coaching Call Notes</span>
@@ -601,7 +601,7 @@ export default function ClientDashboard() {
             onClick={uploadDocument} 
             disabled={uploading}
             size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1 bg-card hover:bg-card/80 border border-border"
+            className="h-16 flex flex-col items-center justify-center gap-1 bg-gradient-brand hover:opacity-90 text-white disabled:opacity-50"
           >
             <Upload className="w-5 h-5" />
             <span>{uploading ? 'Uploading...' : 'Add Document'}</span>
@@ -611,7 +611,7 @@ export default function ClientDashboard() {
             onClick={generateProtocol} 
             disabled={generatingProtocol}
             size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1 bg-card hover:bg-card/80 border border-border"
+            className="h-16 flex flex-col items-center justify-center gap-1 bg-gradient-brand hover:opacity-90 text-white disabled:opacity-50"
           >
             <FileCheck className="w-5 h-5" />
             <span>{generatingProtocol ? 'Generating...' : 'Generate Protocol'}</span>
@@ -624,24 +624,6 @@ export default function ClientDashboard() {
           >
             <Users className="w-5 h-5" />
             <span>Generate Coaching Call</span>
-          </Button>
-          
-          <Button 
-            onClick={() => router.push(`/assessments/structured/${clientId}`)}
-            size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1 bg-card hover:bg-card/80 border border-border"
-          >
-            <ClipboardList className="w-5 h-5" />
-            <span>Quick Assessment</span>
-          </Button>
-          
-          <Button 
-            onClick={() => router.push(`/assessments/ai-conversation/${clientId}`)}
-            size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1 bg-card hover:bg-card/80 border border-border"
-          >
-            <Brain className="w-5 h-5" />
-            <span>AI Conversation</span>
           </Button>
         </div>
 
