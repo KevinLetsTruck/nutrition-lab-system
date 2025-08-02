@@ -289,7 +289,7 @@ function ClientsContent() {
                     </div>
                     <div className="flex gap-2">
                       <Button variant="secondary" size="sm" asChild>
-                        <Link href={`/clients/${client.id}`}>View Details</Link>
+                        <Link href={`/client/${client.id}`}>View Details</Link>
                       </Button>
                       <Button variant="primary" size="sm" asChild>
                         <Link href={`/assessments/select-client?clientId=${client.id}`}>

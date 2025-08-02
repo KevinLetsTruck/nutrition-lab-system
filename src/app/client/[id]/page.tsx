@@ -5,6 +5,10 @@ import { useParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/Navigation'
 import NoteModal from '@/components/NoteModal'
 import { PDFViewer } from '@/components/ui/pdf-viewer'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { FileText, MessageSquare, Upload, FileCheck, Users, ClipboardList, Brain, Plus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 interface Client {
@@ -389,6 +393,16 @@ export default function ClientDashboard() {
     }
   }
 
+  const openInterviewNotes = () => {
+    setNoteType('interview')
+    setShowNoteModal(true)
+  }
+
+  const openCoachingCallNotes = () => {
+    setNoteType('coaching_call')
+    setShowNoteModal(true)
+  }
+
   const generateProtocol = async () => {
     if (!client) {
       alert('Client data not available. Please refresh the page.')
@@ -538,12 +552,12 @@ export default function ClientDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900">
+      <div className="min-h-screen bg-background">
         <Navigation />
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-gray-400">Loading client data...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-foreground-secondary">Loading client data...</p>
           </div>
         </div>
       </div>
@@ -552,85 +566,121 @@ export default function ClientDashboard() {
 
   if (!client) {
     return (
-      <div className="min-h-screen bg-slate-900">
+      <div className="min-h-screen bg-background">
         <Navigation />
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
-          <div className="text-center">
-            <p className="text-gray-400">Client not found.</p>
-          </div>
+          <Card className="max-w-md">
+            <CardContent className="text-center p-8">
+              <p className="text-foreground-secondary">Client not found.</p>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="container mx-auto py-8 px-6">
         {/* Client Header */}
-        <div className="bg-slate-800 rounded-lg p-6 mb-6">
-          <h1 className="text-2xl font-bold text-white mb-2">{client.name}</h1>
-          <p className="text-gray-400">{client.email} • {client.phone}</p>
-        </div>
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-3xl gradient-text">{client.name}</CardTitle>
+            <CardDescription className="text-lg">
+              {client.email} • {client.phone}
+            </CardDescription>
+          </CardHeader>
+        </Card>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          <button 
-            onClick={openInterviewNotes} 
-            className="bg-blue-600 hover:bg-blue-700 p-4 rounded-lg text-white font-medium transition-colors"
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+          <Button 
+            onClick={openInterviewNotes}
+            size="lg"
+            className="h-16 flex flex-col items-center justify-center gap-1"
           >
-            + Interview Notes
-          </button>
-          <button 
-            onClick={openCoachingCallNotes} 
-            className="bg-teal-600 hover:bg-teal-700 p-4 rounded-lg text-white font-medium transition-colors"
+            <FileText className="w-5 h-5" />
+            <span>Interview Notes</span>
+          </Button>
+          
+          <Button 
+            onClick={openCoachingCallNotes}
+            variant="secondary"
+            size="lg"
+            className="h-16 flex flex-col items-center justify-center gap-1"
           >
-            + Coaching Call Notes
-          </button>
-          <button 
+            <MessageSquare className="w-5 h-5" />
+            <span>Coaching Call Notes</span>
+          </Button>
+          
+          <Button 
             onClick={uploadDocument} 
             disabled={uploading}
-            className={`bg-purple-600 hover:bg-purple-700 p-4 rounded-lg text-white font-medium transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            variant="outline"
+            size="lg"
+            className="h-16 flex flex-col items-center justify-center gap-1"
           >
-            {uploading ? 'Uploading...' : '+ Upload Document'}
-          </button>
-          <button 
+            <Upload className="w-5 h-5" />
+            <span>{uploading ? 'Uploading...' : 'Add Document'}</span>
+          </Button>
+          
+          <Button 
             onClick={generateProtocol} 
             disabled={generatingProtocol}
-            className={`bg-orange-600 hover:bg-orange-700 p-4 rounded-lg text-white font-medium transition-colors ${generatingProtocol ? 'opacity-50 cursor-not-allowed' : ''}`}
+            variant="secondary"
+            size="lg"
+            className="h-16 flex flex-col items-center justify-center gap-1"
           >
-            {generatingProtocol ? 'Generating...' : 'Generate Protocol'}
-          </button>
-          <button 
+            <FileCheck className="w-5 h-5" />
+            <span>{generatingProtocol ? 'Generating...' : 'Generate Protocol'}</span>
+          </Button>
+          
+          <Button 
             onClick={() => router.push(`/reports/practitioner-analysis/${clientId}`)}
-            className="bg-indigo-600 hover:bg-indigo-700 p-4 rounded-lg text-white font-medium transition-colors"
+            size="lg"
+            className="h-16 flex flex-col items-center justify-center gap-1 bg-gradient-brand hover:opacity-90"
           >
-            Generate Coaching Report
-          </button>
-          <button 
+            <Users className="w-5 h-5" />
+            <span>Generate Coaching Call</span>
+          </Button>
+          
+          <Button 
             onClick={() => router.push(`/assessments/structured/${clientId}`)}
-            className="bg-green-600 hover:bg-green-700 p-4 rounded-lg text-white font-medium transition-colors flex items-center justify-center gap-2"
+            variant="outline"
+            size="lg"
+            className="h-16 flex flex-col items-center justify-center gap-1"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
-            Quick Assessment (15 min)
-          </button>
-          <button 
+            <ClipboardList className="w-5 h-5" />
+            <span>Quick Assessment</span>
+          </Button>
+          
+          <Button 
             onClick={() => router.push(`/assessments/ai-conversation/${clientId}`)}
-            className="bg-blue-600 hover:bg-blue-700 p-4 rounded-lg text-white font-medium transition-colors flex items-center justify-center gap-2"
+            variant="secondary"
+            size="lg"
+            className="h-16 flex flex-col items-center justify-center gap-1"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-            Full Conversation (30 min)
-          </button>
+            <Brain className="w-5 h-5" />
+            <span>AI Conversation</span>
+          </Button>
+          
+          <Button 
+            onClick={() => router.push(`/clients`)}
+            variant="ghost"
+            size="lg"
+            className="h-16 flex flex-col items-center justify-center gap-1"
+          >
+            <Users className="w-5 h-5" />
+            <span>All Clients</span>
+          </Button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-slate-800 rounded-lg p-4 mb-6">
-          <div className="flex space-x-4">
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <div className="flex space-x-4">
             <button
               onClick={() => setActiveTab('overview')}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -682,10 +732,12 @@ export default function ClientDashboard() {
               Documents
             </button>
           </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Tab Content */}
-        <div className="bg-slate-800 rounded-lg p-6">
+        <Card>
+          <CardContent className="p-6">
           {activeTab === 'overview' && (
             <div className="space-y-6">
               <h2 className="text-xl font-semibold text-white mb-4">Client Overview</h2>
@@ -906,7 +958,8 @@ export default function ClientDashboard() {
               )}
             </div>
           )}
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Note Modal */}
