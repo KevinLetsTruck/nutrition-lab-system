@@ -1,11 +1,14 @@
 {
-  "buildCommand": "npm install --legacy-peer-deps && npm run build",
-  "installCommand": "npm install --legacy-peer-deps",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install --legacy-peer-deps --no-optional",
   "framework": "nextjs",
   "regions": ["iad1"],
   "functions": {
     "src/app/api/calls/process-recording/route.ts": {
       "maxDuration": 60
     }
+  },
+  "env": {
+    "CANVAS_DISABLE_CHROMIUM_DOWNLOAD": "1"
   }
 }
