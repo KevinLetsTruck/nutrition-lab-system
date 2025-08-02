@@ -1,9 +1,10 @@
-// @ts-ignore
-import * as pdf from 'pdf-parse'
 import { readFile } from 'fs/promises'
 import path from 'path'
 import { fromBuffer } from 'pdf2pic'
 import ClaudeClient from '../claude-client'
+
+// Dynamic import to avoid build-time issues with pdf-parse
+let pdf: any = null
 
 export interface LabResult {
   testName: string
@@ -64,6 +65,10 @@ export class PDFLabParser {
       // Get page count first
       let pageCount = 1
       try {
+        // Dynamic import to avoid build-time issues
+        if (!pdf) {
+          pdf = (await import('pdf-parse')).default
+        }
         const pdfData = await pdf(pdfBuffer)
         pageCount = pdfData.numpages || 1
         console.log('[PDF-PARSER] PDF has', pageCount, 'pages')
@@ -130,6 +135,10 @@ export class PDFLabParser {
         // This is a PDF, parse it normally
         try {
           console.log('[PDF-PARSER] Parsing as PDF document...')
+          // Dynamic import to avoid build-time issues
+          if (!pdf) {
+            pdf = (await import('pdf-parse')).default
+          }
           const data = await pdf(pdfBuffer)
           text = data.text
           
