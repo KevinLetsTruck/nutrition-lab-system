@@ -9,8 +9,6 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { SearchInput } from '@/components/ui/search-input'
 import { Badge } from '@/components/ui/badge'
 
 interface Client {
@@ -132,8 +130,8 @@ function ClientsContent() {
       <Navigation />
       
       <div className="container mx-auto py-6 px-4">
-        {/* Header with Search */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-heading font-bold gradient-text">
               Clients
@@ -143,20 +141,12 @@ function ClientsContent() {
             </p>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-3 flex-1 max-w-2xl">
-            <SearchInput
-              placeholder="Search by name, email, or phone..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1"
-            />
-            <Button asChild className="whitespace-nowrap">
-              <Link href="/streamlined-onboarding">
-                <Plus className="w-4 h-4 mr-2" />
-                New Client
-              </Link>
-            </Button>
-          </div>
+          <Button asChild className="whitespace-nowrap">
+            <Link href="/streamlined-onboarding">
+              <Plus className="w-4 h-4 mr-2" />
+              New Client
+            </Link>
+          </Button>
         </div>
 
         {/* Debug Info - Remove this in production */}
