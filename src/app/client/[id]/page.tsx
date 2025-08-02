@@ -8,8 +8,10 @@ import { PDFViewer } from '@/components/ui/pdf-viewer'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { FileText, MessageSquare, Upload, FileCheck, Users, ClipboardList, Brain, Plus } from 'lucide-react'
+import { FileText, MessageSquare, Upload, FileCheck, Users, ClipboardList, Brain, Plus, Phone } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { CallRecorder } from '@/components/calls/CallRecorder'
+import { CallConsentDialog } from '@/components/calls/CallConsentDialog'
 
 interface Client {
   id: string
@@ -66,6 +68,9 @@ export default function ClientDashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'analyses' | 'protocols' | 'notes' | 'documents'>('overview')
   const [showPDFViewer, setShowPDFViewer] = useState(false)
   const [selectedPDF, setSelectedPDF] = useState<{ url: string; title: string; fileName: string } | null>(null)
+  const [showCallRecorder, setShowCallRecorder] = useState(false)
+  const [showCallConsent, setShowCallConsent] = useState(false)
+  const [callType, setCallType] = useState<'interview' | 'coaching'>('interview')
 
   const loadClientData = useCallback(async () => {
     try {
@@ -324,6 +329,27 @@ export default function ClientDashboard() {
   const openCoachingCallNotes = () => {
     setNoteType('coaching_call')
     setShowNoteModal(true)
+  }
+
+  const startCallRecording = (type: 'interview' | 'coaching') => {
+    setCallType(type)
+    setShowCallConsent(true)
+  }
+
+  const handleConsentAccepted = () => {
+    setShowCallConsent(false)
+    setShowCallRecorder(true)
+  }
+
+  const handleRecordingComplete = async (audioBlob: Blob, transcription?: string) => {
+    setShowCallRecorder(false)
+    
+    // The CallRecorder component already handles the upload and processing
+    // Just refresh the client data to show the new note
+    await loadClientData()
+    
+    // Show success message
+    alert('Call recording saved successfully!')
   }
 
   const uploadDocument = async () => {
@@ -586,6 +612,15 @@ export default function ClientDashboard() {
           >
             <FileText className="w-5 h-5" />
             <span>Notes</span>
+          </Button>
+          
+          <Button 
+            onClick={() => startCallRecording('interview')}
+            size="lg"
+            className="h-16 flex flex-col items-center justify-center gap-1 bg-gradient-brand hover:opacity-90 text-white"
+          >
+            <Phone className="w-5 h-5" />
+            <span>Record Call</span>
           </Button>
           
           <Button 
@@ -910,6 +945,37 @@ export default function ClientDashboard() {
           title={selectedPDF.title}
           fileName={selectedPDF.fileName}
         />
+      )}
+
+      {/* Call Consent Dialog */}
+      {showCallConsent && (
+        <CallConsentDialog
+          isOpen={showCallConsent}
+          onAccept={handleConsentAccepted}
+          onDecline={() => setShowCallConsent(false)}
+          callType={callType}
+        />
+      )}
+
+      {/* Call Recorder */}
+      {showCallRecorder && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-4">Recording {callType === 'interview' ? 'Interview' : 'Coaching'} Call</h2>
+            <CallRecorder
+              clientId={clientId}
+              callType={callType}
+              onRecordingComplete={handleRecordingComplete}
+            />
+            <Button
+              variant="outline"
+              onClick={() => setShowCallRecorder(false)}
+              className="mt-4"
+            >
+              Cancel Recording
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   )
