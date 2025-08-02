@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   generateEtags: true,
   
   // External packages for server-side processing
-  serverExternalPackages: ['canvas', 'sharp', 'pdf-parse', 'pdf2pic'],
+  serverExternalPackages: [],
   
   // Webpack configuration
   webpack: (config, { isServer }) => {
