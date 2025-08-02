@@ -9,7 +9,6 @@ import { ChevronLeft, Clock, Target, AlertCircle } from 'lucide-react';
 import { StructuredQuestion } from '@/components/assessment/StructuredQuestion';
 import { Response } from '@/lib/assessment/symptom-ai-selector';
 import { DetectedPattern } from '@/lib/assessment/pattern-matcher';
-import { apiClient } from '@/lib/api-client';
 import { APIRequestError } from '@/lib/error-handler';
 
 const ASSESSMENT_SECTIONS = [
