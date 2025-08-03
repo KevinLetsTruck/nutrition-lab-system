@@ -281,10 +281,10 @@ Summary:
 ${result.analysis.summary}
 
 Key Findings:
-${result.analysis.keyFindings.map(finding => `• ${finding}`).join('\n')}
+${result.analysis.keyFindings.map((finding: string) => `• ${finding}`).join('\n')}
 
 Recommendations:
-${result.analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
+${result.analysis.recommendations.map((rec: string) => `• ${rec}`).join('\n')}
 
 Generated: ${new Date().toLocaleString()}
     `.trim()
@@ -308,7 +308,7 @@ ${system.toUpperCase()}:
 `).join('\n')}
 
 Follow-up Tests:
-${nutriq.followUpTests?.map(test => `• ${test}`).join('\n') || 'None recommended'}
+${nutriq.followUpTests?.map((test: string) => `• ${test}`).join('\n') || 'None recommended'}
       `
     }
 
@@ -549,7 +549,7 @@ ${nutriq.followUpTests?.map(test => `• ${test}`).join('\n') || 'None recommend
                       <div>
                         <h4 className="text-white font-medium mb-2">Key Findings</h4>
                         <ul className="list-disc list-inside text-gray-300 text-sm space-y-1">
-                          {result.analysis.keyFindings.map((finding, index) => (
+                          {result.analysis.keyFindings.map((finding: string, index: number) => (
                             <li key={index}>{finding}</li>
                           ))}
                         </ul>
@@ -558,7 +558,7 @@ ${nutriq.followUpTests?.map(test => `• ${test}`).join('\n') || 'None recommend
                       <div>
                         <h4 className="text-white font-medium mb-2">Recommendations</h4>
                         <ul className="list-disc list-inside text-gray-300 text-sm space-y-1">
-                          {result.analysis.recommendations.map((rec, index) => (
+                          {result.analysis.recommendations.map((rec: string, index: number) => (
                             <li key={index}>{rec}</li>
                           ))}
                         </ul>
