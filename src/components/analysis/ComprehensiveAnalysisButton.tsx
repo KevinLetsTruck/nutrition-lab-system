@@ -84,6 +84,81 @@ export const ComprehensiveAnalysisButton = ({ clientId, clientName }: Comprehens
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+
+  const renderMarkdown = (markdown: string) => {
+    if (!markdown) return <div>No content available</div>;
+    
+    // Simple markdown rendering for common elements
+    const lines = markdown.split('\n');
+    const elements: JSX.Element[] = [];
+    
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      
+      if (trimmedLine.startsWith('# ')) {
+        // H1
+        elements.push(
+          <h1 key={index} className="text-2xl font-bold text-gray-900 mb-4 mt-6 first:mt-0">
+            {trimmedLine.substring(2)}
+          </h1>
+        );
+      } else if (trimmedLine.startsWith('## ')) {
+        // H2
+        elements.push(
+          <h2 key={index} className="text-xl font-semibold text-gray-800 mb-3 mt-5">
+            {trimmedLine.substring(3)}
+          </h2>
+        );
+      } else if (trimmedLine.startsWith('### ')) {
+        // H3
+        elements.push(
+          <h3 key={index} className="text-lg font-medium text-gray-700 mb-2 mt-4">
+            {trimmedLine.substring(4)}
+          </h3>
+        );
+      } else if (trimmedLine.startsWith('- ')) {
+        // Bullet point
+        elements.push(
+          <li key={index} className="text-gray-700 mb-1 ml-4">
+            {trimmedLine.substring(2)}
+          </li>
+        );
+      } else if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+        // Bold text
+        elements.push(
+          <p key={index} className="text-gray-700 mb-2">
+            <strong>{trimmedLine.substring(2, trimmedLine.length - 2)}</strong>
+          </p>
+        );
+      } else if (trimmedLine.includes('**') && trimmedLine.includes('**')) {
+        // Inline bold
+        const parts = trimmedLine.split('**');
+        const formattedParts = parts.map((part, partIndex) => 
+          partIndex % 2 === 1 ? <strong key={partIndex}>{part}</strong> : part
+        );
+        elements.push(
+          <p key={index} className="text-gray-700 mb-2">
+            {formattedParts}
+          </p>
+        );
+      } else if (trimmedLine === '') {
+        // Empty line
+        elements.push(<div key={index} className="h-2"></div>);
+      } else if (trimmedLine.startsWith('---')) {
+        // Horizontal rule
+        elements.push(<hr key={index} className="my-4 border-gray-300" />);
+      } else {
+        // Regular paragraph
+        elements.push(
+          <p key={index} className="text-gray-700 mb-2 leading-relaxed">
+            {trimmedLine}
+          </p>
+        );
+      }
+    });
+    
+    return <div className="space-y-1">{elements}</div>;
+  };
   
   if (!analysis) {
     return (
@@ -230,8 +305,11 @@ export const ComprehensiveAnalysisButton = ({ clientId, clientName }: Comprehens
       
       {/* Artifacts Tabs */}
       <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Analysis Artifacts</h3>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900">Analysis Reports</h3>
+            <p className="text-sm text-gray-600 mt-1">Download or view detailed analysis reports</p>
+          </div>
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -252,22 +330,22 @@ export const ComprehensiveAnalysisButton = ({ clientId, clientName }: Comprehens
           </div>
         </div>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="summary" className="flex items-center gap-2">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4 h-12">
+            <TabsTrigger value="summary" className="flex items-center gap-2 text-sm font-medium">
               <User className="w-4 h-4" />
               Client Summary
             </TabsTrigger>
-            <TabsTrigger value="practitioner" className="flex items-center gap-2">
+            <TabsTrigger value="practitioner" className="flex items-center gap-2 text-sm font-medium">
               <FileText className="w-4 h-4" />
               Practitioner Report
             </TabsTrigger>
-            <TabsTrigger value="protocol" className="flex items-center gap-2">
+            <TabsTrigger value="protocol" className="flex items-center gap-2 text-sm font-medium">
               <Target className="w-4 h-4" />
               Protocol Document
             </TabsTrigger>
             {analysis.artifacts.progressReport && (
-              <TabsTrigger value="progress" className="flex items-center gap-2">
+              <TabsTrigger value="progress" className="flex items-center gap-2 text-sm font-medium">
                 <TrendingUp className="w-4 h-4" />
                 Progress Report
               </TabsTrigger>
@@ -275,35 +353,35 @@ export const ComprehensiveAnalysisButton = ({ clientId, clientName }: Comprehens
           </TabsList>
           
           <TabsContent value="summary" className="mt-4">
-            <div className="bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
-              <pre className="whitespace-pre-wrap text-sm font-mono">
-                {analysis.artifacts.clientSummary}
-              </pre>
+            <div className="bg-white border rounded-lg max-h-[600px] overflow-y-auto">
+              <div className="p-6 prose prose-sm max-w-none">
+                {renderMarkdown(analysis.artifacts.clientSummary)}
+              </div>
             </div>
           </TabsContent>
           
           <TabsContent value="practitioner" className="mt-4">
-            <div className="bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
-              <pre className="whitespace-pre-wrap text-sm font-mono">
-                {analysis.artifacts.practitionerReport}
-              </pre>
+            <div className="bg-white border rounded-lg max-h-[600px] overflow-y-auto">
+              <div className="p-6 prose prose-sm max-w-none">
+                {renderMarkdown(analysis.artifacts.practitionerReport)}
+              </div>
             </div>
           </TabsContent>
           
           <TabsContent value="protocol" className="mt-4">
-            <div className="bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
-              <pre className="whitespace-pre-wrap text-sm font-mono">
-                {analysis.artifacts.protocolDocument}
-              </pre>
+            <div className="bg-white border rounded-lg max-h-[600px] overflow-y-auto">
+              <div className="p-6 prose prose-sm max-w-none">
+                {renderMarkdown(analysis.artifacts.protocolDocument)}
+              </div>
             </div>
           </TabsContent>
           
           {analysis.artifacts.progressReport && (
             <TabsContent value="progress" className="mt-4">
-              <div className="bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
-                <pre className="whitespace-pre-wrap text-sm font-mono">
-                  {analysis.artifacts.progressReport}
-                </pre>
+              <div className="bg-white border rounded-lg max-h-[600px] overflow-y-auto">
+                <div className="p-6 prose prose-sm max-w-none">
+                  {renderMarkdown(analysis.artifacts.progressReport)}
+                </div>
               </div>
             </TabsContent>
           )}
@@ -312,7 +390,10 @@ export const ComprehensiveAnalysisButton = ({ clientId, clientName }: Comprehens
       
       {/* Supplement Recommendations */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Supplement Recommendations</h3>
+        <div className="mb-6">
+          <h3 className="text-xl font-semibold text-gray-900">Supplement Recommendations</h3>
+          <p className="text-sm text-gray-600 mt-1">Personalized supplement protocol with pricing and instructions</p>
+        </div>
         
         <Tabs defaultValue="phase1">
           <TabsList className="grid w-full grid-cols-3">
