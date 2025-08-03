@@ -1,5 +1,5 @@
-// pdfjs will be loaded dynamically to avoid build issues
-let pdfjsLib: any = null;
+// Simple PDF text extraction for serverless environments
+// This implementation avoids DOM dependencies that cause issues in Vercel
 
 export interface ParsedPDF {
   text: string;
@@ -9,93 +9,70 @@ export interface ParsedPDF {
 
 export async function parsePDFServerless(pdfBuffer: Buffer): Promise<ParsedPDF> {
   try {
-    console.log('[PDF-PARSER-SERVERLESS] Starting PDF parsing with pdfjs-dist');
+    console.log('[PDF-PARSER-SERVERLESS] Using simplified PDF text extraction');
     
-    // Dynamically import pdfjs to avoid build issues
-    if (!pdfjsLib) {
-      try {
-        // Try the legacy build first for Node.js environments
-        pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
-        console.log('[PDF-PARSER-SERVERLESS] Loaded legacy pdfjs build');
-      } catch (e) {
-        // Fallback to regular build
-        pdfjsLib = await import('pdfjs-dist');
-        console.log('[PDF-PARSER-SERVERLESS] Loaded regular pdfjs build');
+    // Convert buffer to string and look for text content
+    const bufferString = pdfBuffer.toString('latin1');
+    
+    // Extract text between BT (Begin Text) and ET (End Text) PDF operators
+    const textMatches = bufferString.match(/BT[\s\S]*?ET/g) || [];
+    let extractedText = '';
+    
+    for (const match of textMatches) {
+      // Extract text within parentheses (PDF text strings)
+      const stringMatches = match.match(/\(([^)]+)\)/g) || [];
+      for (const str of stringMatches) {
+        // Remove parentheses and add to text
+        const cleanStr = str.slice(1, -1)
+          .replace(/\\(\d{3})/g, (match, octal) => String.fromCharCode(parseInt(octal, 8)))
+          .replace(/\\\(/g, '(')
+          .replace(/\\\)/g, ')')
+          .replace(/\\\\/g, '\\');
+        extractedText += cleanStr + ' ';
       }
+    }
+    
+    // If no text found with BT/ET, try alternative extraction
+    if (extractedText.length < 50) {
+      console.log('[PDF-PARSER-SERVERLESS] Primary extraction found little text, trying alternative method');
       
-      // Configure for serverless
-      if (pdfjsLib.GlobalWorkerOptions) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = false;
+      // Look for readable ASCII text chunks
+      const readableChunks = bufferString.match(/[\x20-\x7E\s]{20,}/g) || [];
+      const alternativeText = readableChunks
+        .filter(chunk => {
+          // Filter out binary data and PDF operators
+          return !chunk.includes('obj') && 
+                 !chunk.includes('endobj') && 
+                 !chunk.includes('stream') &&
+                 !chunk.includes('xref') &&
+                 chunk.trim().length > 10;
+        })
+        .join(' ')
+        .trim();
+      
+      if (alternativeText.length > extractedText.length) {
+        extractedText = alternativeText;
       }
-    }
-    
-    // Convert Buffer to Uint8Array for pdfjs
-    const uint8Array = new Uint8Array(pdfBuffer);
-    
-    // Load the PDF document
-    const loadingTask = pdfjsLib.getDocument({
-      data: uint8Array,
-      // Disable web workers in serverless environment
-      useWorkerFetch: false,
-      isEvalSupported: false,
-      useSystemFonts: true,
-    });
-    
-    const pdf = await loadingTask.promise;
-    console.log(`[PDF-PARSER-SERVERLESS] PDF loaded successfully. Pages: ${pdf.numPages}`);
-    
-    let fullText = '';
-    const pageTexts: string[] = [];
-    
-    // Extract text from each page
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      try {
-        const page = await pdf.getPage(pageNum);
-        const textContent = await page.getTextContent();
-        
-        // Combine text items with proper spacing
-        const pageText = textContent.items
-          .map((item: any) => {
-            // Check if item has the text property (it's a TextItem)
-            if ('str' in item) {
-              return item.str;
-            }
-            return '';
-          })
-          .filter((text: string) => text.length > 0)
-          .join(' ');
-        
-        pageTexts.push(pageText);
-        fullText += pageText + '\n\n';
-        
-        console.log(`[PDF-PARSER-SERVERLESS] Extracted text from page ${pageNum}, length: ${pageText.length}`);
-      } catch (pageError) {
-        console.error(`[PDF-PARSER-SERVERLESS] Error extracting text from page ${pageNum}:`, pageError);
-        // Continue with other pages even if one fails
-      }
-    }
-    
-    // Get metadata if available
-    let metadata;
-    try {
-      metadata = await pdf.getMetadata();
-      console.log('[PDF-PARSER-SERVERLESS] PDF metadata extracted:', metadata.info);
-    } catch (metaError) {
-      console.log('[PDF-PARSER-SERVERLESS] Could not extract metadata:', metaError);
     }
     
     // Clean up the text
-    fullText = fullText
-      .replace(/\s+/g, ' ') // Replace multiple spaces with single space
-      .replace(/\n{3,}/g, '\n\n') // Replace multiple newlines with double newline
+    extractedText = extractedText
+      .replace(/\s+/g, ' ')
+      .replace(/[^\x20-\x7E\n]/g, '') // Remove non-printable characters
       .trim();
     
-    console.log(`[PDF-PARSER-SERVERLESS] PDF parsing complete. Total text length: ${fullText.length}`);
+    // Estimate page count (rough approximation)
+    const pageMatches = bufferString.match(/\/Type\s*\/Page[^s]/g) || [];
+    const pageCount = Math.max(1, pageMatches.length);
+    
+    console.log(`[PDF-PARSER-SERVERLESS] Extracted ${extractedText.length} characters from ${pageCount} pages`);
     
     return {
-      text: fullText,
-      pageCount: pdf.numPages,
-      metadata: metadata?.info || {}
+      text: extractedText,
+      pageCount: pageCount,
+      metadata: {
+        method: 'simplified-extraction'
+      }
     };
     
   } catch (error) {
