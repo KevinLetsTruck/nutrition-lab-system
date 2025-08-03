@@ -219,7 +219,7 @@ export class PDFLabParser {
               stack: pdfError.stack?.split('\n').slice(0, 5).join('\n')
             })
             
-            if (pdfError.message.includes('Invalid PDF structure')) {
+            if (pdfError.message.includes('Invalid PDF structure') || pdfError.message.includes('Invalid XRef stream header')) {
               throw new Error('The PDF file appears to be corrupted or has an invalid structure. Please try uploading a different file.')
             }
             if (pdfError.message.includes('password')) {
@@ -231,8 +231,13 @@ export class PDFLabParser {
           }
           
           // Try to convert to images anyway
-          console.log('[PDF-PARSER] Attempting image-based extraction...')
+          console.log('[PDF-PARSER] Attempting image-based extraction as fallback...')
           hasImageContent = true
+          
+          // For production environment, sometimes pdf-parse fails on valid PDFs
+          // Set a flag to indicate we should rely on vision analysis
+          text = '' // Clear any partial text
+          console.log('[PDF-PARSER] Treating as image-only PDF due to parsing error')
           
           try {
             const pageImages = await this.convertPDFToImages(pdfBuffer)
@@ -296,15 +301,21 @@ export class PDFLabParser {
       console.error('[PDF-PARSER] ===== Fatal parsing error =====')
       console.error('[PDF-PARSER] Error:', error)
       
-      // Provide more user-friendly error messages
+      // Log the actual error for debugging
+      console.error('[PDF-PARSER] Raw error:', error)
+      console.error('[PDF-PARSER] Error type:', error?.constructor?.name)
+      console.error('[PDF-PARSER] Error message:', error instanceof Error ? error.message : 'Unknown error')
+      
+      // Provide more user-friendly error messages - but be more specific about corruption
       if (error instanceof Error) {
-        if (error.message.includes('corrupted') || error.message.includes('invalid structure')) {
+        // Only treat as corrupted if it's explicitly a corruption error from pdf-parse
+        if (error.message.includes('Invalid PDF structure') || error.message.includes('Invalid XRef stream header')) {
           throw new Error('PDF file appears to be corrupted. Please try uploading a different file.')
         }
-        if (error.message.includes('password')) {
+        if (error.message.includes('password') || error.message.includes('Password required')) {
           throw new Error('PDF file is password-protected. Please remove the password and try again.')
         }
-        if (error.message.includes('encrypted')) {
+        if (error.message.includes('encrypted') || error.message.includes('Encrypted')) {
           throw new Error('PDF file is encrypted. Please upload an unencrypted version.')
         }
         if (error.message.includes('empty') || error.message.includes('no readable text')) {
