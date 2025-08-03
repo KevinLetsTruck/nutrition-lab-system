@@ -85,23 +85,14 @@ export async function POST(request: NextRequest) {
         const parsedPDF = await parser.parseLabReport(fileBuffer)
         
         if (!parsedPDF.rawText || parsedPDF.rawText.trim().length === 0) {
-          // If no text extracted, try Claude Vision
-          console.log('[QUICK-ANALYSIS] No text extracted, trying Claude Vision')
-          const claudeClient = ClaudeClient.getInstance()
-          
-          // Convert PDF to images for vision analysis
-          const images = parsedPDF.images || []
-          if (images.length === 0) {
-            throw new Error('Unable to extract text or images from PDF')
+          // Check if vision analysis was already done
+          if (parsedPDF.visionAnalysisText) {
+            console.log('[QUICK-ANALYSIS] Using vision analysis text from PDF parser')
+            parsedPDF.rawText = parsedPDF.visionAnalysisText
+          } else {
+            // If still no text, this means the PDF couldn't be processed
+            throw new Error('Unable to extract text from PDF. The document may be corrupted or in an unsupported format.')
           }
-          
-          // Use Claude Vision to extract text
-          const visionResult = await claudeClient.analyzeLabImages(
-            images.map(img => img.base64),
-            { filename: fileName }
-          )
-          
-          parsedPDF.rawText = visionResult.extractedText || ''
         }
         
         // Detect report type
