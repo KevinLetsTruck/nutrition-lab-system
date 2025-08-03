@@ -49,51 +49,17 @@ export async function POST(request: NextRequest) {
         
         console.log('[QUICK-ANALYSIS] Textract extraction complete, text length:', extractedContent.text.length)
         
-        // Detect report type using Claude
-        const claudeClient = ClaudeClient.getInstance()
-        const reportType = await claudeClient.detectReportType(extractedContent.text)
+        // Use MasterAnalyzer for enhanced document classification and analysis
+        const masterAnalyzer = MasterAnalyzer.getInstance()
+        const masterAnalysisResult = await masterAnalyzer.analyzeReport(fileBuffer, fileName)
         
-        console.log('[QUICK-ANALYSIS] Detected report type:', reportType)
-        
-        // For quick analysis, use Claude directly instead of MasterAnalyzer
-        let nutriqAnalysis
-        try {
-          nutriqAnalysis = await claudeClient.analyzeNutriQ(extractedContent.text)
-        } catch (analysisError) {
-          console.error('[QUICK-ANALYSIS] Claude analysis failed:', analysisError)
-          // Create a fallback analysis structure
-          nutriqAnalysis = {
-            totalScore: 50,
-            bodySystems: {
-              energy: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
-              mood: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
-              sleep: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
-              stress: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
-              digestion: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
-              immunity: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] }
-            },
-            overallRecommendations: ['Document processed but analysis failed. Please review manually.'],
-            priorityActions: ['Review document content manually'],
-            followUpTests: ['Manual review required']
-          }
-        }
-        
-        const analyzedReport = {
-          reportType: reportType,
-          analyzedReport: {
-            rawText: extractedContent.text,
-            nutriqAnalysis,
-            reportType: reportType
-          },
-          processingTime: Date.now() - startTime,
-          confidence: extractedContent.confidence
-        }
+        console.log('[QUICK-ANALYSIS] Analysis completed with type:', masterAnalysisResult.reportType)
         
         analysisResult = {
           success: true,
-          reportType,
+          reportType: masterAnalysisResult.reportType,
           extractedData: extractedContent,
-          analyzedReport,
+          analyzedReport: masterAnalysisResult,
           extractionMethod: 'textract',
           processingTime: Date.now() - startTime
         }
@@ -126,19 +92,19 @@ export async function POST(request: NextRequest) {
         
         // Use MasterAnalyzer for enhanced document classification and analysis
         const masterAnalyzer = MasterAnalyzer.getInstance()
-        const analysisResult = await masterAnalyzer.analyzeReport(fileBuffer, fileName)
+        const masterAnalysisResult = await masterAnalyzer.analyzeReport(fileBuffer, fileName)
         
-        console.log('[QUICK-ANALYSIS] Analysis completed with type:', analysisResult.reportType)
+        console.log('[QUICK-ANALYSIS] Analysis completed with type:', masterAnalysisResult.reportType)
         
-                return NextResponse.json({
+        return NextResponse.json({
           success: true,
-          reportType: analysisResult.reportType,
+          reportType: masterAnalysisResult.reportType,
           extractedData: {
             text: parsedPDF.rawText,
             tables: [],
-            confidence: analysisResult.confidence
+            confidence: masterAnalysisResult.confidence
           },
-          analyzedReport: analysisResult,
+          analyzedReport: masterAnalysisResult,
           extractionMethod: 'standard',
           processingTime: Date.now() - startTime
         })
