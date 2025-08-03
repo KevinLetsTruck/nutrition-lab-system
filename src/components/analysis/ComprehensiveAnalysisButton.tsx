@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -90,7 +90,7 @@ export const ComprehensiveAnalysisButton = ({ clientId, clientName }: Comprehens
     
     // Simple markdown rendering for common elements
     const lines = markdown.split('\n');
-    const elements: JSX.Element[] = [];
+    const elements: React.JSX.Element[] = [];
     
     lines.forEach((line, index) => {
       const trimmedLine = line.trim();
