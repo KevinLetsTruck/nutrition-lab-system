@@ -2,9 +2,13 @@ import { readFile } from 'fs/promises'
 import path from 'path'
 import { fromBuffer } from 'pdf2pic'
 import ClaudeClient from '../claude-client'
+import { parsePDFServerless, detectDocumentType } from '../pdf-parser-serverless'
 
 // Dynamic import to avoid build-time issues with pdf-parse
 let pdf: any = null
+
+// Check if we're in a serverless environment
+const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
 
 export interface LabResult {
   testName: string
@@ -84,8 +88,18 @@ export class PDFLabParser {
           console.log('[PDF-PARSER] Converting page', pageNum)
           const result = await converter(pageNum)
           
-          if (result && result.buffer) {
-            const base64 = Buffer.from(result.buffer).toString('base64')
+          if (result) {
+            // Handle different response formats from pdf2pic
+            let base64: string
+            if ((result as any).buffer) {
+              base64 = Buffer.from((result as any).buffer).toString('base64')
+            } else if ((result as any).base64) {
+              base64 = (result as any).base64
+            } else {
+              console.log('[PDF-PARSER] Unexpected result format from pdf2pic:', Object.keys(result))
+              continue
+            }
+            
             pageImages.push({
               base64,
               pageNumber: pageNum
@@ -136,36 +150,48 @@ export class PDFLabParser {
         try {
           console.log('[PDF-PARSER] Parsing as PDF document...')
           
-          // Production environment workaround
-          if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
-            console.log('[PDF-PARSER] Production environment - checking for readable text first')
+          // Use serverless parser in production
+          if (isServerless) {
+            console.log('[PDF-PARSER] Using serverless PDF parser (pdfjs-dist)...')
             try {
-              // Try to extract readable portions from the PDF buffer
-              const bufferText = pdfBuffer.toString('latin1')
-              const readableChunks = bufferText.match(/[\x20-\x7E\s]{20,}/g) || []
-              const extractedText = readableChunks.join(' ').trim()
+              const parsedPDF = await parsePDFServerless(pdfBuffer)
+              text = parsedPDF.text
+              console.log(`[PDF-PARSER] Serverless parsing complete. Pages: ${parsedPDF.pageCount}, Text length: ${text.length}`)
               
-              if (extractedText.includes('NAQ') || extractedText.includes('Symptom') || extractedText.includes('NutriQ')) {
-                console.log('[PDF-PARSER] Found assessment keywords in buffer, using extracted text')
-                text = extractedText
-                // Skip pdf-parse if we got enough text
-                if (text.length > 100) {
-                  console.log('[PDF-PARSER] Sufficient text extracted, skipping pdf-parse')
-                  // Jump to the end of the try block
-                  throw new Error('SKIP_PDF_PARSE')
-                }
+              // Detect if we need vision analysis based on text density
+              const averageTextPerPage = text.length / parsedPDF.pageCount
+              if (averageTextPerPage < 100) {
+                console.log('[PDF-PARSER] Low text density detected, may contain images')
+                hasImageContent = true
               }
-            } catch (e) {
-              if (e instanceof Error && e.message === 'SKIP_PDF_PARSE') {
-                // This is our signal to skip pdf-parse
-                console.log('[PDF-PARSER] Using extracted text instead of pdf-parse')
+              
+              // Skip pdf-parse completely by setting text
+              if (text.length > 50) {
+                console.log('[PDF-PARSER] Serverless parser extracted sufficient text')
+                // Continue to the rest of the parsing logic
+              }
+            } catch (serverlessError) {
+              console.error('[PDF-PARSER] Serverless parsing failed, falling back to text extraction:', serverlessError)
+              // Fall back to the existing text extraction method
+              try {
+                // Try to extract readable portions from the PDF buffer
+                const bufferText = pdfBuffer.toString('latin1')
+                const readableChunks = bufferText.match(/[\x20-\x7E\s]{20,}/g) || []
+                const extractedText = readableChunks.join(' ').trim()
+                
+                if (extractedText.includes('NAQ') || extractedText.includes('Symptom') || extractedText.includes('NutriQ')) {
+                  console.log('[PDF-PARSER] Found assessment keywords in buffer, using extracted text')
+                  text = extractedText
+                }
+              } catch (e) {
+                console.log('[PDF-PARSER] Text extraction attempt failed:', e instanceof Error ? e.message : 'Unknown error')
               }
             }
           }
           
-          // Only run pdf-parse if we haven't extracted enough text
+          // Only run pdf-parse if we haven't extracted enough text AND not in serverless
           let data: any = null
-          if (!text || text.length < 100) {
+          if ((!text || text.length < 100) && !isServerless) {
             // Dynamic import to avoid build-time issues
             if (!pdf) {
               pdf = (await import('pdf-parse')).default
