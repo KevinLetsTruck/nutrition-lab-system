@@ -3,15 +3,18 @@ import ClaudeClient from '../claude-client'
 import NutriQAnalyzer, { NutriQParsedReport } from './nutriq-analyzer'
 import KBMAAnalyzer, { KBMOParsedReport } from './kbmo-analyzer'
 import DutchAnalyzer, { DutchParsedReport } from './dutch-analyzer'
+import { EnhancedDocumentClassifier, DocumentType } from '../document-processors/enhanced-document-classifier'
+import { FITTestAnalyzer, FITTestResult } from './fit-test-analyzer'
 import { FormData } from '../client-data-priority'
 
-export type ReportType = 'nutriq' | 'kbmo' | 'dutch' | 'cgm' | 'food_photo'
+export type ReportType = 'nutriq' | 'kbmo' | 'dutch' | 'cgm' | 'food_photo' | 'fit_test' | 'stool_test' | 'blood_test' | 'urine_test' | 'saliva_test' | 'lab_report'
 
 export type AnalyzedReport = 
   | NutriQParsedReport 
   | KBMOParsedReport 
   | DutchParsedReport
-  | (ParsedLabReport & { reportType: 'cgm' | 'food_photo' })
+  | FITTestResult
+  | (ParsedLabReport & { reportType: 'cgm' | 'food_photo' | 'stool_test' | 'blood_test' | 'urine_test' | 'saliva_test' | 'lab_report' })
 
 export interface AnalysisResult {
   reportType: ReportType
@@ -27,6 +30,8 @@ export class MasterAnalyzer {
   private nutriqAnalyzer: NutriQAnalyzer
   private kbmoAnalyzer: KBMAAnalyzer
   private dutchAnalyzer: DutchAnalyzer
+  private fitTestAnalyzer: FITTestAnalyzer
+  private documentClassifier: EnhancedDocumentClassifier
 
   private constructor() {
     this.pdfParser = PDFLabParser.getInstance()
@@ -34,6 +39,8 @@ export class MasterAnalyzer {
     this.nutriqAnalyzer = NutriQAnalyzer.getInstance()
     this.kbmoAnalyzer = KBMAAnalyzer.getInstance()
     this.dutchAnalyzer = DutchAnalyzer.getInstance()
+    this.fitTestAnalyzer = FITTestAnalyzer.getInstance()
+    this.documentClassifier = EnhancedDocumentClassifier.getInstance()
   }
 
   static getInstance(): MasterAnalyzer {
@@ -43,8 +50,8 @@ export class MasterAnalyzer {
     return MasterAnalyzer.instance
   }
 
-  async analyzeReport(pdfBuffer: Buffer): Promise<AnalysisResult> {
-    console.log('[MASTER-ANALYZER] ===== Starting analysis pipeline =====')
+  async analyzeReport(pdfBuffer: Buffer, documentName?: string): Promise<AnalysisResult> {
+    console.log('[MASTER-ANALYZER] ===== Starting enhanced analysis pipeline =====')
     const startTime = Date.now()
     
     try {
@@ -59,18 +66,14 @@ export class MasterAnalyzer {
         console.log('[MASTER-ANALYZER] Vision text length:', basicParsedReport.visionAnalysisText?.length || 0)
       }
       
-      // Step 2: Detect report type using Claude (use combined text for better detection)
-      console.log('[MASTER-ANALYZER] Step 2: Detecting report type with Claude AI...')
-      let detectedType: ReportType
-      try {
-        // Use combinedText if available, otherwise fallback to rawText
-        const textForDetection = basicParsedReport.combinedText || basicParsedReport.rawText
-        detectedType = await this.claudeClient.detectReportType(textForDetection)
-        console.log('[MASTER-ANALYZER] Report type detected:', detectedType)
-      } catch (detectError) {
-        console.error('[MASTER-ANALYZER] Failed to detect report type:', detectError)
-        throw new Error(`Failed to detect report type: ${detectError instanceof Error ? detectError.message : 'Unknown error'}`)
-      }
+      // Step 2: Enhanced document classification
+      console.log('[MASTER-ANALYZER] Step 2: Enhanced document classification...')
+      const textForClassification = basicParsedReport.combinedText || basicParsedReport.rawText
+      const classification = await this.documentClassifier.classifyDocument(textForClassification, documentName)
+      const detectedType: ReportType = classification.type as ReportType
+      
+      console.log('[MASTER-ANALYZER] Document classified as:', detectedType, 'with confidence:', classification.confidence)
+      console.log('[MASTER-ANALYZER] Classification description:', classification.description)
       
       // Step 3: Route to appropriate analyzer
       console.log('[MASTER-ANALYZER] Step 3: Routing to specific analyzer for type:', detectedType)
@@ -110,6 +113,17 @@ export class MasterAnalyzer {
           }
           break
           
+        case 'fit_test':
+          console.log('[MASTER-ANALYZER] Analyzing as FIT test...')
+          try {
+            analyzedReport = await this.fitTestAnalyzer.analyzeFITTest(textForClassification)
+            console.log('[MASTER-ANALYZER] FIT test analysis complete')
+          } catch (fitError) {
+            console.error('[MASTER-ANALYZER] FIT test analysis failed:', fitError)
+            throw new Error(`FIT test analysis failed: ${fitError instanceof Error ? fitError.message : 'Unknown error'}`)
+          }
+          break
+          
         case 'cgm':
           console.log('[MASTER-ANALYZER] Analyzing as CGM report...')
           try {
@@ -132,28 +146,46 @@ export class MasterAnalyzer {
           }
           break
           
+        case 'stool_test':
+        case 'blood_test':
+        case 'urine_test':
+        case 'saliva_test':
+        case 'lab_report':
+          console.log(`[MASTER-ANALYZER] Analyzing as ${detectedType}...`)
+          try {
+            analyzedReport = await this.analyzeGenericLabReport(pdfBuffer, basicParsedReport, detectedType)
+            console.log(`[MASTER-ANALYZER] ${detectedType} analysis complete`)
+          } catch (labError) {
+            console.error(`[MASTER-ANALYZER] ${detectedType} analysis failed:`, labError)
+            throw new Error(`${detectedType} analysis failed: ${labError instanceof Error ? labError.message : 'Unknown error'}`)
+          }
+          break
+          
         default:
-          // Default to NutriQ if type is unclear
-          console.warn('[MASTER-ANALYZER] Unknown report type, defaulting to NutriQ')
-          analyzedReport = await this.nutriqAnalyzer.analyzeNutriQReport(pdfBuffer)
+          console.warn('[MASTER-ANALYZER] Unknown report type, defaulting to generic analysis')
+          try {
+            analyzedReport = await this.analyzeGenericLabReport(pdfBuffer, basicParsedReport, 'lab_report')
+            console.log('[MASTER-ANALYZER] Generic analysis complete')
+          } catch (genericError) {
+            console.error('[MASTER-ANALYZER] Generic analysis failed:', genericError)
+            throw new Error(`Generic analysis failed: ${genericError instanceof Error ? genericError.message : 'Unknown error'}`)
+          }
       }
       
+      // Step 4: Calculate confidence and processing time
       const processingTime = Date.now() - startTime
-      console.log('[MASTER-ANALYZER] Analysis complete, processing time:', processingTime, 'ms')
+      const confidence = this.calculateConfidence(analyzedReport, detectedType, basicParsedReport, classification.confidence)
       
-      // Calculate confidence based on how well the analysis went
-      const confidence = this.calculateConfidence(analyzedReport, detectedType, basicParsedReport)
-      console.log('[MASTER-ANALYZER] Confidence score:', (confidence * 100).toFixed(1) + '%')
+      console.log('[MASTER-ANALYZER] ===== Analysis pipeline complete =====')
+      console.log('[MASTER-ANALYZER] Processing time:', processingTime, 'ms')
+      console.log('[MASTER-ANALYZER] Final confidence:', confidence)
       
-      const result = {
+      return {
         reportType: detectedType,
         analyzedReport,
         processingTime,
         confidence
       }
-      
-      console.log('[MASTER-ANALYZER] ===== Analysis pipeline complete =====')
-      return result
       
     } catch (error) {
       const errorTime = Date.now() - startTime
@@ -201,50 +233,47 @@ export class MasterAnalyzer {
     }
   }
 
-  private calculateConfidence(analyzedReport: AnalyzedReport, detectedType: ReportType, parsedReport?: ParsedLabReport): number {
-    let confidence = 0.8 // Base confidence
-    
-    // Boost confidence if vision analysis was used successfully
-    if (parsedReport?.hasImageContent && parsedReport?.visionAnalysisText) {
-      confidence += 0.05
-      console.log('[MASTER-ANALYZER] Vision analysis boost applied')
+  private async analyzeGenericLabReport(pdfBuffer: Buffer, basicParsedReport: ParsedLabReport, reportType: ReportType): Promise<AnalyzedReport> {
+    // For generic lab reports, use the basic parsed report and add type information
+    if (reportType === 'cgm' || reportType === 'food_photo' || reportType === 'stool_test' || reportType === 'blood_test' || reportType === 'urine_test' || reportType === 'saliva_test' || reportType === 'lab_report') {
+      return {
+        ...basicParsedReport,
+        reportType
+      }
     }
-    
-    // Check if we have patient information
-    if (analyzedReport.patientName) {
-      confidence += 0.1
+    // Fallback to lab_report if type is not supported
+    return {
+      ...basicParsedReport,
+      reportType: 'lab_report'
     }
+  }
+
+  private calculateConfidence(analyzedReport: AnalyzedReport, detectedType: ReportType, parsedReport?: ParsedLabReport, classificationConfidence: number = 0.5): number {
+    let confidence = classificationConfidence * 0.4 // 40% weight to classification confidence
     
-    if (analyzedReport.testDate) {
-      confidence += 0.05
-    }
+    // Add confidence based on successful type detection
+    confidence += 0.2 // 20% for successful type detection
     
-    // Check if we have analysis results
-    if ('nutriqAnalysis' in analyzedReport) {
-      const nutriqReport = analyzedReport as NutriQParsedReport
-      const nutriqValidation = this.nutriqAnalyzer.validateNutriQAnalysis(nutriqReport.nutriqAnalysis)
-      if (nutriqValidation.valid) {
-        confidence += 0.05
+    // Add confidence based on data quality
+    if (parsedReport) {
+      if (parsedReport.rawText.length > 100) {
+        confidence += 0.1 // 10% for sufficient text
+      }
+      if (parsedReport.hasImageContent && parsedReport.visionAnalysisText) {
+        confidence += 0.1 // 10% for successful vision analysis
       }
     }
     
-    if ('kbmoAnalysis' in analyzedReport) {
-      const kbmoReport = analyzedReport as KBMOParsedReport
-      const kbmoValidation = this.kbmoAnalyzer.validateKBMAAnalysis(kbmoReport.kbmoAnalysis)
-      if (kbmoValidation.valid) {
-        confidence += 0.05
+    // Add confidence based on analysis completeness
+    if (analyzedReport && typeof analyzedReport === 'object') {
+      const keys = Object.keys(analyzedReport)
+      if (keys.length > 3) {
+        confidence += 0.1 // 10% for comprehensive analysis
       }
     }
     
-    if ('dutchAnalysis' in analyzedReport) {
-      const dutchReport = analyzedReport as DutchParsedReport
-      const dutchValidation = this.dutchAnalyzer.validateDutchAnalysis(dutchReport.dutchAnalysis)
-      if (dutchValidation.valid) {
-        confidence += 0.05
-      }
-    }
-    
-    return Math.min(1.0, confidence)
+    // Cap confidence at 1.0
+    return Math.min(confidence, 1.0)
   }
 
   // Method to get a summary of the analysis
@@ -256,10 +285,6 @@ export class MasterAnalyzer {
     
     if (analyzedReport.patientName) {
       summary += `Patient: ${analyzedReport.patientName}\n`
-    }
-    
-    if (analyzedReport.testDate) {
-      summary += `Test Date: ${analyzedReport.testDate.toLocaleDateString()}\n`
     }
     
     // Add specific summary based on report type
@@ -310,10 +335,7 @@ export class MasterAnalyzer {
       console.log('Warning: Missing patient name, but continuing with analysis')
     }
     
-    // Make test date optional for now (can be added later)
-    if (!analyzedReport.testDate) {
-      console.log('Warning: Missing test date, but continuing with analysis')
-    }
+    // Test date validation removed for now
     
     // Validate specific analysis types
     let typeValidation = true

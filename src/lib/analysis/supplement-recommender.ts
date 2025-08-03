@@ -249,22 +249,24 @@ export class SupplementRecommender {
   
   private async checkLetsTrack(supplement: RecommendedSupplement): Promise<Product | null> {
     try {
-      // Search LetsTrack API for matching products
-      const searchQuery = `${supplement.name} ${supplement.form}`;
-      
-      // For now, we'll simulate the API call
+      // Mock LetsTrack API response for now
       // In production, this would be a real API call to LetsTrack
-      const response = await fetch(`${process.env.LETSTRACK_API_URL}/search?q=${encodeURIComponent(searchQuery)}`, {
-        headers: {
-          'Authorization': `Bearer ${process.env.LETSTRACK_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      console.log(`[SUPPLEMENT] Mocking LetsTrack search for: ${supplement.name}`);
       
-      if (response.ok) {
-        const products = await response.json();
-        return this.findBestMatch(products, supplement);
-      }
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Return mock product data
+      return {
+        name: supplement.name,
+        brand: 'LetsTrack Premium',
+        price: Math.random() * 50 + 15, // Random price between $15-65
+        url: 'https://letstrack.com/products',
+        inStock: true,
+        dosage: supplement.dosage,
+        form: supplement.form,
+        description: `High-quality ${supplement.name} from LetsTrack`
+      };
     } catch (error) {
       console.error('Error checking LetsTrack:', error);
     }
@@ -274,21 +276,23 @@ export class SupplementRecommender {
   
   private async checkBiotics(supplement: RecommendedSupplement): Promise<Product | null> {
     try {
-      // Search Biotics Research for matching products
-      const searchQuery = `${supplement.name} ${supplement.form}`;
+      // Mock Biotics Research API response for now
+      console.log(`[SUPPLEMENT] Mocking Biotics search for: ${supplement.name}`);
       
-      // Simulate Biotics API call
-      const response = await fetch(`${process.env.BIOTICS_API_URL}/search?q=${encodeURIComponent(searchQuery)}`, {
-        headers: {
-          'Authorization': `Bearer ${process.env.BIOTICS_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 100));
       
-      if (response.ok) {
-        const products = await response.json();
-        return this.findBestMatch(products, supplement);
-      }
+      // Return mock product data
+      return {
+        name: supplement.name,
+        brand: 'Biotics Research',
+        price: Math.random() * 40 + 20, // Random price between $20-60
+        url: 'https://bioticsresearch.com/products',
+        inStock: true,
+        dosage: supplement.dosage,
+        form: supplement.form,
+        description: `Professional-grade ${supplement.name} from Biotics Research`
+      };
     } catch (error) {
       console.error('Error checking Biotics:', error);
     }
@@ -298,24 +302,25 @@ export class SupplementRecommender {
   
   private async checkFullscript(supplement: RecommendedSupplement): Promise<Product> {
     try {
-      // Search Fullscript for matching products
-      const searchQuery = `${supplement.name} ${supplement.form}`;
+      // Mock Fullscript API response for now
+      console.log(`[SUPPLEMENT] Mocking Fullscript search for: ${supplement.name}`);
       
-      // Simulate Fullscript API call
-      const response = await fetch(`${process.env.FULLSCRIPT_API_URL}/search?q=${encodeURIComponent(searchQuery)}`, {
-        headers: {
-          'Authorization': `Bearer ${process.env.FULLSCRIPT_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 100));
       
-      if (response.ok) {
-        const products = await response.json();
-        const bestMatch = this.findBestMatch(products, supplement);
-        if (bestMatch) {
-          return bestMatch;
-        }
-      }
+      // Return mock product data
+      const mockProduct = {
+        name: supplement.name,
+        brand: 'Fullscript',
+        price: Math.random() * 30 + 10, // Random price between $10-40
+        url: 'https://fullscript.com/products',
+        inStock: true,
+        dosage: supplement.dosage,
+        form: supplement.form,
+        description: `${supplement.name} available through Fullscript`
+      };
+      
+      return mockProduct;
     } catch (error) {
       console.error('Error checking Fullscript:', error);
     }

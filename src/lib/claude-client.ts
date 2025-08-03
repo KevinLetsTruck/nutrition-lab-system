@@ -90,6 +90,24 @@ export interface FoodPhotoAnalysis {
   recommendations: string[]
 }
 
+export interface FITTestResult {
+  testType: 'FIT' | 'FOBT' | 'Fecal Immunochemical'
+  result: 'positive' | 'negative' | 'inconclusive'
+  hemoglobinLevel?: number
+  unit?: string
+  referenceRange?: string
+  collectionDate?: string
+  processingDate?: string
+  labName?: string
+  patientName?: string
+  clinicalSignificance: string
+  recommendations: string[]
+  followUpRequired: boolean
+  followUpInstructions: string[]
+  riskFactors: string[]
+  nextSteps: string[]
+}
+
 class ClaudeClient {
   private client: Anthropic
   private static instance: ClaudeClient
@@ -322,7 +340,7 @@ class ClaudeClient {
     return await this.analyzeWithClaude(content, systemPrompt)
   }
 
-  async detectReportType(pdfText: string): Promise<'nutriq' | 'kbmo' | 'dutch' | 'cgm' | 'food_photo'> {
+  async detectReportType(pdfText: string): Promise<'nutriq' | 'kbmo' | 'dutch' | 'cgm' | 'food_photo' | 'fit_test' | 'stool_test' | 'blood_test' | 'urine_test' | 'saliva_test' | 'lab_report'> {
     console.log('[CLAUDE] Detecting report type from text length:', pdfText.length)
     
     const systemPrompt = `You are an expert at identifying different types of lab reports and medical documents. 
@@ -332,12 +350,24 @@ class ClaudeClient {
     - dutch (for Dutch hormone tests)
     - cgm (for Continuous Glucose Monitor data)
     - food_photo (for food photos)
+    - fit_test (for FIT/Fecal Immunochemical Tests, colon cancer screening)
+    - stool_test (for comprehensive stool analysis, microbiome testing)
+    - blood_test (for blood laboratory tests, CBC, metabolic panels)
+    - urine_test (for urinalysis, urine laboratory tests)
+    - saliva_test (for saliva hormone tests)
+    - lab_report (for general laboratory reports)
     
     CRITICAL RULES:
     1. If you see "NAQ", "Nutritional Assessment Questionnaire", "Symptom Burden", "Questions and Answers", or similar terms - ALWAYS return 'nutriq'
     2. Dutch tests specifically mention "Dutch Test", "DUTCH", "hormone", "cortisol", "estrogen", "testosterone" in the context of urine/saliva testing
     3. KBMO tests mention "KBMO", "food sensitivity", "IgG", "food intolerance"
-    4. When in doubt between nutriq and dutch, prefer 'nutriq' unless it's clearly a hormone test
+    4. FIT tests mention "FIT", "Fecal Immunochemical", "FOBT", "colon cancer screening", "fecal occult blood"
+    5. Stool tests mention "stool", "fecal", "microbiome", "parasite", "bacteria"
+    6. Blood tests mention "CBC", "complete blood count", "metabolic panel", "lipid panel", "glucose", "cholesterol"
+    7. Urine tests mention "urinalysis", "urine", "protein", "ketones", "specific gravity"
+    8. Saliva tests mention "saliva", "cortisol", "melatonin", "hormone saliva"
+    9. When in doubt between nutriq and dutch, prefer 'nutriq' unless it's clearly a hormone test
+    10. When in doubt, prefer the most specific type over 'lab_report'
     
     Look for specific keywords, formatting, and content patterns that identify each type.`
 
@@ -351,13 +381,14 @@ ${pdfText.substring(0, 2000)}...`
       
       console.log('[CLAUDE] Detected report type:', detectedType)
       
-      if (['nutriq', 'kbmo', 'dutch', 'cgm', 'food_photo'].includes(detectedType)) {
+      const validTypes = ['nutriq', 'kbmo', 'dutch', 'cgm', 'food_photo', 'fit_test', 'stool_test', 'blood_test', 'urine_test', 'saliva_test', 'lab_report']
+      if (validTypes.includes(detectedType)) {
         return detectedType
       }
       
-      console.warn('[CLAUDE] Unknown report type detected:', detectedType, '- defaulting to nutriq')
-      // Default to nutriq if unclear
-      return 'nutriq'
+      console.warn('[CLAUDE] Unknown report type detected:', detectedType, '- defaulting to lab_report')
+      // Default to lab_report if unclear
+      return 'lab_report'
     } catch (error) {
       console.error('[CLAUDE] Failed to detect report type:', error)
       throw new Error(`Failed to detect report type: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -585,6 +616,58 @@ ${imageDescription}`
       return analysis as FoodPhotoAnalysis
     } catch (error) {
       throw new Error(`Failed to parse food photo analysis: ${error instanceof Error ? error.message : 'Invalid JSON'}`)
+    }
+  }
+
+  async analyzeFITTest(pdfText: string): Promise<FITTestResult> {
+    const systemPrompt = `You are an expert gastroenterologist analyzing FIT (Fecal Immunochemical Test) results. 
+    Extract all relevant information and provide clinical interpretation.
+
+    Return ONLY a JSON object with this exact structure:
+    {
+      "testType": "FIT" | "FOBT" | "Fecal Immunochemical",
+      "result": "positive" | "negative" | "inconclusive",
+      "hemoglobinLevel": number or null,
+      "unit": "ng/mL" or "μg/g" or null,
+      "referenceRange": "string or null,
+      "collectionDate": "YYYY-MM-DD or null",
+      "processingDate": "YYYY-MM-DD or null",
+      "labName": "string or null",
+      "patientName": "string or null",
+      "clinicalSignificance": "Detailed clinical interpretation",
+      "recommendations": ["recommendation1", "recommendation2"],
+      "followUpRequired": boolean,
+      "followUpInstructions": ["instruction1", "instruction2"],
+      "riskFactors": ["risk factor1", "risk factor2"],
+      "nextSteps": ["next step1", "next step2"]
+    }
+
+    CRITICAL RULES:
+    1. Positive FIT tests require immediate follow-up colonoscopy
+    2. Negative tests should be repeated annually for screening
+    3. Inconclusive results need repeat testing
+    4. Consider patient age, family history, and symptoms
+    5. Provide clear, actionable recommendations
+
+    Return ONLY the JSON object, nothing else.`
+
+    const prompt = `Analyze this FIT test result and return ONLY a JSON object with the analysis:
+
+${pdfText}
+
+Return ONLY the JSON object with the analysis structure specified above. Do not include any other text.`
+
+    const result = await this.analyzeWithClaude(prompt, systemPrompt)
+    
+    console.log('[CLAUDE] Raw FIT test analysis result:', result.substring(0, 500))
+    
+    try {
+      const analysis = JSON.parse(result)
+      return analysis as FITTestResult
+    } catch (error) {
+      console.error('[CLAUDE] JSON parse error:', error)
+      console.error('[CLAUDE] Raw result that failed to parse:', result)
+      throw new Error(`Failed to parse FIT test analysis: ${error instanceof Error ? error.message : 'Invalid JSON'}`)
     }
   }
 
