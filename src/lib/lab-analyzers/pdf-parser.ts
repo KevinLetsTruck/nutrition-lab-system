@@ -8,7 +8,7 @@ import { parsePDFServerless, detectDocumentType } from '../pdf-parser-serverless
 let pdf: any = null
 
 // Check if we're in a serverless environment
-const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
+const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NODE_ENV === 'production'
 
 export interface LabResult {
   testName: string
