@@ -56,7 +56,6 @@ export async function POST(request: NextRequest) {
         console.log('[QUICK-ANALYSIS] Detected report type:', reportType)
         
         // For quick analysis, use Claude directly instead of MasterAnalyzer
-        const claudeClient = ClaudeClient.getInstance()
         const nutriqAnalysis = await claudeClient.analyzeNutriQ(extractedContent.text)
         
         const analyzedReport = {
@@ -112,7 +111,6 @@ export async function POST(request: NextRequest) {
         console.log('[QUICK-ANALYSIS] Detected report type:', reportType)
         
         // For quick analysis, use Claude directly instead of MasterAnalyzer
-        const claudeClient = ClaudeClient.getInstance()
         const nutriqAnalysis = await claudeClient.analyzeNutriQ(parsedPDF.rawText)
         
         const analyzedReport = {
