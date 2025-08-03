@@ -512,8 +512,8 @@ Provide clear, structured analysis that practitioners can use immediately in coa
       factors.push(`Targeted supplements: ${relevantSupplements.map(s => s.name).join(', ')}`);
     }
     
-    // Check lifestyle changes
-    if (lastAnalysis.treatmentPhases.phase1.lifestyle.some(l => 
+    // Check lifestyle modifications
+    if (lastAnalysis.treatmentPhases.phase1.lifestyleModifications.some(l => 
       l.toLowerCase().includes(system.toLowerCase())
     )) {
       factors.push('Lifestyle modifications');
