@@ -71,23 +71,80 @@ export interface ComprehensiveAnalysis {
   id: string
   clientId: string
   analysisDate: string
+  executiveSummary: ExecutiveSummary
   rootCauseAnalysis: RootCause[]
   systemsPriority: Record<string, number>
   progressComparison?: ProgressComparison
   supplementProtocol: SupplementProtocol
   treatmentPhases: TreatmentPhases
+  lifestyleIntegration: LifestyleIntegration
+  monitoringPlan: MonitoringPlan
   urgentConcerns: string[]
-  timeline: string
-  successMetrics: SuccessMetric[]
-  practitionerNotes?: string
+  expectedTimeline: ExpectedTimeline
+  practitionerNotes: PractitionerNotes
+}
+
+export interface ExecutiveSummary {
+  primaryFocus: string
+  criticalRootCauses: CriticalRootCause[]
+  protocolTimeline: string
+  expectedOutcomes: string[]
+}
+
+export interface CriticalRootCause {
+  name: string
+  severity: 'Critical' | 'Moderate' | 'Mild'
+  score: number
+  explanation: string
+}
+
+export interface LifestyleIntegration {
+  sleepOptimization: string[]
+  stressManagement: string[]
+  movement: string[]
+  environmentalFactors: string[]
+}
+
+export interface MonitoringPlan {
+  weeklyCheckpoints: MonitoringMetric[]
+  monthlyAssessments: MonitoringMetric[]
+  redFlags: RedFlag[]
+}
+
+export interface MonitoringMetric {
+  metric: string
+  measurement: string
+  target: string
+}
+
+export interface RedFlag {
+  category: string
+  symptoms: string[]
+  action: string
+}
+
+export interface ExpectedTimeline {
+  week2to4: string[]
+  month2to3: string[]
+  month3to6: string[]
+}
+
+export interface PractitionerNotes {
+  protocolRationale: string
+  keySuccessFactors: string[]
+  potentialChallenges: string[]
+  modificationsForLifestyle: string[]
+  followUpRecommendations: string
 }
 
 export interface RootCause {
   name: string
   confidence: number
+  severity: 'Critical' | 'Moderate' | 'Mild'
   explanation: string
   affectedSystems: string[]
-  driverFactors?: string[]
+  lifestyleFactors: string[]
+  clinicalEvidence: string
 }
 
 export interface ProgressComparison {
@@ -136,12 +193,12 @@ export interface TreatmentPhases {
 }
 
 export interface TreatmentPhase {
-  focus: string
   duration: string
+  goal: string
+  dietaryChanges: string[]
+  lifestyleModifications: string[]
+  focusAreas: string[]
   supplements: SupplementRecommendation[]
-  dietary: string[]
-  lifestyle: string[]
-  goals: string[]
 }
 
 export interface SuccessMetric {

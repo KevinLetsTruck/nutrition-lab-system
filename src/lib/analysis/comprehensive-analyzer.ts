@@ -38,14 +38,16 @@ export class ComprehensiveAnalyzer {
       id: crypto.randomUUID(),
       clientId: clientData.clientId,
       analysisDate: new Date().toISOString(),
+      executiveSummary: analysis.executiveSummary,
       rootCauseAnalysis: analysis.rootCauses,
       systemsPriority: analysis.systemsPriority,
       progressComparison: progressComparison,
       supplementProtocol: supplements,
       treatmentPhases: protocols,
+      lifestyleIntegration: analysis.lifestyleIntegration,
+      monitoringPlan: analysis.monitoringPlan,
       urgentConcerns: analysis.urgentConcerns,
-      timeline: analysis.timeline,
-      successMetrics: analysis.successMetrics,
+      expectedTimeline: analysis.expectedTimeline,
       practitionerNotes: analysis.practitionerNotes
     };
   }
@@ -121,58 +123,87 @@ Previous Root Causes: ${JSON.stringify(lastAnalysis.rootCauseAnalysis)}
 Previous Priorities: ${JSON.stringify(lastAnalysis.systemsPriority)}
 ` : ''}
 
-Please provide a comprehensive analysis following your established functional medicine protocols:
+Please provide a comprehensive functional medicine analysis following the exact format and detail level of a professional practitioner report. This should be a complete clinical assessment that could be given directly to a client.
 
-1. ROOT CAUSE ANALYSIS
-- Identify top 3 primary dysfunctions with confidence levels
+## ANALYSIS REQUIREMENTS:
+
+1. **EXECUTIVE SUMMARY**
+- Primary root causes with confidence scores (0-100%)
+- Critical vs moderate vs mild dysfunction levels
+- Overall protocol timeline and focus areas
+
+2. **ROOT CAUSE ANALYSIS**
+- Identify 3-5 primary dysfunctions with detailed explanations
 - Explain interconnections between symptoms and systems
-- Consider truck driver lifestyle factors if applicable
+- Consider lifestyle factors (truck driver, stress, sleep, diet)
 - Rate confidence level for each root cause (0-100%)
+- Include clinical reasoning and evidence from assessments
 
-2. SYSTEMS PRIORITY ASSESSMENT
+3. **SYSTEMS PRIORITY ASSESSMENT**
 - Rank body systems by dysfunction severity (0-10 scale)
-- Identify which systems to address first
-- Explain why this prioritization makes sense
+- Identify which systems to address first and why
+- Explain the functional medicine approach to prioritization
+- Consider the gut-brain-hormone axis connections
 
-3. PROGRESS COMPARISON (if previous data available)
-- What has improved since last analysis
-- What has worsened or remained static
-- Effectiveness of previous interventions
-- Compliance factors affecting outcomes
+4. **PHASED PROTOCOL DESIGN**
+- **Phase 1 (Weeks 1-4):** Immediate stabilization and foundational work
+- **Phase 2 (Weeks 5-8):** System rebuilding and optimization
+- **Phase 3 (Weeks 9-12):** Advanced protocols and maintenance
+- Include specific goals, dietary changes, and lifestyle modifications for each phase
 
-4. INTERVENTION STRATEGY
-- Phase 1 (Weeks 1-4): Immediate priorities and foundational work
-- Phase 2 (Weeks 5-12): Restoration and optimization phase  
-- Phase 3 (Weeks 13-24): Advanced protocols and maintenance
-- Include specific goals for each phase
-
-5. SUPPLEMENT PROTOCOL
-- List specific supplements with exact dosing
-- Explain rationale for each recommendation
-- Note timing and food requirements
+5. **DETAILED SUPPLEMENT PROTOCOL**
+- List specific supplements with exact dosing and timing
+- Explain clinical rationale for each recommendation
+- Note food requirements and interactions
 - Include truck-compatible instructions if applicable
 - Follow hierarchy: LetsTrack → Biotics → Fullscript
+- Include monthly cost estimates
 
-6. SUCCESS METRICS
-- Define measurable outcomes for each phase
-- Specify timeline expectations
-- Include red flags requiring medical referral
+6. **LIFESTYLE INTEGRATION**
+- Sleep optimization recommendations
+- Stress management strategies
+- Movement and exercise guidelines
+- Dietary modifications and food elimination protocols
+- Environmental factors to address
 
-7. TRUCK DRIVER CONSIDERATIONS (if applicable)
-- DOT medical implications
-- Road-compatible modifications
-- Career sustainability factors
-- Sleep schedule adaptations
+7. **MONITORING & SUCCESS METRICS**
+- Weekly and monthly check-in points
+- Specific measurable outcomes for each phase
+- Red flags requiring immediate medical referral
+- Expected timeline for improvements
+- Long-term maintenance strategies
+
+8. **PRACTITIONER NOTES**
+- Clinical reasoning and protocol rationale
+- Potential challenges and modifications
+- Success factors and compliance strategies
+- Follow-up recommendations
 
 Format as structured JSON for parsing with the following structure:
+
 {
+  "executiveSummary": {
+    "primaryFocus": "Main focus area (e.g., Hormonal Balance & Gut Restoration)",
+    "criticalRootCauses": [
+      {
+        "name": "Root cause name",
+        "severity": "Critical/Moderate/Mild",
+        "score": 85,
+        "explanation": "Detailed clinical explanation"
+      }
+    ],
+    "protocolTimeline": "90-day intensive phase with ongoing maintenance",
+    "expectedOutcomes": ["Outcome 1", "Outcome 2", "Outcome 3"]
+  },
   "rootCauses": [
     {
       "name": "Root cause name",
       "confidence": 85,
-      "explanation": "Detailed explanation",
+      "severity": "Critical/Moderate/Mild",
+      "explanation": "Detailed clinical explanation with evidence",
       "affectedSystems": ["system1", "system2"],
-      "driverFactors": ["factor1", "factor2"]
+      "lifestyleFactors": ["factor1", "factor2"],
+      "clinicalEvidence": "Evidence from assessments and lab results"
     }
   ],
   "systemsPriority": {
@@ -181,19 +212,75 @@ Format as structured JSON for parsing with the following structure:
     "endocrine": 6,
     "nervous": 5,
     "cardiovascular": 4,
-    "detoxification": 3
+    "detoxification": 3,
+    "reproductive": 9,
+    "adrenal": 7
+  },
+  "treatmentPhases": {
+    "phase1": {
+      "duration": "Weeks 1-4",
+      "goal": "Immediate stabilization",
+      "dietaryChanges": ["Eliminate dairy", "Remove gluten"],
+      "lifestyleModifications": ["Sleep optimization", "Stress management"],
+      "focusAreas": ["Gut healing", "Inflammation reduction"]
+    },
+    "phase2": {
+      "duration": "Weeks 5-8", 
+      "goal": "System rebuilding",
+      "dietaryChanges": ["Reintroduce foods", "Add bone broth"],
+      "lifestyleModifications": ["Exercise protocol", "Sunlight exposure"],
+      "focusAreas": ["Hormone balance", "Microbiome restoration"]
+    },
+    "phase3": {
+      "duration": "Weeks 9-12",
+      "goal": "Optimization and maintenance",
+      "dietaryChanges": ["Food reintroduction protocol"],
+      "lifestyleModifications": ["Long-term habits"],
+      "focusAreas": ["Performance optimization", "Prevention"]
+    }
+  },
+  "lifestyleIntegration": {
+    "sleepOptimization": ["7-9 hours", "Consistent schedule", "Dark room"],
+    "stressManagement": ["Meditation", "Breathing exercises", "Yoga"],
+    "movement": ["Gentle exercise", "Avoid overtraining"],
+    "environmentalFactors": ["Sunlight exposure", "Clean air", "Water quality"]
+  },
+  "monitoringPlan": {
+    "weeklyCheckpoints": [
+      {
+        "metric": "Energy levels",
+        "measurement": "Daily rating 1-10",
+        "target": "Improvement by 50%"
+      }
+    ],
+    "monthlyAssessments": [
+      {
+        "metric": "Symptom burden",
+        "measurement": "Re-evaluate NAQ scores",
+        "target": "Reduction in total score"
+      }
+    ],
+    "redFlags": [
+      {
+        "category": "Hormonal",
+        "symptoms": ["Severe bleeding", "Complete cessation of periods"],
+        "action": "Seek immediate medical care"
+      }
+    ]
   },
   "urgentConcerns": ["concern1", "concern2"],
-  "timeline": "Expected timeline description",
-  "successMetrics": [
-    {
-      "name": "Energy levels",
-      "target": "Improved by 50%",
-      "timeline": "4 weeks",
-      "measurement": "Daily energy scale 1-10"
-    }
-  ],
-  "practitionerNotes": "Additional clinical notes"
+  "expectedTimeline": {
+    "week2to4": ["Reduced bloating", "Improved energy", "Better sleep"],
+    "month2to3": ["Regular cycles", "Reduced PMS", "Better stress resilience"],
+    "month3to6": ["Stable hormones", "Expanded food tolerance", "Sustainable energy"]
+  },
+  "practitionerNotes": {
+    "protocolRationale": "Clinical reasoning for the approach",
+    "keySuccessFactors": ["Factor 1", "Factor 2", "Factor 3"],
+    "potentialChallenges": ["Challenge 1", "Challenge 2"],
+    "modificationsForLifestyle": ["Modification 1", "Modification 2"],
+    "followUpRecommendations": "Schedule and frequency of check-ins"
+  }
 }
 `;
   }
@@ -238,14 +325,41 @@ Provide clear, structured analysis that practitioners can use immediately in coa
       
       const parsed = JSON.parse(jsonMatch[0]);
       
-      // Validate and transform the parsed data
+      // Validate and transform the parsed data with enhanced structure
       return {
+        executiveSummary: parsed.executiveSummary || {
+          primaryFocus: 'Health optimization',
+          criticalRootCauses: [],
+          protocolTimeline: '90-day intensive phase',
+          expectedOutcomes: []
+        },
         rootCauses: Array.isArray(parsed.rootCauses) ? parsed.rootCauses : [],
         systemsPriority: parsed.systemsPriority || {},
+        treatmentPhases: parsed.treatmentPhases || {},
+        lifestyleIntegration: parsed.lifestyleIntegration || {
+          sleepOptimization: [],
+          stressManagement: [],
+          movement: [],
+          environmentalFactors: []
+        },
+        monitoringPlan: parsed.monitoringPlan || {
+          weeklyCheckpoints: [],
+          monthlyAssessments: [],
+          redFlags: []
+        },
         urgentConcerns: Array.isArray(parsed.urgentConcerns) ? parsed.urgentConcerns : [],
-        timeline: parsed.timeline || 'Timeline not specified',
-        successMetrics: Array.isArray(parsed.successMetrics) ? parsed.successMetrics : [],
-        practitionerNotes: parsed.practitionerNotes || ''
+        expectedTimeline: parsed.expectedTimeline || {
+          week2to4: [],
+          month2to3: [],
+          month3to6: []
+        },
+        practitionerNotes: parsed.practitionerNotes || {
+          protocolRationale: '',
+          keySuccessFactors: [],
+          potentialChallenges: [],
+          modificationsForLifestyle: [],
+          followUpRecommendations: ''
+        }
       };
     } catch (error) {
       console.error('Error parsing analysis response:', error);
@@ -256,75 +370,78 @@ Provide clear, structured analysis that practitioners can use immediately in coa
   }
 
   private async createProtocolPhases(analysis: any, supplements: SupplementProtocol): Promise<TreatmentPhases> {
+    // Use analysis.treatmentPhases if available, otherwise create default structure
+    const treatmentPhases = analysis.treatmentPhases || {};
+    
     return {
       phase1: {
-        focus: "Foundation and Inflammation Reduction",
-        duration: "Weeks 1-4",
-        supplements: supplements.phase1,
-        dietary: [
+        duration: treatmentPhases.phase1?.duration || "Weeks 1-4",
+        goal: treatmentPhases.phase1?.goal || "Foundation and Inflammation Reduction",
+        dietaryChanges: treatmentPhases.phase1?.dietaryChanges || [
           "Eliminate processed foods and added sugars",
           "Increase protein intake to 1g per pound body weight",
           "Add 2-3 servings of vegetables per meal",
           "Remove inflammatory oils (soybean, corn, canola)"
         ],
-        lifestyle: [
+        lifestyleModifications: treatmentPhases.phase1?.lifestyleModifications || [
           "Prioritize 7-8 hours of sleep per night",
           "Implement stress management techniques",
           "Begin gentle movement/exercise routine",
           "Establish consistent meal timing"
         ],
-        goals: [
+        focusAreas: treatmentPhases.phase1?.focusAreas || [
           "Reduce inflammation markers",
           "Improve energy levels by 30%",
           "Establish consistent sleep patterns",
           "Reduce digestive symptoms"
-        ]
+        ],
+        supplements: supplements.phase1
       },
       phase2: {
-        focus: "Restoration and Optimization",
-        duration: "Weeks 5-12",
-        supplements: supplements.phase2,
-        dietary: [
+        duration: treatmentPhases.phase2?.duration || "Weeks 5-8",
+        goal: treatmentPhases.phase2?.goal || "Restoration and Optimization",
+        dietaryChanges: treatmentPhases.phase2?.dietaryChanges || [
           "Implement targeted elimination diet if needed",
           "Add fermented foods for gut health",
           "Optimize meal timing for circadian rhythm",
           "Increase healthy fat intake"
         ],
-        lifestyle: [
+        lifestyleModifications: treatmentPhases.phase2?.lifestyleModifications || [
           "Increase exercise intensity gradually",
           "Implement advanced stress management",
           "Optimize sleep environment",
           "Add recovery protocols"
         ],
-        goals: [
+        focusAreas: treatmentPhases.phase2?.focusAreas || [
           "Achieve optimal lab markers",
           "Improve body composition",
           "Enhance cognitive function",
           "Establish sustainable habits"
-        ]
+        ],
+        supplements: supplements.phase2
       },
       phase3: {
-        focus: "Advanced Protocols and Maintenance",
-        duration: "Weeks 13-24",
-        supplements: supplements.phase3,
-        dietary: [
+        duration: treatmentPhases.phase3?.duration || "Weeks 9-12",
+        goal: treatmentPhases.phase3?.goal || "Advanced Protocols and Maintenance",
+        dietaryChanges: treatmentPhases.phase3?.dietaryChanges || [
           "Fine-tune macronutrient ratios",
           "Add targeted superfoods",
           "Implement intermittent fasting if appropriate",
           "Optimize for performance"
         ],
-        lifestyle: [
+        lifestyleModifications: treatmentPhases.phase3?.lifestyleModifications || [
           "Advanced exercise protocols",
           "Biohacking techniques",
           "Long-term stress resilience",
           "Performance optimization"
         ],
-        goals: [
+        focusAreas: treatmentPhases.phase3?.focusAreas || [
           "Achieve peak performance",
           "Maintain optimal health markers",
           "Establish long-term sustainability",
           "Prevent future health issues"
-        ]
+        ],
+        supplements: supplements.phase3
       }
     };
   }
