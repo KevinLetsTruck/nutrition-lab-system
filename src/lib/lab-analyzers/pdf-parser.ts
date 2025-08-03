@@ -82,7 +82,7 @@ export class PDFLabParser {
       for (const pageNum of pagesToConvert) {
         try {
           console.log('[PDF-PARSER] Converting page', pageNum)
-          const result = await converter(pageNum, { responseType: 'buffer' })
+          const result = await converter(pageNum)
           
           if (result && result.buffer) {
             const base64 = Buffer.from(result.buffer).toString('base64')
