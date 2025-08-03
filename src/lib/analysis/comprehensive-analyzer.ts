@@ -582,13 +582,28 @@ Provide clear, structured analysis that practitioners can use immediately in coa
 
   private createFallbackAnalysis(): any {
     return {
+      executiveSummary: {
+        primaryFocus: 'Health optimization',
+        criticalRootCauses: [
+          {
+            name: "Systemic inflammation",
+            severity: "Moderate",
+            score: 75,
+            explanation: "Based on assessment data, systemic inflammation appears to be a primary driver"
+          }
+        ],
+        protocolTimeline: '90-day intensive phase',
+        expectedOutcomes: ['Improved energy', 'Reduced inflammation', 'Better sleep']
+      },
       rootCauses: [
         {
           name: "Systemic inflammation",
           confidence: 75,
+          severity: "Moderate",
           explanation: "Based on assessment data, systemic inflammation appears to be a primary driver",
           affectedSystems: ["immune", "digestive", "nervous"],
-          driverFactors: ["diet", "stress", "sleep"]
+          lifestyleFactors: ["diet", "stress", "sleep"],
+          clinicalEvidence: "Assessment scores indicate inflammatory patterns"
         }
       ],
       systemsPriority: {
@@ -599,17 +614,45 @@ Provide clear, structured analysis that practitioners can use immediately in coa
         cardiovascular: 3,
         detoxification: 2
       },
-      urgentConcerns: ["Address foundational health first"],
-      timeline: "Initial improvements expected within 2-4 weeks",
-      successMetrics: [
-        {
-          name: "Energy levels",
-          target: "Improved by 30%",
-          timeline: "4 weeks",
-          measurement: "Daily energy scale 1-10"
+      treatmentPhases: {
+        phase1: {
+          duration: "Weeks 1-4",
+          goal: "Foundation and inflammation reduction",
+          dietaryChanges: ["Eliminate processed foods", "Increase vegetables"],
+          lifestyleModifications: ["Prioritize sleep", "Stress management"],
+          focusAreas: ["Reduce inflammation", "Improve energy"]
         }
-      ],
-      practitionerNotes: "Fallback analysis generated due to parsing error"
+      },
+      lifestyleIntegration: {
+        sleepOptimization: ["7-9 hours per night", "Consistent schedule"],
+        stressManagement: ["Meditation", "Breathing exercises"],
+        movement: ["Gentle exercise", "Daily walks"],
+        environmentalFactors: ["Sunlight exposure", "Clean air"]
+      },
+      monitoringPlan: {
+        weeklyCheckpoints: [
+          {
+            metric: "Energy levels",
+            measurement: "Daily rating 1-10",
+            target: "Improvement by 30%"
+          }
+        ],
+        monthlyAssessments: [],
+        redFlags: []
+      },
+      urgentConcerns: ["Address foundational health first"],
+      expectedTimeline: {
+        week2to4: ["Reduced inflammation", "Improved energy"],
+        month2to3: ["Better sleep", "Reduced stress"],
+        month3to6: ["Sustainable improvements", "Long-term habits"]
+      },
+      practitionerNotes: {
+        protocolRationale: "Fallback analysis generated due to parsing error",
+        keySuccessFactors: ["Compliance", "Patience", "Consistency"],
+        potentialChallenges: ["Initial adjustment period"],
+        modificationsForLifestyle: ["Adapt to individual needs"],
+        followUpRecommendations: "Reassess in 4 weeks"
+      }
     };
   }
 } 

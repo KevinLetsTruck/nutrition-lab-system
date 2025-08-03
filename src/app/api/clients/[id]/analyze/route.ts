@@ -67,11 +67,13 @@ async function saveAnalysis(analysis: any): Promise<void> {
         root_causes: analysis.rootCauseAnalysis,
         systems_priority: analysis.systemsPriority,
         progress_comparison: analysis.progressComparison,
+        executive_summary: analysis.executiveSummary,
         supplement_protocol: analysis.supplementProtocol,
         treatment_phases: analysis.treatmentPhases,
+        lifestyle_integration: analysis.lifestyleIntegration,
+        monitoring_plan: analysis.monitoringPlan,
         urgent_concerns: analysis.urgentConcerns,
-        timeline: analysis.timeline,
-        success_metrics: analysis.successMetrics,
+        expected_timeline: analysis.expectedTimeline,
         practitioner_notes: analysis.practitionerNotes
       });
 
@@ -158,38 +160,63 @@ ${analysis.supplementProtocol.phase3.map((supp: any) => `
 **Total Monthly Cost:** $${analysis.supplementProtocol.totalMonthlyCost}
 
 ## TREATMENT PHASES
-### Phase 1: ${analysis.treatmentPhases.phase1.focus}
+### Phase 1: ${analysis.treatmentPhases.phase1.goal}
 **Duration:** ${analysis.treatmentPhases.phase1.duration}
-**Goals:** ${analysis.treatmentPhases.phase1.goals.join(', ')}
+**Focus Areas:** ${analysis.treatmentPhases.phase1.focusAreas.join(', ')}
 
-**Dietary Modifications:**
-${analysis.treatmentPhases.phase1.dietary.map((item: string) => `- ${item}`).join('\n')}
+**Dietary Changes:**
+${analysis.treatmentPhases.phase1.dietaryChanges.map((item: string) => `- ${item}`).join('\n')}
 
-**Lifestyle Changes:**
-${analysis.treatmentPhases.phase1.lifestyle.map((item: string) => `- ${item}`).join('\n')}
+**Lifestyle Modifications:**
+${analysis.treatmentPhases.phase1.lifestyleModifications.map((item: string) => `- ${item}`).join('\n')}
 
-### Phase 2: ${analysis.treatmentPhases.phase2.focus}
+### Phase 2: ${analysis.treatmentPhases.phase2.goal}
 **Duration:** ${analysis.treatmentPhases.phase2.duration}
-**Goals:** ${analysis.treatmentPhases.phase2.goals.join(', ')}
+**Focus Areas:** ${analysis.treatmentPhases.phase2.focusAreas.join(', ')}
 
-### Phase 3: ${analysis.treatmentPhases.phase3.focus}
+### Phase 3: ${analysis.treatmentPhases.phase3.goal}
 **Duration:** ${analysis.treatmentPhases.phase3.duration}
-**Goals:** ${analysis.treatmentPhases.phase3.goals.join(', ')}
+**Focus Areas:** ${analysis.treatmentPhases.phase3.focusAreas.join(', ')}
 
-## SUCCESS METRICS
-${analysis.successMetrics.map((metric: any) => `
-- **${metric.name}:** ${metric.target} by ${metric.timeline}
-  - Measurement: ${metric.measurement}
+## LIFESTYLE INTEGRATION
+### Sleep Optimization
+${analysis.lifestyleIntegration.sleepOptimization.map((item: string) => `- ${item}`).join('\n')}
+
+### Stress Management
+${analysis.lifestyleIntegration.stressManagement.map((item: string) => `- ${item}`).join('\n')}
+
+### Movement & Exercise
+${analysis.lifestyleIntegration.movement.map((item: string) => `- ${item}`).join('\n')}
+
+## MONITORING PLAN
+### Weekly Checkpoints
+${analysis.monitoringPlan.weeklyCheckpoints.map((metric: any) => `
+- **${metric.metric}:** ${metric.measurement} - Target: ${metric.target}
+`).join('\n')}
+
+### Red Flags
+${analysis.monitoringPlan.redFlags.map((flag: any) => `
+- **${flag.category}:** ${flag.symptoms.join(', ')} - ${flag.action}
 `).join('\n')}
 
 ## URGENT CONCERNS
 ${analysis.urgentConcerns.map((concern: string) => `- ${concern}`).join('\n')}
 
-## TIMELINE
-${analysis.timeline}
+## EXPECTED TIMELINE
+### Week 2-4 Improvements
+${analysis.expectedTimeline.week2to4.map((item: string) => `- ${item}`).join('\n')}
+
+### Month 2-3 Improvements
+${analysis.expectedTimeline.month2to3.map((item: string) => `- ${item}`).join('\n')}
 
 ## PRACTITIONER NOTES
-${analysis.practitionerNotes || 'No additional notes'}
+**Protocol Rationale:** ${analysis.practitionerNotes.protocolRationale}
+
+**Key Success Factors:**
+${analysis.practitionerNotes.keySuccessFactors.map((factor: string) => `- ${factor}`).join('\n')}
+
+**Potential Challenges:**
+${analysis.practitionerNotes.potentialChallenges.map((challenge: string) => `- ${challenge}`).join('\n')}
 
 ---
 *This analysis is based on comprehensive data integration and AI-powered functional medicine assessment.*
@@ -214,7 +241,7 @@ ${cause.explanation}
 We've created a 3-phase approach to help you achieve your health goals:
 
 ### Phase 1 (Next 4 weeks): Foundation
-**Focus:** ${analysis.treatmentPhases.phase1.focus}
+**Focus:** ${analysis.treatmentPhases.phase1.goal}
 
 **Your Supplements:**
 ${analysis.supplementProtocol.phase1.map((supp: any) => `
@@ -223,20 +250,24 @@ ${analysis.supplementProtocol.phase1.map((supp: any) => `
 `).join('\n')}
 
 **Key Changes:**
-${analysis.treatmentPhases.phase1.dietary.slice(0, 3).map((item: string) => `• ${item}`).join('\n')}
+${analysis.treatmentPhases.phase1.dietaryChanges.slice(0, 3).map((item: string) => `• ${item}`).join('\n')}
 
-### Phase 2 (Weeks 5-12): Optimization
-**Focus:** ${analysis.treatmentPhases.phase2.focus}
+### Phase 2 (Weeks 5-8): Optimization
+**Focus:** ${analysis.treatmentPhases.phase2.goal}
 
-### Phase 3 (Weeks 13-24): Advanced
-**Focus:** ${analysis.treatmentPhases.phase3.focus}
+### Phase 3 (Weeks 9-12): Advanced
+**Focus:** ${analysis.treatmentPhases.phase3.goal}
 
 ## WHAT TO EXPECT
-${analysis.timeline}
+### Week 2-4 Improvements
+${analysis.expectedTimeline.week2to4.map((item: string) => `• ${item}`).join('\n')}
+
+### Month 2-3 Improvements
+${analysis.expectedTimeline.month2to3.map((item: string) => `• ${item}`).join('\n')}
 
 ## SUCCESS MARKERS
-${analysis.successMetrics.slice(0, 3).map((metric: any) => `
-• ${metric.name}: ${metric.target}
+${analysis.monitoringPlan.weeklyCheckpoints.slice(0, 3).map((metric: any) => `
+• ${metric.metric}: ${metric.target}
 `).join('\n')}
 
 ## IMPORTANT NOTES
@@ -279,14 +310,14 @@ ${analysis.supplementProtocol.phase1.map((supp: any) => `
 - Rationale: ${supp.rationale}
 `).join('\n')}
 
-### Dietary Modifications
-${analysis.treatmentPhases.phase1.dietary.map((item: string) => `- ${item}`).join('\n')}
+### Dietary Changes
+${analysis.treatmentPhases.phase1.dietaryChanges.map((item: string) => `- ${item}`).join('\n')}
 
-### Lifestyle Changes
-${analysis.treatmentPhases.phase1.lifestyle.map((item: string) => `- ${item}`).join('\n')}
+### Lifestyle Modifications
+${analysis.treatmentPhases.phase1.lifestyleModifications.map((item: string) => `- ${item}`).join('\n')}
 
-## PHASE 2 PROTOCOL (Weeks 5-12)
-**Focus:** ${analysis.treatmentPhases.phase2.focus}
+## PHASE 2 PROTOCOL (Weeks 5-8)
+**Focus:** ${analysis.treatmentPhases.phase2.goal}
 
 ### Supplements
 ${analysis.supplementProtocol.phase2.map((supp: any) => `
@@ -299,8 +330,8 @@ ${analysis.supplementProtocol.phase2.map((supp: any) => `
 - Rationale: ${supp.rationale}
 `).join('\n')}
 
-## PHASE 3 PROTOCOL (Weeks 13-24)
-**Focus:** ${analysis.treatmentPhases.phase3.focus}
+## PHASE 3 PROTOCOL (Weeks 9-12)
+**Focus:** ${analysis.treatmentPhases.phase3.goal}
 
 ### Supplements
 ${analysis.supplementProtocol.phase3.map((supp: any) => `
@@ -313,10 +344,10 @@ ${analysis.supplementProtocol.phase3.map((supp: any) => `
 - Rationale: ${supp.rationale}
 `).join('\n')}
 
-## SUCCESS METRICS
-${analysis.successMetrics.map((metric: any) => `
-- **${metric.name}:** ${metric.target} by ${metric.timeline}
-  - Measurement: ${metric.measurement}
+## MONITORING PLAN
+### Weekly Checkpoints
+${analysis.monitoringPlan.weeklyCheckpoints.map((metric: any) => `
+- **${metric.metric}:** ${metric.measurement} - Target: ${metric.target}
 `).join('\n')}
 
 ## RED FLAGS - SEEK IMMEDIATE CARE

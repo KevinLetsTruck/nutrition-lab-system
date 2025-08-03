@@ -491,15 +491,50 @@ export class ClientDataAggregator {
         id: analysis.id,
         clientId: analysis.client_id,
         analysisDate: analysis.analysis_date,
-        rootCauseAnalysis: analysis.root_causes,
-        systemsPriority: analysis.systems_priority,
+        executiveSummary: analysis.executive_summary || {
+          primaryFocus: 'Health optimization',
+          criticalRootCauses: [],
+          protocolTimeline: '90-day intensive phase',
+          expectedOutcomes: []
+        },
+        rootCauseAnalysis: analysis.root_causes || [],
+        systemsPriority: analysis.systems_priority || {},
         progressComparison: analysis.progress_comparison,
-        supplementProtocol: analysis.supplement_protocol,
-        treatmentPhases: analysis.treatment_phases,
-        urgentConcerns: analysis.urgent_concerns,
-        timeline: analysis.timeline,
-        successMetrics: analysis.success_metrics,
-        practitionerNotes: analysis.practitioner_notes
+        supplementProtocol: analysis.supplement_protocol || {
+          phase1: [],
+          phase2: [],
+          phase3: [],
+          totalMonthlyCost: 0
+        },
+        treatmentPhases: analysis.treatment_phases || {
+          phase1: { duration: '', goal: '', dietaryChanges: [], lifestyleModifications: [], focusAreas: [], supplements: [] },
+          phase2: { duration: '', goal: '', dietaryChanges: [], lifestyleModifications: [], focusAreas: [], supplements: [] },
+          phase3: { duration: '', goal: '', dietaryChanges: [], lifestyleModifications: [], focusAreas: [], supplements: [] }
+        },
+        lifestyleIntegration: analysis.lifestyle_integration || {
+          sleepOptimization: [],
+          stressManagement: [],
+          movement: [],
+          environmentalFactors: []
+        },
+        monitoringPlan: analysis.monitoring_plan || {
+          weeklyCheckpoints: [],
+          monthlyAssessments: [],
+          redFlags: []
+        },
+        urgentConcerns: analysis.urgent_concerns || [],
+        expectedTimeline: analysis.expected_timeline || {
+          week2to4: [],
+          month2to3: [],
+          month3to6: []
+        },
+        practitionerNotes: analysis.practitioner_notes || {
+          protocolRationale: '',
+          keySuccessFactors: [],
+          potentialChallenges: [],
+          modificationsForLifestyle: [],
+          followUpRecommendations: ''
+        }
       };
     } catch (error) {
       console.warn(`Warning: Comprehensive analyses table may not exist: ${error}`);
