@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
         console.log('[QUICK-ANALYSIS] Detected report type:', reportType)
         
         // Analyze using master analyzer
-        const analyzer = new MasterAnalyzer()
+        const analyzer = MasterAnalyzer.getInstance()
         const analyzedReport = await analyzer.analyzeReport(extractedContent.text, reportType)
         
         analysisResult = {
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
         console.log('[QUICK-ANALYSIS] Detected report type:', reportType)
         
         // Analyze using master analyzer
-        const analyzer = new MasterAnalyzer()
+        const analyzer = MasterAnalyzer.getInstance()
         const analyzedReport = await analyzer.analyzeReport(parsedPDF.rawText, reportType)
         
         analysisResult = {
