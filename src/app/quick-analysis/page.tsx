@@ -142,12 +142,25 @@ export default function QuickAnalysisPage() {
         })
 
         if (!analysisResponse.ok) {
-          const errorData = await analysisResponse.json()
-          console.error('Analysis error response:', errorData)
-          throw new Error(errorData.error || errorData.details || 'Analysis failed')
+          let errorMessage = 'Analysis failed'
+          try {
+            const errorData = await analysisResponse.json()
+            console.error('Analysis error response:', errorData)
+            errorMessage = errorData.error || errorData.details || errorMessage
+          } catch (e) {
+            console.error('Failed to parse error response:', e)
+            errorMessage = `Analysis failed with status ${analysisResponse.status}`
+          }
+          throw new Error(errorMessage)
         }
 
-        const analysisData = await analysisResponse.json()
+        let analysisData
+        try {
+          analysisData = await analysisResponse.json()
+        } catch (e) {
+          console.error('Failed to parse analysis response:', e)
+          throw new Error('Analysis completed but failed to parse response')
+        }
         
         console.log('Analysis response:', analysisData)
 

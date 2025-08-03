@@ -22,7 +22,7 @@ async function testTextract() {
 
   try {
     // Import the processor
-    const { TextractProcessor } = require('../src/lib/document-processors/textract-processor')
+    const { TextractProcessor } = require('../.next/server/chunks/lib_document-processors_textract-processor.js')
     const processor = new TextractProcessor()
 
     // Create a simple test document

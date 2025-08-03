@@ -33,11 +33,22 @@ function logError(context: string, error: any, additionalInfo?: any) {
 
 // Redirect to enhanced analyze if available
 export async function POST(request: NextRequest) {
-  // Check if AWS Textract is configured
+  // First, let's check if this is a quick analysis request
+  const requestClone = request.clone()
+  let isQuickAnalysis = false
+  
+  try {
+    const body = await requestClone.json()
+    isQuickAnalysis = body.quickAnalysis === true
+  } catch (e) {
+    // If we can't parse the body, continue with standard flow
+  }
+  
+  // Check if AWS Textract is configured and this is NOT a quick analysis
   const hasTextract = !!(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY)
   
-  if (hasTextract) {
-    // Redirect to enhanced analyze route
+  if (hasTextract && !isQuickAnalysis) {
+    // Only redirect database-based analyses to enhanced route
     console.log('[ANALYZE] Redirecting to enhanced analyze (Textract available)')
     const enhancedRequest = new Request(
       request.url.replace('/api/analyze', '/api/analyze-enhanced'),
@@ -52,7 +63,7 @@ export async function POST(request: NextRequest) {
     return enhancedPOST(enhancedRequest as NextRequest)
   }
   
-  // Continue with standard analyze
+  // Continue with standard analyze for quick analysis
   console.log('[ANALYZE] ========== Starting new analysis request ==========')
   const startTime = Date.now()
   
