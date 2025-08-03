@@ -315,27 +315,51 @@ export class ClientDataAggregator {
       }
     }
 
-    // Get structured assessments
+    // Get structured assessments from ai_conversations
     try {
       const { data: structuredAssessments, error: structuredError } = await supabase
-        .from('structured_assessments')
-        .select('*')
+        .from('ai_conversations')
+        .select(`
+          *,
+          conversation_messages!inner(
+            id,
+            content,
+            structured_response,
+            question_id,
+            section
+          )
+        `)
         .eq('client_id', clientId)
+        .eq('assessment_type', 'structured')
         .order('created_at', { ascending: false });
 
       if (!structuredError && structuredAssessments) {
         for (const assessment of structuredAssessments) {
+          // Extract responses from conversation messages
+          const responses = assessment.conversation_messages
+            .filter((msg: any) => msg.structured_response)
+            .map((msg: any) => ({
+              questionId: msg.question_id,
+              section: msg.section,
+              response: msg.structured_response,
+              content: msg.content
+            }));
+
           assessments.push({
             id: assessment.id,
             type: 'structured',
             date: assessment.created_at,
-            responses: assessment.responses,
-            results: assessment.results
+            responses: responses,
+            results: {
+              status: assessment.status,
+              questionsAnswered: assessment.questions_answered,
+              currentSection: assessment.current_section
+            }
           });
         }
       }
     } catch (error) {
-      console.warn(`Warning: Structured assessments table may not exist: ${error}`);
+      console.warn(`Warning: Could not fetch structured assessments: ${error}`);
     }
 
     // Get quick analysis assessments

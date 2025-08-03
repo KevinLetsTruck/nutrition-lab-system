@@ -73,6 +73,16 @@ ${assessment.totalScore ? `Total Score: ${assessment.totalScore}` : ''}
 ${assessment.bodySystems ? `Body Systems: ${JSON.stringify(assessment.bodySystems, null, 2)}` : ''}
 ${assessment.recommendations ? `Recommendations: ${assessment.recommendations.join(', ')}` : ''}
 ${assessment.priorityActions ? `Priority Actions: ${assessment.priorityActions.join(', ')}` : ''}
+${assessment.responses ? `
+Structured Responses:
+${assessment.responses.map((response: any) => `
+  Question ID: ${response.questionId}
+  Section: ${response.section}
+  Response: ${JSON.stringify(response.response)}
+  Content: ${response.content}
+`).join('\n')}
+` : ''}
+${assessment.results ? `Assessment Results: ${JSON.stringify(assessment.results, null, 2)}` : ''}
 `).join('\n') : 'No assessments found'}
 
 RECENT SESSION NOTES:
@@ -122,6 +132,8 @@ Last Analysis Date: ${lastAnalysis.analysisDate}
 Previous Root Causes: ${JSON.stringify(lastAnalysis.rootCauseAnalysis)}
 Previous Priorities: ${JSON.stringify(lastAnalysis.systemsPriority)}
 ` : ''}
+
+IMPORTANT: Base your analysis ONLY on the actual data provided above. Do NOT generate fake or hypothetical information. If specific data is missing (like blood pressure, lab values, etc.), acknowledge this in your analysis and recommend what additional testing would be helpful. Focus on what the assessments and notes actually reveal about the client's health status.
 
 Please provide a comprehensive functional medicine analysis following the exact format and detail level of a professional practitioner report. This should be a complete clinical assessment that could be given directly to a client.
 
