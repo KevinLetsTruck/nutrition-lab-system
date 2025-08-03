@@ -113,17 +113,24 @@ export async function POST(request: NextRequest) {
         try {
           // For quick analysis, we need to use the service role client
           // because the files were uploaded with service role
-          const { SupabaseStorageService } = require('@/lib/supabase-storage')
+          const { SupabaseStorageService } = await import('@/lib/supabase-storage')
           const storageService = new SupabaseStorageService(true) // Use service role
           
           console.log('[ANALYZE] Attempting to download file with service role client')
-          fileBuffer = await storageService.downloadFile(storageBucket, cleanPath)
+          
+          // The file paths in the database are stored as "2025/08/01/filename.pdf"
+          // These files are actually in the 'general' bucket, not a "2025" bucket
+          // Always use 'general' bucket for recent uploads
+          const actualBucket = 'general'
+          console.log('[ANALYZE] Using bucket:', actualBucket, 'for path:', cleanPath)
+          
+          fileBuffer = await storageService.downloadFile(actualBucket, cleanPath)
           
           if (!fileBuffer) {
             console.error('[ANALYZE] File buffer is null after loadFile call')
             
             // Try alternative buckets if the first attempt fails
-            const alternateBuckets = ['lab-files', 'general'].filter(b => b !== storageBucket)
+            const alternateBuckets = ['lab-files'].filter(b => b !== actualBucket)
             for (const altBucket of alternateBuckets) {
               console.log('[ANALYZE] Trying alternate bucket:', altBucket)
               fileBuffer = await storageService.downloadFile(altBucket, cleanPath)
@@ -592,6 +599,13 @@ function determineBucketFromPath(filePath: string, reportType: string): string {
     // Check if first part is a bucket name
     const possibleBucket = pathParts[0]
     const validBuckets = ['lab-files', 'cgm-images', 'food-photos', 'medical-records', 'supplements', 'general']
+    
+    // Check if it's a date-based path (e.g., "2025/08/01/filename.pdf")
+    if (/^\d{4}$/.test(possibleBucket)) {
+      console.log('[ANALYZE] Date-based path detected, using general bucket')
+      return 'general'
+    }
+    
     if (validBuckets.includes(possibleBucket)) {
       console.log('[ANALYZE] Bucket found in path:', possibleBucket)
       return possibleBucket
