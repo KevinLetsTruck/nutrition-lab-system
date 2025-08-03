@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
           reportType,
           extractedData: {
             text: parsedPDF.rawText,
-            tables: parsedPDF.tables || [],
+            tables: [],
             confidence: 0.8
           },
           analyzedReport,
