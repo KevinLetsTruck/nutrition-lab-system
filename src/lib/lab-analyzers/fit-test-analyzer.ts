@@ -74,7 +74,7 @@ ${pdfText}
 Return ONLY the JSON object with the analysis structure specified above. Do not include any other text.`
 
     try {
-      const result = await this.claudeClient.analyzeWithClaude(prompt, systemPrompt)
+      const result = await this.claudeClient.analyzePractitionerReport(prompt, systemPrompt)
       console.log('[FIT-ANALYZER] Raw analysis result:', result.substring(0, 500))
       
       const analysis = JSON.parse(result) as FITTestResult
@@ -132,7 +132,7 @@ ${pdfText}
 Return ONLY the JSON object with the analysis structure specified above. Do not include any other text.`
 
     try {
-      const result = await this.claudeClient.analyzeWithClaude(prompt, systemPrompt)
+      const result = await this.claudeClient.analyzePractitionerReport(prompt, systemPrompt)
       const analysis = JSON.parse(result) as FITTestResult
       
       // Ensure patient name is set
