@@ -43,7 +43,7 @@ export class DatabaseService {
         .insert({
           client_id: clientId,
           report_type: analysisResult.reportType,
-          report_date: analysisResult.analyzedReport.testDate.toISOString().split('T')[0],
+          report_date: this.extractReportDate(analysisResult.analyzedReport),
           status: 'completed',
           file_path: filePath,
           file_size: fileSize,
@@ -177,6 +177,24 @@ export class DatabaseService {
     if (error) {
       throw new Error(`Failed to save food photo results: ${error.message}`)
     }
+  }
+
+  private extractReportDate(analyzedReport: AnalyzedReport): string {
+    // Try to extract date from different report types
+    if ('testDate' in analyzedReport && analyzedReport.testDate) {
+      return analyzedReport.testDate.toISOString().split('T')[0];
+    }
+    
+    if ('collectionDate' in analyzedReport && analyzedReport.collectionDate) {
+      return analyzedReport.collectionDate;
+    }
+    
+    if ('processingDate' in analyzedReport && analyzedReport.processingDate) {
+      return analyzedReport.processingDate;
+    }
+    
+    // Fallback to current date
+    return new Date().toISOString().split('T')[0];
   }
 
   async getAnalysisStatus(labReportId: string): Promise<DatabaseAnalysisResult | null> {
