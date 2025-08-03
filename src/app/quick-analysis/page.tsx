@@ -135,7 +135,7 @@ export default function QuickAnalysisPage() {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            filePath: uploadedFile.filePath,
+            filePath: uploadedFile.storagePath || uploadedFile.filePath, // Use storagePath from upload response
             fileName: file.name,
             bucket: uploadedFile.bucket // Include bucket from upload response
           })
