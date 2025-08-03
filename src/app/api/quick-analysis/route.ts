@@ -79,11 +79,11 @@ export async function POST(request: NextRequest) {
         }
         
         const analyzedReport = {
-          reportType: 'nutriq',
+          reportType: reportType,
           analyzedReport: {
             rawText: extractedContent.text,
             nutriqAnalysis,
-            reportType: 'nutriq'
+            reportType: reportType
           },
           processingTime: Date.now() - startTime,
           confidence: extractedContent.confidence
@@ -124,58 +124,24 @@ export async function POST(request: NextRequest) {
           }
         }
         
-        // Detect report type
-        const claudeClient = ClaudeClient.getInstance()
-        const reportType = await claudeClient.detectReportType(parsedPDF.rawText)
+        // Use MasterAnalyzer for enhanced document classification and analysis
+        const masterAnalyzer = MasterAnalyzer.getInstance()
+        const analysisResult = await masterAnalyzer.analyzeReport(fileBuffer, fileName)
         
-        console.log('[QUICK-ANALYSIS] Detected report type:', reportType)
+        console.log('[QUICK-ANALYSIS] Analysis completed with type:', analysisResult.reportType)
         
-        // For quick analysis, use Claude directly instead of MasterAnalyzer
-        let nutriqAnalysis
-        try {
-          nutriqAnalysis = await claudeClient.analyzeNutriQ(parsedPDF.rawText)
-        } catch (analysisError) {
-          console.error('[QUICK-ANALYSIS] Claude analysis failed:', analysisError)
-          // Create a fallback analysis structure
-          nutriqAnalysis = {
-            totalScore: 50,
-            bodySystems: {
-              energy: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
-              mood: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
-              sleep: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
-              stress: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
-              digestion: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
-              immunity: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] }
-            },
-            overallRecommendations: ['Document processed but analysis failed. Please review manually.'],
-            priorityActions: ['Review document content manually'],
-            followUpTests: ['Manual review required']
-          }
-        }
-        
-        const analyzedReport = {
-          reportType: 'nutriq',
-          analyzedReport: {
-            rawText: parsedPDF.rawText,
-            nutriqAnalysis,
-            reportType: 'nutriq'
-          },
-          processingTime: Date.now() - startTime,
-          confidence: 0.8
-        }
-        
-        analysisResult = {
+                return NextResponse.json({
           success: true,
-          reportType,
+          reportType: analysisResult.reportType,
           extractedData: {
             text: parsedPDF.rawText,
             tables: [],
-            confidence: 0.8
+            confidence: analysisResult.confidence
           },
-          analyzedReport,
+          analyzedReport: analysisResult,
           extractionMethod: 'standard',
           processingTime: Date.now() - startTime
-        }
+        })
       } catch (standardError) {
         console.error('[QUICK-ANALYSIS] Standard processing failed:', standardError)
         throw standardError
