@@ -16,6 +16,7 @@ interface AnalysisResult {
     recommendations: string[]
     keyFindings: string[]
     reportType: string
+    detailedAnalysis?: any // For NutriQ detailed data
   }
   error?: string
 }
@@ -163,16 +164,47 @@ export default function QuickAnalysisPage() {
         
         console.log('Analysis response:', analysisData)
 
-        // Update with successful analysis
-        const completedResult = { 
-          ...newResults[i],
-          status: 'completed' as const,
-          analysis: {
+        // Update with successful analysis - handle new API response structure
+        let analysis = {
+          summary: 'Analysis completed successfully.',
+          recommendations: ['Review the detailed findings below.'],
+          keyFindings: ['Document processed successfully.'],
+          reportType: 'General Analysis'
+        }
+
+        // Handle the new API response structure
+        if (analysisData.analyzedReport?.analyzedReport?.nutriqAnalysis) {
+          const nutriqAnalysis = analysisData.analyzedReport.analyzedReport.nutriqAnalysis
+          analysis = {
+            summary: `NutriQ Analysis completed. Total Score: ${nutriqAnalysis.totalScore || 'N/A'}`,
+            recommendations: nutriqAnalysis.overallRecommendations || ['Review the detailed findings below.'],
+            keyFindings: nutriqAnalysis.priorityActions || ['Document processed successfully.'],
+            reportType: analysisData.reportType || 'nutriq',
+            detailedAnalysis: nutriqAnalysis
+          }
+        } else if (analysisData.analyzedReport?.nutriqAnalysis) {
+          const nutriqAnalysis = analysisData.analyzedReport.nutriqAnalysis
+          analysis = {
+            summary: `NutriQ Analysis completed. Total Score: ${nutriqAnalysis.totalScore || 'N/A'}`,
+            recommendations: nutriqAnalysis.overallRecommendations || ['Review the detailed findings below.'],
+            keyFindings: nutriqAnalysis.priorityActions || ['Document processed successfully.'],
+            reportType: analysisData.reportType || 'nutriq',
+            detailedAnalysis: nutriqAnalysis
+          }
+        } else {
+          // Fallback to old structure
+          analysis = {
             summary: analysisData.summary || analysisData.analysis?.summary || 'Analysis completed successfully.',
             recommendations: analysisData.recommendations || analysisData.analysis?.recommendations || ['Review the detailed findings below.'],
             keyFindings: analysisData.keyFindings || analysisData.analysis?.keyFindings || ['Document processed successfully.'],
             reportType: analysisData.reportType || analysisData.analysis?.reportType || 'General Analysis'
           }
+        }
+
+        const completedResult = { 
+          ...newResults[i],
+          status: 'completed' as const,
+          analysis
         }
         
         setAnalysisResults(prev => 
@@ -236,7 +268,7 @@ export default function QuickAnalysisPage() {
   const downloadAnalysis = (result: AnalysisResult) => {
     if (!result.analysis) return
 
-    const content = `
+    let content = `
 Quick Analysis Report
 ====================
 
@@ -254,6 +286,29 @@ ${result.analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
 
 Generated: ${new Date().toLocaleString()}
     `.trim()
+
+    // Add detailed NutriQ analysis if available
+    if (result.analysis.reportType === 'nutriq' && result.analysis.detailedAnalysis) {
+      const nutriq = result.analysis.detailedAnalysis
+      content += `
+
+DETAILED NUTRIQ ANALYSIS
+========================
+
+Total Score: ${nutriq.totalScore}
+
+Body Systems Analysis:
+${Object.entries(nutriq.bodySystems || {}).map(([system, data]: [string, any]) => `
+${system.toUpperCase()}:
+  Score: ${data.score}
+  Issues: ${data.issues?.join(', ') || 'None identified'}
+  Recommendations: ${data.recommendations?.join(', ') || 'None provided'}
+`).join('\n')}
+
+Follow-up Tests:
+${nutriq.followUpTests?.map(test => `• ${test}`).join('\n') || 'None recommended'}
+      `
+    }
 
     const blob = new Blob([content], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
@@ -506,6 +561,62 @@ Generated: ${new Date().toLocaleString()}
                           ))}
                         </ul>
                       </div>
+                      
+                      {/* Detailed NutriQ Analysis */}
+                      {result.analysis.reportType === 'nutriq' && result.analysis.detailedAnalysis && (
+                        <div className="border-t border-slate-600 pt-4">
+                          <h4 className="text-white font-medium mb-3">Detailed Body Systems Analysis</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {Object.entries(result.analysis.detailedAnalysis.bodySystems || {}).map(([system, data]: [string, any]) => (
+                              <div key={system} className="bg-slate-600 rounded-lg p-3">
+                                <h5 className="text-white font-medium text-sm mb-2 capitalize">{system}</h5>
+                                <div className="space-y-2">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-gray-300 text-xs">Score:</span>
+                                    <span className={`text-sm font-medium ${
+                                      data.score >= 70 ? 'text-red-400' : 
+                                      data.score >= 50 ? 'text-yellow-400' : 'text-green-400'
+                                    }`}>
+                                      {data.score}/100
+                                    </span>
+                                  </div>
+                                  {data.issues && data.issues.length > 0 && (
+                                    <div>
+                                      <span className="text-gray-300 text-xs">Issues:</span>
+                                      <ul className="list-disc list-inside text-gray-300 text-xs mt-1">
+                                        {data.issues.map((issue: string, index: number) => (
+                                          <li key={index}>{issue}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                  {data.recommendations && data.recommendations.length > 0 && (
+                                    <div>
+                                      <span className="text-gray-300 text-xs">Recommendations:</span>
+                                      <ul className="list-disc list-inside text-gray-300 text-xs mt-1">
+                                        {data.recommendations.map((rec: string, index: number) => (
+                                          <li key={index}>{rec}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {result.analysis.detailedAnalysis.followUpTests && result.analysis.detailedAnalysis.followUpTests.length > 0 && (
+                            <div className="mt-4">
+                              <h5 className="text-white font-medium mb-2">Follow-up Tests</h5>
+                              <ul className="list-disc list-inside text-gray-300 text-sm space-y-1">
+                                {result.analysis.detailedAnalysis.followUpTests.map((test: string, index: number) => (
+                                  <li key={index}>{test}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       
                       <button
                         onClick={() => downloadAnalysis(result)}
