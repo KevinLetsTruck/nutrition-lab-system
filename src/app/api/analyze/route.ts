@@ -442,63 +442,32 @@ export async function POST(request: NextRequest) {
       let analysisResult: any = null
       let lastError: any = null
       
-      // Check if we should use client data priority
-      const shouldUseClientPriority = useClientPriority && clientEmail && clientFirstName && clientLastName
+      // For now, always use standard analysis
+      // Client priority is only implemented for specific report types (not needed for standard lab report analysis)
+      console.log('[ANALYZE] Starting standard file analysis with retry logic...')
       
-      if (shouldUseClientPriority) {
-        console.log('[ANALYZE] Using client data priority analysis...')
-        
-        // Prepare form data for client priority processing
-        const formData = {
-          clientName: `${clientFirstName} ${clientLastName}`,
-          clientEmail,
-          clientFirstName,
-          clientLastName
-        }
-        
-        // Analyze with client priority
-        analysisResult = await analyzer.analyzeReportWithClientPriority(fileBuffer, formData)
-        console.log('[ANALYZE] Client priority analysis complete')
-        
-        // Log client data priority results
-        if (analysisResult.clientData) {
-          console.log('[ANALYZE] Client data priority results:', {
-            clientName: analysisResult.clientData.clientName,
-            dataSource: analysisResult.clientData.dataSource,
-            formOverride: analysisResult.clientData.formOverride
+      for (let attempt = 1; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
+        try {
+          console.log(`[ANALYZE] Analysis attempt ${attempt}/${RETRY_CONFIG.maxRetries}...`)
+          analysisResult = await analyzer.analyzeReport(fileBuffer)
+          console.log(`[ANALYZE] Analysis successful on attempt ${attempt}`)
+          break // Success, exit retry loop
+          
+        } catch (attemptError) {
+          lastError = attemptError
+          console.error(`[ANALYZE] Analysis attempt ${attempt} failed:`, {
+            error: attemptError instanceof Error ? attemptError.message : attemptError,
+            isClaudeError: attemptError instanceof Error && attemptError.message.includes('AI analysis failed')
           })
-        }
-      } else {
-        // Use standard analysis with retry logic
-        console.log('[ANALYZE] Starting standard file analysis with retry logic...')
-        
-        for (let attempt = 1; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
-          try {
-            console.log(`[ANALYZE] Analysis attempt ${attempt}/${RETRY_CONFIG.maxRetries}...`)
-            analysisResult = await analyzer.analyzeReport(fileBuffer)
-            console.log(`[ANALYZE] Analysis successful on attempt ${attempt}`)
-            break // Success, exit retry loop
-            
-          } catch (attemptError) {
-            lastError = attemptError
-            console.error(`[ANALYZE] Analysis attempt ${attempt} failed:`, {
-              error: attemptError instanceof Error ? attemptError.message : attemptError,
-              isClaudeError: attemptError instanceof Error && attemptError.message.includes('AI analysis failed')
-            })
-            
-            if (attempt < RETRY_CONFIG.maxRetries) {
-              const delay = Math.min(
-                RETRY_CONFIG.initialDelay * Math.pow(RETRY_CONFIG.backoffMultiplier, attempt - 1),
-                RETRY_CONFIG.maxDelay
-              )
-              console.log(`[ANALYZE] Waiting ${delay}ms before retry...`)
-              await sleep(delay)
-            }
+          
+          if (attempt < RETRY_CONFIG.maxRetries) {
+            const delay = Math.min(
+              RETRY_CONFIG.initialDelay * Math.pow(RETRY_CONFIG.backoffMultiplier, attempt - 1),
+              RETRY_CONFIG.maxDelay
+            )
+            console.log(`[ANALYZE] Waiting ${delay}ms before retry...`)
+            await sleep(delay)
           }
-        }
-        
-        if (!analysisResult) {
-          throw lastError || new Error('Analysis failed after all retry attempts')
         }
       }
       
