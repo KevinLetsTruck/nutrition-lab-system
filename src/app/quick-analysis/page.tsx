@@ -169,7 +169,8 @@ export default function QuickAnalysisPage() {
           summary: 'Analysis completed successfully.',
           recommendations: ['Review the detailed findings below.'],
           keyFindings: ['Document processed successfully.'],
-          reportType: 'General Analysis'
+          reportType: 'General Analysis',
+          detailedAnalysis: null
         }
 
         // Handle the new API response structure
@@ -197,7 +198,8 @@ export default function QuickAnalysisPage() {
             summary: analysisData.summary || analysisData.analysis?.summary || 'Analysis completed successfully.',
             recommendations: analysisData.recommendations || analysisData.analysis?.recommendations || ['Review the detailed findings below.'],
             keyFindings: analysisData.keyFindings || analysisData.analysis?.keyFindings || ['Document processed successfully.'],
-            reportType: analysisData.reportType || analysisData.analysis?.reportType || 'General Analysis'
+            reportType: analysisData.reportType || analysisData.analysis?.reportType || 'General Analysis',
+            detailedAnalysis: null // No detailed analysis for fallback cases
           }
         }
 
