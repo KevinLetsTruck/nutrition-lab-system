@@ -237,7 +237,7 @@ ${documentText.substring(0, 3000)}
 Return ONLY the JSON classification object.`
 
     try {
-      const result = await this.claudeClient.analyzeWithClaude(prompt, systemPrompt)
+      const result = await this.claudeClient.analyzePractitionerReport(prompt, systemPrompt)
       const classification = JSON.parse(result) as DocumentClassification
       
       console.log('[CLASSIFIER] AI classification result:', classification)
@@ -285,7 +285,7 @@ ${documentText.substring(0, 2000)}
 Return ONLY the JSON metadata object.`
 
     try {
-      const result = await this.claudeClient.analyzeWithClaude(prompt, systemPrompt)
+      const result = await this.claudeClient.analyzePractitionerReport(prompt, systemPrompt)
       return JSON.parse(result) as DocumentMetadata
     } catch (error) {
       console.error('[CLASSIFIER] Metadata extraction failed:', error)
