@@ -118,10 +118,19 @@ export async function POST(request: NextRequest) {
           
           console.log('[ANALYZE] Attempting to download file with service role client')
           
-          // The file paths in the database are stored as "2025/08/01/filename.pdf"
-          // These files are actually in the 'general' bucket, not a "2025" bucket
-          // Always use 'general' bucket for recent uploads
-          const actualBucket = 'general'
+          // Determine bucket from the database record
+          let actualBucket = 'general'
+          
+          // Check if the report has a bucket stored (this would be from newer uploads)
+          if (labReport.bucket) {
+            actualBucket = labReport.bucket
+            console.log('[ANALYZE] Using bucket from database:', actualBucket)
+          } else {
+            // For older records without bucket info, use the determineBucketFromPath function
+            actualBucket = determineBucketFromPath(cleanPath, labReport.report_type)
+            console.log('[ANALYZE] Determined bucket from path/type:', actualBucket)
+          }
+          
           console.log('[ANALYZE] Using bucket:', actualBucket, 'for path:', cleanPath)
           
           fileBuffer = await storageService.downloadFile(actualBucket, cleanPath)
@@ -337,33 +346,26 @@ export async function POST(request: NextRequest) {
         console.log('[ANALYZE] Attempting to download file from storage...')
         
         try {
-          // For recent uploads, try general bucket first since that's where uploads go
-          console.log('[ANALYZE] Trying general bucket first for recent uploads...')
-          fileBuffer = await loadFile('general', labReport.file_path)
+          // Determine the correct bucket based on file path and report type
+          const primaryBucket = determineBucketFromPath(labReport.file_path, labReport.report_type)
+          console.log('[ANALYZE] Determined primary bucket:', primaryBucket)
+          
+          // Use service role client for loading files
+          const { SupabaseStorageService } = await import('@/lib/supabase-storage')
+          const storageService = new SupabaseStorageService(true) // Use service role
+          
+          fileBuffer = await storageService.downloadFile(primaryBucket, labReport.file_path)
           
           if (!fileBuffer) {
-            // If not in general, try the determined bucket
-            const bucket = determineBucketFromPath(labReport.file_path, labReport.report_type)
-            console.log('[ANALYZE] File not in general, trying determined bucket:', bucket)
-            
-            // Clean the file path - remove bucket name if it's included
-            let cleanPath = labReport.file_path
-            if (cleanPath.startsWith(bucket + '/')) {
-              cleanPath = cleanPath.substring(bucket.length + 1)
-            }
-            
-            fileBuffer = await loadFile(bucket, cleanPath)
-            
-            if (!fileBuffer) {
-              // Try with original path if clean path fails
-              console.log('[ANALYZE] Retrying with original path...')
-              fileBuffer = await loadFile(bucket, labReport.file_path)
-            }
+            // If not in primary bucket, try general as fallback
+            console.log('[ANALYZE] File not in primary bucket, trying general bucket as fallback...')
+            fileBuffer = await storageService.downloadFile('general', labReport.file_path)
+
           }
             
             if (!fileBuffer) {
               logError('FILE_RETRIEVAL', new Error('Failed to retrieve file'), {
-                bucket: 'general',
+                bucket: primaryBucket,
                 path: labReport.file_path,
                 cleanPath: labReport.file_path,
                 reportType: labReport.report_type
@@ -379,7 +381,7 @@ export async function POST(request: NextRequest) {
                 { 
                   error: 'Failed to retrieve file from storage',
                   details: 'The file could not be found in storage. It may have been deleted or moved.',
-                  bucket: 'general',
+                  bucket: primaryBucket,
                   path: labReport.file_path
                 },
                 { status: 404 }
@@ -393,7 +395,7 @@ export async function POST(request: NextRequest) {
             
         } catch (storageError) {
           logError('STORAGE_ACCESS', storageError, {
-            bucket: 'general',
+            bucket: primaryBucket,
             path: labReport.file_path
           })
           
@@ -602,8 +604,20 @@ function determineBucketFromPath(filePath: string, reportType: string): string {
     
     // Check if it's a date-based path (e.g., "2025/08/01/filename.pdf")
     if (/^\d{4}$/.test(possibleBucket)) {
-      console.log('[ANALYZE] Date-based path detected, using general bucket')
-      return 'general'
+      console.log('[ANALYZE] Date-based path detected')
+      // For date-based paths, determine bucket by report type
+      switch (reportType) {
+        case 'nutriq':
+        case 'kbmo':
+        case 'dutch':
+          return 'lab-files'
+        case 'cgm':
+          return 'cgm-images'
+        case 'food_photo':
+          return 'food-photos'
+        default:
+          return 'general'
+      }
     }
     
     if (validBuckets.includes(possibleBucket)) {
@@ -612,10 +626,19 @@ function determineBucketFromPath(filePath: string, reportType: string): string {
     }
   }
   
-  // IMPORTANT: Recent files are being uploaded to 'general' bucket by default
-  // Check general bucket first for all report types
-  console.log('[ANALYZE] No bucket in path, defaulting to general bucket')
-  return 'general'
+  // Determine bucket based on report type
+  switch (reportType) {
+    case 'nutriq':
+    case 'kbmo':
+    case 'dutch':
+      return 'lab-files'
+    case 'cgm':
+      return 'cgm-images'
+    case 'food_photo':
+      return 'food-photos'
+    default:
+      return 'general'
+  }
 }
 
 export async function GET(request: NextRequest) {
