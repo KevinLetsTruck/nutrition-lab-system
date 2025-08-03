@@ -31,7 +31,28 @@ function logError(context: string, error: any, additionalInfo?: any) {
   })
 }
 
+// Redirect to enhanced analyze if available
 export async function POST(request: NextRequest) {
+  // Check if AWS Textract is configured
+  const hasTextract = !!(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY)
+  
+  if (hasTextract) {
+    // Redirect to enhanced analyze route
+    console.log('[ANALYZE] Redirecting to enhanced analyze (Textract available)')
+    const enhancedRequest = new Request(
+      request.url.replace('/api/analyze', '/api/analyze-enhanced'),
+      {
+        method: request.method,
+        headers: request.headers,
+        body: request.body
+      }
+    )
+    
+    const { POST: enhancedPOST } = await import('../analyze-enhanced/route')
+    return enhancedPOST(enhancedRequest as NextRequest)
+  }
+  
+  // Continue with standard analyze
   console.log('[ANALYZE] ========== Starting new analysis request ==========')
   const startTime = Date.now()
   

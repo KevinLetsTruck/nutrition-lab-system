@@ -134,7 +134,7 @@ export function FileUploadSection() {
           ))
 
           // Analyze the uploaded file
-          const analyzeResponse = await fetch('/api/analyze', {
+          const analyzeResponse = await fetch('/api/analyze-enhanced', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -143,7 +143,8 @@ export function FileUploadSection() {
               labReportId: fileResult.labReportId,  // Using labReportId instead of filename
               clientEmail: clientInfo.email,
               clientFirstName: clientInfo.firstName,
-              clientLastName: clientInfo.lastName
+              clientLastName: clientInfo.lastName,
+              useTextract: true  // Use AWS Textract for better accuracy
             })
           })
 
