@@ -127,8 +127,8 @@ export default function QuickAnalysisPage() {
         const uploadedFile = uploadData.files[0] // Get the first uploaded file
         console.log('Uploaded file data:', uploadedFile)
 
-        // Analyze the uploaded file
-        const analysisResponse = await fetch('/api/analyze', {
+        // Analyze the uploaded file using dedicated quick-analysis endpoint
+        const analysisResponse = await fetch('/api/quick-analysis', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -136,7 +136,6 @@ export default function QuickAnalysisPage() {
           body: JSON.stringify({
             filePath: uploadedFile.filePath,
             fileName: file.name,
-            quickAnalysis: true,
             bucket: uploadedFile.bucket // Include bucket from upload response
           })
         })
