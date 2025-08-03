@@ -4,6 +4,38 @@ import MasterAnalyzer from '@/lib/lab-analyzers/master-analyzer'
 import { TextractProcessor } from '@/lib/document-processors/textract-processor'
 import ClaudeClient from '@/lib/claude-client'
 import PDFLabParser from '@/lib/lab-analyzers/pdf-parser'
+import { supabase } from '@/lib/supabase'
+
+// Helper function to save analysis results to database
+async function saveQuickAnalysisToDatabase(analysisResult: any, fileName: string, filePath: string) {
+  try {
+    const { data, error } = await supabase
+      .from('quick_analyses')
+      .insert({
+        file_name: fileName,
+        file_path: filePath,
+        report_type: analysisResult.reportType,
+        analysis_results: analysisResult.analyzedReport,
+        extraction_method: analysisResult.extractionMethod,
+        processing_time: analysisResult.processingTime,
+        confidence: analysisResult.analyzedReport.confidence || 0.5,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[QUICK-ANALYSIS] Failed to save analysis to database:', error);
+      return null;
+    }
+
+    console.log('[QUICK-ANALYSIS] Analysis saved to database with ID:', data.id);
+    return data;
+  } catch (error) {
+    console.error('[QUICK-ANALYSIS] Error saving analysis to database:', error);
+    return null;
+  }
+}
 
 export async function POST(request: NextRequest) {
   console.log('[QUICK-ANALYSIS] ========== Starting quick analysis request ==========')
@@ -65,6 +97,9 @@ export async function POST(request: NextRequest) {
             extractionMethod: 'textract',
             processingTime: Date.now() - startTime
           }
+          
+          // Save analysis results to database
+          await saveQuickAnalysisToDatabase(analysisResult, fileName, filePath);
         } catch (analyzerError) {
           console.error('[QUICK-ANALYSIS] MasterAnalyzer failed:', analyzerError)
           throw new Error(`Analysis failed: ${analyzerError instanceof Error ? analyzerError.message : 'Unknown error'}`)
@@ -104,7 +139,7 @@ export async function POST(request: NextRequest) {
           const masterAnalysisResult = await masterAnalyzer.analyzeReport(fileBuffer, fileName)
           console.log('[QUICK-ANALYSIS] Analysis completed with type:', masterAnalysisResult.reportType)
           
-          return NextResponse.json({
+          const analysisResult = {
             success: true,
             reportType: masterAnalysisResult.reportType,
             extractedData: {
@@ -115,7 +150,12 @@ export async function POST(request: NextRequest) {
             analyzedReport: masterAnalysisResult,
             extractionMethod: 'standard',
             processingTime: Date.now() - startTime
-          })
+          }
+          
+          // Save analysis results to database
+          await saveQuickAnalysisToDatabase(analysisResult, fileName, filePath);
+          
+          return NextResponse.json(analysisResult)
         } catch (analyzerError) {
           console.error('[QUICK-ANALYSIS] MasterAnalyzer failed:', analyzerError)
           throw new Error(`Analysis failed: ${analyzerError instanceof Error ? analyzerError.message : 'Unknown error'}`)
