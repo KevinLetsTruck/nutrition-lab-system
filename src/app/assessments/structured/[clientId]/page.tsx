@@ -10,6 +10,7 @@ import { StructuredQuestion } from '@/components/assessment/StructuredQuestion';
 import { Response } from '@/lib/assessment/symptom-ai-selector';
 import { DetectedPattern } from '@/lib/assessment/pattern-matcher';
 import { APIRequestError } from '@/lib/error-handler';
+import { useAuth } from '@/lib/auth-context';
 
 const ASSESSMENT_SECTIONS = [
   { id: 'digestive', name: 'Digestive Health', estimatedQuestions: 25 },
@@ -27,6 +28,7 @@ export default function StructuredAssessmentPage() {
   const params = useParams();
   const router = useRouter();
   const clientId = params.clientId as string;
+  const { user, loading: authLoading } = useAuth();
   
   const [currentQuestion, setCurrentQuestion] = useState<StructuredQuestion | null>(null);
   const [responses, setResponses] = useState<Response[]>([]);
@@ -38,6 +40,13 @@ export default function StructuredAssessmentPage() {
   const [showSectionComplete, setShowSectionComplete] = useState(false);
   const [showValidation, setShowValidation] = useState(false);
   const [underreportingRisk, setUnderreportingRisk] = useState(0);
+  
+  // Redirect admin users to clients page
+  useEffect(() => {
+    if (!authLoading && user && user.role === 'admin') {
+      router.push('/clients');
+    }
+  }, [user, authLoading, router]);
   
 
   
