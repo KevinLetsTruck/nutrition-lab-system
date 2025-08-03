@@ -118,17 +118,17 @@ export async function POST(request: NextRequest) {
           
           console.log('[ANALYZE] Attempting to download file with service role client')
           
-          // Determine bucket from the database record
-          let actualBucket = 'general'
+          // For quick analysis, determine bucket from file path or use provided bucket
+          let actualBucket = bucket || 'general'
           
-          // Check if the report has a bucket stored (this would be from newer uploads)
-          if (labReport.bucket) {
-            actualBucket = labReport.bucket
-            console.log('[ANALYZE] Using bucket from database:', actualBucket)
-          } else {
-            // For older records without bucket info, use the determineBucketFromPath function
-            actualBucket = determineBucketFromPath(cleanPath, labReport.report_type)
-            console.log('[ANALYZE] Determined bucket from path/type:', actualBucket)
+          // If no bucket provided, try to determine from file path
+          if (!bucket) {
+            // For quick analysis, we don't have report type, so just check the path
+            const pathParts = cleanPath.split('/')
+            if (/^\d{4}$/.test(pathParts[0])) {
+              // Date-based path, default to lab-files for PDF files
+              actualBucket = 'lab-files'
+            }
           }
           
           console.log('[ANALYZE] Using bucket:', actualBucket, 'for path:', cleanPath)
@@ -345,10 +345,11 @@ export async function POST(request: NextRequest) {
         // Download file from Supabase Storage
         console.log('[ANALYZE] Attempting to download file from storage...')
         
+        // Determine the correct bucket based on file path and report type
+        const primaryBucket = determineBucketFromPath(labReport.file_path, labReport.report_type)
+        console.log('[ANALYZE] Determined primary bucket:', primaryBucket)
+        
         try {
-          // Determine the correct bucket based on file path and report type
-          const primaryBucket = determineBucketFromPath(labReport.file_path, labReport.report_type)
-          console.log('[ANALYZE] Determined primary bucket:', primaryBucket)
           
           // Use service role client for loading files
           const { SupabaseStorageService } = await import('@/lib/supabase-storage')
