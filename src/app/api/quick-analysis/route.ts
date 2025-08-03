@@ -51,17 +51,23 @@ export async function POST(request: NextRequest) {
         
         // Use MasterAnalyzer for enhanced document classification and analysis
         const masterAnalyzer = MasterAnalyzer.getInstance()
-        const masterAnalysisResult = await masterAnalyzer.analyzeReport(fileBuffer, fileName)
+        console.log('[QUICK-ANALYSIS] Starting MasterAnalyzer analysis with Textract text...')
         
-        console.log('[QUICK-ANALYSIS] Analysis completed with type:', masterAnalysisResult.reportType)
-        
-        analysisResult = {
-          success: true,
-          reportType: masterAnalysisResult.reportType,
-          extractedData: extractedContent,
-          analyzedReport: masterAnalysisResult,
-          extractionMethod: 'textract',
-          processingTime: Date.now() - startTime
+        try {
+          const masterAnalysisResult = await masterAnalyzer.analyzeReport(fileBuffer, fileName)
+          console.log('[QUICK-ANALYSIS] Analysis completed with type:', masterAnalysisResult.reportType)
+          
+          analysisResult = {
+            success: true,
+            reportType: masterAnalysisResult.reportType,
+            extractedData: extractedContent,
+            analyzedReport: masterAnalysisResult,
+            extractionMethod: 'textract',
+            processingTime: Date.now() - startTime
+          }
+        } catch (analyzerError) {
+          console.error('[QUICK-ANALYSIS] MasterAnalyzer failed:', analyzerError)
+          throw new Error(`Analysis failed: ${analyzerError instanceof Error ? analyzerError.message : 'Unknown error'}`)
         }
       } catch (textractError) {
         console.error('[QUICK-ANALYSIS] Textract processing failed:', textractError)
@@ -92,22 +98,28 @@ export async function POST(request: NextRequest) {
         
         // Use MasterAnalyzer for enhanced document classification and analysis
         const masterAnalyzer = MasterAnalyzer.getInstance()
-        const masterAnalysisResult = await masterAnalyzer.analyzeReport(fileBuffer, fileName)
+        console.log('[QUICK-ANALYSIS] Starting MasterAnalyzer analysis with standard text...')
         
-        console.log('[QUICK-ANALYSIS] Analysis completed with type:', masterAnalysisResult.reportType)
-        
-        return NextResponse.json({
-          success: true,
-          reportType: masterAnalysisResult.reportType,
-          extractedData: {
-            text: parsedPDF.rawText,
-            tables: [],
-            confidence: masterAnalysisResult.confidence
-          },
-          analyzedReport: masterAnalysisResult,
-          extractionMethod: 'standard',
-          processingTime: Date.now() - startTime
-        })
+        try {
+          const masterAnalysisResult = await masterAnalyzer.analyzeReport(fileBuffer, fileName)
+          console.log('[QUICK-ANALYSIS] Analysis completed with type:', masterAnalysisResult.reportType)
+          
+          return NextResponse.json({
+            success: true,
+            reportType: masterAnalysisResult.reportType,
+            extractedData: {
+              text: parsedPDF.rawText,
+              tables: [],
+              confidence: masterAnalysisResult.confidence
+            },
+            analyzedReport: masterAnalysisResult,
+            extractionMethod: 'standard',
+            processingTime: Date.now() - startTime
+          })
+        } catch (analyzerError) {
+          console.error('[QUICK-ANALYSIS] MasterAnalyzer failed:', analyzerError)
+          throw new Error(`Analysis failed: ${analyzerError instanceof Error ? analyzerError.message : 'Unknown error'}`)
+        }
       } catch (standardError) {
         console.error('[QUICK-ANALYSIS] Standard processing failed:', standardError)
         throw standardError
