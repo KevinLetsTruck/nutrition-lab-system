@@ -52,6 +52,12 @@ export class PDFLabParser {
     console.log('[PDF-PARSER] Converting PDF to images...')
     
     try {
+      // Check if we're in a serverless environment
+      if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+        console.log('[PDF-PARSER] Serverless environment detected - skipping image conversion')
+        console.log('[PDF-PARSER] Image-based PDF analysis is not yet supported in production')
+        return []
+      }
       // Configure pdf2pic options
       const options = {
         density: 200,           // Higher density for better quality
