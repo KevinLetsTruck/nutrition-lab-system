@@ -333,7 +333,12 @@ class ClaudeClient {
     - cgm (for Continuous Glucose Monitor data)
     - food_photo (for food photos)
     
-    Important: NAQ (Nutritional Assessment Questionnaire) files, symptom burden graphs, and similar nutritional questionnaires should be classified as 'nutriq'.
+    CRITICAL RULES:
+    1. If you see "NAQ", "Nutritional Assessment Questionnaire", "Symptom Burden", "Questions and Answers", or similar terms - ALWAYS return 'nutriq'
+    2. Dutch tests specifically mention "Dutch Test", "DUTCH", "hormone", "cortisol", "estrogen", "testosterone" in the context of urine/saliva testing
+    3. KBMO tests mention "KBMO", "food sensitivity", "IgG", "food intolerance"
+    4. When in doubt between nutriq and dutch, prefer 'nutriq' unless it's clearly a hormone test
+    
     Look for specific keywords, formatting, and content patterns that identify each type.`
 
     const prompt = `Please analyze this lab report text and tell me what type of report it is:
