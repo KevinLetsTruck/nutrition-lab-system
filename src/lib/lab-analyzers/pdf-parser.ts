@@ -156,7 +156,7 @@ export class PDFLabParser {
                 }
               }
             } catch (e) {
-              if (e.message === 'SKIP_PDF_PARSE') {
+              if (e instanceof Error && e.message === 'SKIP_PDF_PARSE') {
                 // This is our signal to skip pdf-parse
                 console.log('[PDF-PARSER] Using extracted text instead of pdf-parse')
               }
@@ -164,28 +164,31 @@ export class PDFLabParser {
           }
           
           // Only run pdf-parse if we haven't extracted enough text
+          let data: any = null
           if (!text || text.length < 100) {
             // Dynamic import to avoid build-time issues
             if (!pdf) {
               pdf = (await import('pdf-parse')).default
             }
-            const data = await pdf(pdfBuffer)
+            data = await pdf(pdfBuffer)
             text = data.text
           }
           
-          console.log('[PDF-PARSER] PDF metadata:', {
-            numpages: data?.numpages || 0,
-            numrender: data?.numrender || 0,
-            info: data?.info || {},
-            metadata: data?.metadata ? Object.keys(data.metadata) : 'none',
-            version: data?.version || 'unknown'
-          })
+          if (data) {
+            console.log('[PDF-PARSER] PDF metadata:', {
+              numpages: data.numpages || 0,
+              numrender: data.numrender || 0,
+              info: data.info || {},
+              metadata: data.metadata ? Object.keys(data.metadata) : 'none',
+              version: data.version || 'unknown'
+            })
+          }
           
           console.log('[PDF-PARSER] PDF parsed successfully')
           console.log('[PDF-PARSER] Extracted text length:', text.length, 'characters')
           
           // Check if we need vision analysis
-          const needsVisionAnalysis = this.checkIfNeedsVisionAnalysis(text, { numpages: data?.numpages || 1 })
+          const needsVisionAnalysis = this.checkIfNeedsVisionAnalysis(text, data || { numpages: 1 })
           
           if (needsVisionAnalysis) {
             console.log('[PDF-PARSER] PDF needs vision analysis - converting to images...')
