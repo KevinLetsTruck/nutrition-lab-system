@@ -345,18 +345,19 @@ Provide clear, structured analysis that practitioners can use immediately in coa
     // Compare systems priority scores
     for (const [system, currentScore] of Object.entries(currentAnalysis.systemsPriority)) {
       const lastScore = lastAnalysis.systemsPriority[system];
+      const currentScoreNum = typeof currentScore === 'number' ? currentScore : 0;
       
       if (lastScore !== undefined) {
-        if (currentScore < lastScore - 10) {
+        if (currentScoreNum < lastScore - 10) {
           comparison.improvementAreas.push({
             system,
             improvement: lastScore - currentScore,
             likelyFactors: this.identifyImprovementFactors(system, lastAnalysis)
           });
-        } else if (currentScore > lastScore + 10) {
+        } else if (currentScoreNum > lastScore + 10) {
           comparison.worsenedAreas.push({
             system,
-            decline: currentScore - lastScore,
+            decline: currentScoreNum - lastScore,
             possibleCauses: this.identifyDeclineFactors(system, lastAnalysis)
           });
         } else {
