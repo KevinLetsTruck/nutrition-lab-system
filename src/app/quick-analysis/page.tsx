@@ -100,14 +100,45 @@ export default function QuickAnalysisPage() {
           )
         )
 
-        // Create FormData for direct vision analysis
+        // Create FormData for upload
         const formData = new FormData()
         formData.append('file', file)
+        formData.append('quickAnalysis', 'true')
 
-        // Use new quick-analysis endpoint with Claude Vision
-        const analysisResponse = await fetch('/api/quick-analysis', {
+        // Upload file
+        const uploadResponse = await fetch('/api/upload', {
           method: 'POST',
           body: formData
+        })
+
+        if (!uploadResponse.ok) {
+          throw new Error('Upload failed')
+        }
+
+        const uploadData = await uploadResponse.json()
+        
+        console.log('Upload response:', uploadData)
+
+        // Check if upload was successful and get the file path
+        if (!uploadData.success || !uploadData.files || uploadData.files.length === 0) {
+          throw new Error('Upload failed: ' + (uploadData.error || 'Unknown error'))
+        }
+
+        const uploadedFile = uploadData.files[0] // Get the first uploaded file
+        console.log('Uploaded file data:', uploadedFile)
+
+        // Analyze the uploaded file
+        const analysisResponse = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            filePath: uploadedFile.filePath,
+            fileName: file.name,
+            quickAnalysis: true,
+            bucket: uploadedFile.bucket // Include bucket from upload response
+          })
         })
 
         if (!analysisResponse.ok) {
@@ -125,10 +156,10 @@ export default function QuickAnalysisPage() {
           ...newResults[i],
           status: 'completed' as const,
           analysis: {
-            summary: analysisData.comprehensiveReport?.summary || analysisData.analysis?.keyFindings?.join('. ') || 'Analysis completed successfully.',
-            recommendations: analysisData.comprehensiveReport?.recommendations || analysisData.analysis?.keyFindings || ['Review the detailed findings below.'],
-            keyFindings: analysisData.analysis?.keyFindings || [analysisData.analysis?.documentType || 'Document analyzed successfully.'],
-            reportType: analysisData.analysis?.documentType || 'General Analysis'
+            summary: analysisData.summary || analysisData.analysis?.summary || 'Analysis completed successfully.',
+            recommendations: analysisData.recommendations || analysisData.analysis?.recommendations || ['Review the detailed findings below.'],
+            keyFindings: analysisData.keyFindings || analysisData.analysis?.keyFindings || ['Document processed successfully.'],
+            reportType: analysisData.reportType || analysisData.analysis?.reportType || 'General Analysis'
           }
         }
         

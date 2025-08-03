@@ -32,61 +32,7 @@ export async function generateFunctionalMedicineAnalysis(
   return performFunctionalMedicineAnalysis(clientData)
 }
 
-// Generate comprehensive report for vision-based analysis
-export async function generateComprehensiveReport(params: {
-  analysisData: any;
-  prompt: string;
-  clientInfo: {
-    name: string;
-    email: string;
-  };
-}): Promise<any> {
-  try {
-    const claudeClient = ClaudeClient.getInstance()
-    
-    // Generate the comprehensive report using Claude
-    const response = await claudeClient.analyzePractitionerReport(
-      params.prompt,
-      "You are Kevin Rutherford, FNTP specializing in truck driver health optimization. Create comprehensive, actionable health reports based on document analysis."
-    )
-    
-    // Parse the response into structured format
-    const report = {
-      summary: extractSection(response, 'Executive Summary') || 'Analysis completed successfully.',
-      recommendations: extractListItems(response, 'Recommendations') || ['Review the detailed findings below.'],
-      supplements: extractListItems(response, 'Supplement') || [],
-      lifestyle: extractListItems(response, 'Lifestyle') || [],
-      followUp: extractSection(response, 'Follow-up') || '',
-      rawReport: response
-    }
-    
-    return report
-  } catch (error) {
-    console.error('Error generating comprehensive report:', error)
-    throw new Error(`Failed to generate comprehensive report: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
-}
 
-// Helper function to extract sections from text
-function extractSection(text: string, sectionName: string): string {
-  const regex = new RegExp(`${sectionName}[:\\s]*([^\\n]+(?:\\n(?!\\n)[^\\n]+)*)`, 'i')
-  const match = text.match(regex)
-  return match ? match[1].trim() : ''
-}
-
-// Helper function to extract list items
-function extractListItems(text: string, sectionName: string): string[] {
-  const sectionText = extractSection(text, sectionName)
-  if (!sectionText) return []
-  
-  const items = sectionText
-    .split(/\n/)
-    .filter(line => line.trim().match(/^[\d•\-\*]\s*/) || line.includes('•'))
-    .map(line => line.replace(/^[\d•\-\*]\s*/, '').trim())
-    .filter(item => item.length > 0)
-  
-  return items
-}
 
 // Helper function to convert ReportData to ClientData format
 export function convertReportDataToClientData(reportData: ReportData): ClientData {
