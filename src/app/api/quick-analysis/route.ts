@@ -56,7 +56,27 @@ export async function POST(request: NextRequest) {
         console.log('[QUICK-ANALYSIS] Detected report type:', reportType)
         
         // For quick analysis, use Claude directly instead of MasterAnalyzer
-        const nutriqAnalysis = await claudeClient.analyzeNutriQ(extractedContent.text)
+        let nutriqAnalysis
+        try {
+          nutriqAnalysis = await claudeClient.analyzeNutriQ(extractedContent.text)
+        } catch (analysisError) {
+          console.error('[QUICK-ANALYSIS] Claude analysis failed:', analysisError)
+          // Create a fallback analysis structure
+          nutriqAnalysis = {
+            totalScore: 50,
+            bodySystems: {
+              energy: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
+              mood: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
+              sleep: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
+              stress: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
+              digestion: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
+              immunity: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] }
+            },
+            overallRecommendations: ['Document processed but analysis failed. Please review manually.'],
+            priorityActions: ['Review document content manually'],
+            followUpTests: ['Manual review required']
+          }
+        }
         
         const analyzedReport = {
           reportType: 'nutriq',
@@ -111,7 +131,27 @@ export async function POST(request: NextRequest) {
         console.log('[QUICK-ANALYSIS] Detected report type:', reportType)
         
         // For quick analysis, use Claude directly instead of MasterAnalyzer
-        const nutriqAnalysis = await claudeClient.analyzeNutriQ(parsedPDF.rawText)
+        let nutriqAnalysis
+        try {
+          nutriqAnalysis = await claudeClient.analyzeNutriQ(parsedPDF.rawText)
+        } catch (analysisError) {
+          console.error('[QUICK-ANALYSIS] Claude analysis failed:', analysisError)
+          // Create a fallback analysis structure
+          nutriqAnalysis = {
+            totalScore: 50,
+            bodySystems: {
+              energy: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
+              mood: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
+              sleep: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
+              stress: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
+              digestion: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] },
+              immunity: { score: 50, issues: ['Unable to analyze'], recommendations: ['Please review document manually'] }
+            },
+            overallRecommendations: ['Document processed but analysis failed. Please review manually.'],
+            priorityActions: ['Review document content manually'],
+            followUpTests: ['Manual review required']
+          }
+        }
         
         const analyzedReport = {
           reportType: 'nutriq',
