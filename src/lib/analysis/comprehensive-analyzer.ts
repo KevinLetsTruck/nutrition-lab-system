@@ -351,7 +351,7 @@ Provide clear, structured analysis that practitioners can use immediately in coa
         if (currentScoreNum < lastScore - 10) {
           comparison.improvementAreas.push({
             system,
-            improvement: lastScore - currentScore,
+            improvement: lastScore - currentScoreNum,
             likelyFactors: this.identifyImprovementFactors(system, lastAnalysis)
           });
         } else if (currentScoreNum > lastScore + 10) {
