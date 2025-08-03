@@ -57,7 +57,8 @@ export async function POST(request: NextRequest) {
         
         // Analyze using master analyzer
         const analyzer = MasterAnalyzer.getInstance()
-        const analyzedReport = await analyzer.analyzeReport(extractedContent.text, reportType)
+        const textBuffer = Buffer.from(extractedContent.text, 'utf-8')
+        const analyzedReport = await analyzer.analyzeReport(textBuffer)
         
         analysisResult = {
           success: true,
@@ -111,7 +112,8 @@ export async function POST(request: NextRequest) {
         
         // Analyze using master analyzer
         const analyzer = MasterAnalyzer.getInstance()
-        const analyzedReport = await analyzer.analyzeReport(parsedPDF.rawText, reportType)
+        const textBuffer = Buffer.from(parsedPDF.rawText, 'utf-8')
+        const analyzedReport = await analyzer.analyzeReport(textBuffer)
         
         analysisResult = {
           success: true,
