@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { FileText, MessageSquare, Upload, FileCheck, Users, ClipboardList, Brain, Plus, Phone } from 'lucide-react'
+import { ComprehensiveAnalysisButton } from '@/components/analysis/ComprehensiveAnalysisButton'
 import { supabase } from '@/lib/supabase'
 import { CallRecorder } from '@/components/calls/CallRecorder'
 import { CallConsentDialog } from '@/components/calls/CallConsentDialog'
@@ -604,7 +605,7 @@ export default function ClientDashboard() {
         </Card>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
           <Button 
             onClick={() => router.push(`/notes?clientId=${clientId}`)}
             size="lg"
@@ -652,6 +653,16 @@ export default function ClientDashboard() {
             <span>Generate Coaching Call</span>
           </Button>
         </div>
+
+        {/* Comprehensive Analysis Section */}
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <ComprehensiveAnalysisButton 
+              clientId={clientId} 
+              clientName={client.name}
+            />
+          </CardContent>
+        </Card>
 
         {/* Tab Navigation */}
         <Card className="mb-6">
