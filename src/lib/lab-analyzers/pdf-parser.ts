@@ -190,7 +190,19 @@ export class PDFLabParser {
               }
             } catch (visionError) {
               console.error('[PDF-PARSER] Vision analysis failed:', visionError)
-              // Continue with text-only analysis
+              console.error('[PDF-PARSER] Vision error details:', {
+                message: visionError instanceof Error ? visionError.message : 'Unknown error',
+                anthropicKey: !!process.env.ANTHROPIC_API_KEY ? 'Present' : 'Missing'
+              })
+              
+              // For NAQ/NutriQ files, we can often continue with text-only
+              if (text && text.length > 100) {
+                console.log('[PDF-PARSER] Continuing with text-only analysis (sufficient text available)')
+                visionAnalysisText = '' // No vision text, but we have regular text
+              } else {
+                // If we have very little text and vision failed, this is a problem
+                throw new Error(`Vision analysis required but failed: ${visionError instanceof Error ? visionError.message : 'Unknown error'}`)
+              }
             }
           }
         } catch (pdfError) {

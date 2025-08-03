@@ -361,7 +361,8 @@ ${pdfText.substring(0, 2000)}...`
 
   async analyzeNutriQ(pdfText: string): Promise<NutriQAnalysis> {
     const systemPrompt = `You are an expert nutritionist analyzing NutriQ/NAQ assessment results. 
-    Extract structured data about body system scores and provide detailed recommendations.
+    This may be a questionnaire with answers, a symptom burden graph, or other NutriQ assessment data.
+    Extract whatever data is available and provide analysis based on what you find.
     
     Return your analysis as a JSON object with this exact structure:
     {
@@ -379,7 +380,9 @@ ${pdfText.substring(0, 2000)}...`
       "followUpTests": [string]
     }
     
-    Scores should be 0-100. Be thorough in your analysis and provide actionable recommendations.`
+    If specific scores aren't available, estimate based on the content. Scores should be 0-100. 
+    For symptom burden graphs, analyze the visual patterns described. For questionnaires, analyze the answers.
+    Be thorough in your analysis and provide actionable recommendations.`
 
     const prompt = `Please analyze this NutriQ assessment and extract all relevant data:
 
