@@ -253,7 +253,7 @@ export function FileUploadSectionEnhanced({ onAnalysisComplete }: FileUploadSect
                 {fileProgress.map((fp, index) => (
                   <div key={index} className="flex items-center space-x-3 text-sm">
                     {fp.status === 'pending' && <Loader2 className="h-4 w-4 text-gray-400" />}
-                    {fp.status === 'converting' && <Image className="h-4 w-4 text-blue-500 animate-pulse" />}
+                    {fp.status === 'converting' && <Image className="h-4 w-4 text-blue-500 animate-pulse" aria-hidden="true" />}
                     {fp.status === 'uploading' && <Upload className="h-4 w-4 text-blue-500 animate-pulse" />}
                     {fp.status === 'analyzing' && <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />}
                     {fp.status === 'success' && <CheckCircle className="h-4 w-4 text-green-500" />}

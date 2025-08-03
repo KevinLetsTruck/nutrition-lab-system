@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { SupabaseStorageService } from '@/lib/supabase-storage'
 import MasterAnalyzer from '@/lib/lab-analyzers/master-analyzer'
 import { TextractProcessor } from '@/lib/document-processors/textract-processor'
-import { ClaudeClient } from '@/lib/claude-client'
+import ClaudeClient from '@/lib/claude-client'
 import PDFLabParser from '@/lib/lab-analyzers/pdf-parser'
 
 export async function POST(request: NextRequest) {
