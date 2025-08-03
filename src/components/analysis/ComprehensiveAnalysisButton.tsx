@@ -156,18 +156,18 @@ export const ComprehensiveAnalysisButton = ({ clientId, clientName }: Comprehens
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="text-center p-4 bg-blue-50 rounded-lg">
             <Target className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-            <div className="text-2xl font-bold text-blue-900">
-              {analysis.analysis.rootCauseAnalysis.length}
-            </div>
+                      <div className="text-2xl font-bold text-blue-900">
+            {analysis.analysis?.rootCauseAnalysis?.length || 0}
+          </div>
             <div className="text-sm text-blue-700">Root Causes Identified</div>
           </div>
           
           <div className="text-center p-4 bg-green-50 rounded-lg">
             <TrendingUp className="w-8 h-8 mx-auto mb-2 text-green-600" />
             <div className="text-2xl font-bold text-green-900">
-              {analysis.supplementRecommendations.phase1.length + 
-               analysis.supplementRecommendations.phase2.length + 
-               analysis.supplementRecommendations.phase3.length}
+              {(analysis.supplementRecommendations?.phase1?.length || 0) + 
+               (analysis.supplementRecommendations?.phase2?.length || 0) + 
+               (analysis.supplementRecommendations?.phase3?.length || 0)}
             </div>
             <div className="text-sm text-green-700">Supplements Recommended</div>
           </div>
@@ -175,7 +175,7 @@ export const ComprehensiveAnalysisButton = ({ clientId, clientName }: Comprehens
           <div className="text-center p-4 bg-purple-50 rounded-lg">
             <Clock className="w-8 h-8 mx-auto mb-2 text-purple-600" />
             <div className="text-2xl font-bold text-purple-900">
-              ${analysis.supplementRecommendations.totalMonthlyCost}
+              ${analysis.supplementRecommendations?.totalMonthlyCost || 0}
             </div>
             <div className="text-sm text-purple-700">Monthly Cost</div>
           </div>
@@ -185,7 +185,7 @@ export const ComprehensiveAnalysisButton = ({ clientId, clientName }: Comprehens
         <div className="mb-6">
           <h4 className="font-semibold mb-3">Top Root Causes</h4>
           <div className="space-y-2">
-            {analysis.analysis.rootCauseAnalysis.slice(0, 3).map((cause: any, index: number) => (
+            {(analysis.analysis?.rootCauseAnalysis || []).slice(0, 3).map((cause: any, index: number) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
                   <div className="font-medium">{cause.name}</div>
@@ -202,7 +202,7 @@ export const ComprehensiveAnalysisButton = ({ clientId, clientName }: Comprehens
           <div className="mb-6">
             <h4 className="font-semibold mb-3">Progress Comparison</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {analysis.progressComparison.improvementAreas.length > 0 && (
+              {analysis.progressComparison?.improvementAreas?.length > 0 && (
                 <div className="p-3 bg-green-50 rounded-lg">
                   <div className="font-medium text-green-900 mb-2">Improvements</div>
                   {analysis.progressComparison.improvementAreas.map((area: any, index: number) => (
@@ -213,7 +213,7 @@ export const ComprehensiveAnalysisButton = ({ clientId, clientName }: Comprehens
                 </div>
               )}
               
-              {analysis.progressComparison.worsenedAreas.length > 0 && (
+              {analysis.progressComparison?.worsenedAreas?.length > 0 && (
                 <div className="p-3 bg-red-50 rounded-lg">
                   <div className="font-medium text-red-900 mb-2">Areas of Concern</div>
                   {analysis.progressComparison.worsenedAreas.map((area: any, index: number) => (
