@@ -55,10 +55,20 @@ export async function POST(request: NextRequest) {
         
         console.log('[QUICK-ANALYSIS] Detected report type:', reportType)
         
-        // Analyze using master analyzer
-        const analyzer = MasterAnalyzer.getInstance()
-        const textBuffer = Buffer.from(extractedContent.text, 'utf-8')
-        const analyzedReport = await analyzer.analyzeReport(textBuffer)
+        // For quick analysis, use Claude directly instead of MasterAnalyzer
+        const claudeClient = ClaudeClient.getInstance()
+        const nutriqAnalysis = await claudeClient.analyzeNutriQ(extractedContent.text)
+        
+        const analyzedReport = {
+          reportType: 'nutriq',
+          analyzedReport: {
+            rawText: extractedContent.text,
+            nutriqAnalysis,
+            reportType: 'nutriq'
+          },
+          processingTime: Date.now() - startTime,
+          confidence: extractedContent.confidence
+        }
         
         analysisResult = {
           success: true,
@@ -101,10 +111,20 @@ export async function POST(request: NextRequest) {
         
         console.log('[QUICK-ANALYSIS] Detected report type:', reportType)
         
-        // Analyze using master analyzer
-        const analyzer = MasterAnalyzer.getInstance()
-        const textBuffer = Buffer.from(parsedPDF.rawText, 'utf-8')
-        const analyzedReport = await analyzer.analyzeReport(textBuffer)
+        // For quick analysis, use Claude directly instead of MasterAnalyzer
+        const claudeClient = ClaudeClient.getInstance()
+        const nutriqAnalysis = await claudeClient.analyzeNutriQ(parsedPDF.rawText)
+        
+        const analyzedReport = {
+          reportType: 'nutriq',
+          analyzedReport: {
+            rawText: parsedPDF.rawText,
+            nutriqAnalysis,
+            reportType: 'nutriq'
+          },
+          processingTime: Date.now() - startTime,
+          confidence: 0.8
+        }
         
         analysisResult = {
           success: true,
