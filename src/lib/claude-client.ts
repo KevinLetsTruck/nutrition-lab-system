@@ -369,6 +369,9 @@ ${pdfText.substring(0, 2000)}...`
     This may be a questionnaire with answers, a symptom burden graph, or other NutriQ assessment data.
     Extract whatever data is available and provide analysis based on what you find.
     
+    CRITICAL: You MUST return ONLY valid JSON. Do not include any text before or after the JSON object.
+    Do not include explanations, apologies, or any other text - just the JSON object.
+    
     Return your analysis as a JSON object with this exact structure:
     {
       "totalScore": number,
@@ -387,18 +390,26 @@ ${pdfText.substring(0, 2000)}...`
     
     If specific scores aren't available, estimate based on the content. Scores should be 0-100. 
     For symptom burden graphs, analyze the visual patterns described. For questionnaires, analyze the answers.
-    Be thorough in your analysis and provide actionable recommendations.`
+    Be thorough in your analysis and provide actionable recommendations.
+    
+    REMEMBER: Return ONLY the JSON object, nothing else.`
 
-    const prompt = `Please analyze this NutriQ assessment and extract all relevant data:
+    const prompt = `Analyze this NutriQ assessment and return ONLY a JSON object with the analysis:
 
-${pdfText}`
+${pdfText}
+
+Return ONLY the JSON object with the analysis structure specified above. Do not include any other text.`
 
     const result = await this.analyzeWithClaude(prompt, systemPrompt)
+    
+    console.log('[CLAUDE] Raw NutriQ analysis result:', result.substring(0, 500))
     
     try {
       const analysis = JSON.parse(result)
       return analysis as NutriQAnalysis
     } catch (error) {
+      console.error('[CLAUDE] JSON parse error:', error)
+      console.error('[CLAUDE] Raw result that failed to parse:', result)
       throw new Error(`Failed to parse NutriQ analysis: ${error instanceof Error ? error.message : 'Invalid JSON'}`)
     }
   }
