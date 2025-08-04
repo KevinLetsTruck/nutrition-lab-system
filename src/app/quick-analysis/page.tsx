@@ -205,6 +205,36 @@ export default function QuickAnalysisPage() {
             reportType: 'FIT Test',
             detailedAnalysis: fitResult
           }
+        } else if (analysisData.reportType === 'kbmo' && analysisData.analyzedReport?.analyzedReport) {
+          // Handle KBMO results
+          const kbmoResult = analysisData.analyzedReport.analyzedReport
+          analysis = {
+            summary: `KBMO Test Analysis Complete - ${kbmoResult.totalReactiveFoods || 0} reactive foods identified`,
+            recommendations: kbmoResult.dietaryRecommendations || ['Review the detailed findings below.'],
+            keyFindings: kbmoResult.keyFindings || ['Document processed successfully.'],
+            reportType: 'KBMO Test',
+            detailedAnalysis: kbmoResult
+          }
+        } else if (analysisData.reportType === 'dutch' && analysisData.analyzedReport?.analyzedReport) {
+          // Handle Dutch test results
+          const dutchResult = analysisData.analyzedReport.analyzedReport
+          analysis = {
+            summary: `Dutch Test Analysis Complete - Hormone levels analyzed`,
+            recommendations: dutchResult.recommendations || ['Review the detailed findings below.'],
+            keyFindings: dutchResult.keyFindings || ['Document processed successfully.'],
+            reportType: 'Dutch Test',
+            detailedAnalysis: dutchResult
+          }
+        } else if (analysisData.analyzedReport?.analyzedReport) {
+          // Generic handler for other report types with standard structure
+          const result = analysisData.analyzedReport.analyzedReport
+          analysis = {
+            summary: result.summary || `${analysisData.reportType} Analysis Complete`,
+            recommendations: result.recommendations || ['Review the detailed findings below.'],
+            keyFindings: result.keyFindings || result.findings || ['Document processed successfully.'],
+            reportType: analysisData.reportType || 'Lab Report',
+            detailedAnalysis: result
+          }
         } else {
           // Fallback to old structure
           analysis = {
