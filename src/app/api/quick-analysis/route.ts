@@ -5,6 +5,7 @@ import { TextractProcessor } from '@/lib/document-processors/textract-processor'
 import ClaudeClient from '@/lib/claude-client'
 import PDFLabParser from '@/lib/lab-analyzers/pdf-parser'
 import { supabase } from '@/lib/supabase'
+import { PDFRepairUtility } from '@/lib/pdf-repair-utility'
 
 // Helper function to save analysis results to database
 async function saveQuickAnalysisToDatabase(analysisResult: any, fileName: string, filePath: string) {
@@ -72,18 +73,36 @@ export async function POST(request: NextRequest) {
     
     // Check if AWS Textract is configured
     const hasTextract = !!(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY)
+    console.log('[QUICK-ANALYSIS] AWS Textract check:', {
+      hasAccessKey: !!process.env.AWS_ACCESS_KEY_ID,
+      hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY,
+      hasTextract: hasTextract
+    })
     let analysisResult
     
+    // Always try Textract first for better OCR on image-based PDFs
     if (hasTextract) {
       console.log('[QUICK-ANALYSIS] Using AWS Textract for analysis')
       
       try {
+        // First try to repair the PDF for Textract compatibility
+        console.log('[QUICK-ANALYSIS] Attempting PDF repair for Textract compatibility...')
+        const repairResult = await PDFRepairUtility.repairPDFForTextract(fileBuffer)
+        
+        let textractBuffer = fileBuffer;
+        if (repairResult.success && repairResult.repairedBuffer) {
+          console.log(`[QUICK-ANALYSIS] PDF repaired using ${repairResult.method}`);
+          textractBuffer = repairResult.repairedBuffer;
+        } else {
+          console.log('[QUICK-ANALYSIS] PDF repair failed, using original buffer');
+        }
+        
         // Use Textract for better accuracy with scanned PDFs
         console.log('[QUICK-ANALYSIS] Creating TextractProcessor...')
         const textractProcessor = new TextractProcessor()
         console.log('[QUICK-ANALYSIS] TextractProcessor created, starting extraction...')
         
-        const extractedContent = await textractProcessor.extractFromDocument(fileBuffer)
+        const extractedContent = await textractProcessor.extractFromDocument(textractBuffer)
         
         console.log('[QUICK-ANALYSIS] Textract extraction complete, text length:', extractedContent.text.length)
         console.log('[QUICK-ANALYSIS] Textract confidence:', extractedContent.confidence)
@@ -94,7 +113,9 @@ export async function POST(request: NextRequest) {
         console.log('[QUICK-ANALYSIS] Starting MasterAnalyzer analysis with Textract text...')
         
         try {
-          const masterAnalysisResult = await masterAnalyzer.analyzeReport(fileBuffer, fileName)
+          // Create a text buffer from the extracted content for analysis
+          const textBuffer = Buffer.from(extractedContent.text, 'utf-8')
+          const masterAnalysisResult = await masterAnalyzer.analyzeReport(textBuffer, fileName)
           console.log('[QUICK-ANALYSIS] Analysis completed with type:', masterAnalysisResult.reportType)
           
           analysisResult = {
@@ -116,60 +137,82 @@ export async function POST(request: NextRequest) {
         console.error('[QUICK-ANALYSIS] Textract processing failed:', textractError)
         console.error('[QUICK-ANALYSIS] Textract error details:', textractError instanceof Error ? textractError.message : 'Unknown error')
         console.error('[QUICK-ANALYSIS] Textract error stack:', textractError instanceof Error ? textractError.stack : 'No stack trace')
-        // Fall back to standard processing
-        hasTextract && console.log('[QUICK-ANALYSIS] Falling back to standard processing')
+        
+        // Try Claude Vision as fallback for image-based PDFs
+        console.log('[QUICK-ANALYSIS] Textract failed, trying Claude Vision as fallback...')
+        try {
+          // Use the PDF parser to convert PDF to images and analyze with Claude Vision
+          const parser = PDFLabParser.getInstance()
+          const parsedPDF = await parser.parseLabReport(fileBuffer)
+          
+          if (parsedPDF.visionAnalysisText) {
+            console.log('[QUICK-ANALYSIS] Using vision analysis text from PDF parser')
+            
+            // Use MasterAnalyzer to analyze the vision-extracted text
+            const masterAnalyzer = MasterAnalyzer.getInstance()
+            const textBuffer = Buffer.from(parsedPDF.visionAnalysisText, 'utf-8')
+            const masterAnalysisResult = await masterAnalyzer.analyzeReport(textBuffer, fileName)
+            
+            analysisResult = {
+              success: true,
+              reportType: masterAnalysisResult.reportType,
+              extractedData: {
+                text: parsedPDF.visionAnalysisText,
+                tables: [],
+                confidence: 0.8
+              },
+              analyzedReport: masterAnalysisResult,
+              extractionMethod: 'claude_vision',
+              processingTime: Date.now() - startTime
+            }
+            
+            // Save analysis results to database
+            await saveQuickAnalysisToDatabase(analysisResult, fileName, filePath);
+            
+          } else {
+            throw new Error('No vision analysis text available')
+          }
+          
+        } catch (visionError) {
+          console.error('[QUICK-ANALYSIS] Claude Vision also failed:', visionError)
+          throw new Error(`Both Textract and Claude Vision failed. Textract: ${textractError instanceof Error ? textractError.message : 'Unknown error'}. Vision: ${visionError instanceof Error ? visionError.message : 'Unknown error'}`)
+        }
       }
     }
     
     // If Textract is not available or failed, use standard processing
     if (!analysisResult) {
-      console.log('[QUICK-ANALYSIS] Using standard PDF processing')
+      console.log('[QUICK-ANALYSIS] Textract not available or failed, using standard PDF processing')
+      console.log('[QUICK-ANALYSIS] analysisResult is:', analysisResult)
       
       try {
-        // First try to extract text
-        const parser = PDFLabParser.getInstance()
-        const parsedPDF = await parser.parseLabReport(fileBuffer)
+        // For image-based PDFs, try a simple approach with MasterAnalyzer directly
+        console.log('[QUICK-ANALYSIS] Attempting direct MasterAnalyzer analysis for image-based PDF')
         
-        if (!parsedPDF.rawText || parsedPDF.rawText.trim().length === 0) {
-          // Check if vision analysis was already done
-          if (parsedPDF.visionAnalysisText) {
-            console.log('[QUICK-ANALYSIS] Using vision analysis text from PDF parser')
-            parsedPDF.rawText = parsedPDF.visionAnalysisText
-          } else {
-            // If still no text, this means the PDF couldn't be processed
-            throw new Error('Unable to extract text from PDF. The document may be corrupted or in an unsupported format.')
-          }
-        }
-        
-        // Use MasterAnalyzer for enhanced document classification and analysis
         const masterAnalyzer = MasterAnalyzer.getInstance()
-        console.log('[QUICK-ANALYSIS] Starting MasterAnalyzer analysis with standard text...')
+        const masterAnalysisResult = await masterAnalyzer.analyzeReport(fileBuffer, fileName)
         
-        try {
-          const masterAnalysisResult = await masterAnalyzer.analyzeReport(fileBuffer, fileName)
-          console.log('[QUICK-ANALYSIS] Analysis completed with type:', masterAnalysisResult.reportType)
-          
-          const analysisResult = {
-            success: true,
-            reportType: masterAnalysisResult.reportType,
-            extractedData: {
-              text: parsedPDF.rawText,
-              tables: [],
-              confidence: masterAnalysisResult.confidence
-            },
-            analyzedReport: masterAnalysisResult,
-            extractionMethod: 'standard',
-            processingTime: Date.now() - startTime
-          }
-          
-          // Save analysis results to database
-          await saveQuickAnalysisToDatabase(analysisResult, fileName, filePath);
-          
-          return NextResponse.json(analysisResult)
-        } catch (analyzerError) {
-          console.error('[QUICK-ANALYSIS] MasterAnalyzer failed:', analyzerError)
-          throw new Error(`Analysis failed: ${analyzerError instanceof Error ? analyzerError.message : 'Unknown error'}`)
+        console.log('[QUICK-ANALYSIS] Direct MasterAnalyzer analysis successful')
+        
+        analysisResult = {
+          success: true,
+          reportType: masterAnalysisResult.reportType,
+          extractedData: {
+            text: 'Image-based PDF analyzed with MasterAnalyzer',
+            tables: [],
+            confidence: masterAnalysisResult.confidence
+          },
+          analyzedReport: masterAnalysisResult,
+          extractionMethod: 'direct_master_analyzer',
+          processingTime: Date.now() - startTime
         }
+        
+        // Save analysis results to database
+        await saveQuickAnalysisToDatabase(analysisResult, fileName, filePath);
+        
+        return NextResponse.json(analysisResult)
+        
+
       } catch (standardError) {
         console.error('[QUICK-ANALYSIS] Standard processing failed:', standardError)
         throw standardError
