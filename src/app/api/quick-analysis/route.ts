@@ -8,7 +8,7 @@ import PDFLabParser from '@/lib/lab-analyzers/pdf-parser'
 import { supabase } from '@/lib/supabase'
 import { PDFRepairUtility } from '@/lib/pdf-repair-utility'
 import MedicalTerminologyProcessor from '@/lib/document-processors/medical-terminology-processor'
-import { DocumentVersionService } from '@/lib/services/document-version-service'
+import { documentVersionService } from '@/lib/services/document-version-service'
 
 // Helper function to save analysis results to database
 async function saveQuickAnalysisToDatabase(analysisResult: any, fileName: string, filePath: string) {
@@ -157,8 +157,7 @@ export async function POST(request: NextRequest) {
           
           // Phase 1 Enhancement: Create document version
           try {
-            const versionService = DocumentVersionService.getInstance()
-            await versionService.processDocumentUpload(
+            await documentVersionService.processDocumentUpload(
               'quick-analysis', // Using a generic client ID for quick analysis
               fileName,
               masterAnalysisResult.reportType,
