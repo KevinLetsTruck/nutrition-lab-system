@@ -123,11 +123,14 @@ export async function POST(request: NextRequest) {
       
       // Save raw text to database
       await db.updateLabReport(labReport.id, {
-        raw_text: extractedText,
-        parsed_data: {
-          extractionMethod,
-          pageCount: pdfData.numpages,
-          extractedAt: new Date().toISOString()
+        notes: `Extracted ${extractedText.length} characters from ${pdfData.numpages} pages using ${extractionMethod}`,
+        analysis_results: {
+          raw_text: extractedText,
+          parsed_data: {
+            extractionMethod,
+            pageCount: pdfData.numpages,
+            extractedAt: new Date().toISOString()
+          }
         }
       })
       
