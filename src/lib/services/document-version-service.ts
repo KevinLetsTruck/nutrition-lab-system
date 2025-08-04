@@ -68,20 +68,60 @@ export class DocumentVersionService {
    * Create or update a document record
    */
   async upsertDocument(document: Partial<Document>): Promise<Document> {
+    console.log('[DocumentVersionService] upsertDocument input:', document)
+    
+    // Convert camelCase to snake_case for database
+    const dbDocument: any = {
+      id: document.id,
+      client_id: document.clientId,
+      document_name: document.documentName,
+      document_type: document.documentType,
+      original_filename: document.originalFilename,
+      file_path: document.filePath,
+      bucket_name: document.bucketName,
+      mime_type: document.mimeType,
+      file_size_bytes: document.fileSizeBytes,
+      is_active: document.isActive,
+      metadata: document.metadata,
+      updated_at: new Date().toISOString()
+    }
+
+    // Remove undefined values
+    Object.keys(dbDocument).forEach(key => {
+      if (dbDocument[key] === undefined) {
+        delete dbDocument[key]
+      }
+    })
+
+    console.log('[DocumentVersionService] dbDocument after cleanup:', dbDocument)
+
     const { data, error } = await supabase
       .from('documents')
-      .upsert({
-        ...document,
-        updated_at: new Date().toISOString()
-      })
+      .upsert(dbDocument)
       .select()
       .single()
 
     if (error) {
+      console.error('[DocumentVersionService] Supabase error:', error)
       throw new Error(`Failed to upsert document: ${error.message}`)
     }
 
-    return data
+    // Convert back to camelCase
+    return {
+      id: data.id,
+      clientId: data.client_id,
+      documentName: data.document_name,
+      documentType: data.document_type,
+      originalFilename: data.original_filename,
+      filePath: data.file_path,
+      bucketName: data.bucket_name,
+      mimeType: data.mime_type,
+      fileSizeBytes: data.file_size_bytes,
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at),
+      isActive: data.is_active,
+      metadata: data.metadata
+    }
   }
 
   /**
@@ -92,13 +132,34 @@ export class DocumentVersionService {
     versionData: Partial<DocumentVersion>,
     userId?: string
   ): Promise<DocumentVersion> {
+    // Convert camelCase to snake_case
+    const dbVersion: any = {
+      document_id: documentId,
+      version_number: versionData.versionNumber,
+      extracted_data: versionData.extractedData,
+      enhanced_data: versionData.enhancedData,
+      ocr_confidence: versionData.ocrConfidence,
+      processing_method: versionData.processingMethod,
+      changes_from_previous: versionData.changesFromPrevious,
+      analysis_results: versionData.analysisResults,
+      medical_terms_identified: versionData.medicalTermsIdentified,
+      validation_status: versionData.validationStatus,
+      validated_by: versionData.validatedBy,
+      validated_at: versionData.validatedAt,
+      notes: versionData.notes,
+      created_by: userId
+    }
+
+    // Remove undefined values
+    Object.keys(dbVersion).forEach(key => {
+      if (dbVersion[key] === undefined) {
+        delete dbVersion[key]
+      }
+    })
+
     const { data, error } = await supabase
       .from('document_versions')
-      .insert({
-        document_id: documentId,
-        ...versionData,
-        created_by: userId
-      })
+      .insert(dbVersion)
       .select()
       .single()
 
@@ -109,7 +170,25 @@ export class DocumentVersionService {
     // Log the action
     await this.logAction(documentId, data.id, 'created', { version: data.version_number }, userId)
 
-    return data
+    // Convert back to camelCase
+    return {
+      id: data.id,
+      documentId: data.document_id,
+      versionNumber: data.version_number,
+      extractedData: data.extracted_data,
+      enhancedData: data.enhanced_data,
+      ocrConfidence: data.ocr_confidence,
+      processingMethod: data.processing_method,
+      changesFromPrevious: data.changes_from_previous,
+      analysisResults: data.analysis_results,
+      medicalTermsIdentified: data.medical_terms_identified,
+      validationStatus: data.validation_status,
+      validatedBy: data.validated_by,
+      validatedAt: data.validated_at ? new Date(data.validated_at) : undefined,
+      notes: data.notes,
+      createdAt: new Date(data.created_at),
+      createdBy: data.created_by
+    }
   }
 
   /**
@@ -272,37 +351,49 @@ export class DocumentVersionService {
     metadata?: any,
     userId?: string
   ): Promise<{ document: Document; version: DocumentVersion }> {
+    console.log('[DocumentVersionService] processDocumentUpload:', { clientId, fileName, documentType })
+    
     // Check if document already exists
     const existingDoc = await this.findExistingDocument(clientId, fileName, documentType)
+    console.log('[DocumentVersionService] Existing document:', existingDoc ? 'Found' : 'Not found', existingDoc?.id)
 
     let document: Document
     if (existingDoc) {
-      // Update existing document
-      document = await this.upsertDocument({
-        id: existingDoc.id,
-        updated_at: new Date()
-      })
+      // Update existing document - just update the timestamp
+      console.log('[DocumentVersionService] Updating existing document')
+      document = existingDoc // Use the existing document
+      
+      // Update the timestamp in the database
+      const { error } = await supabase
+        .from('documents')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', existingDoc.id)
+      
+      if (error) {
+        console.error('[DocumentVersionService] Error updating document timestamp:', error)
+      }
     } else {
-      // Create new document
+      // Create new document - use camelCase for the service method
+      console.log('[DocumentVersionService] Creating new document')
       document = await this.upsertDocument({
-        client_id: clientId,
-        document_name: fileName,
-        document_type: documentType,
-        original_filename: fileName,
-        metadata
+        clientId: clientId,
+        documentName: fileName,
+        documentType: documentType,
+        originalFilename: fileName,
+        metadata: metadata || {}
       })
     }
 
-    // Create new version
+    // Create new version - use camelCase for the service method
     const version = await this.createVersion(
       document.id,
       {
-        extracted_data: extractedData,
-        enhanced_data: enhancedData,
-        ocr_confidence: extractedData.ocrConfidence,
-        processing_method: extractedData.processingMethod || 'standard',
-        analysis_results: extractedData.analysisResults,
-        medical_terms_identified: extractedData.medicalTerms
+        extractedData: extractedData,
+        enhancedData: enhancedData,
+        ocrConfidence: extractedData.ocrConfidence,
+        processingMethod: extractedData.processingMethod || 'standard',
+        analysisResults: extractedData.analysisResults,
+        medicalTermsIdentified: extractedData.medicalTerms
       },
       userId
     )
@@ -331,7 +422,7 @@ export class DocumentVersionService {
     fileName: string,
     documentType: string
   ): Promise<Document | null> {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('documents')
       .select('*')
       .eq('client_id', clientId)
@@ -340,7 +431,30 @@ export class DocumentVersionService {
       .eq('is_active', true)
       .single()
 
-    return data
+    if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
+      console.error('[DocumentVersionService] Error finding document:', error)
+    }
+
+    if (data) {
+      // Convert snake_case to camelCase
+      return {
+        id: data.id,
+        clientId: data.client_id,
+        documentName: data.document_name,
+        documentType: data.document_type,
+        originalFilename: data.original_filename,
+        filePath: data.file_path,
+        bucketName: data.bucket_name,
+        mimeType: data.mime_type,
+        fileSizeBytes: data.file_size_bytes,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at),
+        isActive: data.is_active,
+        metadata: data.metadata
+      }
+    }
+
+    return null
   }
 
   private async getVersionComparisons(documentId: string): Promise<VersionComparison[]> {

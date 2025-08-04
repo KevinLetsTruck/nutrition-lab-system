@@ -14,6 +14,13 @@ export async function POST(request: NextRequest) {
     }
     
     console.log('[DOCUMENT-VERSIONS] Processing document:', fileName)
+    console.log('[DOCUMENT-VERSIONS] Request data:', {
+      clientId,
+      fileName,
+      documentType,
+      hasExtractedData: !!extractedData,
+      extractedDataKeys: Object.keys(extractedData || {})
+    })
     
     // If documentId is provided, we're creating a new version
     // Otherwise, create a new document
@@ -33,7 +40,8 @@ export async function POST(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('[DOCUMENT-VERSIONS] Error:', error)
+    console.error('[DOCUMENT-VERSIONS] Full error:', error)
+    console.error('[DOCUMENT-VERSIONS] Error stack:', error instanceof Error ? error.stack : 'No stack')
     return NextResponse.json(
       { error: 'Document versioning failed', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
