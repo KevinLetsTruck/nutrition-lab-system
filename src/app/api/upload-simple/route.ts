@@ -152,23 +152,26 @@ export async function POST(request: NextRequest) {
       
       // Update report with analysis results
       await db.updateLabReport(labReport.id, {
-        analysis_results: analysisResult.parsedData,
+        analysis_results: analysisResult.analyzedReport,
         status: 'completed',
         notes: `Analysis completed for ${analysisResult.reportType} report`
       })
       
       // Store type-specific results
-      if (analysisResult.reportType === 'nutriq' && analysisResult.parsedData?.nutriqAnalysis) {
-        await supabase
-          .from('nutriq_results')
-          .upsert({
-            client_id: clientId,
-            lab_report_id: labReport.id,
-            total_score: analysisResult.parsedData.nutriqAnalysis.totalScore,
-            body_systems: analysisResult.parsedData.nutriqAnalysis.bodySystems,
-            recommendations: analysisResult.recommendations,
-            ai_analysis: analysisResult.analysis
-          })
+      if (analysisResult.reportType === 'nutriq' && analysisResult.analyzedReport) {
+        const nutriqData = analysisResult.analyzedReport as any
+        if (nutriqData.nutriqAnalysis) {
+          await supabase
+            .from('nutriq_results')
+            .upsert({
+              client_id: clientId,
+              lab_report_id: labReport.id,
+              total_score: nutriqData.nutriqAnalysis.totalScore,
+              body_systems: nutriqData.nutriqAnalysis.bodySystems,
+              recommendations: nutriqData.recommendations,
+              ai_analysis: nutriqData.analysis
+            })
+        }
       }
       
       return NextResponse.json({
