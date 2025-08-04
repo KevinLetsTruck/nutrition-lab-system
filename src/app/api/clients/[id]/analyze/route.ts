@@ -101,6 +101,15 @@ async function generateAllArtifacts(analysis: any, clientData: any): Promise<any
 }
 
 function generatePractitionerReport(analysis: any, clientData: any): string {
+  // Calculate data completeness
+  const dataCompleteness = {
+    assessments: clientData.assessmentHistory?.length > 0,
+    sessionNotes: clientData.sessionNotes?.length > 0,
+    labResults: clientData.labResults?.length > 0,
+    uploadedDocs: clientData.uploadedDocuments?.length > 0
+  };
+  const completenessScore = Object.values(dataCompleteness).filter(v => v).length;
+
   return `
 # COMPREHENSIVE FUNCTIONAL MEDICINE ANALYSIS
 **Client:** ${clientData.personalInfo.name}
@@ -108,7 +117,34 @@ function generatePractitionerReport(analysis: any, clientData: any): string {
 **Practitioner:** Kevin Rutherford, FNTP
 
 ## EXECUTIVE SUMMARY
-This comprehensive analysis integrates all available client data including assessments, lab results, session notes, and protocol history to provide a complete functional medicine perspective.
+This comprehensive analysis integrates all available client data to provide a complete functional medicine perspective.
+
+### Data Completeness Score: ${completenessScore}/4
+- ✓ Health Assessments: ${dataCompleteness.assessments ? `${clientData.assessmentHistory.length} available` : 'None'}
+- ✓ Session Notes: ${dataCompleteness.sessionNotes ? `${clientData.sessionNotes.length} available` : 'None'}
+- ✓ Lab Results: ${dataCompleteness.labResults ? `${clientData.labResults.length} available` : 'None'}
+- ✓ Uploaded Documents: ${dataCompleteness.uploadedDocs ? `${clientData.uploadedDocuments.length} available` : 'None'}
+
+## INTEGRATED DATA ANALYSIS
+
+### From Interview & Coaching Notes
+${clientData.sessionNotes?.filter((n: any) => n.type === 'interview' || n.type === 'coaching_call').map((note: any) => `
+**${note.type === 'interview' ? 'Initial Interview' : 'Coaching Call'} - ${new Date(note.createdAt).toLocaleDateString()}**
+Key Points: ${note.content.substring(0, 200)}...
+`).join('\n') || 'No consultation notes analyzed'}
+
+### From Assessment Data
+${clientData.assessmentHistory?.map((assessment: any) => `
+**${assessment.type.toUpperCase()} - ${new Date(assessment.date).toLocaleDateString()}**
+- Total Score: ${assessment.totalScore || 'N/A'}
+- Top Systems: ${assessment.bodySystems ? Object.entries(assessment.bodySystems).slice(0, 3).map(([s, v]) => `${s} (${v})`).join(', ') : 'N/A'}
+`).join('\n') || 'No assessments analyzed'}
+
+### From Lab Analysis
+${clientData.labResults?.map((lab: any) => `
+**${lab.reportType} - ${new Date(lab.testDate).toLocaleDateString()}**
+- Key Findings: ${lab.keyFindings?.slice(0, 2).join(', ') || 'See detailed report'}
+`).join('\n') || 'No lab results analyzed'}
 
 ## ROOT CAUSE ANALYSIS
 ${analysis.rootCauseAnalysis.map((cause: any) => `
@@ -116,6 +152,11 @@ ${analysis.rootCauseAnalysis.map((cause: any) => `
 ${cause.explanation}
 **Systems Affected:** ${cause.affectedSystems.join(', ')}
 ${cause.driverFactors ? `**Driver-Specific Factors:** ${cause.driverFactors.join(', ')}` : ''}
+**Data Sources Supporting This:** ${
+  (cause.confidence > 80 ? 'Multiple assessments + lab data' : 
+   cause.confidence > 60 ? 'Assessment data + clinical notes' : 
+   'Limited data - recommend additional testing')
+}
 `).join('\n')}
 
 ## SYSTEMS PRIORITY ASSESSMENT
@@ -224,17 +265,63 @@ ${analysis.practitionerNotes.potentialChallenges.map((challenge: string) => `- $
 }
 
 function generateClientSummary(analysis: any, clientData: any): string {
+  // Generate data source summary
+  const dataSources = [];
+  if (clientData.assessmentHistory?.length > 0) {
+    dataSources.push(`• ${clientData.assessmentHistory.length} health assessment(s)`);
+  }
+  if (clientData.sessionNotes?.filter((n: any) => n.type === 'interview').length > 0) {
+    dataSources.push(`• ${clientData.sessionNotes.filter((n: any) => n.type === 'interview').length} interview note(s)`);
+  }
+  if (clientData.sessionNotes?.filter((n: any) => n.type === 'coaching_call').length > 0) {
+    dataSources.push(`• ${clientData.sessionNotes.filter((n: any) => n.type === 'coaching_call').length} coaching call note(s)`);
+  }
+  if (clientData.uploadedDocuments?.length > 0) {
+    dataSources.push(`• ${clientData.uploadedDocuments.length} uploaded document(s)`);
+  }
+  if (clientData.labResults?.length > 0) {
+    dataSources.push(`• ${clientData.labResults.length} lab result(s)`);
+  }
+
   return `
 # YOUR PERSONALIZED HEALTH PROTOCOL
 **Name:** ${clientData.personalInfo.name}
 **Date:** ${new Date().toLocaleDateString()}
 
-## WHAT WE FOUND
-Based on your comprehensive health assessment, we've identified the key areas to focus on for optimal health:
+## DATA SOURCES ANALYZED
+This report is based on analysis of:
+${dataSources.join('\n')}
 
+## FINDINGS BY SOURCE
+
+### From Health Assessments
+${clientData.assessmentHistory?.length > 0 ? 
+  clientData.assessmentHistory.slice(0, 2).map((assessment: any) => `
+**${assessment.type.toUpperCase()} Assessment (${new Date(assessment.date).toLocaleDateString()})**
+${assessment.totalScore ? `• Symptom Burden Score: ${assessment.totalScore}` : ''}
+${assessment.bodySystems ? `• Top Body Systems: ${Object.entries(assessment.bodySystems).slice(0, 3).map(([system, score]) => `${system} (${score})`).join(', ')}` : ''}
+${assessment.priorityActions ? `• Priority Actions: ${assessment.priorityActions.slice(0, 2).join(', ')}` : ''}
+`).join('\n') : 'No assessments available'}
+
+### From Consultation Notes
+${clientData.sessionNotes?.filter((n: any) => n.type === 'interview' || n.type === 'coaching_call').slice(0, 2).map((note: any) => `
+**${note.type === 'interview' ? 'Initial Interview' : 'Coaching Call'} (${new Date(note.createdAt).toLocaleDateString()})**
+${note.content.substring(0, 150)}...
+`).join('\n') || 'No consultation notes available'}
+
+### From Lab Results
+${clientData.labResults?.slice(0, 2).map((lab: any) => `
+**${lab.reportType} (${new Date(lab.testDate).toLocaleDateString()})**
+• Key markers analyzed: ${lab.keyMarkers?.slice(0, 3).join(', ') || 'Various biomarkers'}
+`).join('\n') || 'No lab results available'}
+
+## INTEGRATED ANALYSIS RESULTS
+
+### Primary Health Concerns
 ${analysis.rootCauseAnalysis.slice(0, 2).map((cause: any) => `
 **${cause.name}**
 ${cause.explanation}
+*Confidence: ${cause.confidence}% based on ${cause.affectedSystems.length} body systems affected*
 `).join('\n')}
 
 ## YOUR ACTION PLAN
@@ -277,7 +364,7 @@ ${analysis.urgentConcerns.length > 0 ?
 }
 
 ---
-*Your health journey is unique. This protocol is personalized specifically for you.*
+*Your health journey is unique. This protocol is personalized specifically for you based on all available data sources.*
   `;
 }
 

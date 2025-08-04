@@ -36,12 +36,19 @@ export default function AuthPage() {
     }
   }, [])
 
-  // Show success message if user is already authenticated
+  // Redirect if user is already authenticated
   useEffect(() => {
     if (!authLoading && user) {
-      // Don't auto-redirect, let user click the link
+      // Redirect based on user role
+      if (user.role === 'admin') {
+        router.push('/clients')
+      } else if (user.role === 'client') {
+        router.push('/client/success')
+      } else {
+        router.push('/dashboard')
+      }
     }
-  }, [user, authLoading])
+  }, [user, authLoading, router])
 
   // Don't render the form if user is authenticated or still loading
   if (authLoading) {
@@ -55,31 +62,10 @@ export default function AuthPage() {
     )
   }
 
-  // Show success message if authenticated
+  // If user is authenticated at this point, they should have been redirected already
+  // This ensures we don't show the login form if the user is already logged in
   if (user) {
-    return (
-      <div className="min-h-screen bg-gradient-dark flex items-center justify-center px-6">
-        <Card className="w-full max-w-md border-primary/20">
-          <CardHeader className="text-center">
-            <div className="w-20 h-20 bg-gradient-brand rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-10 h-10 text-white" />
-            </div>
-            <CardTitle className="text-2xl gradient-text">You&apos;re logged in!</CardTitle>
-            <CardDescription>
-              Welcome back, {user.email}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button className="w-full" size="lg" asChild>
-              <Link href="/dashboard">Go to Dashboard</Link>
-            </Button>
-            <Button variant="secondary" className="w-full" size="lg" asChild>
-              <Link href="/clients">View Clients</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
+    return null
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

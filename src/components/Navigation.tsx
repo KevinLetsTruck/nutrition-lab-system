@@ -4,9 +4,11 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { SearchClients } from './SearchClients'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/lib/auth-context'
 
 const Navigation = () => {
   const router = useRouter()
+  const { logout } = useAuth()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-sm">
@@ -39,9 +41,9 @@ const Navigation = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
-                fetch('/api/auth/logout', { method: 'POST' })
-                  .then(() => router.push('/auth'))
+              onClick={async () => {
+                await logout()
+                router.push('/auth')
               }}
             >
               Logout
