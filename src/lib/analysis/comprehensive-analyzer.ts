@@ -103,12 +103,18 @@ ${doc.extractedText ? `Content: ${doc.extractedText.substring(0, 500)}...` : 'No
 `).join('\n')}
 
 LAB RESULTS:
-${labResults.map(lab => `
-${lab.reportType.toUpperCase()} (${lab.reportDate}):
+${labResults.map(lab => {
+  const dateStr = lab.reportDate;
+  const validDate = dateStr && !isNaN(new Date(dateStr).getTime());
+  const formattedDate = validDate ? new Date(dateStr).toLocaleDateString() : 'Date not recorded';
+  
+  return `
+${lab.reportType.toUpperCase()} (${formattedDate}):
 Status: ${lab.status}
 Results: ${JSON.stringify(lab.results, null, 2)}
 ${lab.notes ? `Notes: ${lab.notes}` : ''}
-`).join('\n')}
+`;
+}).join('\n')}
 
 PROTOCOL HISTORY:
 ${protocolHistory.map(protocol => `
@@ -134,7 +140,20 @@ Previous Root Causes: ${JSON.stringify(lastAnalysis.rootCauseAnalysis)}
 Previous Priorities: ${JSON.stringify(lastAnalysis.systemsPriority)}
 ` : ''}
 
-IMPORTANT: Base your analysis ONLY on the actual data provided above. Do NOT generate fake or hypothetical information. If specific data is missing (like blood pressure, lab values, etc.), acknowledge this in your analysis and recommend what additional testing would be helpful. Focus on what the assessments and notes actually reveal about the client's health status.
+IMPORTANT: Base your analysis ONLY on the actual data provided above. Do NOT generate fake or hypothetical information. If specific data is missing (like blood pressure, lab values, etc.), acknowledge this in your analysis and recommend what additional testing would be helpful.
+
+DATA HIERARCHY FOR ANALYSIS:
+1. **PRIMARY EVIDENCE (Highest Priority):**
+   - Laboratory test results (NutriQ, KBMO, DUTCH, blood work, etc.)
+   - Formal health assessments (NAQ scores, symptom questionnaires)
+   - Objective measurements and documented test results
+   
+2. **SUPPORTING EVIDENCE (For Context & Verification):**
+   - Clinical notes from interviews and coaching calls
+   - Client-reported symptoms and lifestyle factors
+   - Historical observations and progress notes
+
+Always prioritize objective lab data and assessment scores over subjective notes. Use clinical notes to verify and contextualize lab findings, not as primary diagnostic data.
 
 Please provide a comprehensive functional medicine analysis following the exact format and detail level of a professional practitioner report. This should be a complete clinical assessment that could be given directly to a client.
 

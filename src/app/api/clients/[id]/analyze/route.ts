@@ -125,26 +125,75 @@ This comprehensive analysis integrates all available client data to provide a co
 - ✓ Lab Results: ${dataCompleteness.labResults ? `${clientData.labResults.length} available` : 'None'}
 - ✓ Uploaded Documents: ${dataCompleteness.uploadedDocs ? `${clientData.uploadedDocuments.length} available` : 'None'}
 
-## INTEGRATED DATA ANALYSIS
+## DATA ANALYSIS HIERARCHY
 
-### From Interview & Coaching Notes
+### TIER 1: Laboratory & Assessment Data (Primary Evidence)
+*Objective measurements that drive clinical decisions:*
+
+#### Laboratory Results
+${clientData.labResults?.length > 0 ? clientData.labResults.map((lab: any) => {
+  const dateStr = lab.reportDate || lab.testDate;
+  const validDate = dateStr && !isNaN(new Date(dateStr).getTime());
+  const results = lab.results || {};
+  
+  let detailedAnalysis = `**${lab.reportType.toUpperCase()} - ${validDate ? new Date(dateStr).toLocaleDateString() : 'Date not recorded'}**\n`;
+  
+  if (results.bodySystems) {
+    detailedAnalysis += `Body System Analysis:\n`;
+    Object.entries(results.bodySystems)
+      .sort(([,a], [,b]) => (b as number) - (a as number))
+      .forEach(([system, score]) => {
+        const scoreNum = typeof score === 'number' ? score : 0;
+        detailedAnalysis += `  • ${system}: ${score} ${scoreNum > 20 ? '⚠️ HIGH' : scoreNum > 10 ? '⚡ MODERATE' : '✓ LOW'}\n`;
+      });
+  }
+  
+  if (results.totalScore) {
+    detailedAnalysis += `Total Symptom Burden: ${results.totalScore}\n`;
+  }
+  
+  if (results.priorityActions && results.priorityActions.length > 0) {
+    detailedAnalysis += `Priority Actions Identified:\n`;
+    results.priorityActions.forEach((action: string) => {
+      detailedAnalysis += `  • ${action}\n`;
+    });
+  }
+  
+  if (results.overallRecommendations && results.overallRecommendations.length > 0) {
+    detailedAnalysis += `Clinical Recommendations:\n`;
+    results.overallRecommendations.slice(0, 3).forEach((rec: string) => {
+      detailedAnalysis += `  • ${rec}\n`;
+    });
+  }
+  
+  return detailedAnalysis;
+}).join('\n') : 'No laboratory results available'}
+
+#### Clinical Assessments
+${clientData.assessmentHistory?.map((assessment: any) => `
+**${assessment.type.toUpperCase()} Assessment - ${new Date(assessment.date).toLocaleDateString()}**
+- Total Score: ${assessment.totalScore || 'N/A'}
+- Body Systems: ${assessment.bodySystems ? Object.entries(assessment.bodySystems).map(([s, v]) => `${s} (${v})`).join(', ') : 'N/A'}
+- Priority Focus: ${assessment.priorityActions ? assessment.priorityActions[0] : 'General optimization'}
+`).join('\n') || 'No formal assessments completed'}
+
+### TIER 2: Clinical Observations (Supporting Evidence)
+*Practitioner notes that contextualize and verify lab findings:*
+
 ${clientData.sessionNotes?.filter((n: any) => n.type === 'interview' || n.type === 'coaching_call').map((note: any) => `
 **${note.type === 'interview' ? 'Initial Interview' : 'Coaching Call'} - ${new Date(note.createdAt).toLocaleDateString()}**
-Key Points: ${note.content.substring(0, 200)}...
-`).join('\n') || 'No consultation notes analyzed'}
+Relevant Observations: ${note.content.substring(0, 300)}...
+`).join('\n') || 'No clinical notes recorded'}
 
-### From Assessment Data
-${clientData.assessmentHistory?.map((assessment: any) => `
-**${assessment.type.toUpperCase()} - ${new Date(assessment.date).toLocaleDateString()}**
-- Total Score: ${assessment.totalScore || 'N/A'}
-- Top Systems: ${assessment.bodySystems ? Object.entries(assessment.bodySystems).slice(0, 3).map(([s, v]) => `${s} (${v})`).join(', ') : 'N/A'}
-`).join('\n') || 'No assessments analyzed'}
+### UPLOADED DOCUMENTS
+*Additional documents analyzed for this report:*
 
-### From Lab Analysis
-${clientData.labResults?.map((lab: any) => `
-**${lab.reportType} - ${new Date(lab.testDate).toLocaleDateString()}**
-- Key Findings: ${lab.keyFindings?.slice(0, 2).join(', ') || 'See detailed report'}
-`).join('\n') || 'No lab results analyzed'}
+${clientData.uploadedDocuments?.length > 0 ? clientData.uploadedDocuments.map((doc: any) => `
+**${doc.name}**
+- Type: ${doc.type}
+- Uploaded: ${new Date(doc.uploadedAt).toLocaleDateString()}
+- Status: ${doc.extractedText ? 'Content extracted and analyzed' : 'Document uploaded, pending extraction'}
+`).join('\n') : 'No additional documents uploaded'}
 
 ## ROOT CAUSE ANALYSIS
 ${analysis.rootCauseAnalysis.map((cause: any) => `
@@ -334,9 +383,48 @@ function generateClientSummary(analysis: any, clientData: any): string {
 This report is based on analysis of:
 ${dataSources.join('\n')}
 
-## FINDINGS BY SOURCE
+## DATA ANALYSIS HIERARCHY
 
-### From Health Assessments
+### 1. PRIMARY DATA - Lab Results & Assessments
+*These objective measurements form the foundation of your analysis:*
+
+#### Lab Test Results
+${clientData.labResults?.length > 0 ? clientData.labResults.slice(0, 3).map((lab: any) => {
+  const dateStr = lab.reportDate || lab.testDate;
+  const formattedDate = dateStr ? new Date(dateStr).toLocaleDateString() : 'Date not available';
+  const validDate = !isNaN(new Date(dateStr).getTime());
+  
+  // Extract key findings from the analysis results
+  const results = lab.results || {};
+  const keyFindings = [];
+  
+  if (results.bodySystems) {
+    const topSystems = Object.entries(results.bodySystems)
+      .sort(([,a], [,b]) => (b as number) - (a as number))
+      .slice(0, 3)
+      .map(([system, score]) => `${system}: ${score}`);
+    if (topSystems.length > 0) keyFindings.push(`Top body systems: ${topSystems.join(', ')}`);
+  }
+  
+  if (results.totalScore) {
+    keyFindings.push(`Total symptom score: ${results.totalScore}`);
+  }
+  
+  if (results.keyMarkers) {
+    keyFindings.push(`Key markers: ${results.keyMarkers.slice(0, 3).join(', ')}`);
+  }
+  
+  if (results.priorityActions && results.priorityActions.length > 0) {
+    keyFindings.push(`Priority actions: ${results.priorityActions.slice(0, 2).join(', ')}`);
+  }
+  
+  return `
+**${lab.reportType.toUpperCase()} (${validDate ? formattedDate : 'Date not recorded'})**
+${keyFindings.length > 0 ? keyFindings.map(f => `• ${f}`).join('\n') : '• Full analysis available in detailed report'}
+${results.overallRecommendations ? `• Key recommendation: ${results.overallRecommendations[0]}` : ''}`;
+}).join('\n') : 'No lab results available'}
+
+#### Health Assessments
 ${clientData.assessmentHistory?.length > 0 ? 
   clientData.assessmentHistory.slice(0, 2).map((assessment: any) => `
 **${assessment.type.toUpperCase()} Assessment (${new Date(assessment.date).toLocaleDateString()})**
@@ -345,17 +433,13 @@ ${assessment.bodySystems ? `• Top Body Systems: ${Object.entries(assessment.bo
 ${assessment.priorityActions ? `• Priority Actions: ${assessment.priorityActions.slice(0, 2).join(', ')}` : ''}
 `).join('\n') : 'No assessments available'}
 
-### From Consultation Notes
+### 2. SUPPORTING DATA - Clinical Notes
+*These observations help verify and contextualize the lab findings:*
+
 ${clientData.sessionNotes?.filter((n: any) => n.type === 'interview' || n.type === 'coaching_call').slice(0, 2).map((note: any) => `
 **${note.type === 'interview' ? 'Initial Interview' : 'Coaching Call'} (${new Date(note.createdAt).toLocaleDateString()})**
-${note.content.substring(0, 150)}...
+Context: ${note.content.substring(0, 200)}...
 `).join('\n') || 'No consultation notes available'}
-
-### From Lab Results
-${clientData.labResults?.slice(0, 2).map((lab: any) => `
-**${lab.reportType} (${new Date(lab.testDate).toLocaleDateString()})**
-• Key markers analyzed: ${lab.keyMarkers?.slice(0, 3).join(', ') || 'Various biomarkers'}
-`).join('\n') || 'No lab results available'}
 
 ## INTEGRATED ANALYSIS RESULTS
 
