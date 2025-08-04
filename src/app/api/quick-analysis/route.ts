@@ -53,9 +53,12 @@ export async function POST(request: NextRequest) {
     // Initialize storage service with service role for full access
     const storageService = new SupabaseStorageService(true)
     
+    // Determine the correct bucket - files are uploaded to lab-files for assessment PDFs
+    const correctBucket = bucket === 'quick-analysis' ? 'lab-files' : bucket
+    
     // Download the file from storage
-    console.log(`[QUICK-ANALYSIS] Downloading file from bucket: ${bucket}, path: ${filePath}`)
-    const fileBuffer = await storageService.downloadFile(bucket, filePath)
+    console.log(`[QUICK-ANALYSIS] Downloading file from bucket: ${correctBucket}, path: ${filePath}`)
+    const fileBuffer = await storageService.downloadFile(correctBucket, filePath)
     
     if (!fileBuffer) {
       console.error('[QUICK-ANALYSIS] File not found in storage')

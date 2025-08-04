@@ -9,12 +9,12 @@ export interface ParsedPDF {
 
 export async function parsePDFServerless(pdfBuffer: Buffer): Promise<ParsedPDF> {
   try {
-    console.log('[PDF-PARSER-SERVERLESS] Using simplified PDF text extraction');
+    console.log('[PDF-PARSER-SERVERLESS] Using enhanced PDF text extraction');
     
     // Convert buffer to string and look for text content
     const bufferString = pdfBuffer.toString('latin1');
     
-    // Extract text between BT (Begin Text) and ET (End Text) PDF operators
+    // Method 1: Extract text between BT (Begin Text) and ET (End Text) PDF operators
     const textMatches = bufferString.match(/BT[\s\S]*?ET/g) || [];
     let extractedText = '';
     
@@ -32,26 +32,56 @@ export async function parsePDFServerless(pdfBuffer: Buffer): Promise<ParsedPDF> 
       }
     }
     
-    // If no text found with BT/ET, try alternative extraction
-    if (extractedText.length < 50) {
+    // Method 2: If no text found with BT/ET, try alternative extraction
+    if (extractedText.length < 100) {
       console.log('[PDF-PARSER-SERVERLESS] Primary extraction found little text, trying alternative method');
       
-      // Look for readable ASCII text chunks
-      const readableChunks = bufferString.match(/[\x20-\x7E\s]{20,}/g) || [];
+      // Look for readable ASCII text chunks with better filtering
+      const readableChunks = bufferString.match(/[\x20-\x7E\s]{30,}/g) || [];
       const alternativeText = readableChunks
         .filter(chunk => {
-          // Filter out binary data and PDF operators
-          return !chunk.includes('obj') && 
-                 !chunk.includes('endobj') && 
-                 !chunk.includes('stream') &&
-                 !chunk.includes('xref') &&
-                 chunk.trim().length > 10;
+          // Filter out binary data and PDF operators, but keep assessment content
+          const isPDFOperator = chunk.includes('obj') || 
+                               chunk.includes('endobj') || 
+                               chunk.includes('stream') ||
+                               chunk.includes('xref') ||
+                               chunk.includes('trailer') ||
+                               chunk.includes('startxref');
+          
+          const isAssessmentContent = chunk.includes('NAQ') || 
+                                     chunk.includes('Symptom') || 
+                                     chunk.includes('Assessment') || 
+                                     chunk.includes('Question') ||
+                                     chunk.includes('Score') ||
+                                     chunk.includes('Total');
+          
+          return !isPDFOperator && chunk.trim().length > 20 && (isAssessmentContent || chunk.length > 50);
         })
         .join(' ')
         .trim();
       
       if (alternativeText.length > extractedText.length) {
         extractedText = alternativeText;
+      }
+    }
+    
+    // Method 3: Direct text extraction for assessment documents
+    if (extractedText.length < 100) {
+      console.log('[PDF-PARSER-SERVERLESS] Trying direct text extraction for assessment documents');
+      
+      // Look for specific assessment patterns
+      const assessmentPatterns = [
+        /NAQ[\s\S]*?Assessment[\s\S]*?Report/gi,
+        /Symptom[\s\S]*?Burden[\s\S]*?Questionnaire/gi,
+        /Question[\s\S]*?\d+[\s\S]*?Answer/gi,
+        /Score[\s\S]*?\d+[\s\S]*?Total/gi
+      ];
+      
+      for (const pattern of assessmentPatterns) {
+        const matches = bufferString.match(pattern);
+        if (matches && matches.length > 0) {
+          extractedText += matches.join(' ') + ' ';
+        }
       }
     }
     
