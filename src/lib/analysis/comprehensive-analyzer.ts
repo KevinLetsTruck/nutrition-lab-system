@@ -121,13 +121,14 @@ Notes: ${note.content}
 UPLOADED DOCUMENTS:
 ${uploadedDocuments && uploadedDocuments.length > 0 ? uploadedDocuments.map(doc => {
   const hasContent = doc.extractedText && doc.extractedText.trim().length > 0;
+  const extractedText = doc.extractedText || '';
   return `
 Document: ${doc.name}
 Type: ${doc.type}
 Uploaded: ${new Date(doc.uploadedAt).toLocaleDateString()}
 ${hasContent ? `
 --- Document Content Start ---
-${doc.extractedText.substring(0, 2000)}${doc.extractedText.length > 2000 ? '...[truncated]' : ''}
+${extractedText.substring(0, 2000)}${extractedText.length > 2000 ? '...[truncated]' : ''}
 --- Document Content End ---
 ` : 'Status: No text extracted - awaiting processing'}
 `;
