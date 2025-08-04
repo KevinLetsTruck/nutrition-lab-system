@@ -192,6 +192,19 @@ export default function QuickAnalysisPage() {
             reportType: analysisData.reportType || 'nutriq',
             detailedAnalysis: nutriqAnalysis
           }
+        } else if (analysisData.reportType === 'fit_test' && analysisData.analyzedReport?.analyzedReport) {
+          // Handle FIT test results
+          const fitResult = analysisData.analyzedReport.analyzedReport
+          analysis = {
+            summary: `FIT Test Result: ${fitResult.result?.toUpperCase() || 'Unknown'}${fitResult.hemoglobinLevel ? ` (Hemoglobin: ${fitResult.hemoglobinLevel} ${fitResult.unit || ''})` : ''}`,
+            recommendations: fitResult.recommendations || ['Review the detailed findings below.'],
+            keyFindings: [
+              fitResult.clinicalSignificance || 'Test processed successfully.',
+              fitResult.followUpRequired ? '⚠️ Follow-up required' : '✓ No immediate follow-up needed'
+            ],
+            reportType: 'FIT Test',
+            detailedAnalysis: fitResult
+          }
         } else {
           // Fallback to old structure
           analysis = {
@@ -613,6 +626,101 @@ ${nutriq.followUpTests?.map((test: string) => `• ${test}`).join('\n') || 'None
                               <ul className="list-disc list-inside text-gray-300 text-sm space-y-1">
                                 {result.analysis.detailedAnalysis.followUpTests.map((test: string, index: number) => (
                                   <li key={index}>{test}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Detailed FIT Test Analysis */}
+                      {result.analysis.reportType === 'FIT Test' && result.analysis.detailedAnalysis && (
+                        <div className="border-t border-slate-600 pt-4">
+                          <h4 className="text-white font-medium mb-3">FIT Test Details</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="bg-slate-600 rounded-lg p-3">
+                              <h5 className="text-white font-medium text-sm mb-2">Test Results</h5>
+                              <div className="space-y-2">
+                                {result.analysis.detailedAnalysis.result && (
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-gray-300 text-sm">Result:</span>
+                                    <span className={`text-sm font-medium ${
+                                      result.analysis.detailedAnalysis.result === 'positive' ? 'text-red-400' : 'text-green-400'
+                                    }`}>
+                                      {result.analysis.detailedAnalysis.result.toUpperCase()}
+                                    </span>
+                                  </div>
+                                )}
+                                {result.analysis.detailedAnalysis.hemoglobinLevel && (
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-gray-300 text-sm">Hemoglobin:</span>
+                                    <span className="text-white text-sm">
+                                      {result.analysis.detailedAnalysis.hemoglobinLevel} {result.analysis.detailedAnalysis.unit || ''}
+                                    </span>
+                                  </div>
+                                )}
+                                {result.analysis.detailedAnalysis.referenceRange && (
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-gray-300 text-sm">Reference:</span>
+                                    <span className="text-white text-sm">{result.analysis.detailedAnalysis.referenceRange}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="bg-slate-600 rounded-lg p-3">
+                              <h5 className="text-white font-medium text-sm mb-2">Test Information</h5>
+                              <div className="space-y-2">
+                                {result.analysis.detailedAnalysis.collectionDate && (
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-gray-300 text-sm">Collection Date:</span>
+                                    <span className="text-white text-sm">{result.analysis.detailedAnalysis.collectionDate}</span>
+                                  </div>
+                                )}
+                                {result.analysis.detailedAnalysis.processingDate && (
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-gray-300 text-sm">Processing Date:</span>
+                                    <span className="text-white text-sm">{result.analysis.detailedAnalysis.processingDate}</span>
+                                  </div>
+                                )}
+                                {result.analysis.detailedAnalysis.labName && (
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-gray-300 text-sm">Laboratory:</span>
+                                    <span className="text-white text-sm">{result.analysis.detailedAnalysis.labName}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {result.analysis.detailedAnalysis.followUpInstructions && result.analysis.detailedAnalysis.followUpInstructions.length > 0 && (
+                            <div className="mt-4">
+                              <h5 className="text-white font-medium mb-2">Follow-up Instructions</h5>
+                              <ul className="list-disc list-inside text-yellow-300 text-sm space-y-1">
+                                {result.analysis.detailedAnalysis.followUpInstructions.map((instruction: string, index: number) => (
+                                  <li key={index}>{instruction}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {result.analysis.detailedAnalysis.riskFactors && result.analysis.detailedAnalysis.riskFactors.length > 0 && (
+                            <div className="mt-4">
+                              <h5 className="text-white font-medium mb-2">Risk Factors</h5>
+                              <ul className="list-disc list-inside text-orange-300 text-sm space-y-1">
+                                {result.analysis.detailedAnalysis.riskFactors.map((factor: string, index: number) => (
+                                  <li key={index}>{factor}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {result.analysis.detailedAnalysis.nextSteps && result.analysis.detailedAnalysis.nextSteps.length > 0 && (
+                            <div className="mt-4">
+                              <h5 className="text-white font-medium mb-2">Next Steps</h5>
+                              <ul className="list-disc list-inside text-blue-300 text-sm space-y-1">
+                                {result.analysis.detailedAnalysis.nextSteps.map((step: string, index: number) => (
+                                  <li key={index}>{step}</li>
                                 ))}
                               </ul>
                             </div>

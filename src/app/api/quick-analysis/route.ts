@@ -7,6 +7,8 @@ import ClaudeClient from '@/lib/claude-client'
 import PDFLabParser from '@/lib/lab-analyzers/pdf-parser'
 import { supabase } from '@/lib/supabase'
 import { PDFRepairUtility } from '@/lib/pdf-repair-utility'
+import MedicalTerminologyProcessor from '@/lib/document-processors/medical-terminology-processor'
+import { DocumentVersionService } from '@/lib/services/document-version-service'
 
 // Helper function to save analysis results to database
 async function saveQuickAnalysisToDatabase(analysisResult: any, fileName: string, filePath: string) {
@@ -125,10 +127,26 @@ export async function POST(request: NextRequest) {
           const masterAnalysisResult = await masterAnalyzer.analyzeReport(textBuffer, fileName)
           console.log('[QUICK-ANALYSIS] Analysis completed with type:', masterAnalysisResult.reportType)
           
+          // Phase 1 Enhancement: Apply medical terminology processing
+          console.log('[QUICK-ANALYSIS] Applying medical terminology enhancements...')
+          const enhancedText = await MedicalTerminologyProcessor.enhanceOCRResults(
+            extractedContent.text,
+            masterAnalysisResult.reportType
+          )
+          
+          // Store both original and enhanced text
+          const enhancedExtractedContent = {
+            ...extractedContent,
+            enhancedText: enhancedText.enhancedText,
+            medicalTerms: enhancedText.medicalTerms,
+            corrections: enhancedText.corrections,
+            ocrConfidence: enhancedText.overallConfidence
+          }
+          
           analysisResult = {
             success: true,
             reportType: masterAnalysisResult.reportType,
-            extractedData: extractedContent,
+            extractedData: enhancedExtractedContent,
             analyzedReport: masterAnalysisResult,
             extractionMethod: 'textract',
             processingTime: Date.now() - startTime
@@ -136,6 +154,22 @@ export async function POST(request: NextRequest) {
           
           // Save analysis results to database
           await saveQuickAnalysisToDatabase(analysisResult, fileName, filePath);
+          
+          // Phase 1 Enhancement: Create document version
+          try {
+            const versionService = DocumentVersionService.getInstance()
+            await versionService.processDocumentUpload(
+              'quick-analysis', // Using a generic client ID for quick analysis
+              fileName,
+              masterAnalysisResult.reportType,
+              enhancedExtractedContent,
+              { medicalTermsEnhanced: true }
+            )
+            console.log('[QUICK-ANALYSIS] Document version created')
+          } catch (versionError) {
+            console.error('[QUICK-ANALYSIS] Failed to create document version:', versionError)
+            // Don't fail the analysis if versioning fails
+          }
         } catch (analyzerError) {
           console.error('[QUICK-ANALYSIS] MasterAnalyzer failed:', analyzerError)
           throw new Error(`Analysis failed: ${analyzerError instanceof Error ? analyzerError.message : 'Unknown error'}`)
