@@ -456,13 +456,14 @@ ${cause.explanation}
 ${Object.entries(analysis.systemsPriority)
   .sort(([,a], [,b]) => (b as number) - (a as number))
   .slice(0, 5)
-  .map(([system, score]) => 
-    `• **${system.charAt(0).toUpperCase() + system.slice(1)}:** ${score}/10 ${
-      score >= 8 ? '(High Priority)' : 
-      score >= 5 ? '(Moderate Priority)' : 
+  .map(([system, score]) => {
+    const scoreNum = score as number;
+    return `• **${system.charAt(0).toUpperCase() + system.slice(1)}:** ${scoreNum}/10 ${
+      scoreNum >= 8 ? '(High Priority)' : 
+      scoreNum >= 5 ? '(Moderate Priority)' : 
       '(Low Priority)'
-    }`
-  ).join('\n')}
+    }`;
+  }).join('\n')}
 
 ## YOUR ACTION PLAN
 We've created a 3-phase approach to help you achieve your health goals:
