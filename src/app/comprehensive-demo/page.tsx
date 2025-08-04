@@ -472,7 +472,7 @@ export default function ComprehensiveDemoPage() {
                   <div>
                     <div className="flex justify-between mb-2">
                       <span>Processing Speed</span>
-                      <span className="font-semibold">< 2 minutes</span>
+                      <span className="font-semibold">&lt; 2 minutes</span>
                     </div>
                     <Progress value={95} />
                   </div>

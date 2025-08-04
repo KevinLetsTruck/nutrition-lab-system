@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { UnifiedAnalysisOrchestrator } from '@/lib/analysis/unified-analysis-orchestrator'
 import { supabase } from '@/lib/supabase'
-import * as db from '@/lib/db'
+import * as db from '@/lib/database-service'
 
 export async function POST(request: NextRequest) {
   console.log('[ANALYZE-UNIFIED] Starting unified analysis endpoint')
