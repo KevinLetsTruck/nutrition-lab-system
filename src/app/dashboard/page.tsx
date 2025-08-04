@@ -63,6 +63,11 @@ export default function Dashboard() {
     }
 
     if (user) {
+      // Redirect admin users directly to clients
+      if (user.role === 'admin') {
+        router.push('/clients')
+        return
+      }
       fetchDashboardData()
     }
   }, [user, authLoading, router])
