@@ -136,6 +136,72 @@ ${clientData.labResults?.length > 0 ? clientData.labResults.map((lab: any) => {
   const validDate = dateStr && !isNaN(new Date(dateStr).getTime());
   const results = lab.results || {};
   
+  // Special handling for NutriQ reports
+  if (lab.reportType.toLowerCase() === 'nutriq') {
+    let nutriqAnalysis = `**NUTRIQ ASSESSMENT - ${validDate ? new Date(dateStr).toLocaleDateString() : 'Assessment Date Not Recorded'}**\n\n`;
+    
+    // Get NutriQ-specific data from assessments
+    const nutriqAssessment = clientData.assessmentHistory?.find((a: any) => 
+      a.type === 'nutriq' && a.id === lab.id
+    );
+    
+    if (nutriqAssessment || results.bodySystems || results.totalScore) {
+      // Total Symptom Score
+      const totalScore = nutriqAssessment?.totalScore || results.totalScore;
+      if (totalScore) {
+        nutriqAnalysis += `📊 **TOTAL SYMPTOM BURDEN SCORE: ${totalScore}**\n`;
+        nutriqAnalysis += `${totalScore > 100 ? '⚠️ SEVERE' : totalScore > 75 ? '⚠️ HIGH' : totalScore > 50 ? '⚡ MODERATE' : '✓ LOW'} symptom burden\n\n`;
+      }
+      
+      // Body Systems Analysis from NAQ
+      nutriqAnalysis += `**NAQ BODY SYSTEM ANALYSIS:**\n`;
+      const bodySystems = nutriqAssessment?.bodySystems || results.bodySystems;
+      if (bodySystems) {
+        Object.entries(bodySystems)
+          .sort(([,a], [,b]) => (b as number) - (a as number))
+          .forEach(([system, score]) => {
+            const scoreNum = typeof score === 'number' ? score : 0;
+            nutriqAnalysis += `• ${system}: ${score}/30 `;
+            nutriqAnalysis += `${scoreNum > 20 ? '⚠️ SEVERE DYSFUNCTION' : scoreNum > 15 ? '⚠️ HIGH' : scoreNum > 10 ? '⚡ MODERATE' : '✓ MILD'}\n`;
+          });
+      } else {
+        nutriqAnalysis += `• Body system scores not available - check PDF analysis\n`;
+      }
+      nutriqAnalysis += `\n`;
+      
+      // Priority Actions
+      const priorityActions = nutriqAssessment?.priorityActions || results.priorityActions;
+      if (priorityActions && priorityActions.length > 0) {
+        nutriqAnalysis += `**PRIORITY INTERVENTIONS:**\n`;
+        priorityActions.forEach((action: string) => {
+          nutriqAnalysis += `🎯 ${action}\n`;
+        });
+        nutriqAnalysis += `\n`;
+      }
+      
+      // Clinical Recommendations
+      const recommendations = nutriqAssessment?.recommendations || results.overallRecommendations;
+      if (recommendations && recommendations.length > 0) {
+        nutriqAnalysis += `**CLINICAL RECOMMENDATIONS:**\n`;
+        recommendations.slice(0, 4).forEach((rec: string) => {
+          nutriqAnalysis += `• ${rec}\n`;
+        });
+        nutriqAnalysis += `\n`;
+      }
+      
+      // Additional NutriQ insights
+      if (results.nutriqAnalysis) {
+        nutriqAnalysis += `**ADDITIONAL CLINICAL INSIGHTS:**\n`;
+        nutriqAnalysis += `${JSON.stringify(results.nutriqAnalysis, null, 2).substring(0, 500)}...\n`;
+      }
+    } else {
+      nutriqAnalysis += `⚠️ NutriQ data extraction in progress. If this persists, please re-upload the PDF.\n`;
+    }
+    
+    return nutriqAnalysis;
+  }
+  
+  // Standard handling for other lab types
   let detailedAnalysis = `**${lab.reportType.toUpperCase()} - ${validDate ? new Date(dateStr).toLocaleDateString() : 'Date not recorded'}**\n`;
   
   if (results.bodySystems) {
@@ -149,33 +215,40 @@ ${clientData.labResults?.length > 0 ? clientData.labResults.map((lab: any) => {
   }
   
   if (results.totalScore) {
-    detailedAnalysis += `Total Symptom Burden: ${results.totalScore}\n`;
+    detailedAnalysis += `Total Score: ${results.totalScore}\n`;
   }
   
   if (results.priorityActions && results.priorityActions.length > 0) {
-    detailedAnalysis += `Priority Actions Identified:\n`;
+    detailedAnalysis += `Priority Actions:\n`;
     results.priorityActions.forEach((action: string) => {
       detailedAnalysis += `  • ${action}\n`;
     });
   }
   
   if (results.overallRecommendations && results.overallRecommendations.length > 0) {
-    detailedAnalysis += `Clinical Recommendations:\n`;
+    detailedAnalysis += `Recommendations:\n`;
     results.overallRecommendations.slice(0, 3).forEach((rec: string) => {
       detailedAnalysis += `  • ${rec}\n`;
     });
   }
   
   return detailedAnalysis;
-}).join('\n') : 'No laboratory results available'}
+}).join('\n\n') : 'No laboratory results available'}
 
 #### Clinical Assessments
-${clientData.assessmentHistory?.map((assessment: any) => `
+${clientData.assessmentHistory?.map((assessment: any) => {
+  // Skip if this is a nutriq assessment that was already shown in lab results
+  if (assessment.type === 'nutriq' && clientData.labResults?.some((lab: any) => lab.id === assessment.id)) {
+    return '';
+  }
+  
+  return `
 **${assessment.type.toUpperCase()} Assessment - ${new Date(assessment.date).toLocaleDateString()}**
 - Total Score: ${assessment.totalScore || 'N/A'}
-- Body Systems: ${assessment.bodySystems ? Object.entries(assessment.bodySystems).map(([s, v]) => `${s} (${v})`).join(', ') : 'N/A'}
+- Body Systems: ${assessment.bodySystems ? Object.entries(assessment.bodySystems).slice(0, 5).map(([s, v]) => `${s} (${v})`).join(', ') : 'N/A'}
 - Priority Focus: ${assessment.priorityActions ? assessment.priorityActions[0] : 'General optimization'}
-`).join('\n') || 'No formal assessments completed'}
+`;
+}).filter(Boolean).join('\n') || 'No additional assessments completed'}
 
 ### TIER 2: Clinical Observations (Supporting Evidence)
 *Practitioner notes that contextualize and verify lab findings:*
@@ -394,7 +467,38 @@ ${clientData.labResults?.length > 0 ? clientData.labResults.slice(0, 3).map((lab
   const formattedDate = dateStr ? new Date(dateStr).toLocaleDateString() : 'Date not available';
   const validDate = !isNaN(new Date(dateStr).getTime());
   
-  // Extract key findings from the analysis results
+  // Special simplified display for NutriQ in client summary
+  if (lab.reportType.toLowerCase() === 'nutriq') {
+    const nutriqAssessment = clientData.assessmentHistory?.find((a: any) => 
+      a.type === 'nutriq' && a.id === lab.id
+    );
+    const results = lab.results || {};
+    const totalScore = nutriqAssessment?.totalScore || results.totalScore;
+    const bodySystems = nutriqAssessment?.bodySystems || results.bodySystems;
+    
+    let summary = `**NUTRIQ Assessment (${validDate ? formattedDate : 'Date not recorded'})**\n`;
+    
+    if (totalScore) {
+      summary += `• Total Symptom Burden: ${totalScore} ${totalScore > 100 ? '⚠️' : totalScore > 75 ? '⚠️' : totalScore > 50 ? '⚡' : '✓'}\n`;
+    }
+    
+    if (bodySystems) {
+      const topSystems = Object.entries(bodySystems)
+        .sort(([,a], [,b]) => (b as number) - (a as number))
+        .slice(0, 3)
+        .map(([system, score]) => `${system}: ${score}/30`);
+      summary += `• Top affected systems: ${topSystems.join(', ')}\n`;
+    }
+    
+    const priorityActions = nutriqAssessment?.priorityActions || results.priorityActions;
+    if (priorityActions && priorityActions.length > 0) {
+      summary += `• Priority focus: ${priorityActions[0]}\n`;
+    }
+    
+    return summary;
+  }
+  
+  // Standard handling for other lab types
   const results = lab.results || {};
   const keyFindings = [];
   
@@ -407,7 +511,7 @@ ${clientData.labResults?.length > 0 ? clientData.labResults.slice(0, 3).map((lab
   }
   
   if (results.totalScore) {
-    keyFindings.push(`Total symptom score: ${results.totalScore}`);
+    keyFindings.push(`Total score: ${results.totalScore}`);
   }
   
   if (results.keyMarkers) {
@@ -415,7 +519,7 @@ ${clientData.labResults?.length > 0 ? clientData.labResults.slice(0, 3).map((lab
   }
   
   if (results.priorityActions && results.priorityActions.length > 0) {
-    keyFindings.push(`Priority actions: ${results.priorityActions.slice(0, 2).join(', ')}`);
+    keyFindings.push(`Priority: ${results.priorityActions[0]}`);
   }
   
   return `
@@ -426,12 +530,17 @@ ${results.overallRecommendations ? `• Key recommendation: ${results.overallRec
 
 #### Health Assessments
 ${clientData.assessmentHistory?.length > 0 ? 
-  clientData.assessmentHistory.slice(0, 2).map((assessment: any) => `
+  clientData.assessmentHistory.filter((a: any) => {
+    // Don't duplicate NutriQ assessments that are already shown in lab results
+    return !(a.type === 'nutriq' && clientData.labResults?.some((lab: any) => 
+      lab.reportType.toLowerCase() === 'nutriq' && lab.id === a.id
+    ));
+  }).slice(0, 2).map((assessment: any) => `
 **${assessment.type.toUpperCase()} Assessment (${new Date(assessment.date).toLocaleDateString()})**
 ${assessment.totalScore ? `• Symptom Burden Score: ${assessment.totalScore}` : ''}
 ${assessment.bodySystems ? `• Top Body Systems: ${Object.entries(assessment.bodySystems).slice(0, 3).map(([system, score]) => `${system} (${score})`).join(', ')}` : ''}
 ${assessment.priorityActions ? `• Priority Actions: ${assessment.priorityActions.slice(0, 2).join(', ')}` : ''}
-`).join('\n') : 'No assessments available'}
+`).join('\n') || 'No additional assessments' : 'No assessments available'}
 
 ### 2. SUPPORTING DATA - Clinical Notes
 *These observations help verify and contextualize the lab findings:*

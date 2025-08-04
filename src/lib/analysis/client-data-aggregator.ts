@@ -304,14 +304,23 @@ export class ClientDataAggregator {
 
     if (!nutriqError && nutriqResults) {
       for (const result of nutriqResults) {
+        // Try to get a valid date
+        let assessmentDate = result.created_at;
+        if (result.lab_reports?.report_date) {
+          const reportDate = new Date(result.lab_reports.report_date);
+          if (!isNaN(reportDate.getTime())) {
+            assessmentDate = result.lab_reports.report_date;
+          }
+        }
+        
         assessments.push({
           id: result.id,
           type: 'nutriq',
-          date: result.lab_reports.report_date || result.created_at,
+          date: assessmentDate,
           totalScore: result.total_score,
-          bodySystems: result.lab_reports.analysis_results?.bodySystems,
-          recommendations: result.lab_reports.analysis_results?.overallRecommendations,
-          priorityActions: result.lab_reports.analysis_results?.priorityActions
+          bodySystems: result.lab_reports.analysis_results?.bodySystems || result.body_systems,
+          recommendations: result.lab_reports.analysis_results?.overallRecommendations || result.recommendations,
+          priorityActions: result.lab_reports.analysis_results?.priorityActions || result.lab_reports.analysis_results?.priority_actions
         });
       }
     }
@@ -437,22 +446,53 @@ export class ClientDataAggregator {
   private async getAllLabResults(clientId: string): Promise<LabResult[]> {
     const { data: labReports, error } = await supabase
       .from('lab_reports')
-      .select('*')
+      .select(`
+        *,
+        nutriq_results (
+          total_score,
+          body_systems,
+          symptom_data,
+          recommendations,
+          ai_analysis
+        )
+      `)
       .eq('client_id', clientId)
-      .order('report_date', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) {
       throw new Error(`Failed to fetch lab results: ${error.message}`);
     }
 
-    return labReports.map(report => ({
-      id: report.id,
-      reportType: report.report_type,
-      reportDate: report.report_date,
-      status: report.status,
-      results: report.analysis_results || {},
-      notes: report.notes
-    }));
+    return labReports.map(report => {
+      // For NutriQ reports, also include nutriq_results data
+      let results = report.analysis_results || {};
+      
+      // Check if this is a NutriQ report and merge additional data
+      if (report.report_type?.toLowerCase() === 'nutriq' && report.nutriq_results) {
+        // nutriq_results is an array, get the first item
+        const nutriqData = Array.isArray(report.nutriq_results) ? report.nutriq_results[0] : report.nutriq_results;
+        if (nutriqData) {
+          results = {
+            ...results,
+            bodySystems: results.bodySystems || nutriqData.body_systems,
+            totalScore: results.totalScore || nutriqData.total_score,
+            nutriqAnalysis: nutriqData.ai_analysis,
+            recommendations: results.overallRecommendations || nutriqData.recommendations,
+            priorityActions: results.priorityActions || results.priority_actions,
+            symptomData: nutriqData.symptom_data
+          };
+        }
+      }
+      
+      return {
+        id: report.id,
+        reportType: report.report_type,
+        reportDate: report.report_date,
+        status: report.status,
+        results: results,
+        notes: report.notes
+      };
+    });
   }
 
   private async getAllProtocols(clientId: string): Promise<Protocol[]> {
