@@ -1,6 +1,6 @@
 import { UnifiedAnalysisOrchestrator } from '../analysis/unified-analysis-orchestrator'
 import { supabase } from '../supabase'
-import * as db from '../db'
+// Database operations handled through supabase directly
 
 export interface WorkflowConfig {
   autoSelectPrompts: boolean

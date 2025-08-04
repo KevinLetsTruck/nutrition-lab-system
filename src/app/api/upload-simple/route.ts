@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase'
+import { createServerSupabaseClient, db } from '@/lib/supabase'
 import DatabaseService from '@/lib/database-service'
 import MasterAnalyzer from '@/lib/lab-analyzers/master-analyzer'
 import pdf from 'pdf-parse'
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     
     // Step 1: Get or create client
     const supabase = createServerSupabaseClient()
-    const db = DatabaseService.getInstance()
+    const dbService = DatabaseService.getInstance()
     
     let clientId: string
     
