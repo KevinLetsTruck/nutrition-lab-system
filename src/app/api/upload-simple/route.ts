@@ -152,9 +152,9 @@ export async function POST(request: NextRequest) {
       
       // Update report with analysis results
       await db.updateLabReport(labReport.id, {
-        report_type: analysisResult.reportType,
         analysis_results: analysisResult.parsedData,
-        status: 'completed'
+        status: 'completed',
+        notes: `Analysis completed for ${analysisResult.reportType} report`
       })
       
       // Store type-specific results
