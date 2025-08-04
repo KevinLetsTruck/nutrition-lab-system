@@ -41,6 +41,7 @@ export class ComprehensiveAnalyzer {
       executiveSummary: analysis.executiveSummary,
       rootCauseAnalysis: analysis.rootCauses,
       systemsPriority: analysis.systemsPriority,
+      systemsPriorityRationale: analysis.systemsPriorityRationale,
       progressComparison: progressComparison,
       supplementProtocol: supplements,
       treatmentPhases: protocols,
@@ -153,6 +154,11 @@ Please provide a comprehensive functional medicine analysis following the exact 
 
 3. **SYSTEMS PRIORITY ASSESSMENT**
 - Rank body systems by dysfunction severity (0-10 scale)
+- IMPORTANT: Base scores on actual assessment data when available:
+  - If NAQ/NutriQ body system scores exist, use them as foundation
+  - Convert NAQ scores (typically 0-30+ range) to 0-10 scale proportionally
+  - Integrate lab markers, clinical notes, and symptom patterns
+  - Clearly explain your scoring rationale for each system
 - Identify which systems to address first and why
 - Explain the functional medicine approach to prioritization
 - Consider the gut-brain-hormone axis connections
@@ -227,6 +233,16 @@ Format as structured JSON for parsing with the following structure:
     "detoxification": 3,
     "reproductive": 9,
     "adrenal": 7
+  },
+  "systemsPriorityRationale": {
+    "digestive": "Score based on NAQ digestive score of 25/30 (83%), plus GERD symptoms",
+    "immune": "Elevated based on frequent infections noted in clinical history",
+    "endocrine": "NAQ hormonal score 18/30, plus irregular cycles reported",
+    "nervous": "Moderate anxiety and sleep issues documented",
+    "cardiovascular": "No major concerns, baseline functional support needed",
+    "detoxification": "Mild symptoms, no urgent concerns",
+    "reproductive": "High priority due to PCOS diagnosis and fertility goals",
+    "adrenal": "Stress patterns and energy crashes indicate dysfunction"
   },
   "treatmentPhases": {
     "phase1": {

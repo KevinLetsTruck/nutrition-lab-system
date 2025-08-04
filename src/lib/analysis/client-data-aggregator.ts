@@ -74,6 +74,7 @@ export interface ComprehensiveAnalysis {
   executiveSummary: ExecutiveSummary
   rootCauseAnalysis: RootCause[]
   systemsPriority: Record<string, number>
+  systemsPriorityRationale?: Record<string, string>
   progressComparison?: ProgressComparison
   supplementProtocol: SupplementProtocol
   treatmentPhases: TreatmentPhases
