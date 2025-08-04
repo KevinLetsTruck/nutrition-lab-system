@@ -69,7 +69,6 @@ export default function ProtocolsPage() {
 
       if (response.ok) {
         setProtocols(prev => prev.filter(protocol => protocol.id !== protocolId))
-        alert('Protocol deleted successfully')
       } else {
         const error = await response.json()
         alert(`Failed to delete protocol: ${error.error}`)

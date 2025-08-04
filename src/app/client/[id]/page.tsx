@@ -502,7 +502,6 @@ export default function ClientDashboard() {
       })
 
       if (response.ok) {
-        alert('Note deleted successfully!')
         loadClientData() // Refresh the data
       } else {
         const error = await response.json()
@@ -525,7 +524,6 @@ export default function ClientDashboard() {
       })
 
       if (response.ok) {
-        alert('Document deleted successfully!')
         loadClientData() // Refresh the data
       } else {
         const error = await response.json()
@@ -548,7 +546,6 @@ export default function ClientDashboard() {
       })
 
       if (response.ok) {
-        alert('Protocol deleted successfully!')
         loadClientData() // Refresh the data
       } else {
         const error = await response.json()

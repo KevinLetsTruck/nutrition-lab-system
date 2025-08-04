@@ -120,7 +120,6 @@ function NotesContent() {
 
       if (response.ok) {
         setNotes(prev => prev.filter(note => note.id !== noteId))
-        alert('Note deleted successfully')
       } else {
         const error = await response.json()
         alert(`Failed to delete note: ${error.error}`)
