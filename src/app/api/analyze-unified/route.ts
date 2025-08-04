@@ -1,7 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { UnifiedAnalysisOrchestrator } from '@/lib/analysis/unified-analysis-orchestrator'
 import { supabase } from '@/lib/supabase'
-import { createLabReport, updateLabReport } from '@/database/queries/lab-reports'
+
+// Database helper functions
+async function createLabReport(data: any) {
+  const { data: report, error } = await supabase
+    .from('lab_reports')
+    .insert(data)
+    .select()
+    .single()
+  
+  if (error) throw error
+  return report
+}
+
+async function updateLabReport(id: string, updates: any) {
+  const { data, error } = await supabase
+    .from('lab_reports')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+  
+  if (error) throw error
+  return data
+}
 
 export async function POST(request: NextRequest) {
   console.log('[ANALYZE-UNIFIED] Starting unified analysis endpoint')
