@@ -79,10 +79,15 @@ export async function POST(request: NextRequest) {
       
       try {
         // Use Textract for better accuracy with scanned PDFs
+        console.log('[QUICK-ANALYSIS] Creating TextractProcessor...')
         const textractProcessor = new TextractProcessor()
+        console.log('[QUICK-ANALYSIS] TextractProcessor created, starting extraction...')
+        
         const extractedContent = await textractProcessor.extractFromDocument(fileBuffer)
         
         console.log('[QUICK-ANALYSIS] Textract extraction complete, text length:', extractedContent.text.length)
+        console.log('[QUICK-ANALYSIS] Textract confidence:', extractedContent.confidence)
+        console.log('[QUICK-ANALYSIS] Textract pages:', extractedContent.pageCount)
         
         // Use MasterAnalyzer for enhanced document classification and analysis
         const masterAnalyzer = MasterAnalyzer.getInstance()
@@ -109,6 +114,8 @@ export async function POST(request: NextRequest) {
         }
       } catch (textractError) {
         console.error('[QUICK-ANALYSIS] Textract processing failed:', textractError)
+        console.error('[QUICK-ANALYSIS] Textract error details:', textractError instanceof Error ? textractError.message : 'Unknown error')
+        console.error('[QUICK-ANALYSIS] Textract error stack:', textractError instanceof Error ? textractError.stack : 'No stack trace')
         // Fall back to standard processing
         hasTextract && console.log('[QUICK-ANALYSIS] Falling back to standard processing')
       }
