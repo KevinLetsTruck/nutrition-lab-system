@@ -99,9 +99,8 @@ export async function POST(request: NextRequest) {
       report_type: 'nutriq', // Default to nutriq, will be updated after analysis
       report_date: new Date().toISOString().split('T')[0],
       file_path: filePath,
-      file_name: file.name,
       file_size: file.size,
-      status: 'processing'
+      notes: `Processing ${file.name}`
     })
     
     console.log('[UPLOAD-SIMPLE] Created lab report:', labReport.id)
