@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, db } from '@/lib/supabase'
 import DatabaseService from '@/lib/database-service'
 import MasterAnalyzer from '@/lib/lab-analyzers/master-analyzer'
-import pdf from 'pdf-parse'
 
 /**
  * Simplified upload endpoint that works without AWS Textract
@@ -111,6 +110,8 @@ export async function POST(request: NextRequest) {
     
     try {
       console.log('[UPLOAD-SIMPLE] Attempting text extraction with pdf-parse...')
+      // Dynamic import to avoid build issues
+      const pdf = (await import('pdf-parse')).default
       const pdfData = await pdf(fileBuffer)
       extractedText = pdfData.text
       extractionMethod = 'pdf-parse'
