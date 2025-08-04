@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 import { SupabaseStorageService } from '@/lib/supabase-storage'
 import MasterAnalyzer from '@/lib/lab-analyzers/master-analyzer'
 import { TextractProcessor } from '@/lib/document-processors/textract-processor'
@@ -10,7 +11,13 @@ import { PDFRepairUtility } from '@/lib/pdf-repair-utility'
 // Helper function to save analysis results to database
 async function saveQuickAnalysisToDatabase(analysisResult: any, fileName: string, filePath: string) {
   try {
-    const { data, error } = await supabase
+    // Create a new Supabase client with service role for bypassing RLS
+    const serviceSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { data, error } = await serviceSupabase
       .from('quick_analyses')
       .insert({
         file_name: fileName,
@@ -222,14 +229,67 @@ export async function POST(request: NextRequest) {
             reportType = 'lab_report'
           }
           
-          const fallbackAnalysis = {
-            reportType: reportType as any,
-            extractedText: `Document: ${fileName}\nStatus: Processed with fallback analysis\nNote: PDF parsing failed, but document was received.`,
-            confidence: 0.3,
-            analysis: {
-              summary: `Document ${fileName} was received but could not be fully analyzed due to PDF format issues.`,
-              findings: 'Document requires manual review or re-upload in a different format.',
-              recommendations: 'Consider re-uploading the document in a different format or using a different PDF.'
+          // Create more meaningful fallback analysis based on document type
+          let fallbackAnalysis: any
+          
+          if (reportType === 'fit_test') {
+            fallbackAnalysis = {
+              reportType: 'fit_test',
+              testType: 'FIT',
+              result: 'pending_review',
+              extractedText: `FIT Test Document: ${fileName}\nStatus: Document received, requires manual review\nNote: PDF format prevents automated analysis.`,
+              confidence: 0.3,
+              clinicalSignificance: 'FIT test document received but requires manual review due to PDF format limitations.',
+              recommendations: [
+                'Manual review of FIT test results required',
+                'Consider re-uploading in a different format',
+                'Contact lab for digital results if available'
+              ],
+              followUpRequired: true,
+              followUpInstructions: [
+                'Review FIT test results manually',
+                'Document findings in patient record',
+                'Schedule follow-up if results are positive'
+              ],
+              analysis: {
+                summary: `FIT test document (${fileName}) received successfully. Document requires manual review due to PDF format issues.`,
+                findings: 'FIT test document is present but automated analysis failed due to PDF format.',
+                recommendations: 'Manual review required. Consider requesting digital results from lab.'
+              }
+            }
+          } else if (reportType === 'nutriq') {
+            fallbackAnalysis = {
+              reportType: 'nutriq',
+              totalScore: 0,
+              extractedText: `NutriQ Assessment: ${fileName}\nStatus: Document received, requires manual review\nNote: PDF format prevents automated analysis.`,
+              confidence: 0.3,
+              bodySystems: {
+                energy: { score: 0, issues: ['Manual review required'], recommendations: ['Complete manual assessment'] },
+                mood: { score: 0, issues: ['Manual review required'], recommendations: ['Complete manual assessment'] },
+                sleep: { score: 0, issues: ['Manual review required'], recommendations: ['Complete manual assessment'] },
+                stress: { score: 0, issues: ['Manual review required'], recommendations: ['Complete manual assessment'] },
+                digestion: { score: 0, issues: ['Manual review required'], recommendations: ['Complete manual assessment'] },
+                immunity: { score: 0, issues: ['Manual review required'], recommendations: ['Complete manual assessment'] }
+              },
+              overallRecommendations: ['Manual review of NutriQ assessment required'],
+              priorityActions: ['Complete manual assessment'],
+              followUpTests: ['Re-upload in different format if possible'],
+              analysis: {
+                summary: `NutriQ assessment document (${fileName}) received successfully. Document requires manual review due to PDF format issues.`,
+                findings: 'NutriQ assessment is present but automated analysis failed due to PDF format.',
+                recommendations: 'Manual review required. Consider re-uploading in a different format.'
+              }
+            }
+          } else {
+            fallbackAnalysis = {
+              reportType: reportType as any,
+              extractedText: `Document: ${fileName}\nStatus: Processed with fallback analysis\nNote: PDF parsing failed, but document was received.`,
+              confidence: 0.3,
+              analysis: {
+                summary: `Document ${fileName} was received but could not be fully analyzed due to PDF format issues.`,
+                findings: 'Document requires manual review or re-upload in a different format.',
+                recommendations: 'Consider re-uploading the document in a different format or using a different PDF.'
+              }
             }
           }
           
