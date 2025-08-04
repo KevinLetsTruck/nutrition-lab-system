@@ -1,4 +1,6 @@
 import { RobustPDFProcessor } from '../document-processors/robust-pdf-processor'
+import { IntelligentDocumentClassifier } from '../document-processors/intelligent-document-classifier'
+import { TruckDriverFunctionalAnalyzer } from './truck-driver-functional-analyzer'
 import ClaudeClient from '../claude-client'
 import { ClientDataAggregator } from './client-data-aggregator'
 import { ComprehensiveAnalyzer } from './comprehensive-analyzer'
@@ -27,6 +29,8 @@ export interface UnifiedAnalysisResult {
 
 export class UnifiedAnalysisOrchestrator {
   private pdfProcessor: RobustPDFProcessor
+  private documentClassifier: IntelligentDocumentClassifier
+  private functionalAnalyzer: TruckDriverFunctionalAnalyzer
   private claudeClient: ClaudeClient
   private dataAggregator: ClientDataAggregator
   private comprehensiveAnalyzer: ComprehensiveAnalyzer
@@ -34,6 +38,8 @@ export class UnifiedAnalysisOrchestrator {
 
   constructor() {
     this.pdfProcessor = new RobustPDFProcessor()
+    this.documentClassifier = new IntelligentDocumentClassifier()
+    this.functionalAnalyzer = new TruckDriverFunctionalAnalyzer()
     this.claudeClient = new ClaudeClient()
     this.dataAggregator = new ClientDataAggregator()
     this.comprehensiveAnalyzer = new ComprehensiveAnalyzer()
@@ -67,9 +73,21 @@ export class UnifiedAnalysisOrchestrator {
           extractedText = processed.text
           warnings.push(...processed.metadata.warnings)
           
-          // Classify document
-          documentType = await this.pdfProcessor.classifyDocument(extractedText)
-          console.log('[ORCHESTRATOR] Document classified as:', documentType)
+          // Classify document using intelligent classifier
+          const classification = await this.documentClassifier.classifyDocument(extractedText)
+          
+          // Enhance classification with additional context
+          const enhancedClassification = await this.documentClassifier.enhanceClassification(
+            classification,
+            {
+              fileName: request.metadata?.fileName,
+              fileSize: request.metadata?.fileSize
+            }
+          )
+          
+          documentType = enhancedClassification.type
+          console.log('[ORCHESTRATOR] Document classified as:', documentType, 
+                     'with confidence:', enhancedClassification.confidence)
           
           // Extract structured data based on document type
           extractedData = await this.extractStructuredData(extractedText, documentType)
@@ -300,7 +318,20 @@ export class UnifiedAnalysisOrchestrator {
   }
 
   private async performFunctionalAnalysis(data: any): Promise<any> {
-    const prompt = `Analyze this health data from a functional medicine perspective:
+    try {
+      // Use the specialized truck driver functional analyzer
+      const analysis = await this.functionalAnalyzer.analyzeHealthData(
+        data.extractedData,
+        data.documentType,
+        data.clientHistory
+      )
+      
+      return analysis
+    } catch (error) {
+      console.error('[ORCHESTRATOR] Functional analysis error:', error)
+      
+      // Fallback to basic analysis if specialized analyzer fails
+      const prompt = `Analyze this health data from a functional medicine perspective:
 
 Document Type: ${data.documentType}
 Extracted Data: ${JSON.stringify(data.extractedData, null, 2)}
@@ -319,12 +350,13 @@ Focus on truck driver health considerations:
 
 Return a structured JSON response.`
 
-    try {
-      const response = await this.claudeClient.analyzeWithPrompt(prompt)
-      return JSON.parse(response)
-    } catch (error) {
-      console.error('[ORCHESTRATOR] Claude analysis error:', error)
-      throw error
+      try {
+        const response = await this.claudeClient.analyzeWithPrompt(prompt)
+        return JSON.parse(response)
+      } catch (fallbackError) {
+        console.error('[ORCHESTRATOR] Fallback analysis also failed:', fallbackError)
+        throw error // Throw original error
+      }
     }
   }
 
