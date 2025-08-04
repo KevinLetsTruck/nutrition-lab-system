@@ -1,4 +1,4 @@
-import { TextractBlock } from '@aws-sdk/client-textract'
+import { Block as TextractBlock } from '@aws-sdk/client-textract'
 
 export interface EnhancedText {
   originalText: string
@@ -24,10 +24,10 @@ export interface OCRCorrection {
 }
 
 export class MedicalTerminologyProcessor {
-  private medicalDictionary: Map<string, string[]>
-  private abbreviationExpander: Map<string, string>
-  private unitPatterns: RegExp[]
-  private labValuePatterns: RegExp[]
+  private medicalDictionary: Map<string, string[]> = new Map()
+  private abbreviationExpander: Map<string, string> = new Map()
+  private unitPatterns: RegExp[] = []
+  private labValuePatterns: RegExp[] = []
 
   constructor() {
     this.initializeDictionaries()
@@ -431,4 +431,5 @@ export class MedicalTerminologyProcessor {
 }
 
 // Export singleton instance
-export default new MedicalTerminologyProcessor()
+const medicalTerminologyProcessor = new MedicalTerminologyProcessor()
+export default medicalTerminologyProcessor

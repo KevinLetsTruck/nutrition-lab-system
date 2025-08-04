@@ -131,16 +131,18 @@ async function processBatchAsync(
           )
 
           // Step 2: Enhance with medical terminology processing if text-based
-          if (analysisResult.parsedData?.rawText) {
+          if ('rawText' in analysisResult.analyzedReport && analysisResult.analyzedReport.rawText) {
             const enhancedText = await medicalProcessor.enhanceOCRResults(
-              analysisResult.parsedData.rawText,
+              analysisResult.analyzedReport.rawText,
               analysisResult.reportType
             )
             
             // Merge enhanced text into analysis result
-            analysisResult.parsedData.enhancedText = enhancedText.enhancedText
-            analysisResult.parsedData.medicalTerms = enhancedText.medicalTerms
-            analysisResult.parsedData.ocrConfidence = enhancedText.overallConfidence
+            Object.assign(analysisResult.analyzedReport, {
+              enhancedText: enhancedText.enhancedText,
+              medicalTerms: enhancedText.medicalTerms,
+              ocrConfidence: enhancedText.overallConfidence
+            })
           }
 
           // Step 3: Store results in database
@@ -312,8 +314,7 @@ async function triggerComprehensiveAnalysis(clientId: string, results: any[]) {
 
 // Status endpoint for checking batch job progress
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { jobId?: string } }
+  request: NextRequest
 ) {
   const url = new URL(request.url)
   const jobId = url.pathname.split('/').pop()

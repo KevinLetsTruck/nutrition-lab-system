@@ -250,21 +250,35 @@ export class DocumentVersionService {
     const clinicalSignificance = this.assessClinicalSignificance(fieldChanges, versionFrom, versionTo)
 
     const comparison: Partial<VersionComparison> = {
-      document_id: documentId,
-      from_version: fromVersion,
-      to_version: toVersion,
-      field_changes: fieldChanges,
-      added_values: added,
-      removed_values: removed,
-      modified_values: modified,
-      change_summary: this.generateChangeSummary(fieldChanges),
-      clinical_significance: clinicalSignificance,
-      created_by: userId
+      documentId: documentId,
+      fromVersion: fromVersion,
+      toVersion: toVersion,
+      fieldChanges: fieldChanges,
+      addedValues: added,
+      removedValues: removed,
+      modifiedValues: modified,
+      changeSummary: this.generateChangeSummary(fieldChanges),
+      clinicalSignificance: clinicalSignificance,
+      createdBy: userId
+    }
+
+    // Convert to snake_case for database
+    const dbComparison = {
+      document_id: comparison.documentId,
+      from_version: comparison.fromVersion,
+      to_version: comparison.toVersion,
+      field_changes: comparison.fieldChanges,
+      added_values: comparison.addedValues,
+      removed_values: comparison.removedValues,
+      modified_values: comparison.modifiedValues,
+      change_summary: comparison.changeSummary,
+      clinical_significance: comparison.clinicalSignificance,
+      created_by: comparison.createdBy
     }
 
     const { data, error } = await supabase
       .from('version_comparisons')
-      .insert(comparison)
+      .insert(dbComparison)
       .select()
       .single()
 
