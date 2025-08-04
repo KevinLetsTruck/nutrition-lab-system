@@ -211,7 +211,13 @@ export class AutomatedWorkflowManager {
   }
 
   private async performQualityAssurance(analysisResult: any): Promise<any> {
-    const checks = {
+    const checks: {
+      dataCompleteness: boolean
+      analysisDepth: boolean
+      recommendationQuality: boolean
+      redFlags: any[]
+      warnings: string[]
+    } = {
       dataCompleteness: true,
       analysisDepth: true,
       recommendationQuality: true,
@@ -240,7 +246,7 @@ export class AutomatedWorkflowManager {
   }
 
   private async generateProtocols(analysisResult: any, clientId: string): Promise<any> {
-    const protocols = {
+    const protocols: any = {
       supplementProtocol: null,
       lifestyleProtocol: null,
       monitoringProtocol: null,

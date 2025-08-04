@@ -40,7 +40,7 @@ export class UnifiedAnalysisOrchestrator {
     this.pdfProcessor = new RobustPDFProcessor()
     this.documentClassifier = new IntelligentDocumentClassifier()
     this.functionalAnalyzer = new TruckDriverFunctionalAnalyzer()
-    this.claudeClient = new ClaudeClient()
+    this.claudeClient = ClaudeClient.getInstance()
     this.dataAggregator = new ClientDataAggregator()
     this.comprehensiveAnalyzer = new ComprehensiveAnalyzer()
     this.supplementRecommender = new SupplementRecommender()
@@ -351,7 +351,8 @@ Focus on truck driver health considerations:
 Return a structured JSON response.`
 
       try {
-        const response = await this.claudeClient.analyzeWithPrompt(prompt)
+        const systemPrompt = 'You are analyzing health data from a functional medicine perspective.'
+        const response = await this.claudeClient.analyzePractitionerReport(prompt, systemPrompt)
         return JSON.parse(response)
       } catch (fallbackError) {
         console.error('[ORCHESTRATOR] Fallback analysis also failed:', fallbackError)

@@ -1,5 +1,3 @@
-import * as pdfParse from 'pdf-parse'
-import { createWorker } from 'tesseract.js'
 import Anthropic from '@anthropic-ai/sdk'
 
 export interface ProcessedDocument {
@@ -101,6 +99,8 @@ export class RobustPDFProcessor {
 
   private async extractTextFromPDF(buffer: Buffer): Promise<{ text: string; pageCount: number }> {
     try {
+      // Dynamic import to avoid build-time issues
+      const pdfParse = (await import('pdf-parse')).default
       const data = await pdfParse(buffer)
       return {
         text: data.text,
@@ -125,42 +125,10 @@ export class RobustPDFProcessor {
   }
 
   private async extractWithVisionAPI(buffer: Buffer): Promise<{ text: string }> {
-    if (!this.anthropic) {
-      return { text: '' }
-    }
-
-    try {
-      const base64 = buffer.toString('base64')
-      
-      const response = await this.anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 4000,
-        messages: [{
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: 'Extract all text from this document. Include all values, numbers, and data. Format the output clearly.'
-            },
-            {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: 'application/pdf',
-                data: base64
-              }
-            }
-          ]
-        }]
-      })
-
-      const extractedText = response.content[0]?.type === 'text' ? response.content[0].text : ''
-      return { text: extractedText }
-
-    } catch (error) {
-      console.error('[ROBUST-PDF] Vision API error:', error)
-      return { text: '' }
-    }
+    // Vision API doesn't support PDFs directly - would need to convert to images first
+    // For now, return empty result
+    console.log('[ROBUST-PDF] Vision API extraction not implemented for PDFs')
+    return { text: '' }
   }
 
   private async enhanceExtractedText(

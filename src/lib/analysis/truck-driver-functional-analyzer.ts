@@ -163,7 +163,7 @@ export class TruckDriverFunctionalAnalyzer {
   private claudeClient: ClaudeClient
 
   constructor() {
-    this.claudeClient = new ClaudeClient()
+    this.claudeClient = ClaudeClient.getInstance()
   }
 
   async analyzeHealthData(
@@ -178,7 +178,8 @@ export class TruckDriverFunctionalAnalyzer {
       const analysisPrompt = this.buildAnalysisPrompt(extractedData, documentType, clientHistory)
       
       // Get Claude's analysis
-      const claudeResponse = await this.claudeClient.analyzeWithPrompt(analysisPrompt)
+      const systemPrompt = 'You are Kevin Rutherford, FNTP, analyzing health data with a focus on truck driver health optimization.'
+      const claudeResponse = await this.claudeClient.analyzePractitionerReport(analysisPrompt, systemPrompt)
       
       // Parse and validate response
       const analysis = this.parseAnalysisResponse(claudeResponse)
