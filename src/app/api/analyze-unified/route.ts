@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { UnifiedAnalysisOrchestrator } from '@/lib/analysis/unified-analysis-orchestrator'
 import { supabase } from '@/lib/supabase'
-import * as db from '@/lib/database-service'
+import { createLabReport, updateLabReport } from '@/database/queries/lab-reports'
 
 export async function POST(request: NextRequest) {
   console.log('[ANALYZE-UNIFIED] Starting unified analysis endpoint')
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       fileBuffer = Buffer.from(arrayBuffer)
 
       // Create initial lab report record
-      labReport = await db.createLabReport({
+      labReport = await createLabReport({
         client_id: clientId || crypto.randomUUID(),
         file_name: file.name,
         report_type: reportType || 'unknown',
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     // Update lab report if created
     if (labReport) {
       if (result.success) {
-        await db.updateLabReport(labReport.id, {
+        await updateLabReport(labReport.id, {
           status: 'completed',
           analysis_results: result,
           report_type: result.documentType || reportType || 'unknown',
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
           notes: result.warnings?.join('; ')
         })
       } else {
-        await db.updateLabReport(labReport.id, {
+        await updateLabReport(labReport.id, {
           status: 'failed',
           notes: result.errors?.join('; ') || 'Analysis failed'
         })

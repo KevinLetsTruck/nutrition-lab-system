@@ -26,7 +26,7 @@ const requiredEnvVars = [
   'ANTHROPIC_API_KEY'
 ];
 
-let missingVars = [];
+let missingVars: string[] = [];
 requiredEnvVars.forEach(varName => {
   const value = process.env[varName];
   if (!value) {
