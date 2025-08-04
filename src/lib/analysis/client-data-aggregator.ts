@@ -419,6 +419,7 @@ export class ClientDataAggregator {
 
   private async getAllUploadedDocuments(clientId: string): Promise<Document[]> {
     try {
+      // First try to get documents from client_documents table
       const { data: documents, error } = await supabase
         .from('client_documents')
         .select('*')
@@ -430,13 +431,45 @@ export class ClientDataAggregator {
         return [];
       }
 
-      return documents.map(doc => ({
-        id: doc.id,
-        name: doc.document_name,
-        type: doc.document_type as Document['type'],
-        fileUrl: doc.file_url,
-        uploadedAt: doc.uploaded_at
-      }));
+      const uploadedDocs: Document[] = [];
+      
+      if (documents) {
+        documents.forEach(doc => {
+          uploadedDocs.push({
+            id: doc.id,
+            name: doc.document_name,
+            type: doc.document_type as Document['type'],
+            fileUrl: doc.file_url,
+            extractedText: doc.extracted_text || doc.content || undefined,
+            uploadedAt: doc.uploaded_at
+          });
+        });
+      }
+
+      // Also get lab reports that might contain extracted text
+      const { data: labReports, error: labError } = await supabase
+        .from('lab_reports')
+        .select('id, file_name, report_type, created_at, raw_text, parsed_data')
+        .eq('client_id', clientId)
+        .not('raw_text', 'is', null)
+        .order('created_at', { ascending: false });
+
+      if (!labError && labReports) {
+        labReports.forEach(report => {
+          // Don't duplicate if already in documents
+          if (!uploadedDocs.find(doc => doc.name === report.file_name)) {
+            uploadedDocs.push({
+              id: report.id,
+              name: report.file_name || `${report.report_type} Report`,
+              type: 'lab_result',
+              extractedText: report.raw_text || report.parsed_data?.rawText,
+              uploadedAt: report.created_at
+            });
+          }
+        });
+      }
+
+      return uploadedDocs;
     } catch (error) {
       console.warn(`Warning: Documents table may not exist: ${error}`);
       return [];

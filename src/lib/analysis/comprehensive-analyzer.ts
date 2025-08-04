@@ -12,63 +12,87 @@ import { SupplementRecommender } from './supplement-recommender'
 export class ComprehensiveAnalyzer {
   
   async analyzeClient(clientData: ClientDataAggregate): Promise<ComprehensiveAnalysis> {
-    
-    // Prepare all data for Claude analysis
-    const analysisPrompt = this.buildComprehensivePrompt(clientData);
-    
-    // Send to Claude for analysis
-    const claudeResponse = await this.callClaude(analysisPrompt);
-    
-    // Parse and structure the response
-    const analysis = await this.parseAnalysisResponse(claudeResponse);
-    
-    // Generate supplement recommendations
-    const supplementRecommender = new SupplementRecommender();
-    const supplements = await supplementRecommender.generateSupplementRecommendations(analysis);
-    
-    // Create protocol phases
-    const protocols = await this.createProtocolPhases(analysis, supplements);
-    
-    // Generate progress comparison if previous analysis exists
-    const progressComparison = clientData.lastAnalysis 
-      ? await this.compareToLastAnalysis(analysis, clientData.lastAnalysis)
-      : undefined;
-    
-    return {
-      id: crypto.randomUUID(),
-      clientId: clientData.clientId,
-      analysisDate: new Date().toISOString(),
-      executiveSummary: analysis.executiveSummary,
-      rootCauseAnalysis: analysis.rootCauses,
-      systemsPriority: analysis.systemsPriority,
-      systemsPriorityRationale: analysis.systemsPriorityRationale,
-      progressComparison: progressComparison,
-      supplementProtocol: supplements,
-      treatmentPhases: protocols,
-      lifestyleIntegration: analysis.lifestyleIntegration,
-      monitoringPlan: analysis.monitoringPlan,
-      urgentConcerns: analysis.urgentConcerns,
-      expectedTimeline: analysis.expectedTimeline,
-      practitionerNotes: analysis.practitionerNotes
-    };
+    try {
+      // Validate that we have sufficient data to analyze
+      const hasData = (
+        (clientData.assessmentHistory && clientData.assessmentHistory.length > 0) ||
+        (clientData.sessionNotes && clientData.sessionNotes.length > 0) ||
+        (clientData.uploadedDocuments && clientData.uploadedDocuments.length > 0) ||
+        (clientData.labResults && clientData.labResults.length > 0)
+      );
+      
+      if (!hasData) {
+        throw new Error('Insufficient data for analysis. Please upload documents or complete assessments.');
+      }
+      
+      // Prepare all data for Claude analysis
+      const analysisPrompt = this.buildComprehensivePrompt(clientData);
+      
+      // Send to Claude for analysis
+      const claudeResponse = await this.callClaude(analysisPrompt);
+      
+      // Parse and structure the response
+      const analysis = await this.parseAnalysisResponse(claudeResponse);
+      
+      // Generate supplement recommendations
+      const supplementRecommender = new SupplementRecommender();
+      const supplements = await supplementRecommender.generateSupplementRecommendations(analysis);
+      
+      // Create protocol phases
+      const protocols = await this.createProtocolPhases(analysis, supplements);
+      
+      // Generate progress comparison if previous analysis exists
+      const progressComparison = clientData.lastAnalysis 
+        ? await this.compareToLastAnalysis(analysis, clientData.lastAnalysis)
+        : undefined;
+      
+      return {
+        id: crypto.randomUUID(),
+        clientId: clientData.clientId,
+        analysisDate: new Date().toISOString(),
+        executiveSummary: analysis.executiveSummary,
+        rootCauseAnalysis: analysis.rootCauses,
+        systemsPriority: analysis.systemsPriority,
+        systemsPriorityRationale: analysis.systemsPriorityRationale,
+        progressComparison: progressComparison,
+        supplementProtocol: supplements,
+        treatmentPhases: protocols,
+        lifestyleIntegration: analysis.lifestyleIntegration,
+        monitoringPlan: analysis.monitoringPlan,
+        urgentConcerns: analysis.urgentConcerns,
+        expectedTimeline: analysis.expectedTimeline,
+        practitionerNotes: analysis.practitionerNotes
+      };
+    } catch (error) {
+      console.error('Comprehensive analysis error:', error);
+      throw error;
+    }
   }
 
   private buildComprehensivePrompt(clientData: ClientDataAggregate): string {
     const { personalInfo, assessmentHistory, sessionNotes, uploadedDocuments, labResults, protocolHistory, progressMetrics, lastAnalysis } = clientData;
     
+    // Handle cases where personalInfo might be incomplete
+    const clientName = personalInfo?.name || 'Unknown Client';
+    const clientAge = personalInfo?.dateOfBirth ? this.calculateAge(personalInfo.dateOfBirth) : 'Unknown';
+    const clientOccupation = personalInfo?.occupation || 'Not specified';
+    const isTruckDriver = personalInfo?.truckDriver ? 'Yes' : 'No';
+    const primaryConcern = personalInfo?.primaryHealthConcern || 'Not specified';
+    const clientSince = personalInfo?.createdAt ? new Date(personalInfo.createdAt).toLocaleDateString() : 'Unknown';
+    
     return `
 I need a comprehensive functional medicine analysis for this client.
 
 CLIENT OVERVIEW:
-Name: ${personalInfo.name}
-Age: ${personalInfo.dateOfBirth ? this.calculateAge(personalInfo.dateOfBirth) : 'Unknown'}
-Occupation: ${personalInfo.occupation}
-Truck Driver: ${personalInfo.truckDriver ? 'Yes' : 'No'}
-Primary Health Concern: ${personalInfo.primaryHealthConcern}
-Client Since: ${new Date(personalInfo.createdAt).toLocaleDateString()}
+Name: ${clientName}
+Age: ${clientAge}
+Occupation: ${clientOccupation}
+Truck Driver: ${isTruckDriver}
+Primary Health Concern: ${primaryConcern}
+Client Since: ${clientSince}
 
 CURRENT ASSESSMENT DATA:
-${assessmentHistory.length > 0 ? assessmentHistory.map(assessment => `
+${assessmentHistory && assessmentHistory.length > 0 ? assessmentHistory.map(assessment => `
 ${assessment.type.toUpperCase()} Assessment (${assessment.date}):
 ${assessment.totalScore ? `Total Score: ${assessment.totalScore}` : ''}
 ${assessment.bodySystems ? `Body Systems: ${JSON.stringify(assessment.bodySystems, null, 2)}` : ''}
@@ -87,23 +111,30 @@ ${assessment.results ? `Assessment Results: ${JSON.stringify(assessment.results,
 `).join('\n') : 'No assessments found'}
 
 RECENT SESSION NOTES:
-${sessionNotes.slice(0, 10).map(note => `
+${sessionNotes && sessionNotes.length > 0 ? sessionNotes.slice(0, 10).map(note => `
 Date: ${new Date(note.createdAt).toLocaleDateString()}
 Type: ${note.type}
 Author: ${note.author || 'Unknown'}
 Notes: ${note.content}
-`).join('\n')}
+`).join('\n') : 'No session notes available'}
 
 UPLOADED DOCUMENTS:
-${uploadedDocuments.map(doc => `
+${uploadedDocuments && uploadedDocuments.length > 0 ? uploadedDocuments.map(doc => {
+  const hasContent = doc.extractedText && doc.extractedText.trim().length > 0;
+  return `
 Document: ${doc.name}
 Type: ${doc.type}
 Uploaded: ${new Date(doc.uploadedAt).toLocaleDateString()}
-${doc.extractedText ? `Content: ${doc.extractedText.substring(0, 500)}...` : 'No text extracted'}
-`).join('\n')}
+${hasContent ? `
+--- Document Content Start ---
+${doc.extractedText.substring(0, 2000)}${doc.extractedText.length > 2000 ? '...[truncated]' : ''}
+--- Document Content End ---
+` : 'Status: No text extracted - awaiting processing'}
+`;
+}).join('\n') : 'No documents uploaded'}
 
 LAB RESULTS:
-${labResults.map(lab => {
+${labResults && labResults.length > 0 ? labResults.map(lab => {
   const dateStr = lab.reportDate;
   const validDate = dateStr && !isNaN(new Date(dateStr).getTime());
   const formattedDate = validDate ? new Date(dateStr).toLocaleDateString() : 'Date not recorded';
@@ -114,24 +145,24 @@ Status: ${lab.status}
 Results: ${JSON.stringify(lab.results, null, 2)}
 ${lab.notes ? `Notes: ${lab.notes}` : ''}
 `;
-}).join('\n')}
+}).join('\n') : 'No lab results available'}
 
 PROTOCOL HISTORY:
-${protocolHistory.map(protocol => `
+${protocolHistory && protocolHistory.length > 0 ? protocolHistory.map(protocol => `
 Phase: ${protocol.phase}
 Started: ${protocol.startDate}
 Status: ${protocol.status}
 Compliance: ${protocol.compliance || 0}%
 Content: ${protocol.content.substring(0, 200)}...
-`).join('\n')}
+`).join('\n') : 'No protocol history'}
 
 PROGRESS METRICS:
-${progressMetrics.map(metric => `
+${progressMetrics && progressMetrics.length > 0 ? progressMetrics.map(metric => `
 Date: ${metric.date}
 Type: ${metric.type}
 Value: ${metric.value}
 ${metric.notes ? `Notes: ${metric.notes}` : ''}
-`).join('\n')}
+`).join('\n') : 'No progress metrics recorded'}
 
 ${lastAnalysis ? `
 PREVIOUS ANALYSIS COMPARISON:
