@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PDFProcessor } from '@/lib/pdf-processor-production'
 
+export async function GET(request: NextRequest) {
+  return NextResponse.json({
+    status: 'ok',
+    endpoint: 'quick-analysis-v2',
+    hasAnthropicKey: !!process.env.ANTHROPIC_API_KEY,
+    timestamp: new Date().toISOString()
+  })
+}
+
 export async function POST(request: NextRequest) {
   console.log('[QuickAnalysisV2] Endpoint called')
   console.log('[QuickAnalysisV2] Environment check:', {
