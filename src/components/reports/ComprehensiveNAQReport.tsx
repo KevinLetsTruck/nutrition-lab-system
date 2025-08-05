@@ -244,7 +244,7 @@ export const ComprehensiveNAQReportDisplay: React.FC<ComprehensiveNAQReportProps
 // Sub-components
 
 const PatternCard: React.FC<{ pattern: any, index: number }> = ({ pattern, index }) => {
-  const priorityColors = {
+  const priorityColors: Record<string, 'destructive' | 'warning' | 'secondary' | 'default'> = {
     immediate: 'destructive',
     high: 'warning',
     moderate: 'secondary',

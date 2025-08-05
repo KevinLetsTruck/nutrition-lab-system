@@ -40,22 +40,11 @@ export async function POST(request: NextRequest) {
       clientData as any
     )
     
-    // Save to database if needed
-    if (result.clientData.clientId) {
-      try {
-        await db.saveNutriQAnalysis(
-          result.clientData.clientId,
-          result.nutriqAnalysis,
-          {
-            fileName: file.name,
-            analysisDate: new Date(),
-            comprehensiveReport: result.comprehensiveReport
-          }
-        )
-      } catch (dbError) {
-        console.error('[ANALYZE-NAQ-ENHANCED] Database save error:', dbError)
-      }
-    }
+    // Save to database if needed (skip for now as this is quick analysis without client ID)
+    // In a full implementation, you would either:
+    // 1. Create a quick_analyses table entry
+    // 2. Or require client selection/creation first
+    console.log('[ANALYZE-NAQ-ENHANCED] Skipping database save for quick analysis')
     
     // Return the enhanced analysis
     return NextResponse.json({

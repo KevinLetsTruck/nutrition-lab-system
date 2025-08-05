@@ -297,12 +297,12 @@ export class NutriQAnalyzer {
       
       // Create NAQ client data
       const naqClientData: NAQClientData = {
-        firstName: clientData.clientName?.split(' ')[0] || 'Unknown',
-        lastName: clientData.clientName?.split(' ').slice(1).join(' ') || 'Client',
+        firstName: clientData.clientFirstName || clientData.clientName?.split(' ')[0] || 'Unknown',
+        lastName: clientData.clientLastName || clientData.clientName?.split(' ').slice(1).join(' ') || 'Client',
         email: clientData.clientEmail || '',
-        dateOfBirth: clientData.dateOfBirth,
+        dateOfBirth: undefined, // Not available in ClientData interface
         occupation: 'Truck Driver', // Default for this system
-        assessmentDate: new Date(clientData.reportDate || Date.now())
+        assessmentDate: clientData.assessmentDate || new Date()
       }
       
       // Create NAQ responses
@@ -310,7 +310,7 @@ export class NutriQAnalyzer {
         answers: {}, // Would be populated from actual NAQ questionnaire
         symptomBurden,
         completedSections: ['all'], // Simplified
-        assessmentDate: new Date(clientData.reportDate || Date.now())
+        assessmentDate: clientData.assessmentDate || new Date()
       }
       
       // Generate comprehensive report

@@ -39,7 +39,7 @@ specializing in truck driver health. You're reviewing a comprehensive NAQ assess
 as if discussing with a colleague. Focus on patterns that might be missed, clinical pearls, and practical insights 
 specific to the trucking lifestyle. Write in first person with the wisdom of 20+ years of functional medicine experience.`
       
-      const result = await this.claudeClient.analyzeWithClaude(prompt, systemPrompt)
+      const result = await this.claudeClient.analyzePractitionerReport(prompt, systemPrompt)
       
       // Clean and format the response
       const formattedNotes = this.formatClinicalNotes(result, input)

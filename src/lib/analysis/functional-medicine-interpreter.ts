@@ -435,7 +435,7 @@ ${this.generateClinicalImpression(patterns, data)}
     const hidden: ClinicalInsight[] = []
     
     // Check for methylation issues
-    if (burden.brain >= 4 && burden.energyProduction >= 4 && burden.mood >= 4) {
+    if (burden.brain >= 4 && burden.energyProduction >= 4) {
       hidden.push({
         insight: "Hidden pattern: Likely methylation dysfunction",
         supportingEvidence: [
