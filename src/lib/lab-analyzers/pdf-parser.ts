@@ -223,18 +223,14 @@ export class PDFLabParser {
           const needsVisionAnalysis = this.checkIfNeedsVisionAnalysis(text, data || { numpages: 1 })
           
           if (needsVisionAnalysis) {
-            console.log('[PDF-PARSER] PDF needs vision analysis - converting to images...')
+            console.log('[PDF-PARSER] PDF needs vision analysis - using document API...')
             hasImageContent = true
             
             try {
-              // Convert PDF pages to images
-              const pageImages = await this.convertPDFToImages(pdfBuffer)
+              // Use Claude's document API directly with the PDF
+              console.log('[PDF-PARSER] Sending PDF to Claude Document API...')
               
-              if (pageImages.length > 0) {
-                // Send images to Claude for analysis
-                console.log('[PDF-PARSER] Sending', pageImages.length, 'page images to Claude Vision...')
-                
-                const systemPrompt = `You are an expert at extracting information from nutrition lab reports. 
+              const systemPrompt = `You are an expert at extracting information from nutrition lab reports. 
                 Extract all text, data from charts, graphs, tables, and test results. 
                 Pay special attention to:
                 - Patient information (name, ID, date of birth)
@@ -243,31 +239,60 @@ export class PDFLabParser {
                 - Food sensitivity charts (IgG levels)
                 - Hormone test results and patterns
                 - Any graphs or visual data representations
+                - NAQ/NutriQ symptom burden scores and graphs
                 
                 Format the extracted information as structured text that can be easily parsed.`
-                
-                visionAnalysisText = await this.claudeClient.analyzePDFPagesAsImages(
-                  pageImages,
-                  systemPrompt,
-                  text // Pass any text we extracted as context
-                )
-                
-                console.log('[PDF-PARSER] Vision analysis complete, extracted text length:', visionAnalysisText.length)
-              }
+              
+              // Convert PDF buffer to base64 for Claude document API
+              const pdfBase64 = pdfBuffer.toString('base64')
+              
+              const documentPrompt = `Please analyze this PDF document and extract all relevant information, especially focusing on NAQ/NutriQ assessment data, symptom burden scores, and any visual charts or graphs.`
+              
+              visionAnalysisText = await this.claudeClient.analyzeWithDocument(
+                documentPrompt,
+                {
+                  type: 'document',
+                  source: {
+                    type: 'base64',
+                    media_type: 'application/pdf',
+                    data: pdfBase64
+                  }
+                },
+                systemPrompt
+              )
+              
+              console.log('[PDF-PARSER] Document API analysis complete, extracted text length:', visionAnalysisText.length)
             } catch (visionError) {
-              console.error('[PDF-PARSER] Vision analysis failed:', visionError)
-              console.error('[PDF-PARSER] Vision error details:', {
+              console.error('[PDF-PARSER] Document API analysis failed:', visionError)
+              console.error('[PDF-PARSER] Document API error details:', {
                 message: visionError instanceof Error ? visionError.message : 'Unknown error',
                 anthropicKey: !!process.env.ANTHROPIC_API_KEY ? 'Present' : 'Missing'
               })
               
-              // For NAQ/NutriQ files, we can often continue with text-only
-              if (text && text.length > 100) {
-                console.log('[PDF-PARSER] Continuing with text-only analysis (sufficient text available)')
-                visionAnalysisText = '' // No vision text, but we have regular text
-              } else {
-                // If we have very little text and vision failed, this is a problem
-                throw new Error(`Vision analysis required but failed: ${visionError instanceof Error ? visionError.message : 'Unknown error'}`)
+              // Fallback to image-based analysis if document API fails
+              console.log('[PDF-PARSER] Falling back to image-based analysis...')
+              try {
+                const pageImages = await this.convertPDFToImages(pdfBuffer)
+                
+                if (pageImages.length > 0) {
+                  visionAnalysisText = await this.claudeClient.analyzePDFPagesAsImages(
+                    pageImages,
+                    systemPrompt,
+                    text
+                  )
+                  console.log('[PDF-PARSER] Image-based analysis complete, extracted text length:', visionAnalysisText.length)
+                }
+              } catch (imageError) {
+                console.error('[PDF-PARSER] Image-based analysis also failed:', imageError)
+                
+                // For NAQ/NutriQ files, we can often continue with text-only
+                if (text && text.length > 100) {
+                  console.log('[PDF-PARSER] Continuing with text-only analysis (sufficient text available)')
+                  visionAnalysisText = '' // No vision text, but we have regular text
+                } else {
+                  // If we have very little text and vision failed, this is a problem
+                  throw new Error(`Vision analysis required but failed: ${visionError instanceof Error ? visionError.message : 'Unknown error'}`)
+                }
               }
             }
           }
