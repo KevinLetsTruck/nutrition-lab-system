@@ -3,6 +3,10 @@ import { PDFProcessor } from '@/lib/pdf-processor-production'
 
 export async function POST(request: NextRequest) {
   console.log('[QuickAnalysisV2] Endpoint called')
+  console.log('[QuickAnalysisV2] Environment check:', {
+    hasAnthropicKey: !!process.env.ANTHROPIC_API_KEY,
+    nodeEnv: process.env.NODE_ENV
+  })
   
   try {
     // Handle FormData for file upload
