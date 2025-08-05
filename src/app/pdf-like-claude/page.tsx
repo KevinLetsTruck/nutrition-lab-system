@@ -61,6 +61,7 @@ export default function PDFLikeClaude() {
 
       // Try multiple endpoints to find what works
       const endpoints = [
+        '/api/claude-pdf',
         '/api/pdf-to-claude-vision',
         '/api/pdf-direct-to-claude',
         '/api/analyze-simple'
