@@ -41,16 +41,36 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
     
+    // Check for API key
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error('[QuickAnalysisV2] ANTHROPIC_API_KEY is not set')
+      return NextResponse.json({
+        error: 'Configuration error',
+        details: 'API key not configured. Please contact support.',
+        suggestion: 'ANTHROPIC_API_KEY environment variable is missing'
+      }, { status: 500 })
+    }
+    
     // Initialize PDF processor
     const processor = new PDFProcessor({
-      anthropicApiKey: process.env.ANTHROPIC_API_KEY!,
+      anthropicApiKey: process.env.ANTHROPIC_API_KEY,
       maxRetries: 3,
       maxPDFSizeMB: 5
     })
     
     // Process the PDF
     const startTime = Date.now()
-    const labReport = await processor.processLabReport(file)
+    let labReport
+    try {
+      labReport = await processor.processLabReport(file)
+    } catch (processorError) {
+      console.error('[QuickAnalysisV2] PDF processor error:', processorError)
+      return NextResponse.json({
+        error: 'PDF processing failed',
+        details: processorError instanceof Error ? processorError.message : 'Failed to process PDF',
+        suggestion: 'Please ensure the PDF is a valid lab report'
+      }, { status: 500 })
+    }
     const processingTime = Date.now() - startTime
     
     console.log('[QuickAnalysisV2] Processing complete:', {
@@ -98,11 +118,33 @@ export async function POST(request: NextRequest) {
     
   } catch (error) {
     console.error('[QuickAnalysisV2] Error:', error)
+    console.error('[QuickAnalysisV2] Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+    
+    // Provide more specific error messages
+    let errorMessage = 'Analysis failed'
+    let details = error instanceof Error ? error.message : 'Unknown error'
+    let suggestion = 'Please ensure your file is a valid PDF lab report'
+    
+    if (error instanceof Error) {
+      if (error.message.includes('ANTHROPIC_API_KEY')) {
+        errorMessage = 'Configuration error'
+        details = 'API key not properly configured'
+        suggestion = 'Server configuration issue - please contact support'
+      } else if (error.message.includes('Failed to parse')) {
+        errorMessage = 'PDF parsing error'
+        details = 'Unable to extract data from PDF'
+        suggestion = 'Ensure the PDF is a valid lab report with text content'
+      }
+    }
     
     return NextResponse.json({
-      error: 'Analysis failed',
-      details: error instanceof Error ? error.message : 'Unknown error',
-      suggestion: 'Please ensure your file is a valid PDF lab report'
+      error: errorMessage,
+      details,
+      suggestion,
+      debug: process.env.NODE_ENV === 'development' ? {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      } : undefined
     }, { status: 500 })
   }
 }
