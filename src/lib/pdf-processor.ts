@@ -1,6 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { PDFDocument } from 'pdf-lib'
-import sharp from 'sharp'
 
 let pdfjs: any
 
@@ -8,10 +7,8 @@ let pdfjs: any
 async function initPDFJS() {
   if (!pdfjs) {
     pdfjs = await import('pdfjs-dist')
-    if (typeof window === 'undefined') {
-      const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.entry')
-      pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker
-    }
+    // Disable worker to avoid build issues in production
+    pdfjs.GlobalWorkerOptions.workerSrc = false
   }
   return pdfjs
 }
@@ -563,27 +560,12 @@ export class PDFProcessor {
           data: new Uint8Array(viewport.width * viewport.height * 4)
         }
 
-        // Render page
-        await page.render({
-          canvasContext: canvas as any,
-          viewport
-        }).promise
-
-        // Convert to PNG using sharp
-        const pngBuffer = await sharp(canvas.data, {
-          raw: {
-            width: canvas.width,
-            height: canvas.height,
-            channels: 4
-          }
-        })
-        .png()
-        .toBuffer()
-
-        images.push({
-          base64: pngBuffer.toString('base64'),
-          pageNumber: i
-        })
+        // Note: In production, we'll skip image conversion
+        // The Vision API fallback is not available without proper canvas/image processing
+        console.warn('[PDFProcessor] Image conversion skipped in production environment')
+        
+        // For now, we'll only support text extraction and native PDF processing
+        continue
       }
 
       return images

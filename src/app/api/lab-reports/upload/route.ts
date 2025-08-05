@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PDFProcessor } from '@/lib/pdf-processor'
+// Use production-friendly PDF processor
+import { PDFProcessor } from '@/lib/pdf-processor-production'
 import { getServerSession } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
 
