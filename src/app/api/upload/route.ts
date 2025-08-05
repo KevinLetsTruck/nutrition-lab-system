@@ -36,12 +36,31 @@ export async function POST(request: NextRequest) {
     const clientLastName = formData.get('clientLastName') as string
     const category = formData.get('category') as string
     const quickAnalysis = formData.get('quickAnalysis') as string
+    const clientId = formData.get('clientId') as string
     
-    // Check authentication (except for quick analysis)
-    if (quickAnalysis !== 'true') {
+    // Check authentication (except for quick analysis or client uploads)
+    if (quickAnalysis !== 'true' && !clientId) {
       const session = await getServerSession(request)
       if (!session) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+    }
+    
+    // If clientId is provided, verify it exists
+    if (clientId && !quickAnalysis) {
+      const { data: client, error } = await db
+        .from('clients')
+        .select('id, email')
+        .eq('id', clientId)
+        .single()
+      
+      if (error || !client) {
+        return NextResponse.json({ error: 'Invalid client ID' }, { status: 400 })
+      }
+      
+      // Verify the email matches
+      if (client.email !== clientEmail) {
+        return NextResponse.json({ error: 'Client email mismatch' }, { status: 400 })
       }
     }
     

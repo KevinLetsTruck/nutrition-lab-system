@@ -382,6 +382,7 @@ export default function ClientDashboard() {
         formData.append('clientFirstName', client.name.split(' ')[0])
         formData.append('clientLastName', client.name.split(' ').slice(1).join(' '))
         formData.append('category', 'client_documents')
+        formData.append('clientId', client.id) // Add client ID for validation
         
         try {
           const response = await fetch('/api/upload', {
@@ -396,7 +397,15 @@ export default function ClientDashboard() {
             window.location.reload()
           } else {
             const error = await response.json()
-            alert(`Upload failed: ${error.error}`)
+            console.error('Upload failed with status:', response.status, error)
+            
+            if (response.status === 401) {
+              alert('You are not logged in. Please log in and try again.')
+              // Optionally redirect to login page
+              window.location.href = '/auth'
+            } else {
+              alert(`Upload failed: ${error.error || 'Unknown error'}`)
+            }
           }
         } catch (error) {
           console.error('Upload error:', error)
