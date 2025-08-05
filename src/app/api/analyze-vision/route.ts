@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
           type: 'image',  // Keep 'image' for actual images
           source: {
             type: 'base64',
-            media_type: mediaType,
+            media_type: mediaType as 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp',
             data: cleanBase64
           }
         }],

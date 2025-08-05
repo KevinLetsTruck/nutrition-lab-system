@@ -115,6 +115,7 @@ export default function VisionTest() {
               {preview && (
                 <div className="mt-4">
                   <h3 className="text-sm font-medium mb-2">Preview:</h3>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
                     src={preview} 
                     alt="Document preview" 
