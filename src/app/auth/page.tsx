@@ -112,7 +112,9 @@ export default function AuthPage() {
         const result = await login(formData.email, formData.password)
         if (result.success) {
           // Fetch user data to determine role
-          const response = await fetch('/api/auth/me')
+          const response = await fetch('/api/auth/me', {
+            credentials: 'include'
+          })
           const data = await response.json()
           
           // Redirect based on role

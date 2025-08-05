@@ -17,7 +17,9 @@ export default function AuthSuccessPage() {
       if (!user) return
 
       try {
-        const response = await fetch('/api/auth/me')
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include'
+        })
         const data = await response.json()
         
         if (data.user?.role === 'client') {
@@ -29,6 +31,9 @@ export default function AuthSuccessPage() {
           }
         } else if (data.user?.role === 'admin') {
           setRedirectPath('/clients')
+          // Redirect admins immediately without countdown
+          router.push('/clients')
+          return
         }
       } catch (error) {
         console.error('Error checking user status:', error)
@@ -36,7 +41,7 @@ export default function AuthSuccessPage() {
     }
 
     checkUserAndRedirect()
-  }, [user])
+  }, [user, router])
 
   useEffect(() => {
     const timer = setInterval(() => {
