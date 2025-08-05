@@ -1,10 +1,13 @@
 import PDFLabParser, { ParsedLabReport } from './pdf-parser'
 import ClaudeClient, { NutriQAnalysis } from '../claude-client'
 import ClientDataPriorityService, { ClientData, PDFExtractedData, FormData } from '../client-data-priority'
+import NAQReportGenerator, { ComprehensiveNAQReport, NAQResponses, ClientData as NAQClientData } from '../analysis/naq-report-generator'
+import { SymptomBurdenData } from '../analysis/naq-pattern-analyzer'
 
 export interface NutriQParsedReport extends ParsedLabReport {
   nutriqAnalysis: NutriQAnalysis
   reportType: 'nutriq'
+  comprehensiveReport?: ComprehensiveNAQReport
 }
 
 export class NutriQAnalyzer {
@@ -12,11 +15,13 @@ export class NutriQAnalyzer {
   private pdfParser: PDFLabParser
   private claudeClient: ClaudeClient
   private clientDataService: ClientDataPriorityService
+  private naqReportGenerator: NAQReportGenerator
 
   private constructor() {
     this.pdfParser = PDFLabParser.getInstance()
     this.claudeClient = ClaudeClient.getInstance()
     this.clientDataService = ClientDataPriorityService.getInstance()
+    this.naqReportGenerator = new NAQReportGenerator()
   }
 
   static getInstance(): NutriQAnalyzer {
@@ -106,13 +111,26 @@ export class NutriQAnalyzer {
       console.log('[NUTRIQ-ANALYZER] Analysis complete with client data priority')
       console.log('[NUTRIQ-ANALYZER] Data source message:', this.clientDataService.getDataSourceMessage(clientData))
       
+      // Generate comprehensive functional medicine report if enabled
+      let comprehensiveReport: ComprehensiveNAQReport | undefined
+      try {
+        comprehensiveReport = await this.generateComprehensiveReport(
+          nutriqAnalysis,
+          textForAnalysis,
+          clientData
+        )
+      } catch (error) {
+        console.error('[NUTRIQ-ANALYZER] Failed to generate comprehensive report, continuing with basic analysis:', error)
+      }
+      
       // Combine the results
       const nutriqReport: NutriQParsedReport & { clientData: ClientData } = {
         ...basicParsedReport,
         ...patientInfo,
         nutriqAnalysis,
         reportType: 'nutriq',
-        clientData
+        clientData,
+        comprehensiveReport
       }
 
       return nutriqReport
@@ -214,6 +232,101 @@ export class NutriQAnalyzer {
     }
 
     return null
+  }
+
+  // Convert Claude's basic analysis to symptom burden data for enhanced analysis
+  private convertToSymptomBurden(nutriqAnalysis: NutriQAnalysis, rawText: string): SymptomBurdenData {
+    // Extract symptom burden from the analysis or text
+    // This is a simplified conversion - in practice, you'd parse specific NAQ scores
+    const burden: SymptomBurdenData = {
+      upperGI: this.extractSystemScore('upper gi', rawText) || Math.round(nutriqAnalysis.bodySystems.digestion?.score * 0.09) || 0,
+      smallIntestine: this.extractSystemScore('small intestine', rawText) || Math.round(nutriqAnalysis.bodySystems.digestion?.score * 0.09) || 0,
+      largeIntestine: this.extractSystemScore('large intestine', rawText) || Math.round(nutriqAnalysis.bodySystems.digestion?.score * 0.09) || 0,
+      liverGB: this.extractSystemScore('liver', rawText) || 3, // Default moderate if not found
+      kidneys: this.extractSystemScore('kidney', rawText) || 2,
+      cardiovascular: this.extractSystemScore('cardiovascular', rawText) || 3,
+      immuneSystem: this.extractSystemScore('immune', rawText) || Math.round(nutriqAnalysis.bodySystems.immunity?.score * 0.09) || 0,
+      energyProduction: Math.round(nutriqAnalysis.bodySystems.energy?.score * 0.09) || 0,
+      thyroid: this.extractSystemScore('thyroid', rawText) || 3,
+      adrenal: Math.round(nutriqAnalysis.bodySystems.stress?.score * 0.09) || 0,
+      femaleReprod: this.extractSystemScore('female reprod', rawText),
+      maleReprod: this.extractSystemScore('male reprod', rawText),
+      sugarHandling: this.extractSystemScore('sugar handling', rawText) || 2,
+      joints: this.extractSystemScore('joints', rawText) || 2,
+      skin: this.extractSystemScore('skin', rawText) || 2,
+      brain: Math.round(nutriqAnalysis.bodySystems.mood?.score * 0.09) || 0,
+      totalBurden: 0
+    }
+    
+    // Calculate total burden
+    burden.totalBurden = Object.values(burden)
+      .filter(v => typeof v === 'number' && v > 0)
+      .reduce((sum, val) => sum + val, 0)
+    
+    return burden
+  }
+  
+  private extractSystemScore(systemName: string, rawText: string): number | undefined {
+    // Look for specific system scores in the text
+    const patterns = [
+      new RegExp(`${systemName}[:\\s]*(\\d+)\\s*(?:/\\s*\\d+)?`, 'i'),
+      new RegExp(`${systemName}[^\\d]*(\\d+)`, 'i')
+    ]
+    
+    for (const pattern of patterns) {
+      const match = rawText.match(pattern)
+      if (match && match[1]) {
+        return parseInt(match[1])
+      }
+    }
+    
+    return undefined
+  }
+  
+  // Generate comprehensive NAQ report
+  async generateComprehensiveReport(
+    nutriqAnalysis: NutriQAnalysis,
+    rawText: string,
+    clientData: ClientData
+  ): Promise<ComprehensiveNAQReport> {
+    try {
+      console.log('[NUTRIQ-ANALYZER] Generating comprehensive functional medicine report...')
+      
+      // Convert to symptom burden data
+      const symptomBurden = this.convertToSymptomBurden(nutriqAnalysis, rawText)
+      
+      // Create NAQ client data
+      const naqClientData: NAQClientData = {
+        firstName: clientData.clientName?.split(' ')[0] || 'Unknown',
+        lastName: clientData.clientName?.split(' ').slice(1).join(' ') || 'Client',
+        email: clientData.clientEmail || '',
+        dateOfBirth: clientData.dateOfBirth,
+        occupation: 'Truck Driver', // Default for this system
+        assessmentDate: new Date(clientData.reportDate || Date.now())
+      }
+      
+      // Create NAQ responses
+      const naqResponses: NAQResponses = {
+        answers: {}, // Would be populated from actual NAQ questionnaire
+        symptomBurden,
+        completedSections: ['all'], // Simplified
+        assessmentDate: new Date(clientData.reportDate || Date.now())
+      }
+      
+      // Generate comprehensive report
+      const comprehensiveReport = await this.naqReportGenerator.generateReport(
+        naqClientData,
+        naqResponses,
+        'Kevin Rutherford, FNTP'
+      )
+      
+      console.log('[NUTRIQ-ANALYZER] Comprehensive report generated successfully')
+      return comprehensiveReport
+      
+    } catch (error) {
+      console.error('[NUTRIQ-ANALYZER] Error generating comprehensive report:', error)
+      throw error
+    }
   }
 
   // Helper method to validate NutriQ analysis results
