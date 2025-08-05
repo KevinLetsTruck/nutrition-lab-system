@@ -48,19 +48,20 @@ export async function POST(request: NextRequest) {
     
     // If clientId is provided, verify it exists
     if (clientId && !quickAnalysis) {
-      const { data: client, error } = await db
-        .from('clients')
-        .select('id, email')
-        .eq('id', clientId)
-        .single()
-      
-      if (error || !client) {
+      try {
+        const client = await db.getClientById(clientId)
+        
+        if (!client) {
+          return NextResponse.json({ error: 'Invalid client ID' }, { status: 400 })
+        }
+        
+        // Verify the email matches
+        if (client.email !== clientEmail) {
+          return NextResponse.json({ error: 'Client email mismatch' }, { status: 400 })
+        }
+      } catch (error) {
+        console.error('Error verifying client:', error)
         return NextResponse.json({ error: 'Invalid client ID' }, { status: 400 })
-      }
-      
-      // Verify the email matches
-      if (client.email !== clientEmail) {
-        return NextResponse.json({ error: 'Client email mismatch' }, { status: 400 })
       }
     }
     
