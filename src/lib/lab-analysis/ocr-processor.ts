@@ -23,12 +23,7 @@ export class LabOCRProcessor {
 
       // Worker is already initialized with 'eng' language
       
-      // Configure for better accuracy with lab reports
-      await this.tesseractWorker.setParameters({
-        tessedit_pageseg_mode: '1', // Automatic page segmentation with OSD
-        preserve_interword_spaces: '1',
-        tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.-/<>():, ',
-      })
+      // Worker is configured with default settings
 
       this.initialized = true
       console.log('[OCR] Tesseract initialized successfully')
