@@ -282,7 +282,8 @@ export default function QuickAnalysisPage() {
               </div>
             </div>
           )}
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Upload Section */}
         <Card className="mb-6 bg-card border-border">
