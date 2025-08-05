@@ -184,7 +184,8 @@ export async function POST(request: NextRequest) {
 
 // Helper functions for generating analysis insights
 function generateSummary(labReport: any): string {
-  const { reportType, testResults, patientInfo } = labReport
+  const { metadata, testResults, patientInfo } = labReport
+  const reportType = metadata?.reportType || 'lab'
   const abnormalCount = testResults.filter((r: any) => 
     r.status && ['high', 'low', 'critical'].includes(r.status)
   ).length
