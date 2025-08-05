@@ -70,8 +70,6 @@ export async function POST(request: NextRequest) {
     const processor = new PDFProcessor({
       anthropicApiKey: process.env.ANTHROPIC_API_KEY!,
       maxRetries: 3,
-      chunkSize: 20,
-      enableOCRFallback: true,
       maxPDFSizeMB: 32
     })
 
