@@ -54,7 +54,7 @@ Always analyze labs through a functional medicine lens, identifying:
 Format your response as a detailed JSON analysis following the specified structure.`
 
       // Get Claude's analysis
-      const response = await this.claudeClient.analyzeWithClaude(prompt, systemPrompt)
+      const response = await this.claudeClient.analyzePractitionerReport(prompt, systemPrompt)
       
       // Parse the response
       const analysis = this.parseAIResponse(response)
