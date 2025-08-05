@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import ClaudeClient from '@/lib/claude-client'
 
 export async function POST(request: NextRequest) {
+  // This endpoint is disabled in production due to pdf-parse dependency
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+    return NextResponse.json({ 
+      error: 'This endpoint is not available in production. Please use /api/lab-reports/upload instead.',
+      suggestion: 'The lab-reports/upload endpoint provides PDF processing with Claude native support.'
+    }, { status: 503 })
+  }
+  
+  // Original implementation only runs in development
+  const ClaudeClient = (await import('@/lib/claude-client')).default
   console.log('[PDF-ADVANCED] Starting advanced PDF extraction...')
   
   try {
