@@ -38,12 +38,6 @@ export default function LabAnalysisPage() {
   const [dashboardData, setDashboardData] = useState<any>(null)
   const [selectedClient, setSelectedClient] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (user) {
-      fetchDashboardData()
-    }
-  }, [user, selectedClient, fetchDashboardData])
-
   const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true)
@@ -72,6 +66,12 @@ export default function LabAnalysisPage() {
       setLoading(false)
     }
   }, [selectedClient])
+
+  useEffect(() => {
+    if (user) {
+      fetchDashboardData()
+    }
+  }, [user, selectedClient, fetchDashboardData])
 
   const getHealthScore = () => {
     if (!dashboardData?.labResults?.length) return 0
