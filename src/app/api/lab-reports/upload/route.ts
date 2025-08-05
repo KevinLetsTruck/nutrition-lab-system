@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
   try {
     // Get user session
-    const session = await getServerSession()
+    const session = await getServerSession(request)
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
 // GET endpoint to retrieve lab reports
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(request)
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
