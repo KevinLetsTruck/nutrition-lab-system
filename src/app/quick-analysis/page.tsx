@@ -1,24 +1,40 @@
 'use client'
 
 import { useState } from 'react'
-import { Upload, FileText, AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
+import { Upload, FileText, AlertCircle, CheckCircle, Loader2, ChevronDown, ChevronUp, AlertTriangle, Activity } from 'lucide-react'
 import Navigation from '@/components/Navigation'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+
+interface TestResult {
+  name: string
+  value: string | number
+  unit?: string
+  referenceRange?: string
+  status?: 'normal' | 'high' | 'low' | 'critical'
+  notes?: string
+}
 
 interface AnalysisResult {
   id: string
   fileName: string
   status: 'pending' | 'processing' | 'completed' | 'failed'
-  callerName?: string
-  callerLocation?: string
-  timestamp?: string
+  timestamp: string
+  processingTime?: string
+  reportType?: string
+  confidence?: number
+  summary?: string
+  keyFindings?: string[]
+  recommendations?: string[]
   analysis?: {
-    summary: string
-    recommendations: string[]
-    keyFindings: string[]
-    reportType: string
-    detailedAnalysis?: any // For NutriQ detailed data
+    patientInfo: any
+    testResults: TestResult[]
+    clinicalNotes: string
+    abnormalFindings: TestResult[]
   }
   error?: string
+  rawData?: any
 }
 
 export default function QuickAnalysisPage() {
@@ -29,7 +45,7 @@ export default function QuickAnalysisPage() {
   const [radioShowMode, setRadioShowMode] = useState(false)
   const [callerName, setCallerName] = useState('')
   const [callerLocation, setCallerLocation] = useState('')
-  const [showResults, setShowResults] = useState(false)
+  const [expandedResults, setExpandedResults] = useState<Set<string>>(new Set())
 
   const handleFileSelect = (selectedFiles: FileList | null) => {
     if (!selectedFiles) return
@@ -66,6 +82,18 @@ export default function QuickAnalysisPage() {
     setFiles(prev => prev.filter((_, i) => i !== index))
   }
 
+  const toggleResultExpansion = (resultId: string) => {
+    setExpandedResults(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(resultId)) {
+        newSet.delete(resultId)
+      } else {
+        newSet.add(resultId)
+      }
+      return newSet
+    })
+  }
+
   const uploadAndAnalyze = async () => {
     if (files.length === 0) return
 
@@ -78,8 +106,6 @@ export default function QuickAnalysisPage() {
         id: `file-${Date.now()}-${index}`,
         fileName: file.name,
         status: 'pending',
-        callerName: radioShowMode ? callerName : undefined,
-        callerLocation: radioShowMode ? callerLocation : undefined,
         timestamp: new Date().toISOString()
       })
     })
@@ -101,190 +127,50 @@ export default function QuickAnalysisPage() {
           )
         )
 
-        // Create FormData for upload
+        // Create FormData with just the file
         const formData = new FormData()
         formData.append('file', file)
-        formData.append('quickAnalysis', 'true')
 
-        // Upload file
-        const uploadResponse = await fetch('/api/upload', {
+        // Use the new v2 endpoint that works with document API
+        const analysisResponse = await fetch('/api/quick-analysis-v2', {
           method: 'POST',
           body: formData,
-          credentials: 'include' // Include cookies for authentication
-        })
-
-        if (!uploadResponse.ok) {
-          throw new Error('Upload failed')
-        }
-
-        const uploadData = await uploadResponse.json()
-        
-        console.log('Upload response:', uploadData)
-
-        // Check if upload was successful and get the file path
-        if (!uploadData.success || !uploadData.files || uploadData.files.length === 0) {
-          throw new Error('Upload failed: ' + (uploadData.error || 'Unknown error'))
-        }
-
-        const uploadedFile = uploadData.files[0] // Get the first uploaded file
-        console.log('Uploaded file data:', uploadedFile)
-
-        // Analyze the uploaded file using dedicated quick-analysis endpoint
-        const analysisResponse = await fetch('/api/quick-analysis', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            filePath: uploadedFile.storagePath || uploadedFile.filePath, // Use storagePath from upload response
-            fileName: file.name,
-            bucket: uploadedFile.bucket // Include bucket from upload response
-          }),
-          credentials: 'include' // Include cookies for authentication
+          credentials: 'include'
         })
 
         if (!analysisResponse.ok) {
-          let errorMessage = 'Analysis failed'
-          try {
-            const errorData = await analysisResponse.json()
-            console.error('Analysis error response:', errorData)
-            errorMessage = errorData.error || errorData.details || errorMessage
-          } catch (e) {
-            console.error('Failed to parse error response:', e)
-            errorMessage = `Analysis failed with status ${analysisResponse.status}`
-          }
-          throw new Error(errorMessage)
+          const errorData = await analysisResponse.json()
+          throw new Error(errorData.error || 'Analysis failed')
         }
 
-        let analysisData
-        try {
-          analysisData = await analysisResponse.json()
-        } catch (e) {
-          console.error('Failed to parse analysis response:', e)
-          throw new Error('Analysis completed but failed to parse response')
-        }
-        
-        console.log('Analysis response:', analysisData)
+        const analysisData = await analysisResponse.json()
+        console.log('Analysis complete:', analysisData)
 
-        // Update with successful analysis - handle new API response structure
-        let analysis = {
-          summary: 'Analysis completed successfully.',
-          recommendations: ['Review the detailed findings below.'],
-          keyFindings: ['Document processed successfully.'],
-          reportType: 'General Analysis',
-          detailedAnalysis: null
-        }
-
-        // Handle the new API response structure
-        if (analysisData.analyzedReport?.analyzedReport?.nutriqAnalysis) {
-          const nutriqAnalysis = analysisData.analyzedReport.analyzedReport.nutriqAnalysis
-          analysis = {
-            summary: `NutriQ Analysis completed. Total Score: ${nutriqAnalysis.totalScore || 'N/A'}`,
-            recommendations: nutriqAnalysis.overallRecommendations || ['Review the detailed findings below.'],
-            keyFindings: nutriqAnalysis.priorityActions || ['Document processed successfully.'],
-            reportType: analysisData.reportType || 'nutriq',
-            detailedAnalysis: nutriqAnalysis
-          }
-        } else if (analysisData.analyzedReport?.nutriqAnalysis) {
-          const nutriqAnalysis = analysisData.analyzedReport.nutriqAnalysis
-          analysis = {
-            summary: `NutriQ Analysis completed. Total Score: ${nutriqAnalysis.totalScore || 'N/A'}`,
-            recommendations: nutriqAnalysis.overallRecommendations || ['Review the detailed findings below.'],
-            keyFindings: nutriqAnalysis.priorityActions || ['Document processed successfully.'],
-            reportType: analysisData.reportType || 'nutriq',
-            detailedAnalysis: nutriqAnalysis
-          }
-        } else if (analysisData.reportType === 'fit_test' && analysisData.analyzedReport?.analyzedReport) {
-          // Handle FIT test results
-          const fitResult = analysisData.analyzedReport.analyzedReport
-          analysis = {
-            summary: `FIT Test Result: ${fitResult.result?.toUpperCase() || 'Unknown'}${fitResult.hemoglobinLevel ? ` (Hemoglobin: ${fitResult.hemoglobinLevel} ${fitResult.unit || ''})` : ''}`,
-            recommendations: fitResult.recommendations || ['Review the detailed findings below.'],
-            keyFindings: [
-              fitResult.clinicalSignificance || 'Test processed successfully.',
-              fitResult.followUpRequired ? '⚠️ Follow-up required' : '✓ No immediate follow-up needed'
-            ],
-            reportType: 'FIT Test',
-            detailedAnalysis: fitResult
-          }
-        } else if (analysisData.reportType === 'kbmo' && analysisData.analyzedReport?.analyzedReport) {
-          // Handle KBMO results
-          const kbmoResult = analysisData.analyzedReport.analyzedReport
-          analysis = {
-            summary: `KBMO Test Analysis Complete - ${kbmoResult.totalReactiveFoods || 0} reactive foods identified`,
-            recommendations: kbmoResult.dietaryRecommendations || ['Review the detailed findings below.'],
-            keyFindings: kbmoResult.keyFindings || ['Document processed successfully.'],
-            reportType: 'KBMO Test',
-            detailedAnalysis: kbmoResult
-          }
-        } else if (analysisData.reportType === 'dutch' && analysisData.analyzedReport?.analyzedReport) {
-          // Handle Dutch test results
-          const dutchResult = analysisData.analyzedReport.analyzedReport
-          analysis = {
-            summary: `Dutch Test Analysis Complete - Hormone levels analyzed`,
-            recommendations: dutchResult.recommendations || ['Review the detailed findings below.'],
-            keyFindings: dutchResult.keyFindings || ['Document processed successfully.'],
-            reportType: 'Dutch Test',
-            detailedAnalysis: dutchResult
-          }
-        } else if (analysisData.analyzedReport?.analyzedReport) {
-          // Generic handler for other report types with standard structure
-          const result = analysisData.analyzedReport.analyzedReport
-          analysis = {
-            summary: result.summary || `${analysisData.reportType} Analysis Complete`,
-            recommendations: result.recommendations || ['Review the detailed findings below.'],
-            keyFindings: result.keyFindings || result.findings || ['Document processed successfully.'],
-            reportType: analysisData.reportType || 'Lab Report',
-            detailedAnalysis: result
-          }
-        } else {
-          // Fallback to old structure
-          analysis = {
-            summary: analysisData.summary || analysisData.analysis?.summary || 'Analysis completed successfully.',
-            recommendations: analysisData.recommendations || analysisData.analysis?.recommendations || ['Review the detailed findings below.'],
-            keyFindings: analysisData.keyFindings || analysisData.analysis?.keyFindings || ['Document processed successfully.'],
-            reportType: analysisData.reportType || analysisData.analysis?.reportType || 'General Analysis',
-            detailedAnalysis: null // No detailed analysis for fallback cases
-          }
-        }
-
-        const completedResult = { 
-          ...newResults[i],
-          status: 'completed' as const,
-          analysis
-        }
-        
+        // Update with successful analysis
         setAnalysisResults(prev => 
           prev.map(result => 
-            result.id === resultId ? completedResult : result
+            result.id === resultId 
+              ? { 
+                  ...result, 
+                  status: 'completed',
+                  processingTime: analysisData.processingTime,
+                  reportType: analysisData.reportType,
+                  confidence: analysisData.confidence,
+                  summary: analysisData.summary,
+                  keyFindings: analysisData.keyFindings,
+                  recommendations: analysisData.recommendations,
+                  analysis: analysisData.analysis,
+                  rawData: analysisData.rawData
+                }
+              : result
           )
         )
-        
-        // Save to localStorage if in radio show mode
-        if (radioShowMode && callerName) {
-          const radioAnalysis = {
-            id: resultId,
-            caller_name: callerName,
-            caller_location: callerLocation,
-            file_name: file.name,
-            analysis_results: completedResult.analysis,
-            created_at: new Date().toISOString()
-          }
-          
-          const existing = localStorage.getItem('radioShowAnalyses')
-          const analyses = existing ? JSON.parse(existing) : []
-          analyses.unshift(radioAnalysis)
-          
-          // Keep only the last 50 analyses
-          if (analyses.length > 50) {
-            analyses.splice(50)
-          }
-          
-          localStorage.setItem('radioShowAnalyses', JSON.stringify(analyses))
-        }
+
+        // Auto-expand successful results
+        setExpandedResults(prev => new Set([...prev, resultId]))
 
       } catch (error) {
-        console.error('Error processing file:', error)
+        console.error(`Failed to analyze ${file.name}:`, error)
         
         // Update with error
         setAnalysisResults(prev => 
@@ -293,7 +179,7 @@ export default function QuickAnalysisPage() {
               ? { 
                   ...result, 
                   status: 'failed',
-                  error: error instanceof Error ? error.message : 'Unknown error occurred'
+                  error: error instanceof Error ? error.message : 'Analysis failed'
                 }
               : result
           )
@@ -302,484 +188,356 @@ export default function QuickAnalysisPage() {
     }
 
     setIsUploading(false)
-    setShowResults(true)
-    
-    // Clear form if in radio show mode
-    if (radioShowMode) {
-      setFiles([])
-      setCallerName('')
-      setCallerLocation('')
+    setFiles([]) // Clear files after processing
+  }
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <AlertCircle className="w-5 h-5 text-gray-400" />
+      case 'processing':
+        return <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+      case 'completed':
+        return <CheckCircle className="w-5 h-5 text-green-500" />
+      case 'failed':
+        return <AlertCircle className="w-5 h-5 text-red-500" />
+      default:
+        return null
     }
   }
 
-  const downloadAnalysis = (result: AnalysisResult) => {
-    if (!result.analysis) return
-
-    let content = `
-Quick Analysis Report
-====================
-
-File: ${result.fileName}
-Report Type: ${result.analysis.reportType}
-
-Summary:
-${result.analysis.summary}
-
-Key Findings:
-${result.analysis.keyFindings.map((finding: string) => `• ${finding}`).join('\n')}
-
-Recommendations:
-${result.analysis.recommendations.map((rec: string) => `• ${rec}`).join('\n')}
-
-Generated: ${new Date().toLocaleString()}
-    `.trim()
-
-    // Add detailed NutriQ analysis if available
-    if (result.analysis.reportType === 'nutriq' && result.analysis.detailedAnalysis) {
-      const nutriq = result.analysis.detailedAnalysis
-      content += `
-
-DETAILED NUTRIQ ANALYSIS
-========================
-
-Total Score: ${nutriq.totalScore}
-
-Body Systems Analysis:
-${Object.entries(nutriq.bodySystems || {}).map(([system, data]: [string, any]) => `
-${system.toUpperCase()}:
-  Score: ${data.score}
-  Issues: ${data.issues?.join(', ') || 'None identified'}
-  Recommendations: ${data.recommendations?.join(', ') || 'None provided'}
-`).join('\n')}
-
-Follow-up Tests:
-${nutriq.followUpTests?.map((test: string) => `• ${test}`).join('\n') || 'None recommended'}
-      `
+  const getStatusBadge = (status?: string) => {
+    if (!status) return null
+    
+    switch (status) {
+      case 'critical':
+        return <Badge variant="destructive">Critical</Badge>
+      case 'high':
+        return <Badge className="bg-orange-500">High</Badge>
+      case 'low':
+        return <Badge className="bg-yellow-500">Low</Badge>
+      case 'normal':
+        return <Badge className="bg-green-500">Normal</Badge>
+      default:
+        return null
     }
-
-    const blob = new Blob([content], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${result.fileName.replace('.pdf', '')}_analysis.txt`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
   }
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-gray-50">
       <Navigation />
       
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="container mx-auto p-6 max-w-6xl">
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Quick Document Analysis</h1>
-              <p className="text-gray-400">
-                Upload multiple documents for instant analysis and recommendations without creating client records.
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setRadioShowMode(!radioShowMode)}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  radioShowMode 
-                    ? 'bg-green-600 text-white hover:bg-green-700' 
-                    : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
-                }`}
-              >
-                📻 Radio Show Mode {radioShowMode ? 'ON' : 'OFF'}
-              </button>
-              {radioShowMode && (
-                <a
-                  href="/radio-analysis"
-                  target="_blank"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  📺 Open Analysis View
-                </a>
-              )}
-            </div>
-          </div>
+          <h1 className="text-3xl font-bold mb-2">Quick Document Analysis</h1>
+          <p className="text-gray-600">
+            Upload multiple documents for instant analysis and recommendations without creating client records.
+          </p>
         </div>
 
-        {/* Caller Information (Radio Show Mode) */}
-        {radioShowMode && (
-          <div className="bg-slate-800 rounded-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Caller Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Radio Show Mode Toggle */}
+        <div className="mb-6 p-4 bg-white rounded-lg shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="flex items-center space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={radioShowMode}
+                  onChange={(e) => setRadioShowMode(e.target.checked)}
+                  className="w-5 h-5 rounded text-blue-600"
+                />
+                <span className="text-lg font-medium">📻 Radio Show Mode</span>
+              </label>
+              <p className="text-sm text-gray-500 mt-1">
+                Enable to track caller information for radio show analyses
+              </p>
+            </div>
+            <Badge variant={radioShowMode ? "default" : "secondary"}>
+              {radioShowMode ? 'ON' : 'OFF'}
+            </Badge>
+          </div>
+
+          {radioShowMode && (
+            <div className="mt-4 grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-300 text-sm font-medium mb-2">
-                  Caller Name
-                </label>
+                <label className="block text-sm font-medium mb-1">Caller Name</label>
                 <input
                   type="text"
                   value={callerName}
                   onChange={(e) => setCallerName(e.target.value)}
                   placeholder="Enter caller's name"
-                  className="w-full px-4 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 border rounded-lg"
                 />
               </div>
               <div>
-                <label className="block text-gray-300 text-sm font-medium mb-2">
-                  Caller Location
-                </label>
+                <label className="block text-sm font-medium mb-1">Caller Location</label>
                 <input
                   type="text"
                   value={callerLocation}
                   onChange={(e) => setCallerLocation(e.target.value)}
                   placeholder="City, State"
-                  className="w-full px-4 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 border rounded-lg"
                 />
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* File Upload Section */}
-        <div className="bg-slate-800 rounded-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold text-white mb-4">Upload Documents</h2>
-          
-          <div
-            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-              dragActive 
-                ? 'border-blue-400 bg-blue-400/10' 
-                : 'border-slate-600 hover:border-slate-500'
-            }`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-          >
-            <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-300 mb-2">
-              Drag and drop PDF files here, or click to select
-            </p>
-            <p className="text-gray-500 text-sm mb-4">
-              Supports multiple PDF files for batch analysis
-            </p>
-            
-            <input
-              type="file"
-              multiple
-              accept=".pdf"
-              onChange={(e) => handleFileSelect(e.target.files)}
-              className="hidden"
-              id="file-upload"
-            />
-            <label
-              htmlFor="file-upload"
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors"
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Select Files
-            </label>
-          </div>
-
-          {/* Selected Files */}
-          {files.length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-lg font-medium text-white mb-3">Selected Files ({files.length})</h3>
-              <div className="space-y-2">
-                {files.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between bg-slate-700 rounded-lg p-3">
-                    <div className="flex items-center">
-                      <FileText className="w-5 h-5 text-gray-400 mr-3" />
-                      <span className="text-white">{file.name}</span>
-                      <span className="text-gray-500 text-sm ml-2">
-                        ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => removeFile(index)}
-                      className="text-red-400 hover:text-red-300 transition-colors"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-              </div>
-              
-              <button
-                onClick={uploadAndAnalyze}
-                disabled={isUploading}
-                className="mt-4 w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Processing Files...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="w-5 h-5 mr-2" />
-                    Analyze Documents
-                  </>
-                )}
-              </button>
             </div>
           )}
         </div>
 
-        {/* Toggle Results View Button */}
-        {analysisResults.length > 0 && (
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={() => setShowResults(!showResults)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        {/* Upload Section */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Upload Documents</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+              }`}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
             >
-              {showResults ? 'Hide' : 'Show'} Results View
-            </button>
-          </div>
-        )}
+              <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <p className="text-lg mb-2">
+                Drag and drop PDF files here, or click to select
+              </p>
+              <p className="text-sm text-gray-500 mb-4">
+                Supports multiple PDF files for batch analysis
+              </p>
+              <input
+                type="file"
+                multiple
+                accept=".pdf,application/pdf"
+                onChange={(e) => handleFileSelect(e.target.files)}
+                className="hidden"
+                id="file-upload"
+              />
+              <label
+                htmlFor="file-upload"
+                className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700"
+              >
+                Select Files
+              </label>
+            </div>
 
-        {/* Analysis Results */}
-        {analysisResults.length > 0 && showResults && (
-          <div className="bg-slate-800 rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">
-              Analysis Results
-              {radioShowMode && analysisResults[0]?.callerName && (
-                <span className="text-base font-normal text-gray-400 ml-4">
-                  for {analysisResults[0].callerName} from {analysisResults[0].callerLocation}
-                </span>
-              )}
-            </h2>
-            
-            <div className="space-y-4">
-              {analysisResults.map((result) => (
-                <div key={result.id} className="bg-slate-700 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center">
-                      <FileText className="w-5 h-5 text-gray-400 mr-2" />
-                      <span className="text-white font-medium">{result.fileName}</span>
+            {files.length > 0 && (
+              <div className="mt-4">
+                <h3 className="font-medium mb-2">Selected Files ({files.length})</h3>
+                <div className="space-y-2">
+                  {files.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <FileText className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm">{file.name}</span>
+                        <span className="text-xs text-gray-500">
+                          ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => removeFile(index)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        Remove
+                      </button>
                     </div>
-                    
-                    <div className="flex items-center">
-                      {result.status === 'pending' && (
-                        <div className="flex items-center text-yellow-400">
-                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                          <span className="text-sm">Pending</span>
+                  ))}
+                </div>
+                <Button
+                  onClick={uploadAndAnalyze}
+                  disabled={isUploading}
+                  className="mt-4 w-full"
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    'Analyze All Files'
+                  )}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Results Section */}
+        {analysisResults.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold">Analysis Results</h2>
+            
+            {analysisResults.map((result) => (
+              <Card key={result.id} className="overflow-hidden">
+                <CardHeader 
+                  className="cursor-pointer"
+                  onClick={() => toggleResultExpansion(result.id)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      {getStatusIcon(result.status)}
+                      <div>
+                        <h3 className="font-semibold">{result.fileName}</h3>
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          {result.reportType && (
+                            <Badge variant="outline">{result.reportType}</Badge>
+                          )}
+                          {result.processingTime && (
+                            <span>Processed in {result.processingTime}</span>
+                          )}
+                          {result.confidence && (
+                            <span>Confidence: {(result.confidence * 100).toFixed(0)}%</span>
+                          )}
                         </div>
-                      )}
-                      {result.status === 'processing' && (
-                        <div className="flex items-center text-blue-400">
-                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                          <span className="text-sm">Processing</span>
-                        </div>
-                      )}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
                       {result.status === 'completed' && (
-                        <div className="flex items-center text-green-400">
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          <span className="text-sm">Completed</span>
-                        </div>
-                      )}
-                      {result.status === 'failed' && (
-                        <div className="flex items-center text-red-400">
-                          <AlertCircle className="w-4 h-4 mr-1" />
-                          <span className="text-sm">Failed</span>
-                        </div>
+                        expandedResults.has(result.id) ? 
+                          <ChevronUp className="w-5 h-5" /> : 
+                          <ChevronDown className="w-5 h-5" />
                       )}
                     </div>
                   </div>
+                </CardHeader>
 
-                  {result.status === 'completed' && result.analysis && (
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="text-white font-medium mb-2">Summary</h4>
-                        <p className="text-gray-300 text-sm">{result.analysis.summary}</p>
+                {result.status === 'completed' && expandedResults.has(result.id) && (
+                  <CardContent className="border-t">
+                    {/* Summary */}
+                    {result.summary && (
+                      <div className="mb-6">
+                        <h4 className="font-semibold mb-2">Summary</h4>
+                        <p className="text-gray-700">{result.summary}</p>
                       </div>
-                      
-                      <div>
-                        <h4 className="text-white font-medium mb-2">Key Findings</h4>
-                        <ul className="list-disc list-inside text-gray-300 text-sm space-y-1">
-                          {result.analysis.keyFindings.map((finding: string, index: number) => (
-                            <li key={index}>{finding}</li>
+                    )}
+
+                    {/* Key Findings */}
+                    {result.keyFindings && result.keyFindings.length > 0 && (
+                      <div className="mb-6">
+                        <h4 className="font-semibold mb-2 flex items-center gap-2">
+                          <Activity className="w-4 h-4" />
+                          Key Findings
+                        </h4>
+                        <ul className="space-y-1">
+                          {result.keyFindings.map((finding, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <span className="text-gray-700">{finding}</span>
+                            </li>
                           ))}
                         </ul>
                       </div>
-                      
-                      <div>
-                        <h4 className="text-white font-medium mb-2">Recommendations</h4>
-                        <ul className="list-disc list-inside text-gray-300 text-sm space-y-1">
-                          {result.analysis.recommendations.map((rec: string, index: number) => (
-                            <li key={index}>{rec}</li>
+                    )}
+
+                    {/* Test Results */}
+                    {result.analysis?.testResults && result.analysis.testResults.length > 0 && (
+                      <div className="mb-6">
+                        <h4 className="font-semibold mb-2">Test Results</h4>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Test</th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Value</th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                              {result.analysis.testResults.map((test, idx) => (
+                                <tr key={idx}>
+                                  <td className="px-4 py-2 text-sm">{test.name}</td>
+                                  <td className="px-4 py-2 text-sm">
+                                    {test.value} {test.unit}
+                                  </td>
+                                  <td className="px-4 py-2 text-sm text-gray-500">{test.referenceRange}</td>
+                                  <td className="px-4 py-2 text-sm">{getStatusBadge(test.status)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Abnormal Findings */}
+                    {result.analysis?.abnormalFindings && result.analysis.abnormalFindings.length > 0 && (
+                      <div className="mb-6 p-4 bg-orange-50 rounded-lg">
+                        <h4 className="font-semibold mb-2 flex items-center gap-2 text-orange-800">
+                          <AlertTriangle className="w-4 h-4" />
+                          Abnormal Findings
+                        </h4>
+                        <div className="space-y-2">
+                          {result.analysis.abnormalFindings.map((finding, idx) => (
+                            <div key={idx} className="flex items-center justify-between">
+                              <span className="font-medium">{finding.name}</span>
+                              <div className="flex items-center gap-2">
+                                <span>{finding.value} {finding.unit}</span>
+                                {getStatusBadge(finding.status)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Clinical Notes */}
+                    {result.analysis?.clinicalNotes && (
+                      <div className="mb-6">
+                        <h4 className="font-semibold mb-2">Clinical Notes</h4>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <p className="text-sm whitespace-pre-wrap">{result.analysis.clinicalNotes}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Recommendations */}
+                    {result.recommendations && result.recommendations.length > 0 && (
+                      <div className="mb-6">
+                        <h4 className="font-semibold mb-2">Recommendations</h4>
+                        <ul className="space-y-2">
+                          {result.recommendations.map((rec, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <span className="text-blue-500 mt-1">•</span>
+                              <span className="text-gray-700">{rec}</span>
+                            </li>
                           ))}
                         </ul>
                       </div>
-                      
-                      {/* Detailed NutriQ Analysis */}
-                      {result.analysis.reportType === 'nutriq' && result.analysis.detailedAnalysis && (
-                        <div className="border-t border-slate-600 pt-4">
-                          <h4 className="text-white font-medium mb-3">Detailed Body Systems Analysis</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {Object.entries(result.analysis.detailedAnalysis.bodySystems || {}).map(([system, data]: [string, any]) => (
-                              <div key={system} className="bg-slate-600 rounded-lg p-3">
-                                <h5 className="text-white font-medium text-sm mb-2 capitalize">{system}</h5>
-                                <div className="space-y-2">
-                                  <div className="flex justify-between items-center">
-                                    <span className="text-gray-300 text-xs">Score:</span>
-                                    <span className={`text-sm font-medium ${
-                                      data.score >= 70 ? 'text-red-400' : 
-                                      data.score >= 50 ? 'text-yellow-400' : 'text-green-400'
-                                    }`}>
-                                      {data.score}/100
-                                    </span>
-                                  </div>
-                                  {data.issues && data.issues.length > 0 && (
-                                    <div>
-                                      <span className="text-gray-300 text-xs">Issues:</span>
-                                      <ul className="list-disc list-inside text-gray-300 text-xs mt-1">
-                                        {data.issues.map((issue: string, index: number) => (
-                                          <li key={index}>{issue}</li>
-                                        ))}
-                                      </ul>
-                                    </div>
-                                  )}
-                                  {data.recommendations && data.recommendations.length > 0 && (
-                                    <div>
-                                      <span className="text-gray-300 text-xs">Recommendations:</span>
-                                      <ul className="list-disc list-inside text-gray-300 text-xs mt-1">
-                                        {data.recommendations.map((rec: string, index: number) => (
-                                          <li key={index}>{rec}</li>
-                                        ))}
-                                      </ul>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          
-                          {result.analysis.detailedAnalysis.followUpTests && result.analysis.detailedAnalysis.followUpTests.length > 0 && (
-                            <div className="mt-4">
-                              <h5 className="text-white font-medium mb-2">Follow-up Tests</h5>
-                              <ul className="list-disc list-inside text-gray-300 text-sm space-y-1">
-                                {result.analysis.detailedAnalysis.followUpTests.map((test: string, index: number) => (
-                                  <li key={index}>{test}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
-                      {/* Detailed FIT Test Analysis */}
-                      {result.analysis.reportType === 'FIT Test' && result.analysis.detailedAnalysis && (
-                        <div className="border-t border-slate-600 pt-4">
-                          <h4 className="text-white font-medium mb-3">FIT Test Details</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="bg-slate-600 rounded-lg p-3">
-                              <h5 className="text-white font-medium text-sm mb-2">Test Results</h5>
-                              <div className="space-y-2">
-                                {result.analysis.detailedAnalysis.result && (
-                                  <div className="flex justify-between items-center">
-                                    <span className="text-gray-300 text-sm">Result:</span>
-                                    <span className={`text-sm font-medium ${
-                                      result.analysis.detailedAnalysis.result === 'positive' ? 'text-red-400' : 'text-green-400'
-                                    }`}>
-                                      {result.analysis.detailedAnalysis.result.toUpperCase()}
-                                    </span>
-                                  </div>
-                                )}
-                                {result.analysis.detailedAnalysis.hemoglobinLevel && (
-                                  <div className="flex justify-between items-center">
-                                    <span className="text-gray-300 text-sm">Hemoglobin:</span>
-                                    <span className="text-white text-sm">
-                                      {result.analysis.detailedAnalysis.hemoglobinLevel} {result.analysis.detailedAnalysis.unit || ''}
-                                    </span>
-                                  </div>
-                                )}
-                                {result.analysis.detailedAnalysis.referenceRange && (
-                                  <div className="flex justify-between items-center">
-                                    <span className="text-gray-300 text-sm">Reference:</span>
-                                    <span className="text-white text-sm">{result.analysis.detailedAnalysis.referenceRange}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            
-                            <div className="bg-slate-600 rounded-lg p-3">
-                              <h5 className="text-white font-medium text-sm mb-2">Test Information</h5>
-                              <div className="space-y-2">
-                                {result.analysis.detailedAnalysis.collectionDate && (
-                                  <div className="flex justify-between items-center">
-                                    <span className="text-gray-300 text-sm">Collection Date:</span>
-                                    <span className="text-white text-sm">{result.analysis.detailedAnalysis.collectionDate}</span>
-                                  </div>
-                                )}
-                                {result.analysis.detailedAnalysis.processingDate && (
-                                  <div className="flex justify-between items-center">
-                                    <span className="text-gray-300 text-sm">Processing Date:</span>
-                                    <span className="text-white text-sm">{result.analysis.detailedAnalysis.processingDate}</span>
-                                  </div>
-                                )}
-                                {result.analysis.detailedAnalysis.labName && (
-                                  <div className="flex justify-between items-center">
-                                    <span className="text-gray-300 text-sm">Laboratory:</span>
-                                    <span className="text-white text-sm">{result.analysis.detailedAnalysis.labName}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {result.analysis.detailedAnalysis.followUpInstructions && result.analysis.detailedAnalysis.followUpInstructions.length > 0 && (
-                            <div className="mt-4">
-                              <h5 className="text-white font-medium mb-2">Follow-up Instructions</h5>
-                              <ul className="list-disc list-inside text-yellow-300 text-sm space-y-1">
-                                {result.analysis.detailedAnalysis.followUpInstructions.map((instruction: string, index: number) => (
-                                  <li key={index}>{instruction}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          
-                          {result.analysis.detailedAnalysis.riskFactors && result.analysis.detailedAnalysis.riskFactors.length > 0 && (
-                            <div className="mt-4">
-                              <h5 className="text-white font-medium mb-2">Risk Factors</h5>
-                              <ul className="list-disc list-inside text-orange-300 text-sm space-y-1">
-                                {result.analysis.detailedAnalysis.riskFactors.map((factor: string, index: number) => (
-                                  <li key={index}>{factor}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          
-                          {result.analysis.detailedAnalysis.nextSteps && result.analysis.detailedAnalysis.nextSteps.length > 0 && (
-                            <div className="mt-4">
-                              <h5 className="text-white font-medium mb-2">Next Steps</h5>
-                              <ul className="list-disc list-inside text-blue-300 text-sm space-y-1">
-                                {result.analysis.detailedAnalysis.nextSteps.map((step: string, index: number) => (
-                                  <li key={index}>{step}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
-                      <button
-                        onClick={() => downloadAnalysis(result)}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                      >
-                        Download Analysis
-                      </button>
-                    </div>
-                  )}
+                    )}
 
-                  {result.status === 'failed' && result.error && (
-                    <div className="text-red-400 text-sm">
-                      Error: {result.error}
+                    {/* Patient Info */}
+                    {result.analysis?.patientInfo && Object.keys(result.analysis.patientInfo).length > 0 && (
+                      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                        <h4 className="font-semibold mb-2">Patient Information</h4>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          {Object.entries(result.analysis.patientInfo).map(([key, value]) => (
+                            <div key={key}>
+                              <span className="font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}: </span>
+                              <span className="text-gray-700">{value as string}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                )}
+
+                {result.status === 'failed' && (
+                  <CardContent className="border-t">
+                    <div className="text-red-600">
+                      <p className="font-medium">Analysis Failed</p>
+                      <p className="text-sm">{result.error}</p>
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
+                  </CardContent>
+                )}
+              </Card>
+            ))}
           </div>
         )}
       </div>
     </div>
   )
-} 
+}
