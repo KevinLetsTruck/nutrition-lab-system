@@ -62,7 +62,7 @@ export class PDFProcessor {
     this.config = {
       anthropicApiKey: config.anthropicApiKey,
       maxRetries: config.maxRetries ?? 3,
-      maxPDFSizeMB: config.maxPDFSizeMB ?? 32
+      maxPDFSizeMB: config.maxPDFSizeMB ?? 5  // Claude API limit is 5MB
     }
   }
 
@@ -175,15 +175,32 @@ export class PDFProcessor {
     const prompt = this.getAnalysisPrompt(reportType, options?.clientName)
 
     try {
-      // Send to Claude - Note: Native PDF support via 'document' type not available in SDK yet
-      // For production, we'll send as text with a note about the PDF
+      // Send to Claude using Document API for PDF analysis
+      console.log('[PDFProcessor] Using Claude Document API for PDF analysis')
+      
+      // Strip any data URL prefix if present
+      const cleanBase64 = pdfBase64.replace(/^data:application\/pdf;base64,/, '')
+      
       const response = await this.anthropic.messages.create({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 4000,
         temperature: 0,
         messages: [{
           role: 'user',
-          content: `${prompt}\n\n[PDF DOCUMENT UPLOADED - Base64 length: ${pdfBase64.length}]\n\nNote: This is a PDF lab report that needs analysis. In production, direct PDF processing is limited.`
+          content: [
+            {
+              type: 'text',
+              text: prompt
+            },
+            {
+              type: 'document',  // Fixed: Using 'document' for PDFs
+              source: {
+                type: 'base64',
+                media_type: 'application/pdf',
+                data: cleanBase64
+              }
+            } as any  // Cast to any to handle TypeScript type issues
+          ]
         }]
       })
 

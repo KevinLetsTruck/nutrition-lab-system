@@ -92,7 +92,10 @@ export default function UniversalAnalyzer() {
       addStatus('Sending to analysis server...')
       setProgress(40)
 
-      const response = await fetch('/api/analyze-universal', {
+      // Use vision endpoint for file uploads, universal for text
+      const endpoint = mode === 'upload' && file ? '/api/analyze-vision' : '/api/analyze-universal'
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: isFormData ? {} : { 'Content-Type': 'application/json' },
         body: requestBody,

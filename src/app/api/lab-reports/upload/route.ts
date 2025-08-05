@@ -44,11 +44,12 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Check file size (32MB limit)
-    const maxSizeMB = 32
+    // Check file size (5MB limit for Claude API)
+    const maxSizeMB = 5
     if (file.size > maxSizeMB * 1024 * 1024) {
       return NextResponse.json({ 
-        error: `File too large. Maximum size is ${maxSizeMB}MB.` 
+        error: `File too large. Maximum size is ${maxSizeMB}MB due to Claude API limits.`,
+        suggestion: 'Please compress your PDF or split it into smaller files.'
       }, { status: 400 })
     }
 
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
     const processor = new PDFProcessor({
       anthropicApiKey: process.env.ANTHROPIC_API_KEY!,
       maxRetries: 3,
-      maxPDFSizeMB: 32
+      maxPDFSizeMB: 5  // Claude API limit
     })
 
     // Process the PDF

@@ -298,6 +298,62 @@ class ClaudeClient {
     return await this.analyzeWithClaude(content, systemPrompt)
   }
 
+  // Flexible vision analysis method that accepts multiple images or mixed content
+  async analyzeWithVision(
+    textPrompt: string,
+    images: Array<{
+      type: 'image',
+      source: {
+        type: 'base64',
+        media_type: string,
+        data: string
+      }
+    }>,
+    systemPrompt: string
+  ): Promise<string> {
+    console.log('[CLAUDE] Analyzing with Vision API - flexible method')
+    console.log('[CLAUDE] Number of images:', images.length)
+    
+    // Construct multi-modal message content
+    const content: Anthropic.MessageParam['content'] = [
+      {
+        type: 'text',
+        text: textPrompt
+      },
+      ...images
+    ]
+    
+    return await this.analyzeWithClaude(content, systemPrompt)
+  }
+
+  // New method specifically for analyzing documents (PDFs)
+  async analyzeWithDocument(
+    textPrompt: string,
+    document: {
+      type: 'document',
+      source: {
+        type: 'base64',
+        media_type: string,
+        data: string
+      }
+    },
+    systemPrompt: string
+  ): Promise<string> {
+    console.log('[CLAUDE] Analyzing with Document API')
+    console.log('[CLAUDE] Document type:', document.source.media_type)
+    
+    // Construct multi-modal message content with document
+    const content: Anthropic.MessageParam['content'] = [
+      {
+        type: 'text',
+        text: textPrompt
+      },
+      document as any  // Cast to any to handle TypeScript type issues
+    ]
+    
+    return await this.analyzeWithClaude(content, systemPrompt)
+  }
+
   // New method for analyzing PDF pages as images
   async analyzePDFPagesAsImages(
     pageImages: Array<{ base64: string; pageNumber: number }>,
