@@ -31,7 +31,7 @@ export function AuthDebug() {
       setCookieDebug(cookieData)
     } catch (error) {
       console.error('Auth debug error:', error)
-      setAuthStatus({ error: error.message })
+      setAuthStatus({ error: error instanceof Error ? error.message : 'Unknown error' })
     } finally {
       setLoading(false)
     }

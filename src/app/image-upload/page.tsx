@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Image, Upload, Loader2, FileText } from 'lucide-react'
+import { Image as ImageIcon, Upload, Loader2, FileText } from 'lucide-react'
 
 export default function ImageUpload() {
   const [files, setFiles] = useState<File[]>([])
@@ -96,7 +96,7 @@ export default function ImageUpload() {
         <h2 className="text-xl font-semibold mb-4">Step 2: Upload Images</h2>
         
         <div className="border-2 border-dashed rounded-lg p-8 text-center">
-          <Image className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+          <ImageIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
           <p className="text-lg mb-4">Select converted images</p>
           
           <input
