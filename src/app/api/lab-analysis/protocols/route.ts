@@ -4,15 +4,15 @@ import ProtocolGenerator from '@/lib/lab-analysis/protocol-generator'
 import { getAuthenticatedUser } from '@/lib/auth-utils'
 import { LabPattern, AIAnalysis, ClientPreferences } from '@/types/lab-analysis'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-)
-
-const protocolGenerator = new ProtocolGenerator()
-
 export async function POST(request: NextRequest) {
   console.log('[LAB-PROTOCOLS] Starting protocol generation...')
+  
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_KEY!
+  )
+  
+  const protocolGenerator = new ProtocolGenerator()
 
   try {
     // Authenticate user
@@ -115,6 +115,11 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_KEY!
+  )
+  
   const { searchParams } = new URL(request.url)
   const labResultId = searchParams.get('lab_result_id')
   const clientId = searchParams.get('client_id')

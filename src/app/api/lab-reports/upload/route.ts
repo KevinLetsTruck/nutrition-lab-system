@@ -4,13 +4,13 @@ import { PDFProcessor } from '@/lib/pdf-processor-production'
 import { getServerSession } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 export async function POST(request: NextRequest) {
   console.log('[LabReports] Upload endpoint called')
+  
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 
   try {
     // Get user session
@@ -165,6 +165,11 @@ export async function POST(request: NextRequest) {
 
 // GET endpoint to retrieve lab reports
 export async function GET(request: NextRequest) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+  
   try {
     const session = await getServerSession(request)
     if (!session) {

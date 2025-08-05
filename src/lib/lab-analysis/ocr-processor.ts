@@ -1,5 +1,4 @@
 import { createWorker, Worker } from 'tesseract.js'
-const pdfParse = require('pdf-parse')
 import { 
   OCRResult, 
   ExtractedLabData, 
@@ -43,6 +42,7 @@ export class LabOCRProcessor {
       if (fileType === 'pdf') {
         // Try text extraction first
         try {
+          const pdfParse = (await import('pdf-parse')).default
           const pdfData = await pdfParse(buffer)
           text = pdfData.text
           confidence = text.length > 100 ? 0.9 : 0.5

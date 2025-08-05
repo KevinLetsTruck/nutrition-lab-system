@@ -246,7 +246,7 @@ export class ProtocolGenerator {
       case 'Vitamin D Deficiency':
         supplements.push({
           name: 'Vitamin D3',
-          dosage: pattern.supporting_markers[0].value < 30 ? '5000IU' : '2000IU',
+          dosage: Number(pattern.supporting_markers[0].value) < 30 ? '5000IU' : '2000IU',
           frequency: 'once daily',
           timing: 'with fatty meal',
           duration: '3 months then retest',

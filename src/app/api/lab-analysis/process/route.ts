@@ -4,15 +4,16 @@ import LabAIAnalyzer from '@/lib/lab-analysis/ai-analyzer'
 import { getAuthenticatedUser } from '@/lib/auth-utils'
 import { LabValue, LabTestCatalog } from '@/types/lab-analysis'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-)
-
-const aiAnalyzer = new LabAIAnalyzer()
-
 export async function POST(request: NextRequest) {
   console.log('[LAB-PROCESS] Starting lab analysis processing...')
+
+  // Initialize services inside the handler
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_KEY!
+  )
+  
+  const aiAnalyzer = new LabAIAnalyzer()
 
   try {
     // Authenticate user
@@ -70,7 +71,8 @@ export async function POST(request: NextRequest) {
     const labValues = await createLabValues(
       labResult.id,
       labResult.structured_data.test_results,
-      testCatalog
+      testCatalog,
+      supabase
     )
 
     // Get client context
@@ -149,7 +151,8 @@ export async function POST(request: NextRequest) {
 async function createLabValues(
   labResultId: string,
   extractedResults: any[],
-  testCatalog: any[]
+  testCatalog: any[],
+  supabase: any
 ): Promise<LabValue[]> {
   const labValues: LabValue[] = []
 

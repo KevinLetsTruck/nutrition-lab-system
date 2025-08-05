@@ -3,15 +3,15 @@ import { createClient } from '@supabase/supabase-js'
 import LabOCRProcessor from '@/lib/lab-analysis/ocr-processor'
 import { getAuthenticatedUser } from '@/lib/auth-utils'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-)
-
-const ocrProcessor = new LabOCRProcessor()
-
 export async function POST(request: NextRequest) {
   console.log('[LAB-UPLOAD] Starting lab document upload...')
+  
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_KEY!
+  )
+  
+  const ocrProcessor = new LabOCRProcessor()
 
   try {
     // Authenticate user
@@ -101,8 +101,8 @@ export async function POST(request: NextRequest) {
           fileUrl: publicUrl
         })
 
-        // Queue for processing (in production, this would be a background job)
-        processLabDocument(labResult.id, fileBuffer, file.type.includes('pdf') ? 'pdf' : 'image')
+              // Queue for processing (in production, this would be a background job)
+      processLabDocument(labResult.id, fileBuffer, file.type.includes('pdf') ? 'pdf' : 'image', supabase, ocrProcessor)
 
       } catch (error) {
         console.error(`[LAB-UPLOAD] Error processing ${file.name}:`, error)
@@ -133,7 +133,9 @@ export async function POST(request: NextRequest) {
 async function processLabDocument(
   labResultId: string, 
   fileBuffer: Buffer, 
-  fileType: 'pdf' | 'image'
+  fileType: 'pdf' | 'image',
+  supabase: any,
+  ocrProcessor: any
 ) {
   try {
     console.log(`[LAB-UPLOAD] Starting OCR processing for ${labResultId}`)
