@@ -164,19 +164,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Find or create client
-    let clientId: string
-    try {
-      const existingClient = await db.searchClients(clientEmail)
-      if (existingClient.length > 0) {
-        clientId = existingClient[0].id
-      } else {
-        const newClient = await db.createClient({
-          email: clientEmail,
-          first_name: clientFirstName,
-          last_name: clientLastName
-        })
-        clientId = newClient.id
+    // Find or create client (use provided clientId or find/create one)
+    let targetClientId: string
+    if (clientId) {
+      // Use the provided clientId (already validated above)
+      targetClientId = clientId
+    } else {
+      // Find or create client
+      try {
+        const existingClient = await db.searchClients(clientEmail)
+        if (existingClient.length > 0) {
+          targetClientId = existingClient[0].id
+        } else {
+          const newClient = await db.createClient({
+            email: clientEmail,
+            first_name: clientFirstName,
+            last_name: clientLastName
+          })
+          targetClientId = newClient.id
+        }
       }
     } catch (error) {
       console.error('Error finding/creating client:', error)
@@ -205,7 +211,7 @@ export async function POST(request: NextRequest) {
 
         // Upload file to Supabase Storage
         const storageFile = await saveFile(file, file.name, category, {
-          clientId,
+          clientId: targetClientId,
           clientEmail,
           uploadedBy: 'api'
         }, true) // Use service role for server-side uploads
@@ -213,7 +219,7 @@ export async function POST(request: NextRequest) {
         // Create lab report record in database
         const reportType = determineReportType(file.name, file.type, category)
         const labReport = await db.createLabReport({
-          client_id: clientId,
+          client_id: targetClientId,
           report_type: reportType,
           report_date: new Date().toISOString().split('T')[0],
           file_path: storageFile.path,
