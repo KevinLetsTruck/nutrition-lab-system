@@ -1,5 +1,5 @@
 import { createWorker, Worker } from 'tesseract.js'
-import * as pdfParse from 'pdf-parse'
+const pdfParse = require('pdf-parse')
 import { 
   OCRResult, 
   ExtractedLabData, 
