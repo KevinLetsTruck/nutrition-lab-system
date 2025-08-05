@@ -169,7 +169,13 @@ export class PDFProcessor {
     const pdfBase64 = pdfBuffer.toString('base64')
 
     // Detect report type if not provided
-    const reportType = options?.reportType || 'general'
+    let reportType = options?.reportType || 'general'
+    
+    // Try to auto-detect report type from content if not specified
+    if (!options?.reportType || options.reportType === 'auto' || options.reportType === 'general') {
+      reportType = await this.detectReportType(pdfBase64, pdfBuffer)
+      console.log('[PDFProcessor] Auto-detected report type:', reportType)
+    }
 
     // Get appropriate prompt
     const prompt = this.getAnalysisPrompt(reportType, options?.clientName)
@@ -275,53 +281,222 @@ Please provide a general structure and recommendations for this type of report.`
   }
 
   /**
+   * Detect report type from PDF content
+   */
+  private async detectReportType(pdfBase64: string, pdfBuffer: Buffer): Promise<string> {
+    try {
+      // Quick detection prompt
+      const detectPrompt = `Look at this medical lab report and identify what type of test it is. 
+      
+Common test types:
+- nutriq: NutriQ or NAQ (Nutritional Assessment Questionnaire) reports
+- kbmo: KBMO food sensitivity or IgG antibody tests
+- dutch: DUTCH hormone tests (dried urine test)
+- fit_test: FIT (Fecal Immunochemical Test), FOBT, or stool tests
+- general: Other lab reports
+
+Return ONLY the test type identifier (e.g., "fit_test") with no other text.`
+
+      const response = await this.anthropic.messages.create({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 50,
+        temperature: 0,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: detectPrompt
+            },
+            {
+              type: 'document',
+              source: {
+                type: 'base64',
+                media_type: 'application/pdf',
+                data: pdfBase64
+              }
+            } as any
+          ]
+        }]
+      })
+      
+      const detectedType = response.content[0].type === 'text' ? response.content[0].text.trim().toLowerCase() : 'general'
+      
+      // Validate the detected type
+      const validTypes = ['nutriq', 'kbmo', 'dutch', 'fit_test', 'general']
+      return validTypes.includes(detectedType) ? detectedType : 'general'
+      
+    } catch (error) {
+      console.error('[PDFProcessor] Failed to detect report type:', error)
+      return 'general'
+    }
+  }
+
+  /**
    * Get analysis prompt based on report type
    */
   private getAnalysisPrompt(reportType: string, clientName?: string): string {
     const clientContext = clientName ? `This report is for client: ${clientName}. ` : ''
 
     const prompts: Record<string, string> = {
-      nutriq: `Extract all lab results from this NutriQ/NAQ report. ${clientContext}Return as JSON with:
-        - Patient demographics
-        - All test results with values and reference ranges
-        - Body system scores (energy, mood, sleep, stress, digestion, immunity)
-        - Flagged abnormal results
-        - Clinical interpretations
-        - Recommendations
-        Format: { patientInfo: {...}, testResults: [...], bodySystems: {...}, recommendations: [...] }`,
+      nutriq: `Analyze this NutriQ/NAQ report. ${clientContext}
+
+IMPORTANT: Return your response as valid JSON only, with no additional text or formatting.
+
+Extract and return in this exact JSON structure:
+{
+  "patientInfo": {
+    "name": "string",
+    "dateOfBirth": "string",
+    "testDate": "string",
+    "reportId": "string",
+    "provider": "string"
+  },
+  "testResults": [
+    {
+      "name": "string",
+      "value": "string or number",
+      "unit": "string",
+      "referenceRange": "string",
+      "status": "normal|high|low|critical"
+    }
+  ],
+  "bodySystems": {
+    "energy": { "score": number, "issues": [], "recommendations": [] },
+    "mood": { "score": number, "issues": [], "recommendations": [] },
+    "sleep": { "score": number, "issues": [], "recommendations": [] },
+    "stress": { "score": number, "issues": [], "recommendations": [] },
+    "digestion": { "score": number, "issues": [], "recommendations": [] },
+    "immunity": { "score": number, "issues": [], "recommendations": [] }
+  },
+  "clinicalNotes": "string",
+  "recommendations": ["string"]
+}`,
       
-      kbmo: `Process this KBMO food sensitivity report. ${clientContext}Extract:
-        - Patient information
-        - All IgG levels for each food
-        - Sensitivity categories (high, moderate, low)
-        - Elimination diet recommendations
-        - Reintroduction schedule
-        Format: { patientInfo: {...}, testResults: [...], sensitivities: {...}, dietPlan: {...} }`,
+      kbmo: `Analyze this KBMO food sensitivity report. ${clientContext}
+
+IMPORTANT: Return your response as valid JSON only, with no additional text or formatting.
+
+Extract and return in this exact JSON structure:
+{
+  "patientInfo": {
+    "name": "string",
+    "dateOfBirth": "string",
+    "testDate": "string",
+    "reportId": "string",
+    "provider": "string"
+  },
+  "testResults": [
+    {
+      "name": "food name",
+      "value": "IgG level",
+      "unit": "U/mL",
+      "referenceRange": "string",
+      "status": "normal|high|low"
+    }
+  ],
+  "sensitivities": {
+    "high": ["food names"],
+    "moderate": ["food names"],
+    "low": ["food names"]
+  },
+  "dietPlan": {
+    "elimination": ["foods to eliminate"],
+    "reintroduction": ["reintroduction schedule"]
+  },
+  "clinicalNotes": "string"
+}`,
       
-      dutch: `Analyze this DUTCH hormone test. ${clientContext}Extract:
-        - Patient demographics
-        - All hormone levels with units and reference ranges
-        - Cortisol pattern analysis
-        - Sex hormone levels
-        - Organic acids if present
-        - Clinical recommendations
-        Format: { patientInfo: {...}, testResults: [...], cortisolPattern: {...}, recommendations: [...] }`,
+      dutch: `Analyze this DUTCH hormone test. ${clientContext}
+
+IMPORTANT: Return your response as valid JSON only, with no additional text or formatting.
+
+Extract and return in this exact JSON structure:
+{
+  "patientInfo": {
+    "name": "string",
+    "dateOfBirth": "string",
+    "testDate": "string",
+    "reportId": "string",
+    "provider": "string"
+  },
+  "testResults": [
+    {
+      "name": "hormone name",
+      "value": "number",
+      "unit": "string",
+      "referenceRange": "string",
+      "status": "normal|high|low"
+    }
+  ],
+  "cortisolPattern": {
+    "morning": "value",
+    "noon": "value",
+    "evening": "value",
+    "night": "value",
+    "pattern": "normal|flat|reversed|elevated"
+  },
+  "clinicalNotes": "string",
+  "recommendations": ["string"]
+}`,
       
-      fit_test: `Analyze this FIT/Fecal Immunochemical Test. ${clientContext}Extract:
-        - Patient information
-        - Test result (positive/negative/inconclusive)
-        - Hemoglobin levels if provided
-        - Clinical significance
-        - Follow-up recommendations
-        Format: { patientInfo: {...}, testResults: [...], interpretation: {...}, followUp: [...] }`,
+      fit_test: `Analyze this FIT (Fecal Immunochemical Test) or stool test report. ${clientContext}
+
+IMPORTANT: Return your response as valid JSON only, with no additional text or formatting.
+
+Extract and return in this exact JSON structure:
+{
+  "patientInfo": {
+    "name": "string",
+    "dateOfBirth": "string", 
+    "testDate": "string",
+    "reportId": "string",
+    "provider": "string"
+  },
+  "testResults": [
+    {
+      "name": "FIT Result",
+      "value": "positive|negative|number",
+      "unit": "ng/mL or μg/g",
+      "referenceRange": "string",
+      "status": "normal|high|low|critical"
+    }
+  ],
+  "interpretation": {
+    "result": "positive|negative|inconclusive",
+    "hemoglobinLevel": "number if available",
+    "clinicalSignificance": "string"
+  },
+  "followUp": ["recommendations"],
+  "clinicalNotes": "string"
+}`,
       
-      general: `Analyze this lab report. ${clientContext}Extract all available information:
-        - Patient demographics
-        - All test results with values, units, and reference ranges
-        - Abnormal findings
-        - Clinical notes or interpretations
-        - Any recommendations
-        Format: { patientInfo: {...}, testResults: [...], abnormalFindings: [...], recommendations: [...] }`
+      general: `Analyze this lab report. ${clientContext}
+
+IMPORTANT: Return your response as valid JSON only, with no additional text or formatting.
+
+Extract all available information and return in this exact JSON structure:
+{
+  "patientInfo": {
+    "name": "string",
+    "dateOfBirth": "string",
+    "testDate": "string", 
+    "reportId": "string",
+    "provider": "string"
+  },
+  "testResults": [
+    {
+      "name": "test name",
+      "value": "string or number",
+      "unit": "string",
+      "referenceRange": "string",
+      "status": "normal|high|low|critical"
+    }
+  ],
+  "abnormalFindings": ["list of abnormal results"],
+  "clinicalNotes": "string",
+  "recommendations": ["string"]
+}`
     }
 
     return prompts[reportType] || prompts.general
@@ -332,26 +507,74 @@ Please provide a general structure and recommendations for this type of report.`
    */
   private parseClaudeResponse(responseText: string, reportType: string): LabReport {
     try {
-      // Try to extract JSON from the response
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      const jsonStr = jsonMatch ? jsonMatch[0] : responseText;
+      console.log('[PDFProcessor] Parsing Claude response, length:', responseText.length)
+      console.log('[PDFProcessor] First 500 chars of response:', responseText.substring(0, 500))
       
-      const parsed = JSON.parse(jsonStr);
-
-      // Map to LabReport structure
-      return {
-        patientInfo: parsed.patientInfo || {},
-        testResults: this.normalizeTestResults(parsed.testResults || parsed.results || []),
-        clinicalNotes: parsed.clinicalNotes || parsed.interpretation || '',
-        metadata: {
-          reportType: reportType as any,
-          processingMethod: 'native',
-          confidence: 0.9,
-          pageCount: 1
+      // Try multiple approaches to extract JSON
+      let jsonStr = responseText;
+      
+      // Method 1: Look for JSON between triple backticks
+      const codeBlockMatch = responseText.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+      if (codeBlockMatch) {
+        jsonStr = codeBlockMatch[1];
+      } else {
+        // Method 2: Extract the largest JSON object
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          jsonStr = jsonMatch[0];
         }
       }
+      
+      // Clean up common issues
+      jsonStr = jsonStr
+        .replace(/^\s*```json\s*/g, '')
+        .replace(/\s*```\s*$/g, '')
+        .trim();
+      
+      console.log('[PDFProcessor] Attempting to parse JSON:', jsonStr.substring(0, 200) + '...')
+      const parsed = JSON.parse(jsonStr);
+      console.log('[PDFProcessor] Successfully parsed JSON with keys:', Object.keys(parsed))
+
+      // Map to LabReport structure based on report type
+      let labReport: LabReport;
+      
+      if (reportType === 'fit_test' && parsed.interpretation) {
+        // Special handling for FIT test structure
+        labReport = {
+          patientInfo: parsed.patientInfo || {},
+          testResults: this.normalizeTestResults(parsed.testResults || []),
+          clinicalNotes: parsed.clinicalNotes || `Result: ${parsed.interpretation.result}. ${parsed.interpretation.clinicalSignificance || ''}`,
+          metadata: {
+            reportType: reportType as any,
+            processingMethod: 'native',
+            confidence: 0.9,
+            pageCount: 1
+          },
+          rawExtract: JSON.stringify(parsed, null, 2)
+        }
+      } else {
+        // General structure for other reports
+        labReport = {
+          patientInfo: parsed.patientInfo || {},
+          testResults: this.normalizeTestResults(parsed.testResults || parsed.results || []),
+          clinicalNotes: parsed.clinicalNotes || parsed.interpretation || '',
+          metadata: {
+            reportType: reportType as any,
+            processingMethod: 'native',
+            confidence: 0.9,
+            pageCount: 1
+          },
+          rawExtract: JSON.stringify(parsed, null, 2)
+        }
+      }
+      
+      console.log('[PDFProcessor] Extracted patient info:', labReport.patientInfo)
+      console.log('[PDFProcessor] Extracted test results count:', labReport.testResults.length)
+      
+      return labReport
     } catch (error) {
       console.error('[PDFProcessor] Failed to parse Claude response:', error)
+      console.error('[PDFProcessor] Full response that failed to parse:', responseText)
       
       // Fallback: Extract what we can from text
       return {
@@ -363,8 +586,9 @@ Please provide a general structure and recommendations for this type of report.`
           processingMethod: 'native',
           confidence: 0.5,
           pageCount: 1,
-          warnings: ['Failed to parse structured response']
-        }
+          warnings: ['Failed to parse structured response. Raw response saved in clinical notes.']
+        },
+        rawExtract: responseText
       }
     }
   }
