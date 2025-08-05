@@ -2,12 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ClientDataAggregator } from '@/lib/analysis/client-data-aggregator'
 import { ComprehensiveAnalyzer } from '@/lib/analysis/comprehensive-analyzer'
 import { supabase } from '@/lib/supabase'
+import { getServerSession } from '@/lib/auth'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Check authentication
+    const session = await getServerSession(request)
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    
     const resolvedParams = await params;
     const clientId = resolvedParams.id;
     
