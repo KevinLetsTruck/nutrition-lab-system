@@ -1,21 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PDFProcessor } from '@/lib/pdf-processor-production'
 
-export async function GET(request: NextRequest) {
-  return NextResponse.json({
-    status: 'ok',
-    endpoint: 'quick-analysis-v2',
-    hasAnthropicKey: !!process.env.ANTHROPIC_API_KEY,
-    timestamp: new Date().toISOString()
-  })
-}
-
 export async function POST(request: NextRequest) {
   console.log('[QuickAnalysisV2] Endpoint called')
-  console.log('[QuickAnalysisV2] Environment check:', {
-    hasAnthropicKey: !!process.env.ANTHROPIC_API_KEY,
-    nodeEnv: process.env.NODE_ENV
-  })
   
   try {
     // Handle FormData for file upload
@@ -65,43 +52,23 @@ export async function POST(request: NextRequest) {
     }
     
     // Initialize PDF processor
-    console.log('[QuickAnalysisV2] Initializing PDF processor')
-    let processor
-    try {
-      processor = new PDFProcessor({
-        anthropicApiKey: process.env.ANTHROPIC_API_KEY,
-        maxRetries: 3,
-        maxPDFSizeMB: 5
-      })
-      console.log('[QuickAnalysisV2] PDF processor initialized successfully')
-    } catch (initError) {
-      console.error('[QuickAnalysisV2] Failed to initialize PDF processor:', initError)
-      return NextResponse.json({
-        error: 'Failed to initialize PDF processor',
-        details: initError instanceof Error ? initError.message : 'Unknown initialization error',
-        stack: initError instanceof Error ? initError.stack : undefined
-      }, { status: 500 })
-    }
+    const processor = new PDFProcessor({
+      anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+      maxRetries: 3,
+      maxPDFSizeMB: 5
+    })
     
     // Process the PDF
     const startTime = Date.now()
     let labReport
     try {
-      console.log('[QuickAnalysisV2] Starting PDF processing:', {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type
-      })
       labReport = await processor.processLabReport(file)
-      console.log('[QuickAnalysisV2] PDF processing successful')
     } catch (processorError) {
       console.error('[QuickAnalysisV2] PDF processor error:', processorError)
-      console.error('[QuickAnalysisV2] Error stack:', processorError instanceof Error ? processorError.stack : 'No stack trace')
       return NextResponse.json({
         error: 'PDF processing failed',
         details: processorError instanceof Error ? processorError.message : 'Failed to process PDF',
-        suggestion: 'Please ensure the PDF is a valid lab report',
-        stack: process.env.NODE_ENV !== 'production' ? (processorError instanceof Error ? processorError.stack : undefined) : undefined
+        suggestion: 'Please ensure the PDF is a valid lab report'
       }, { status: 500 })
     }
     const processingTime = Date.now() - startTime
