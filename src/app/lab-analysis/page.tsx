@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -42,9 +42,9 @@ export default function LabAnalysisPage() {
     if (user) {
       fetchDashboardData()
     }
-  }, [user, selectedClient])
+  }, [user, selectedClient, fetchDashboardData])
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true)
       
@@ -71,7 +71,7 @@ export default function LabAnalysisPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedClient])
 
   const getHealthScore = () => {
     if (!dashboardData?.labResults?.length) return 0

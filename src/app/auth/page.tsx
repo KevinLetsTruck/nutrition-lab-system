@@ -16,7 +16,7 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [isClient, setIsClient] = useState(false)
-  const { login, register, user, loading: authLoading } = useAuth()
+  const { login, user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [formData, setFormData] = useState({
     firstName: '',
@@ -90,7 +90,17 @@ export default function AuthPage() {
           isClient: isClient
         }
 
-        await register(userData)
+        // Call registration API directly
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userData)
+        })
+        
+        if (!response.ok) {
+          const data = await response.json()
+          throw new Error(data.error || 'Registration failed')
+        }
         
         // Show success message
         return (
