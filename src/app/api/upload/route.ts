@@ -183,13 +183,13 @@ export async function POST(request: NextRequest) {
           })
           targetClientId = newClient.id
         }
+      } catch (error) {
+        console.error('Error finding/creating client:', error)
+        return NextResponse.json(
+          { error: 'Failed to process client information' },
+          { status: 500 }
+        )
       }
-    } catch (error) {
-      console.error('Error finding/creating client:', error)
-      return NextResponse.json(
-        { error: 'Failed to process client information' },
-        { status: 500 }
-      )
     }
 
     const results = []
