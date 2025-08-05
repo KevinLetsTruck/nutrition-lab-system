@@ -5,10 +5,11 @@ import { db } from '@/lib/supabase'
 import MasterAnalyzer from '@/lib/lab-analyzers/master-analyzer'
 import DatabaseService from '@/lib/database-service'
 import { SupabaseStorageService } from '@/lib/supabase-storage'
+import { getServerSession } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
+    // Rate limiting first
     const rateLimiter = getRateLimiter('upload')
     const rateLimitClientId = getClientIdentifier(request)
     
@@ -35,6 +36,14 @@ export async function POST(request: NextRequest) {
     const clientLastName = formData.get('clientLastName') as string
     const category = formData.get('category') as string
     const quickAnalysis = formData.get('quickAnalysis') as string
+    
+    // Check authentication (except for quick analysis)
+    if (quickAnalysis !== 'true') {
+      const session = await getServerSession(request)
+      if (!session) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+    }
     
     if (!files || files.length === 0) {
       return NextResponse.json(

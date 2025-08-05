@@ -386,7 +386,8 @@ export default function ClientDashboard() {
         try {
           const response = await fetch('/api/upload', {
             method: 'POST',
-            body: formData
+            body: formData,
+            credentials: 'include' // Include cookies for authentication
           })
           
           if (response.ok) {

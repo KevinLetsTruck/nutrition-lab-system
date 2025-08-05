@@ -49,7 +49,8 @@ export const ComprehensiveAnalysisButton = ({ clientId, clientName }: Comprehens
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        credentials: 'include' // Include cookies for authentication
       });
       
       if (!response.ok) {
