@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
           console.log('[ANALYZE-UNIVERSAL] Saved to database:', labReportId)
           
           // Save type-specific results
-          await saveTypeSpecificResults(documentType, analysisResult, clientId, labReportId)
+          await saveTypeSpecificResults(documentType, analysisResult, clientId, labReportId!)
         }
       } catch (dbError) {
         console.error('[ANALYZE-UNIVERSAL] Database error:', dbError)
@@ -269,7 +269,7 @@ Focus on:
 4. Follow-up needed`
   }
   
-  const prompt = prompts[documentType] || prompts.generic
+  const prompt = prompts[documentType as keyof typeof prompts] || prompts.generic
   const systemPrompt = `You are an expert functional medicine practitioner analyzing health documents.
 Provide detailed, actionable insights formatted for clinical use.
 Consider truck driver lifestyle factors when relevant.

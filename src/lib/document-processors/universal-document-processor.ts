@@ -365,7 +365,9 @@ export class UniversalDocumentProcessor {
 Format the output clearly and preserve the structure.
 If this is a lab report or medical document, ensure all scores, ranges, and values are captured.`
     
-    const response = await this.claudeClient.analyzeImageWithVision(base64, mediaType, prompt)
+    const systemPrompt = 'You are an expert at extracting text from images and documents. Preserve all formatting and structure.'
+    
+    const response = await this.claudeClient.analyzeImageWithVision(base64, mediaType, prompt, systemPrompt)
     
     return response
   }
