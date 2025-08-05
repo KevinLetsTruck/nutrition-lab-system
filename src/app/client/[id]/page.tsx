@@ -603,20 +603,20 @@ export default function ClientDashboard() {
         </Card>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
           <Button 
             onClick={() => router.push(`/notes?clientId=${clientId}`)}
             size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1 bg-gradient-brand hover:opacity-90 text-white"
+            className="h-16 flex flex-col items-center justify-center gap-1 bg-primary hover:bg-primary-hover text-background transition-colors"
           >
             <FileText className="w-5 h-5" />
-            <span>Notes</span>
+            <span>Add Note</span>
           </Button>
           
           <Button 
             onClick={() => startCallRecording('assessment')}
             size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1 bg-gradient-brand hover:opacity-90 text-white"
+            className="h-16 flex flex-col items-center justify-center gap-1 bg-accent hover:bg-accent/90 text-background transition-colors"
           >
             <Phone className="w-5 h-5" />
             <span>Record Call</span>
@@ -626,7 +626,7 @@ export default function ClientDashboard() {
             onClick={uploadDocument} 
             disabled={uploading}
             size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1 bg-gradient-brand hover:opacity-90 text-white disabled:opacity-50"
+            className="h-16 flex flex-col items-center justify-center gap-1 bg-accent-orange hover:bg-accent-orange/90 text-background disabled:opacity-50 transition-colors"
           >
             <Upload className="w-5 h-5" />
             <span>{uploading ? 'Uploading...' : 'Add Document'}</span>
@@ -636,7 +636,7 @@ export default function ClientDashboard() {
             onClick={generateProtocol} 
             disabled={generatingProtocol}
             size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1 bg-gradient-brand hover:opacity-90 text-white disabled:opacity-50"
+            className="h-16 flex flex-col items-center justify-center gap-1 bg-success hover:bg-success/90 text-background disabled:opacity-50 transition-colors"
           >
             <FileCheck className="w-5 h-5" />
             <span>{generatingProtocol ? 'Generating...' : 'Generate Protocol'}</span>
@@ -645,12 +645,60 @@ export default function ClientDashboard() {
           <Button 
             onClick={() => router.push(`/reports/practitioner-analysis/${clientId}`)}
             size="lg"
-            className="h-16 flex flex-col items-center justify-center gap-1 bg-gradient-brand hover:opacity-90 text-white"
+            className="h-16 flex flex-col items-center justify-center gap-1 bg-accent-purple hover:bg-accent-purple/90 text-background transition-colors"
           >
             <Users className="w-5 h-5" />
             <span>Generate Coaching Call</span>
           </Button>
         </div>
+
+        {/* Tab Navigation */}
+        <Card className="mb-6 bg-card border-border">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={() => setActiveTab('overview')}
+                variant={activeTab === 'overview' ? 'default' : 'outline'}
+                size="sm"
+                className={activeTab === 'overview' ? 'bg-primary hover:bg-primary-hover' : 'border-border hover:border-primary/50'}
+              >
+                Overview
+              </Button>
+              <Button
+                onClick={() => setActiveTab('analyses')}
+                variant={activeTab === 'analyses' ? 'default' : 'outline'}
+                size="sm"
+                className={activeTab === 'analyses' ? 'bg-primary hover:bg-primary-hover' : 'border-border hover:border-primary/50'}
+              >
+                Lab Analyses
+              </Button>
+              <Button
+                onClick={() => setActiveTab('protocols')}
+                variant={activeTab === 'protocols' ? 'default' : 'outline'}
+                size="sm"
+                className={activeTab === 'protocols' ? 'bg-primary hover:bg-primary-hover' : 'border-border hover:border-primary/50'}
+              >
+                Protocols
+              </Button>
+              <Button
+                onClick={() => setActiveTab('notes')}
+                variant={activeTab === 'notes' ? 'default' : 'outline'}
+                size="sm"
+                className={activeTab === 'notes' ? 'bg-primary hover:bg-primary-hover' : 'border-border hover:border-primary/50'}
+              >
+                Notes
+              </Button>
+              <Button
+                onClick={() => setActiveTab('documents')}
+                variant={activeTab === 'documents' ? 'default' : 'outline'}
+                size="sm"
+                className={activeTab === 'documents' ? 'bg-primary hover:bg-primary-hover' : 'border-border hover:border-primary/50'}
+              >
+                Documents
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Comprehensive Analysis Section */}
         <Card className="mb-6">
@@ -659,49 +707,6 @@ export default function ClientDashboard() {
               clientId={clientId} 
               clientName={client.name}
             />
-          </CardContent>
-        </Card>
-
-        {/* Tab Navigation */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="flex space-x-2">
-              <Button
-                onClick={() => setActiveTab('overview')}
-                variant={activeTab === 'overview' ? 'default' : 'ghost'}
-                size="sm"
-              >
-                Overview
-              </Button>
-              <Button
-                onClick={() => setActiveTab('analyses')}
-                variant={activeTab === 'analyses' ? 'default' : 'ghost'}
-                size="sm"
-              >
-                Lab Analyses
-              </Button>
-              <Button
-                onClick={() => setActiveTab('protocols')}
-                variant={activeTab === 'protocols' ? 'default' : 'ghost'}
-                size="sm"
-              >
-                Protocols
-              </Button>
-              <Button
-                onClick={() => setActiveTab('notes')}
-                variant={activeTab === 'notes' ? 'default' : 'ghost'}
-                size="sm"
-              >
-                Notes
-              </Button>
-              <Button
-                onClick={() => setActiveTab('documents')}
-                variant={activeTab === 'documents' ? 'default' : 'ghost'}
-                size="sm"
-              >
-                Documents
-              </Button>
-            </div>
           </CardContent>
         </Card>
 
