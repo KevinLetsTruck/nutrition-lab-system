@@ -66,7 +66,8 @@ export default function QuickAddClientPage() {
 
       const response = await fetch('/api/admin/quick-add-client', {
         method: 'POST',
-        body: formDataToSend
+        body: formDataToSend,
+        credentials: 'include'
       })
 
       const result = await response.json()

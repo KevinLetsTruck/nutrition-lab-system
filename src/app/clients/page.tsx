@@ -142,7 +142,7 @@ function ClientsContent() {
           </div>
           
           <Button asChild className="whitespace-nowrap">
-            <Link href="/streamlined-onboarding">
+            <Link href="/admin/quick-add-client">
               <Plus className="w-4 h-4 mr-2" />
               New Client
             </Link>
@@ -178,7 +178,7 @@ function ClientsContent() {
                 </p>
                 {!searchQuery && (
                   <Button asChild>
-                    <Link href="/streamlined-onboarding">
+                    <Link href="/admin/quick-add-client">
                       <Plus className="w-4 h-4 mr-2" />
                       Add Your First Client
                     </Link>

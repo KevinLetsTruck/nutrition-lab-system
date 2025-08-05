@@ -2,11 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { AuthService } from '@/lib/auth-service'
 import { EmailService } from '@/lib/email-service'
 import { createServerSupabaseClient } from '@/lib/supabase'
+import { getServerSession } from '@/lib/auth'
 import bcrypt from 'bcryptjs'
 import { v4 as uuidv4 } from 'uuid'
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication - admin only
+    const session = await getServerSession(request)
+    if (!session || session.userRole !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    
     const supabase = createServerSupabaseClient()
     const authService = new AuthService()
     const emailService = new EmailService()
