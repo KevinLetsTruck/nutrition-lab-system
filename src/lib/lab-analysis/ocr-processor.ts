@@ -17,13 +17,11 @@ export class LabOCRProcessor {
 
     try {
       // Initialize Tesseract worker
-      this.tesseractWorker = await createWorker({
+      this.tesseractWorker = await createWorker('eng', 1, {
         logger: m => console.log('[OCR]', m),
       })
 
-      await this.tesseractWorker.load()
-      await this.tesseractWorker.loadLanguage('eng')
-      await this.tesseractWorker.initialize('eng')
+      // Worker is already initialized with 'eng' language
       
       // Configure for better accuracy with lab reports
       await this.tesseractWorker.setParameters({
