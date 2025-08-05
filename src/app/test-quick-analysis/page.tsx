@@ -8,6 +8,7 @@ export default function TestQuickAnalysis() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<any>(null)
   const [error, setError] = useState<string>('')
+  const [endpoint, setEndpoint] = useState('/api/quick-analysis-v2')
 
   const testEndpoint = async () => {
     setLoading(true)
@@ -55,7 +56,7 @@ startxref
       const formData = new FormData()
       formData.append('file', file)
 
-      const response = await fetch('/api/quick-analysis-v2', {
+      const response = await fetch(endpoint, {
         method: 'POST',
         body: formData,
         credentials: 'include'
@@ -85,12 +86,38 @@ startxref
             <CardTitle>Endpoint Test</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Select Endpoint:</label>
+              <div className="space-y-2">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="/api/quick-analysis-v2"
+                    checked={endpoint === '/api/quick-analysis-v2'}
+                    onChange={(e) => setEndpoint(e.target.value)}
+                    className="mr-2"
+                  />
+                  /api/quick-analysis-v2 (Full PDFProcessor)
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="/api/quick-analysis-simple"
+                    checked={endpoint === '/api/quick-analysis-simple'}
+                    onChange={(e) => setEndpoint(e.target.value)}
+                    className="mr-2"
+                  />
+                  /api/quick-analysis-simple (Direct Claude API)
+                </label>
+              </div>
+            </div>
+            
             <Button 
               onClick={testEndpoint}
               disabled={loading}
               className="w-full"
             >
-              {loading ? 'Testing...' : 'Test /api/quick-analysis-v2'}
+              {loading ? 'Testing...' : `Test ${endpoint}`}
             </Button>
 
             {error && (
