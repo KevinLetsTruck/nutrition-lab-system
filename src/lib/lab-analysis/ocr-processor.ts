@@ -17,7 +17,7 @@ export class LabOCRProcessor {
 
     try {
       // Initialize Tesseract worker
-      this.tesseractWorker = createWorker({
+      this.tesseractWorker = await createWorker({
         logger: m => console.log('[OCR]', m),
       })
 
