@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { FileUp, CheckCircle, AlertCircle, Clock, Download, RefreshCw } from 'lucide-react'
+import { AuthDebug } from '@/components/AuthDebug'
 
 interface ProcessingResult {
   success: boolean
@@ -71,7 +72,8 @@ export default function TestPDFProcessor() {
     try {
       const response = await fetch('/api/lab-reports/upload', {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'include' // Include cookies in the request
       })
 
       const data = await response.json()
@@ -94,7 +96,9 @@ export default function TestPDFProcessor() {
 
   const fetchReports = async () => {
     try {
-      const response = await fetch('/api/lab-reports/upload?limit=5')
+      const response = await fetch('/api/lab-reports/upload?limit=5', {
+        credentials: 'include' // Include cookies in the request
+      })
       const data = await response.json()
       if (data.reports) {
         setPreviousReports(data.reports)
@@ -127,6 +131,9 @@ export default function TestPDFProcessor() {
   return (
     <div className="container mx-auto p-6 max-w-6xl">
       <h1 className="text-3xl font-bold mb-8">PDF Lab Report Processor Test</h1>
+      
+      {/* Authentication Debug */}
+      <AuthDebug />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Upload Section */}
