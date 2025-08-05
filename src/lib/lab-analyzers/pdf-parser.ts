@@ -226,22 +226,23 @@ export class PDFLabParser {
             console.log('[PDF-PARSER] PDF needs vision analysis - using document API...')
             hasImageContent = true
             
+            // Define systemPrompt outside try block so it's accessible in catch block
+            const systemPrompt = `You are an expert at extracting information from nutrition lab reports. 
+              Extract all text, data from charts, graphs, tables, and test results. 
+              Pay special attention to:
+              - Patient information (name, ID, date of birth)
+              - Test dates and lab names
+              - All numerical results with their units and reference ranges
+              - Food sensitivity charts (IgG levels)
+              - Hormone test results and patterns
+              - Any graphs or visual data representations
+              - NAQ/NutriQ symptom burden scores and graphs
+              
+              Format the extracted information as structured text that can be easily parsed.`
+            
             try {
               // Use Claude's document API directly with the PDF
               console.log('[PDF-PARSER] Sending PDF to Claude Document API...')
-              
-              const systemPrompt = `You are an expert at extracting information from nutrition lab reports. 
-                Extract all text, data from charts, graphs, tables, and test results. 
-                Pay special attention to:
-                - Patient information (name, ID, date of birth)
-                - Test dates and lab names
-                - All numerical results with their units and reference ranges
-                - Food sensitivity charts (IgG levels)
-                - Hormone test results and patterns
-                - Any graphs or visual data representations
-                - NAQ/NutriQ symptom burden scores and graphs
-                
-                Format the extracted information as structured text that can be easily parsed.`
               
               // Convert PDF buffer to base64 for Claude document API
               const pdfBase64 = pdfBuffer.toString('base64')
