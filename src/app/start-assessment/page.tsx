@@ -7,7 +7,7 @@ import { Loader2 } from 'lucide-react'
 
 export default function StartAssessmentPage() {
   const router = useRouter()
-  const { user, profile, loading } = useAuth()
+  const { user, loading } = useAuth()
 
   useEffect(() => {
     if (!loading) {
