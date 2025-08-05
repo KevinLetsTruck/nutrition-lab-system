@@ -61,37 +61,49 @@ export default function PDFLikeClaude() {
 
       // Try multiple endpoints to find what works
       const endpoints = [
-        '/api/claude-pdf',
-        '/api/pdf-to-claude-vision',
-        '/api/pdf-direct-to-claude',
-        '/api/analyze-simple'
+        { url: '/api/pdf-advanced-extract', name: 'Advanced Extraction' },
+        { url: '/api/pdf-claude-binary', name: 'Binary Processing' },
+        { url: '/api/claude-pdf', name: 'Standard Processing' },
+        { url: '/api/pdf-to-claude-vision', name: 'Vision API' },
+        { url: '/api/pdf-direct-to-claude', name: 'Direct Processing' }
       ]
 
       let successfulResponse = null
+      const attempts: string[] = []
 
       for (const endpoint of endpoints) {
         try {
-          console.log(`Trying ${endpoint}...`)
-          const response = await fetch(endpoint, {
+          console.log(`Trying ${endpoint.name}...`)
+          attempts.push(`Attempting ${endpoint.name}...`)
+          
+          const response = await fetch(endpoint.url, {
             method: 'POST',
             body: formData
           })
 
           const data = await response.json()
 
-          if (response.ok && data.success) {
-            successfulResponse = { ...data, endpoint }
+          if (response.ok && (data.success || data.analysis)) {
+            successfulResponse = { 
+              ...data, 
+              endpoint: endpoint.url,
+              method: endpoint.name,
+              attempts 
+            }
             break
+          } else {
+            attempts.push(`${endpoint.name}: ${data.error || 'Failed'}`)
           }
-        } catch (err) {
-          console.log(`${endpoint} failed, trying next...`)
+        } catch (err: any) {
+          console.log(`${endpoint.name} failed:`, err)
+          attempts.push(`${endpoint.name}: ${err.message || 'Network error'}`)
         }
       }
 
       if (successfulResponse) {
         setResult(successfulResponse)
       } else {
-        throw new Error('All analysis methods failed')
+        setError(`Unable to process this PDF. Attempts:\n${attempts.join('\n')}\n\nThis appears to be an image-based PDF that requires OCR.`)
       }
 
     } catch (err: any) {
@@ -199,11 +211,36 @@ export default function PDFLikeClaude() {
               </AlertDescription>
             </Alert>
 
-            {result.endpoint && (
-              <p className="text-sm text-gray-600">
-                Analyzed via: {result.endpoint}
-              </p>
-            )}
+            <div className="space-y-2 text-sm text-gray-600">
+              {result.method && (
+                <p>Analysis method: {result.method}</p>
+              )}
+              {result.extractionMethod && (
+                <p>Extraction: {result.extractionMethod}</p>
+              )}
+              {result.contentLength !== undefined && (
+                <p>Content extracted: {result.contentLength} characters</p>
+              )}
+              {result.warning && (
+                <Alert className="bg-yellow-50 border-yellow-200">
+                  <AlertDescription className="text-yellow-800">
+                    ⚠️ {result.warning}
+                  </AlertDescription>
+                </Alert>
+              )}
+              {result.extractionAttempts && result.extractionAttempts.length > 0 && (
+                <details className="cursor-pointer">
+                  <summary className="text-blue-600 hover:text-blue-800">
+                    View extraction details
+                  </summary>
+                  <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
+                    {result.extractionAttempts.map((attempt: string, i: number) => (
+                      <div key={i}>{attempt}</div>
+                    ))}
+                  </div>
+                </details>
+              )}
+            </div>
 
             <div className="bg-white border rounded-lg p-6">
               <h3 className="font-semibold mb-4 text-lg">Analysis Results</h3>
