@@ -82,15 +82,24 @@ export async function POST(request: NextRequest) {
     })
     
     // If we couldn't extract any text, return error
-    if (!processed.text || processed.text.length < 10) {
+    // But be more lenient with minimum length - some documents might be very short
+    if (!processed.text || processed.text.trim().length === 0) {
       return NextResponse.json({
-        error: 'Failed to extract text from document',
+        error: 'Failed to extract any text from document',
         details: {
           format: processed.format,
           warnings: processed.metadata.warnings,
-          extractionMethod: processed.metadata.extractionMethod
+          extractionMethod: processed.metadata.extractionMethod,
+          textLength: processed.text ? processed.text.length : 0,
+          message: 'The document appears to be empty or could not be read. It may be an image-based PDF, encrypted, or corrupted.'
         }
       }, { status: 400 })
+    }
+    
+    // Log warning if text is very short
+    if (processed.text.length < 50) {
+      console.log('[ANALYZE-UNIVERSAL] Warning: Very little text extracted:', processed.text.length, 'characters')
+      processed.metadata.warnings.push(`Only ${processed.text.length} characters extracted - results may be limited`)
     }
     
     // Auto-detect document type if needed

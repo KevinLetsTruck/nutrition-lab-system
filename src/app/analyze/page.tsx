@@ -104,7 +104,45 @@ export default function UniversalAnalyzer() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.details || data.error || 'Analysis failed')
+        // Handle error response properly
+        let errorMessage = 'Analysis failed'
+        
+        if (data.error) {
+          errorMessage = data.error
+        }
+        
+        if (data.details) {
+          if (typeof data.details === 'string') {
+            errorMessage = data.details
+          } else if (typeof data.details === 'object') {
+            // Handle detailed error object
+            if (data.details.message) {
+              errorMessage = data.details.message
+            } else {
+              errorMessage = `${data.error || 'Analysis failed'}`
+              if (data.details.format) {
+                errorMessage += ` (Format: ${data.details.format})`
+              }
+            }
+            
+            // Add warnings to status log
+            if (data.details.warnings && data.details.warnings.length > 0) {
+              data.details.warnings.forEach((warning: string) => {
+                addStatus(`Warning: ${warning}`)
+              })
+            }
+            
+            // Log extraction details
+            if (data.details.extractionMethod) {
+              addStatus(`Extraction method tried: ${data.details.extractionMethod}`)
+            }
+            if (data.details.textLength !== undefined) {
+              addStatus(`Text extracted: ${data.details.textLength} characters`)
+            }
+          }
+        }
+        
+        throw new Error(errorMessage)
       }
 
       addStatus('Analysis completed successfully!')

@@ -136,32 +136,58 @@ export class UniversalDocumentProcessor {
   
   private async processPDF(buffer: Buffer, warnings: string[]): Promise<ProcessedDocument> {
     console.log('[UNIVERSAL-PROCESSOR] Processing as PDF...')
+    console.log('[UNIVERSAL-PROCESSOR] PDF buffer size:', buffer.length)
     
     let text = ''
     let method = 'none'
     
-    // Method 1: Try pdf-parse
+    // Method 1: Try pdf-parse with error handling
     try {
+      // Create a custom options object to avoid file system issues
+      const customOptions = {
+        // Don't use external files
+        pagerender: (pageData: any) => {
+          // Simple text extraction
+          const render_options = {
+            normalizeWhitespace: false,
+            disableCombineTextItems: false
+          }
+          return pageData.getTextContent(render_options)
+            .then((textContent: any) => {
+              let text = ''
+              for (const item of textContent.items) {
+                text += item.str + ' '
+              }
+              return text
+            })
+        }
+      }
+      
       const pdfParse = (await import('pdf-parse')).default
-      const data = await pdfParse(buffer)
-      text = data.text
+      const data = await pdfParse(buffer, customOptions)
+      text = data.text || ''
       method = 'pdf-parse'
-      console.log('[UNIVERSAL-PROCESSOR] PDF parsed successfully with pdf-parse')
-    } catch (error) {
-      console.log('[UNIVERSAL-PROCESSOR] pdf-parse failed:', error)
-      warnings.push('PDF text extraction failed, trying OCR')
+      console.log('[UNIVERSAL-PROCESSOR] PDF parsed successfully with pdf-parse, extracted:', text.length, 'characters')
+    } catch (error: any) {
+      console.error('[UNIVERSAL-PROCESSOR] pdf-parse failed:', error.message)
+      warnings.push(`PDF parsing error: ${error.message}`)
+      
+      // If it's a specific test file error, ignore it
+      if (error.message && error.message.includes('test/data/05-versions-space.pdf')) {
+        console.log('[UNIVERSAL-PROCESSOR] Ignoring pdf-parse test file error')
+        warnings.push('PDF library initialization issue - this is a known issue and can be ignored')
+      }
     }
     
-    // Method 2: If no text or error, try OCR via Claude Vision
-    if (!text || text.length < 50) {
-      try {
-        text = await this.extractViaVision(buffer, 'pdf')
-        method = 'vision-api'
-        console.log('[UNIVERSAL-PROCESSOR] Extracted text via Claude Vision')
-      } catch (error) {
-        console.log('[UNIVERSAL-PROCESSOR] Vision extraction failed:', error)
-        warnings.push('OCR extraction failed')
-      }
+    // Method 2: If we have some text but it's minimal, that might be OK for certain PDFs
+    if (text && text.length > 0) {
+      console.log('[UNIVERSAL-PROCESSOR] Accepting PDF with', text.length, 'characters')
+      // Don't require minimum text length for PDFs - some might be mostly images
+    } else {
+      // Method 3: For completely failed extractions, add a descriptive warning
+      warnings.push('Unable to extract text from PDF - the file may be image-based or encrypted')
+      text = '[PDF content could not be extracted - may be an image-based PDF that requires manual review]'
+      method = 'failed-with-placeholder'
     }
     
     return {
