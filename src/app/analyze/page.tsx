@@ -95,7 +95,8 @@ export default function UniversalAnalyzer() {
       const response = await fetch('/api/analyze-universal', {
         method: 'POST',
         headers: isFormData ? {} : { 'Content-Type': 'application/json' },
-        body: requestBody
+        body: requestBody,
+        credentials: 'include' // Include cookies for authentication
       })
 
       addStatus('Received response from server')

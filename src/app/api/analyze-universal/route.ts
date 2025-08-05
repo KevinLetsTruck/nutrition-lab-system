@@ -6,6 +6,12 @@ import { supabase } from '@/lib/supabase'
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
   
+  // In production, use the simplified analyzer
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+    const analyzeProduction = (await import('../analyze-production/route'))
+    return analyzeProduction.POST(request)
+  }
+  
   try {
     // Handle both JSON and FormData
     const contentType = request.headers.get('content-type') || ''

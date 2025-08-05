@@ -109,7 +109,8 @@ export default function QuickAnalysisPage() {
         // Upload file
         const uploadResponse = await fetch('/api/upload', {
           method: 'POST',
-          body: formData
+          body: formData,
+          credentials: 'include' // Include cookies for authentication
         })
 
         if (!uploadResponse.ok) {
@@ -138,7 +139,8 @@ export default function QuickAnalysisPage() {
             filePath: uploadedFile.storagePath || uploadedFile.filePath, // Use storagePath from upload response
             fileName: file.name,
             bucket: uploadedFile.bucket // Include bucket from upload response
-          })
+          }),
+          credentials: 'include' // Include cookies for authentication
         })
 
         if (!analysisResponse.ok) {
