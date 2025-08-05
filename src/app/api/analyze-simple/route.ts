@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     if (!extractedText && file.name.toLowerCase().endsWith('.pdf')) {
       try {
         console.log('[ANALYZE-SIMPLE] Attempting PDF extraction...')
-        const pdfParse = (await import('pdf-parse')).default
+        const pdfParse = (await import('pdf-parse' as any)).default
         
         // Simple options to avoid file system issues
         const options = {

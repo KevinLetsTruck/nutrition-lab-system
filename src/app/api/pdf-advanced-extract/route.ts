@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     
     // Method 1: Enhanced pdf-parse with options
     try {
-      const pdfParse = (await import('pdf-parse')).default
+      const pdfParse = (await import('pdf-parse' as any)).default
       
       // Try with different options for better extraction
       const options = {

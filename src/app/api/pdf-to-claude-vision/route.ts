@@ -102,7 +102,7 @@ Then provide comprehensive functional medicine analysis including:
       
       // Method 2: Try extracting text and sending that
       try {
-        const pdfParse = (await import('pdf-parse')).default
+        const pdfParse = (await import('pdf-parse' as any)).default
         const pdfData = await pdfParse(buffer)
         const extractedText = pdfData.text || ''
         

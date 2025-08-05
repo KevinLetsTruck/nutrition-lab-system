@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     let extractionMethod = 'none'
     
     try {
-      const pdfParse = (await import('pdf-parse')).default
+      const pdfParse = (await import('pdf-parse' as any)).default
       const pdfData = await pdfParse(buffer)
       extractedText = pdfData.text || ''
       extractionMethod = 'pdf-parse'

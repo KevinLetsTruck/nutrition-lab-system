@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     // Method 2: PDF parse
     if (!content) {
       try {
-        const pdfParse = (await import('pdf-parse')).default
+        const pdfParse = (await import('pdf-parse' as any)).default
         const data = await pdfParse(buffer)
         if (data.text && data.text.trim()) {
           content = data.text

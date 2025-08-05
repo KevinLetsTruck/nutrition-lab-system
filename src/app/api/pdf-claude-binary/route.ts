@@ -94,7 +94,7 @@ Then provide comprehensive functional medicine analysis with:
       // If direct PDF fails, we need to convert PDF to images
       // For now, try with pdf-parse as fallback
       try {
-        const pdfParse = (await import('pdf-parse')).default
+        const pdfParse = (await import('pdf-parse' as any)).default
         const pdfData = await pdfParse(buffer, {
           max: 0, // Parse all pages
           // Custom render function to get more content
