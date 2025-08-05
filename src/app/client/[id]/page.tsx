@@ -670,7 +670,7 @@ export default function ClientDashboard() {
                 size="sm"
                 className={activeTab === 'analyses' ? 'bg-primary hover:bg-primary-hover' : 'border-border hover:border-primary/50'}
               >
-                Lab Analyses
+                Lab Analyses ({client.analyses?.length || 0})
               </Button>
               <Button
                 onClick={() => setActiveTab('protocols')}
@@ -686,7 +686,7 @@ export default function ClientDashboard() {
                 size="sm"
                 className={activeTab === 'notes' ? 'bg-primary hover:bg-primary-hover' : 'border-border hover:border-primary/50'}
               >
-                Notes
+                Notes ({client.notes.length})
               </Button>
               <Button
                 onClick={() => setActiveTab('documents')}
@@ -694,7 +694,7 @@ export default function ClientDashboard() {
                 size="sm"
                 className={activeTab === 'documents' ? 'bg-primary hover:bg-primary-hover' : 'border-border hover:border-primary/50'}
               >
-                Documents
+                Documents ({client.documents.length})
               </Button>
             </div>
           </CardContent>
@@ -742,21 +742,7 @@ export default function ClientDashboard() {
                 </div>
               </div>
 
-              {/* Quick Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-slate-700 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-blue-400">{client.notes.length}</div>
-                  <div className="text-sm text-gray-400">Total Notes</div>
-                </div>
-                <div className="bg-slate-700 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-green-400">{client.documents.length}</div>
-                  <div className="text-sm text-gray-400">Documents</div>
-                </div>
-                <div className="bg-slate-700 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-purple-400">{client.analyses?.length || 0}</div>
-                  <div className="text-sm text-gray-400">Lab Analyses</div>
-                </div>
-              </div>
+
             </div>
           )}
 
