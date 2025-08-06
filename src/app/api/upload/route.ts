@@ -91,9 +91,13 @@ export async function POST(request: NextRequest) {
             continue
           }
 
+          // Convert File to Buffer for storage upload
+          const arrayBuffer = await file.arrayBuffer()
+          const fileBuffer = Buffer.from(arrayBuffer)
+          
           // Upload file to Supabase Storage with quick analysis path
           // Note: saveFile will generate its own unique filename internally
-          const storageFile = await saveFile(file, file.name, 'quick-analysis', {
+          const storageFile = await saveFile(fileBuffer, file.name, 'quick-analysis', {
             uploadedBy: 'quick-analysis',
             timestamp: new Date().toISOString()
           }, true)
@@ -210,8 +214,12 @@ export async function POST(request: NextRequest) {
           continue
         }
 
+        // Convert File to Buffer for storage upload
+        const arrayBuffer = await file.arrayBuffer()
+        const fileBuffer = Buffer.from(arrayBuffer)
+        
         // Upload file to Supabase Storage
-        const storageFile = await saveFile(file, file.name, category, {
+        const storageFile = await saveFile(fileBuffer, file.name, category, {
           clientId: targetClientId,
           clientEmail,
           uploadedBy: 'api'
