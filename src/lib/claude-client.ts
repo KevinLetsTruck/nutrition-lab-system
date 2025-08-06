@@ -143,11 +143,9 @@ class ClaudeClient {
   }
 
   static getInstance(): ClaudeClient {
-    if (!ClaudeClient.instance) {
-      console.log('[CLAUDE] getInstance called - creating new instance')
-      ClaudeClient.instance = new ClaudeClient()
-    }
-    return ClaudeClient.instance
+    // Always create a new instance to ensure fresh environment variables
+    console.log('[CLAUDE] getInstance called - creating new instance')
+    return new ClaudeClient()
   }
 
   // Updated method to support both text and vision inputs
