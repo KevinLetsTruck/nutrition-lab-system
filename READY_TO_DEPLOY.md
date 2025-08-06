@@ -2,12 +2,13 @@
 
 ## 🎉 ALL MAJOR FEATURES WORKING!
 
-### Latest Commit: `edd55bf`
+### Latest Commit: `adc9fc0`
 - ✅ All TypeScript errors resolved
 - ✅ All build errors fixed
 - ✅ File upload working perfectly
 - ✅ Documents displaying correctly
 - ✅ Comprehensive analysis fixed
+- ✅ Document viewer system fixed
 - ✅ Production deployed and operational!
 
 ## Recent Fixes (January 28, 2025):
@@ -32,6 +33,13 @@
 13. ✅ **ClientDataAggregator** - Updated to accept Supabase client as parameter
 14. ✅ **Duplicate Function Declarations** - Removed duplicate startCallRecording and generateProtocol
 
+### Document Viewer System Fixed:
+15. ✅ **Database Schema Issue** - Identified lab_reports table uses file_url, not file_path
+16. ✅ **Client Page Simplified** - Updated to only use file_url field for all document operations
+17. ✅ **Import Errors** - Removed non-existent supabase singleton import
+18. ✅ **Diagnostic Tools** - Created diagnose-system and simple-fix endpoints
+19. ✅ **Test Page** - Added comprehensive test page to verify document system
+
 ## Known Working Features:
 - ✅ User authentication and login
 - ✅ Client management
@@ -55,6 +63,9 @@ https://nutrition-lab-system-lets-truck.vercel.app/
 - `/client/[id]` - Client detail page with all features
 - `/api/fix-documents?clientId=[id]&forceAll=true` - Fix orphaned documents
 - `/api/debug-lab-reports?clientId=[id]` - Debug document issues
+- `/api/diagnose-system` - Full system diagnosis for document issues
+- `/api/simple-fix` - Quick fix to update file_url for Kevin's documents
+- `/test-document-system` - Test page for verifying document system
 
 ## Environment Variables Required:
 - `NEXT_PUBLIC_SUPABASE_URL`
