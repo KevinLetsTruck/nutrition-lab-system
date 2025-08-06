@@ -21,8 +21,8 @@ export async function GET(request: NextRequest) {
     if (error) throw error
     
     // Group by creation date to see duplicates
-    const reportsByDate = {}
-    reports?.forEach(report => {
+    const reportsByDate: Record<string, any[]> = {}
+    reports?.forEach((report: any) => {
       const date = report.created_at.split('T')[0]
       if (!reportsByDate[date]) reportsByDate[date] = []
       reportsByDate[date].push({
