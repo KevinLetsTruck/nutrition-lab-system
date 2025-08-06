@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS lab_comparisons (
   previous_value DECIMAL(10,4),
   previous_date DATE,
   current_value DECIMAL(10,4),
-  current_date DATE,
+  comparison_date DATE,
   change_amount DECIMAL(10,4),
   change_percentage DECIMAL(5,2),
   trend VARCHAR(20),
