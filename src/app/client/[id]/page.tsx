@@ -368,11 +368,6 @@ export default function ClientDashboard() {
   }
 
   // Missing function handlers
-  const startCallRecording = (type: string) => {
-    console.log('Call recording not implemented yet')
-    alert('Call recording feature coming soon!')
-  }
-  
   const generateProtocol = async () => {
     console.log('Generate protocol not implemented yet')
     alert('Protocol generation feature coming soon!')
