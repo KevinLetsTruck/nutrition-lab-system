@@ -9,12 +9,14 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
     const files = formData.getAll('file') as File[]
+    const providedClientId = formData.get('clientId') as string
     const clientEmail = formData.get('clientEmail') as string || 'test@example.com'
     const clientFirstName = formData.get('clientFirstName') as string || 'Test'
     const clientLastName = formData.get('clientLastName') as string || 'User'
     
     console.log('[UPLOAD-FIXED] Received:', {
       filesCount: files.length,
+      providedClientId,
       clientEmail,
       hasFiles: files.length > 0
     })
@@ -32,27 +34,33 @@ export async function POST(request: NextRequest) {
     // Try to find or create client in BOTH tables
     let clientId = null
     
-    // First check clients table
-    const { data: clientsData } = await supabase
-      .from('clients')
-      .select('id')
-      .eq('email', clientEmail)
-      .single()
-    
-    if (clientsData) {
-      clientId = clientsData.id
-      console.log('[UPLOAD-FIXED] Found in clients table:', clientId)
+    // If client ID was provided, use it directly
+    if (providedClientId) {
+      clientId = providedClientId
+      console.log('[UPLOAD-FIXED] Using provided client ID:', clientId)
     } else {
-      // Try users table
-      const { data: userData } = await supabase
-        .from('users')
+      // First check clients table by email
+      const { data: clientsData } = await supabase
+        .from('clients')
         .select('id')
         .eq('email', clientEmail)
         .single()
       
-      if (userData) {
-        clientId = userData.id
-        console.log('[UPLOAD-FIXED] Found in users table:', clientId)
+      if (clientsData) {
+        clientId = clientsData.id
+        console.log('[UPLOAD-FIXED] Found in clients table:', clientId)
+      } else {
+        // Try users table
+        const { data: userData } = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', clientEmail)
+          .single()
+        
+        if (userData) {
+          clientId = userData.id
+          console.log('[UPLOAD-FIXED] Found in users table:', clientId)
+        }
       }
     }
     
