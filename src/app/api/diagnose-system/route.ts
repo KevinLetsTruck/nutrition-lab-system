@@ -9,25 +9,17 @@ export async function GET(request: NextRequest) {
   
   try {
     // 1. Check lab_reports table schema
-    const { data: columns, error: schemaError } = await supabase.rpc('get_table_columns', {
-      table_name: 'lab_reports'
-    }).single()
+    let tableColumns: string[] = []
     
-    // If RPC doesn't exist, try a different approach
-    let tableColumns = []
-    if (schemaError) {
-      // Try to get a sample record to see what columns exist
-      const { data: sampleReport } = await supabase
-        .from('lab_reports')
-        .select('*')
-        .limit(1)
-        .single()
-      
-      if (sampleReport) {
-        tableColumns = Object.keys(sampleReport)
-      }
-    } else {
-      tableColumns = columns || []
+    // Try to get a sample record to see what columns exist
+    const { data: sampleReport } = await supabase
+      .from('lab_reports')
+      .select('*')
+      .limit(1)
+      .single()
+    
+    if (sampleReport) {
+      tableColumns = Object.keys(sampleReport)
     }
     
     // 2. Check if files exist in storage
