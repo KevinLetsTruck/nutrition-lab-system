@@ -365,7 +365,7 @@ Format as structured JSON for parsing with the following structure:
   }
 
   private async callClaude(prompt: string): Promise<string> {
-    const claudeClient = ClaudeClient.create();
+    const claudeClient = ClaudeClient.getInstance();
     
     const systemPrompt = `You are an expert FNTP (Functional Nutritional Therapy Practitioner) with deep knowledge of functional medicine, lab interpretation, and clinical protocols.
 

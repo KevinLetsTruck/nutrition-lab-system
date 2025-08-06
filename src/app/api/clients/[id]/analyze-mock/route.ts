@@ -30,7 +30,7 @@ export async function POST(
       clientId,
       analysisDate: new Date().toISOString(),
       aiProvider: 'mock',
-      clientProfile: clientData.clientProfile,
+      clientProfile: clientData.personalInfo,
       
       rootCauseAnalysis: {
         primary: [
