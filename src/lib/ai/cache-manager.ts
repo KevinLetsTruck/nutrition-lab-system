@@ -1,27 +1,36 @@
 /**
  * Cache Manager for AI Service
  * Provides in-memory caching with TTL support
+ * 
+ * TODO: Upgrade to Redis for distributed caching and persistence
+ * This would allow cache sharing across multiple instances and
+ * survive application restarts.
  */
 
-import { CacheEntry } from './types';
 import crypto from 'crypto';
+
+interface CacheEntry {
+  value: any;
+  expiresAt: number;
+}
 
 export class CacheManager {
   private cache: Map<string, CacheEntry>;
-  private maxSize: number;
-  private defaultTTL: number;
+  private defaultTTL: number; // in milliseconds
 
-  constructor(defaultTTL: number = 3600000, maxSize: number = 100) {
+  constructor(defaultTTL: number = 3600000) { // Default 1 hour
     this.cache = new Map();
-    this.maxSize = maxSize;
     this.defaultTTL = defaultTTL;
     
-    // Start cleanup interval
-    this.startCleanupInterval();
+    // Start periodic cleanup of expired entries
+    this.startPeriodicCleanup();
   }
 
   /**
-   * Generate cache key from prompt and options
+   * Generate cache key from prompt and options using MD5 hashing
+   * @param prompt - The prompt string
+   * @param options - Additional options that affect the response
+   * @returns MD5 hash string to use as cache key
    */
   generateKey(prompt: string, options?: Record<string, any>): string {
     const data = {
@@ -30,13 +39,16 @@ export class CacheManager {
     };
     
     return crypto
-      .createHash('sha256')
+      .createHash('md5')
       .update(JSON.stringify(data))
       .digest('hex');
   }
 
   /**
    * Get cached value
+   * Automatically purges expired entries when accessed
+   * @param key - Cache key to retrieve
+   * @returns Cached value or null if not found/expired
    */
   get(key: string): any | null {
     const entry = this.cache.get(key);
@@ -45,8 +57,8 @@ export class CacheManager {
       return null;
     }
 
-    // Check if expired
-    if (entry.expires < Date.now()) {
+    // Automatically purge if expired
+    if (Date.now() > entry.expiresAt) {
       this.cache.delete(key);
       return null;
     }
@@ -55,51 +67,72 @@ export class CacheManager {
   }
 
   /**
-   * Set cache value
+   * Set cache value with optional custom TTL
+   * @param key - Cache key (typically generated with generateKey())
+   * @param value - Value to cache
+   * @param ttl - Optional TTL in milliseconds (defaults to constructor TTL)
    */
-  set(key: string, value: any, ttl?: number, metadata?: Record<string, any>): void {
-    // Check cache size limit
-    if (this.cache.size >= this.maxSize) {
-      // Remove oldest entries
-      const entriesToRemove = Math.floor(this.maxSize * 0.2); // Remove 20%
-      const sortedEntries = Array.from(this.cache.entries())
-        .sort((a, b) => a[1].expires - b[1].expires);
-      
-      for (let i = 0; i < entriesToRemove; i++) {
-        this.cache.delete(sortedEntries[i][0]);
-      }
-    }
-
-    const entry: CacheEntry = {
-      key,
+  set(key: string, value: any, ttl?: number): void {
+    const expiresAt = Date.now() + (ttl || this.defaultTTL);
+    
+    this.cache.set(key, {
       value,
-      expires: Date.now() + (ttl || this.defaultTTL),
-      metadata,
-    };
-
-    this.cache.set(key, entry);
+      expiresAt,
+    });
   }
 
   /**
-   * Check if key exists and is not expired
+   * Clear all cache entries
+   * Removes all cached responses from memory
+   */
+  clear(): void {
+    this.cache.clear();
+  }
+
+  /**
+   * Get the number of entries in cache
+   */
+  size(): number {
+    return this.cache.size;
+  }
+
+  /**
+   * Check if a key exists and is not expired
    */
   has(key: string): boolean {
-    const value = this.get(key);
-    return value !== null;
+    return this.get(key) !== null;
   }
 
   /**
-   * Clear specific key
+   * Delete a specific cache entry
    */
   delete(key: string): boolean {
     return this.cache.delete(key);
   }
 
   /**
-   * Clear all cache
+   * Start periodic cleanup of expired entries
+   * Runs every minute to prevent memory bloat
    */
-  clear(): void {
-    this.cache.clear();
+  private startPeriodicCleanup(): void {
+    setInterval(() => {
+      const now = Date.now();
+      const keysToDelete: string[] = [];
+
+      // Identify expired entries
+      for (const [key, entry] of this.cache.entries()) {
+        if (now > entry.expiresAt) {
+          keysToDelete.push(key);
+        }
+      }
+
+      // Delete expired entries
+      keysToDelete.forEach(key => this.cache.delete(key));
+      
+      if (keysToDelete.length > 0) {
+        console.log(`[CacheManager] Cleaned up ${keysToDelete.length} expired entries`);
+      }
+    }, 60000); // Run every minute
   }
 
   /**
@@ -107,67 +140,19 @@ export class CacheManager {
    */
   getStats(): {
     size: number;
-    maxSize: number;
-    hitRate: number;
     entries: Array<{
       key: string;
-      expires: number;
-      metadata?: Record<string, any>;
+      expiresAt: number;
     }>;
   } {
     const entries = Array.from(this.cache.entries()).map(([key, entry]) => ({
       key,
-      expires: entry.expires,
-      metadata: entry.metadata,
+      expiresAt: entry.expiresAt,
     }));
 
     return {
       size: this.cache.size,
-      maxSize: this.maxSize,
-      hitRate: 0, // Would need to track hits/misses for this
       entries,
     };
-  }
-
-  /**
-   * Start interval to clean up expired entries
-   */
-  private startCleanupInterval(): void {
-    setInterval(() => {
-      const now = Date.now();
-      const keysToDelete: string[] = [];
-
-      for (const [key, entry] of this.cache.entries()) {
-        if (entry.expires < now) {
-          keysToDelete.push(key);
-        }
-      }
-
-      keysToDelete.forEach(key => this.cache.delete(key));
-    }, 60000); // Run every minute
-  }
-
-  /**
-   * Cache decorator for async functions
-   */
-  async withCache<T>(
-    key: string,
-    fn: () => Promise<T>,
-    ttl?: number,
-    metadata?: Record<string, any>
-  ): Promise<{ value: T; cached: boolean }> {
-    // Check cache first
-    const cached = this.get(key);
-    if (cached !== null) {
-      return { value: cached, cached: true };
-    }
-
-    // Execute function
-    const value = await fn();
-
-    // Cache the result
-    this.set(key, value, ttl, metadata);
-
-    return { value, cached: false };
   }
 }
