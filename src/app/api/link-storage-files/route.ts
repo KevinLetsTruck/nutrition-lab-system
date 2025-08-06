@@ -31,16 +31,43 @@ export async function GET(request: NextRequest) {
     
     // Match files to reports and update
     for (const report of reports || []) {
+      // Skip if report already has a file URL
+      if (report.file_url) {
+        console.log(`Report ${report.id} already has file URL, skipping`)
+        continue
+      }
+      
       // Try to find a matching file
+      console.log(`Looking for match for report ${report.id} (${report.report_type}) with file: ${report.file_name}`)
+      
       const matchingFile = files?.find(file => {
         const fileName = file.name.toLowerCase()
         const reportType = report.report_type?.toLowerCase() || ''
+        const reportFileName = report.file_name?.toLowerCase() || ''
         
-        // Match by report type in filename
-        return fileName.includes(reportType) || 
+        // Remove timestamp prefix (e.g., 1754455407444_) from storage filename
+        const cleanFileName = fileName.replace(/^\d+_/, '')
+        
+        // Normalize filenames for comparison (handle parentheses vs hyphens)
+        const normalizedCleanName = cleanFileName.replace(/[()]/g, '-').replace(/-+/g, '-')
+        const normalizedReportName = reportFileName.replace(/[()]/g, '-').replace(/-+/g, '-')
+        
+        console.log(`  Checking file: ${file.name}`)
+        console.log(`    Clean name: ${cleanFileName}`)
+        console.log(`    Normalized: ${normalizedCleanName} vs ${normalizedReportName}`)
+        
+        // Match by original filename or report type
+        const isMatch = normalizedCleanName === normalizedReportName || 
+               cleanFileName === reportFileName ||
+               fileName.includes(reportType) || 
                fileName.includes('nutriq') || 
+               fileName.includes('symptom') ||
                fileName.includes('kbmo') ||
+               fileName.includes('fit') ||
                fileName.includes('general')
+               
+        if (isMatch) console.log(`    ✓ MATCH!`)
+        return isMatch
       })
       
       if (matchingFile) {
