@@ -438,7 +438,7 @@ export class ClientDataAggregator {
       const uploadedDocs: Document[] = [];
       
       if (documents) {
-        documents.forEach(doc => {
+        documents.forEach((doc: any) => {
           uploadedDocs.push({
             id: doc.id,
             name: doc.document_name,
@@ -459,9 +459,9 @@ export class ClientDataAggregator {
         .order('created_at', { ascending: false });
 
       if (!labError && labReports) {
-        labReports.forEach(report => {
+        labReports.forEach((report: any) => {
           // Don't duplicate if already in documents
-          if (!uploadedDocs.find(doc => doc.name === report.file_name)) {
+          if (!uploadedDocs.find((doc: Document) => doc.name === report.file_name)) {
             uploadedDocs.push({
               id: report.id,
               name: report.file_name || `${report.report_type} Report`,
