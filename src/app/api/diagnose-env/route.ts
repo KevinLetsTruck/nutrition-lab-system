@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     vercelEnv: process.env.VERCEL_ENV,
     
     // Check if running in Edge Runtime
-    isEdgeRuntime: typeof EdgeRuntime !== 'undefined',
+    isEdgeRuntime: typeof globalThis !== 'undefined' && 'EdgeRuntime' in globalThis,
     
     // Check various forms the key might be in
     anthropicKey: {
