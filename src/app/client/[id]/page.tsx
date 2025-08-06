@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { FileText, MessageSquare, Upload, FileCheck, Users, ClipboardList, Brain, Plus, Phone } from 'lucide-react'
 import { ComprehensiveAnalysisButton } from '@/components/analysis/ComprehensiveAnalysisButton'
-// Removed - supabase singleton doesn't exist
+import { createClient } from '@supabase/supabase-js'
 import { CallRecorder } from '@/components/calls/CallRecorder'
 import { CallConsentDialog } from '@/components/calls/CallConsentDialog'
 
@@ -77,6 +77,12 @@ export default function ClientDashboard() {
   const loadClientData = useCallback(async () => {
     try {
       setLoading(true)
+      
+      // Create Supabase client
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
       
       // Check if it's a simple ID (like '1', '2', '3') or UUID
       const isSimpleId = /^\d+$/.test(clientId)
