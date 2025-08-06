@@ -367,11 +367,7 @@ export default function ClientDashboard() {
     alert('Call recording saved successfully!')
   }
 
-  // Missing function handlers
-  const generateProtocol = async () => {
-    console.log('Generate protocol not implemented yet')
-    alert('Protocol generation feature coming soon!')
-  }
+  // Missing function handlers removed - functions are implemented below
 
   const uploadDocument = async () => {
     if (!client) {
