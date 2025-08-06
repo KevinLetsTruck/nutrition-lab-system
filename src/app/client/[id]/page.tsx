@@ -236,11 +236,18 @@ export default function ClientDashboard() {
         }
 
         // First try with the profile ID
+        console.log('[CLIENT-DASHBOARD] Fetching lab reports for clientId:', clientId)
         let { data: labReportsData, error: labReportsError } = await supabase
           .from('lab_reports')
           .select('*')
           .eq('client_id', clientId)
           .order('created_at', { ascending: false })
+        
+        console.log('[CLIENT-DASHBOARD] Initial lab reports query:', {
+          clientId,
+          found: labReportsData?.length || 0,
+          error: labReportsError
+        })
         
         // If no reports found and we have the user's email, try finding by email
         if ((!labReportsData || labReportsData.length === 0) && client.users?.email) {
@@ -261,11 +268,18 @@ export default function ClientDashboard() {
               .eq('client_id', clientRecord.id)
               .order('created_at', { ascending: false })
             
-            if (!reportsError && reportsByClientId) {
-              labReportsData = reportsByClientId
-              labReportsError = null
-              console.log(`[CLIENT-DASHBOARD] Found ${reportsByClientId.length} lab reports using clients table ID`)
-            }
+                    if (!reportsError && reportsByClientId) {
+          labReportsData = reportsByClientId
+          labReportsError = null
+          console.log(`[CLIENT-DASHBOARD] Found ${reportsByClientId.length} lab reports using clients table ID`)
+        }
+        
+        // Debug: Check what IDs we're using
+        console.log('[CLIENT-DASHBOARD] Debug IDs:', {
+          urlClientId: clientId,
+          clientsTableId: clientRecord?.id,
+          labReportsFound: reportsByClientId?.length || 0
+        })
           }
         }
 
@@ -351,6 +365,17 @@ export default function ClientDashboard() {
     
     // Show success message
     alert('Call recording saved successfully!')
+  }
+
+  // Missing function handlers
+  const startCallRecording = (type: string) => {
+    console.log('Call recording not implemented yet')
+    alert('Call recording feature coming soon!')
+  }
+  
+  const generateProtocol = async () => {
+    console.log('Generate protocol not implemented yet')
+    alert('Protocol generation feature coming soon!')
   }
 
   const uploadDocument = async () => {
