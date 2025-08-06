@@ -382,6 +382,15 @@ export default function ClientDashboard() {
         const firstName = nameParts[0] || 'Unknown'
         const lastName = nameParts.slice(1).join(' ') || 'Name'
         
+        console.log('[CLIENT] Uploading with data:', {
+          clientName: client.name,
+          nameParts,
+          firstName,
+          lastName,
+          email: client.email,
+          clientId: client.id
+        })
+        
         formData.append('clientEmail', client.email)
         formData.append('clientFirstName', firstName)
         formData.append('clientLastName', lastName)
