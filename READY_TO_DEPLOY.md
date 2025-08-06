@@ -2,7 +2,7 @@
 
 ## 🎉 ALL MAJOR FEATURES WORKING!
 
-### Latest Commit: `c315bd6`
+### Latest Commit: `8c03a2c`
 - ✅ All TypeScript errors resolved
 - ✅ All build errors fixed
 - ✅ File upload working perfectly
@@ -44,6 +44,7 @@
 22. ✅ **PDF Viewer Improvements** - Enhanced error handling, added fallback options, and proxy endpoint
 23. ✅ **ESLint Compliance** - Fixed unescaped quotes in PDF viewer component
 24. ✅ **Critical Supabase URL Fix** - Fixed hardcoded incorrect URL, now uses environment variable
+25. ✅ **Private Bucket Fix** - Identified lab-files bucket is private, created signed URL solution
 
 ## Known Working Features:
 - ✅ User authentication and login
@@ -55,6 +56,11 @@
 - ✅ Protocol generation
 - ✅ Notes and call recordings
 - ✅ Assessment system
+
+## Important Note - Storage Bucket:
+The `lab-files` bucket is currently **PRIVATE**. You have two options:
+1. **Make it PUBLIC** in Supabase Dashboard → Storage → lab-files → Settings
+2. **Use Signed URLs** - Run `/api/fix-with-signed-urls` endpoint
 
 ## Remaining TODOs:
 1. **Data Model Unification** - System has two client models (clients table vs users/client_profiles)
@@ -79,6 +85,9 @@ https://ajwudhwruxxdshqjeqij.supabase.co
 - `/api/find-files` - Search for files across all buckets
 - `/api/create-bucket` - Create lab-files bucket if missing
 - `/api/quick-fix-bucket` - Try using lab-documents bucket instead
+- `/api/make-bucket-public` - Instructions to make bucket public
+- `/api/list-lab-files` - List contents of lab-files bucket
+- `/api/fix-with-signed-urls` - Generate signed URLs for private bucket
 - `/test-document-system` - Test page for verifying document system
 
 ## Environment Variables Required:
