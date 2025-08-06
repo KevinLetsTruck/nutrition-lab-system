@@ -412,7 +412,7 @@ export class ClientDataAggregator {
       throw new Error(`Failed to fetch session notes: ${error.message}`);
     }
 
-    return notes.map(note => ({
+    return notes.map((note: any) => ({
       id: note.id,
       type: note.type as SessionNote['type'],
       content: note.content,
@@ -500,7 +500,7 @@ export class ClientDataAggregator {
       throw new Error(`Failed to fetch lab results: ${error.message}`);
     }
 
-    return labReports.map(report => {
+    return labReports.map((report: any) => {
       // For NutriQ reports, also include nutriq_results data
       let results = report.analysis_results || {};
       
@@ -543,7 +543,7 @@ export class ClientDataAggregator {
       throw new Error(`Failed to fetch protocols: ${error.message}`);
     }
 
-    return protocols.map(protocol => ({
+    return protocols.map((protocol: any) => ({
       id: protocol.id,
       phase: protocol.phase,
       startDate: protocol.start_date,
