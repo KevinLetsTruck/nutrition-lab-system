@@ -1,4 +1,5 @@
 import ClaudeClient from '../claude-client'
+import ClaudeClientProduction from '../claude-client-production'
 import { 
   ClientDataAggregate, 
   ComprehensiveAnalysis, 
@@ -365,7 +366,27 @@ Format as structured JSON for parsing with the following structure:
   }
 
   private async callClaude(prompt: string): Promise<string> {
-    const claudeClient = ClaudeClient.getInstance();
+    let claudeClient: any;
+    
+    // Try regular client first
+    try {
+      claudeClient = ClaudeClient.getInstance();
+      console.log('[ANALYZER] Using standard ClaudeClient')
+    } catch (error) {
+      console.log('[ANALYZER] Standard client failed, trying production client:', error)
+      
+      // Fallback to production client
+      claudeClient = ClaudeClientProduction.create();
+      
+      // Check if production client has a valid connection
+      const status = claudeClient.getApiKeyStatus();
+      if (!status.found) {
+        console.error('[ANALYZER] Production client also failed to find API key')
+        throw new Error('Unable to initialize Claude client - API key not found in any method')
+      }
+      
+      console.log('[ANALYZER] Using production ClaudeClient with key from:', status.method)
+    }
     
     const systemPrompt = `You are an expert FNTP (Functional Nutritional Therapy Practitioner) with deep knowledge of functional medicine, lab interpretation, and clinical protocols.
 
