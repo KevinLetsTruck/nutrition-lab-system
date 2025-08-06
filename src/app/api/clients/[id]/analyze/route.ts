@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ClientDataAggregator } from '@/lib/analysis/client-data-aggregator'
 import { ComprehensiveAnalyzer } from '@/lib/analysis/comprehensive-analyzer'
-import { supabase } from '@/lib/supabase'
-import { getServerSession } from '@/lib/auth'
+import { createClient } from '@supabase/supabase-js'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Check authentication
-    const session = await getServerSession(request)
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    // Create Supabase client
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
     
     const resolvedParams = await params;
     const clientId = resolvedParams.id;
@@ -27,7 +26,7 @@ export async function POST(
     }
     
     // Aggregate all client data
-    const aggregator = new ClientDataAggregator();
+    const aggregator = new ClientDataAggregator(supabase);
     const clientData = await aggregator.aggregateAllClientData(clientId);
     
     // Perform comprehensive analysis
@@ -35,7 +34,7 @@ export async function POST(
     const analysis = await analyzer.analyzeClient(clientData);
     
     // Save analysis to database
-    await saveAnalysis(analysis);
+    await saveAnalysis(analysis, supabase);
     
     // Generate artifacts
     const artifacts = await generateAllArtifacts(analysis, clientData);
@@ -63,7 +62,7 @@ export async function POST(
   }
 }
 
-async function saveAnalysis(analysis: any): Promise<void> {
+async function saveAnalysis(analysis: any, supabase: any): Promise<void> {
   try {
     const { error } = await supabase
       .from('comprehensive_analyses')

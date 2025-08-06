@@ -1,5 +1,3 @@
-import { supabase } from '../supabase'
-
 export interface ClientProfile {
   id: string
   name: string
@@ -222,6 +220,12 @@ export interface ClientDataAggregate {
 }
 
 export class ClientDataAggregator {
+  private supabase: any
+
+  constructor(supabaseClient: any) {
+    this.supabase = supabaseClient
+  }
+
   async aggregateAllClientData(clientId: string): Promise<ClientDataAggregate> {
     const [
       clientProfile,
@@ -261,7 +265,7 @@ export class ClientDataAggregator {
   }
 
   private async getClientProfile(clientId: string): Promise<ClientProfile> {
-    const { data: client, error } = await supabase
+    const { data: client, error } = await this.supabase
       .from('clients')
       .select('*')
       .eq('id', clientId)
@@ -289,7 +293,7 @@ export class ClientDataAggregator {
     const assessments: Assessment[] = [];
 
     // Get NutriQ assessments
-    const { data: nutriqResults, error: nutriqError } = await supabase
+    const { data: nutriqResults, error: nutriqError } = await this.supabase
       .from('nutriq_results')
       .select(`
         *,
@@ -327,7 +331,7 @@ export class ClientDataAggregator {
 
     // Get structured assessments from ai_conversations
     try {
-      const { data: structuredAssessments, error: structuredError } = await supabase
+      const { data: structuredAssessments, error: structuredError } = await this.supabase
         .from('ai_conversations')
         .select(`
           *,
@@ -374,7 +378,7 @@ export class ClientDataAggregator {
 
     // Get quick analysis assessments
     try {
-      const { data: quickAnalyses, error: quickError } = await supabase
+      const { data: quickAnalyses, error: quickError } = await this.supabase
         .from('quick_analyses')
         .select('*')
         .eq('client_id', clientId)
@@ -398,7 +402,7 @@ export class ClientDataAggregator {
   }
 
   private async getAllSessionNotes(clientId: string): Promise<SessionNote[]> {
-    const { data: notes, error } = await supabase
+    const { data: notes, error } = await this.supabase
       .from('client_notes')
       .select('*')
       .eq('client_id', clientId)
@@ -420,7 +424,7 @@ export class ClientDataAggregator {
   private async getAllUploadedDocuments(clientId: string): Promise<Document[]> {
     try {
       // First try to get documents from client_documents table
-      const { data: documents, error } = await supabase
+      const { data: documents, error } = await this.supabase
         .from('client_documents')
         .select('*')
         .eq('client_id', clientId)
@@ -447,7 +451,7 @@ export class ClientDataAggregator {
       }
 
       // Also get lab reports that might contain extracted text
-      const { data: labReports, error: labError } = await supabase
+      const { data: labReports, error: labError } = await this.supabase
         .from('lab_reports')
         .select('id, file_name, report_type, created_at, raw_text, parsed_data')
         .eq('client_id', clientId)
@@ -477,7 +481,7 @@ export class ClientDataAggregator {
   }
 
   private async getAllLabResults(clientId: string): Promise<LabResult[]> {
-    const { data: labReports, error } = await supabase
+    const { data: labReports, error } = await this.supabase
       .from('lab_reports')
       .select(`
         *,
@@ -529,7 +533,7 @@ export class ClientDataAggregator {
   }
 
   private async getAllProtocols(clientId: string): Promise<Protocol[]> {
-    const { data: protocols, error } = await supabase
+    const { data: protocols, error } = await this.supabase
       .from('protocols')
       .select('*')
       .eq('client_id', clientId)
@@ -573,7 +577,7 @@ export class ClientDataAggregator {
 
   private async getLastAnalysis(clientId: string): Promise<ComprehensiveAnalysis | undefined> {
     try {
-      const { data: analyses, error } = await supabase
+      const { data: analyses, error } = await this.supabase
         .from('comprehensive_analyses')
         .select('*')
         .eq('client_id', clientId)
