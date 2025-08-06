@@ -26,7 +26,8 @@
     "build:standalone": "next build && cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/",
     "start:standalone": "node .next/standalone/server.js",
     "start:prod": "NODE_ENV=production node .next/standalone/server.js",
-    "test:standalone": "npm run build:standalone && NODE_ENV=production node .next/standalone/server.js"
+    "test:standalone": "npm run build:standalone && NODE_ENV=production node .next/standalone/server.js",
+    "railway:prepare": "tsx scripts/prepare-and-push-railway-env.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.18.0",
@@ -89,6 +90,7 @@
     "eslint-config-next": "15.4.4",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.20.3",
     "typescript": "^5"
   }
 }
