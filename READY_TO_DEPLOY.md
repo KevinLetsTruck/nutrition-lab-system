@@ -2,7 +2,7 @@
 
 ## 🎉 ALL MAJOR FEATURES WORKING!
 
-### Latest Commit: `d258ae3`
+### Latest Commit: `59a6fd4`
 - ✅ All TypeScript errors resolved
 - ✅ All build errors fixed
 - ✅ File upload working perfectly
@@ -48,6 +48,7 @@
 26. ✅ **Final Smart Fix** - Created endpoint that auto-detects bucket status and uses appropriate URLs
 27. ✅ **TypeScript Index Error** - Fixed implicit any type error in list-lab-files route
 28. ✅ **Comprehensive Analysis Fix** - Added mock analysis fallback when ANTHROPIC_API_KEY unavailable
+29. ✅ **ClaudeClient Singleton Fix** - Removed singleton pattern to ensure fresh env vars in serverless environment
 
 ## Known Working Features:
 - ✅ User authentication and login
@@ -99,6 +100,8 @@ https://ajwudhwruxxdshqjeqij.supabase.co
 - `/api/list-lab-files` - List contents of lab-files bucket
 - `/api/fix-with-signed-urls` - Generate signed URLs for private bucket
 - `/api/final-fix` - Smart fix that handles both public and private buckets
+- `/api/test-claude-fix` - Test Claude/Anthropic API integration
+- `/api/test-env-claude` - Check if ANTHROPIC_API_KEY is detected
 - `/test-document-system` - Test page for verifying document system
 
 ## Environment Variables Required:
