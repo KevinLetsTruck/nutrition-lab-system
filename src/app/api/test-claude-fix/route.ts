@@ -28,9 +28,9 @@ export async function GET(request: NextRequest) {
   if (clientCreated) {
     try {
       const client = ClaudeClient.getInstance()
-      analysisResult = await client.analyzeContent(
-        'Say "Hello, the Claude integration is working!"',
-        'general'
+      analysisResult = await client.analyzePractitionerReport(
+        'Test: Please respond with "Claude integration is working!"',
+        'You are a helpful assistant. Respond to the test request.'
       )
     } catch (error) {
       analysisError = error instanceof Error ? error.message : 'Unknown error'
