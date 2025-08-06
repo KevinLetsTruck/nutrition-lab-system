@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase';
+import { env } from '@/lib/config/env';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +27,7 @@ export async function GET() {
   const healthCheck: HealthCheck = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || '0.1.0',
+    version: env.get('npm_package_version') || '0.1.0',
     checks: {
       environment: {
         status: true,
@@ -38,14 +39,14 @@ export async function GET() {
     }
   };
 
-  // Check required environment variables
+  // Check required environment variables using env config
   const requiredEnvVars = [
     'NEXT_PUBLIC_SUPABASE_URL',
     'SUPABASE_SERVICE_ROLE_KEY',
     'ANTHROPIC_API_KEY'
-  ];
+  ] as const;
 
-  const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+  const missingEnvVars = env.validateRequired(requiredEnvVars);
   
   if (missingEnvVars.length > 0) {
     healthCheck.checks.environment.status = false;
