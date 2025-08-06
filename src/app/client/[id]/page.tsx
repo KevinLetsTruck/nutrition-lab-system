@@ -378,9 +378,13 @@ export default function ClientDashboard() {
         }
         
         // Add client information
+        const nameParts = client.name.split(' ')
+        const firstName = nameParts[0] || 'Unknown'
+        const lastName = nameParts.slice(1).join(' ') || 'Name'
+        
         formData.append('clientEmail', client.email)
-        formData.append('clientFirstName', client.name.split(' ')[0] || '')
-        formData.append('clientLastName', client.name.split(' ').slice(1).join(' ') || '')
+        formData.append('clientFirstName', firstName)
+        formData.append('clientLastName', lastName)
         formData.append('category', 'client_documents')
         formData.append('clientId', client.id) // Add client ID for validation
         
