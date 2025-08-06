@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         const fileBuffer = Buffer.from(await file.arrayBuffer())
 
         const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('lab-documents')
+          .from('lab-files')
           .upload(fileName, fileBuffer, {
             contentType: file.type,
             upsert: false
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
 
         // Get public URL
         const { data: { publicUrl } } = supabase.storage
-          .from('lab-documents')
+          .from('lab-files')
           .getPublicUrl(fileName)
 
         // Create lab result record
