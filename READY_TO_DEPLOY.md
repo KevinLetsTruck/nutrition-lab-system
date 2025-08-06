@@ -2,7 +2,7 @@
 
 ## 🎉 BUILD & UPLOAD FIXED!
 
-### Latest Commit: `91ce57b`
+### Latest Commit: `4dc881d`
 - ✅ All TypeScript errors resolved
 - ✅ All build errors fixed
 - ✅ File upload working perfectly
@@ -26,11 +26,13 @@
 14. ✅ Fixed File to Buffer conversion for uploads
 15. ✅ Added fallback for missing service role key
 16. ✅ Fixed client name property TypeScript error
+17. ✅ Fixed single-name client handling (empty lastName was causing 400 errors)
 
-## The Real Issue Was:
-- **File objects from FormData must be converted to Buffer**
-- Storage service expects Buffer, not File objects
-- Fixed with: `Buffer.from(await file.arrayBuffer())`
+## The Upload Issues Were:
+1. **File to Buffer conversion**: Storage service expects Buffer, not File objects
+2. **Empty lastName validation**: Clients with single names (e.g., "Test") had empty lastName
+   - Upload API requires all three fields (email, firstName, lastName)
+   - Now defaults to "Name" if lastName is empty
 
 ## Deploy When Rate Limit Resets:
 ```bash
