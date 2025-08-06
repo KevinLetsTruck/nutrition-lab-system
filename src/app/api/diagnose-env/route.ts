@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     buildId: process.env.VERCEL_GIT_COMMIT_SHA?.substring(0, 7) || 'unknown',
     
     // Recommendations based on findings
-    recommendations: []
+    recommendations: [] as string[]
   }
   
   // Add recommendations based on what we find
