@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase';
 import { env } from '@/lib/config/env';
 
 export const dynamic = 'force-dynamic';
@@ -27,7 +27,7 @@ export async function GET() {
   const healthCheck: HealthCheck = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    version: env.get('npm_package_version') || '0.1.0',
+    version: '0.1.0', // From package.json
     checks: {
       environment: {
         status: true,
@@ -40,11 +40,11 @@ export async function GET() {
   };
 
   // Check required environment variables using env config
-  const requiredEnvVars = [
+  const requiredEnvVars: Array<'NEXT_PUBLIC_SUPABASE_URL' | 'SUPABASE_SERVICE_ROLE_KEY' | 'ANTHROPIC_API_KEY'> = [
     'NEXT_PUBLIC_SUPABASE_URL',
     'SUPABASE_SERVICE_ROLE_KEY',
     'ANTHROPIC_API_KEY'
-  ] as const;
+  ];
 
   const missingEnvVars = env.validateRequired(requiredEnvVars);
   
@@ -56,7 +56,7 @@ export async function GET() {
 
   // Test database connection
   try {
-    const supabase = createClient();
+    const supabase = createServerSupabaseClient();
     
     // Simple query to test connection
     const { error } = await supabase
