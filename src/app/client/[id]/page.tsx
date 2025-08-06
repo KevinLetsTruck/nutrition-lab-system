@@ -38,6 +38,7 @@ interface Document {
   type: string
   filePath?: string
   fileUrl?: string
+  storageUrl?: string
 }
 
 interface Protocol {
@@ -306,8 +307,9 @@ export default function ClientDashboard() {
           id: report.id,
           name: `${report.report_type.toUpperCase()} Report`,
           type: report.report_type,
-          filePath: report.file_path,
-          fileUrl: report.file_path ? `/api/file-url` : undefined
+          filePath: report.file_path || report.file_url || report.storage_path,
+          fileUrl: report.file_url || (report.file_path ? `/api/file-url` : undefined),
+          storageUrl: report.storage_path ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/lab-files/${report.storage_path}` : undefined
         })),
         currentProtocol: protocols[0] ? {
           id: protocols[0].id,
@@ -495,7 +497,15 @@ export default function ClientDashboard() {
   }
 
   const openDocument = async (document: Document) => {
-    if (document.filePath && document.fileUrl) {
+    // If we have a direct storage URL, use it
+    if (document.storageUrl) {
+      setSelectedPDF({
+        url: document.storageUrl,
+        title: document.name,
+        fileName: document.name
+      })
+      setShowPDFViewer(true)
+    } else if (document.filePath && document.fileUrl) {
       try {
         // Get signed URL from API
         const response = await fetch(document.fileUrl, {
@@ -899,7 +909,7 @@ export default function ClientDashboard() {
                         </div>
                       </div>
                       
-                      {doc.fileUrl ? (
+                      {(doc.fileUrl || doc.storageUrl) ? (
                         <div className="flex gap-2">
                           <button 
                             onClick={() => openDocument(doc)}
@@ -909,7 +919,10 @@ export default function ClientDashboard() {
                           </button>
                           <button 
                             onClick={async () => {
-                              if (doc.filePath && doc.fileUrl) {
+                              const url = doc.storageUrl || doc.fileUrl
+                              if (url) {
+                                window.open(url, '_blank')
+                              } else if (doc.filePath && doc.fileUrl) {
                                 try {
                                   const response = await fetch(doc.fileUrl, {
                                     method: 'POST',
