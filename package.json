@@ -22,7 +22,10 @@
     "deploy": "./scripts/deploy.sh",
     "deploy:check": "npm run lint && npm run build",
     "health": "curl -f https://your-domain.com/api/health || echo 'Health check failed'",
-    "test:production": "npm run health"
+    "test:production": "npm run health",
+    "build:standalone": "next build && cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/",
+    "start:standalone": "node .next/standalone/server.js",
+    "start:prod": "NODE_ENV=production node .next/standalone/server.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.18.0",
