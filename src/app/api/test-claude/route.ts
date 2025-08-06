@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Anthropic } from '@anthropic-ai/sdk';
+import { env } from '@/lib/config/env';
 
 export async function GET(request: NextRequest) {
   try {
     console.log('[TEST-CLAUDE] Testing Claude API connection...');
     
     // Check if API key exists
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const apiKey = env.get('ANTHROPIC_API_KEY');
     if (!apiKey) {
       return NextResponse.json({
         success: false,

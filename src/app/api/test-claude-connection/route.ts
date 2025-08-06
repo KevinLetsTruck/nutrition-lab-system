@@ -1,17 +1,18 @@
 import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
+import { env } from '@/lib/config/env'
 
 export async function GET() {
   try {
     // Check if API key exists
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    const apiKey = env.get('ANTHROPIC_API_KEY')
     if (!apiKey) {
       return NextResponse.json({
         success: false,
         error: 'API key not found',
         env: {
           hasKey: false,
-          nodeEnv: process.env.NODE_ENV
+          nodeEnv: env.get('NODE_ENV')
         }
       })
     }

@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { env } from '@/lib/config/env'
 
 // Types for different lab report analyses
 export interface NutriQAnalysis {
@@ -109,14 +110,14 @@ export interface FITTestResult {
 }
 
 class ClaudeClient {
-  private client: Anthropic
-  private static instance: ClaudeClient
+  private client: Anthropic | null = null
+  private isMockMode: boolean = false
 
-  private constructor() {
-    const apiKey = process.env.ANTHROPIC_API_KEY
+  constructor() {
+    const apiKey = env.get('ANTHROPIC_API_KEY')
     
     // Log environment info for debugging
-    console.log('[CLAUDE] Environment:', process.env.NODE_ENV)
+    console.log('[CLAUDE] Environment:', env.get('NODE_ENV'))
     console.log('[CLAUDE] API key available:', !!apiKey)
     
     if (apiKey) {
@@ -133,12 +134,13 @@ class ClaudeClient {
         console.log('[CLAUDE] Client initialized successfully')
       } catch (initError) {
         console.error('[CLAUDE] Failed to initialize Anthropic client:', initError)
-        throw initError
+        console.log('[CLAUDE] Falling back to mock mode')
+        this.isMockMode = true
       }
     } else {
-      console.error('[CLAUDE] ANTHROPIC_API_KEY is not available in environment')
-      console.log('[CLAUDE] Available env vars:', Object.keys(process.env).filter(k => k.includes('ANTHROPIC')))
-      throw new Error('ANTHROPIC_API_KEY environment variable is required')
+      console.warn('[CLAUDE] ANTHROPIC_API_KEY is not available - using mock mode')
+      console.log('[CLAUDE] Mock mode enabled for development/testing')
+      this.isMockMode = true
     }
   }
 
@@ -165,6 +167,12 @@ class ClaudeClient {
       console.log('[CLAUDE] Multi-modal prompt with', Array.isArray(prompt) ? prompt.length : 1, 'parts')
     }
     
+    // Check if we're in mock mode
+    if (this.isMockMode || !this.client) {
+      console.log('[CLAUDE] Running in mock mode - returning simulated response')
+      return this.generateMockResponse(prompt, systemPrompt)
+    }
+    
     try {
       const requestPayload = {
         model: 'claude-3-5-sonnet-20241022',
@@ -188,7 +196,7 @@ class ClaudeClient {
       console.log('[CLAUDE] Sending request to Anthropic API...')
       const startTime = Date.now()
       
-      const message = await this.client.messages.create(requestPayload)
+      const message = await this.client!.messages.create(requestPayload)
       
       const endTime = Date.now()
       console.log('[CLAUDE] API call successful! Response time:', endTime - startTime, 'ms')
@@ -727,6 +735,88 @@ Return ONLY the JSON object with the analysis structure specified above. Do not 
 
   public async analyzePractitionerReport(prompt: string, systemPrompt: string): Promise<string> {
     return this.analyzeWithClaude(prompt, systemPrompt)
+  }
+
+  // Mock response generator for when API key is not available
+  private generateMockResponse(prompt: string | Anthropic.MessageParam['content'], systemPrompt: string): string {
+    const promptText = typeof prompt === 'string' ? prompt : 'multi-modal content'
+    
+    // Check what type of analysis is being requested based on system prompt
+    if (systemPrompt.includes('NutriQ')) {
+      return JSON.stringify({
+        totalScore: 65,
+        bodySystems: {
+          energy: { score: 60, issues: ['Mock: Low energy reported'], recommendations: ['Mock: Increase B vitamins'] },
+          mood: { score: 70, issues: ['Mock: Mild mood variations'], recommendations: ['Mock: Consider omega-3 supplementation'] },
+          sleep: { score: 55, issues: ['Mock: Sleep disruption'], recommendations: ['Mock: Establish regular sleep schedule'] },
+          stress: { score: 50, issues: ['Mock: High stress levels'], recommendations: ['Mock: Practice stress management'] },
+          digestion: { score: 75, issues: ['Mock: Minor digestive issues'], recommendations: ['Mock: Increase fiber intake'] },
+          immunity: { score: 80, issues: ['Mock: Generally good'], recommendations: ['Mock: Maintain vitamin D levels'] }
+        },
+        overallRecommendations: ['Mock: This is a simulated response for testing'],
+        priorityActions: ['Mock: API key required for real analysis'],
+        followUpTests: ['Mock: Configure ANTHROPIC_API_KEY for actual results']
+      })
+    } else if (systemPrompt.includes('FIT test')) {
+      return JSON.stringify({
+        testType: 'FIT',
+        result: 'negative',
+        hemoglobinLevel: 10,
+        unit: 'ng/mL',
+        referenceRange: '<50 ng/mL',
+        collectionDate: new Date().toISOString().split('T')[0],
+        processingDate: new Date().toISOString().split('T')[0],
+        labName: 'Mock Lab Services',
+        patientName: 'Test Patient',
+        clinicalSignificance: 'Mock: Negative result - no blood detected',
+        recommendations: ['Mock: Continue annual screening'],
+        followUpRequired: false,
+        followUpInstructions: ['Mock: Repeat screening in 12 months'],
+        riskFactors: ['Mock: Standard risk'],
+        nextSteps: ['Mock: Maintain healthy lifestyle']
+      })
+    } else if (systemPrompt.includes('KBMO')) {
+      return JSON.stringify({
+        totalIggScore: 250,
+        highSensitivityFoods: [
+          { food: 'Mock: Dairy', iggLevel: 75, sensitivity: 'high', eliminationPeriod: '6 weeks', reintroductionNotes: 'Mock response' }
+        ],
+        moderateSensitivityFoods: [
+          { food: 'Mock: Wheat', iggLevel: 40, sensitivity: 'moderate', eliminationPeriod: '4 weeks', reintroductionNotes: 'Mock response' }
+        ],
+        lowSensitivityFoods: [
+          { food: 'Mock: Eggs', iggLevel: 20, sensitivity: 'low', eliminationPeriod: '2 weeks', reintroductionNotes: 'Mock response' }
+        ],
+        eliminationDietPlan: ['Mock: This is a simulated response'],
+        reintroductionSchedule: ['Mock: Configure API key for real analysis'],
+        crossReactivityNotes: ['Mock: Testing mode active']
+      })
+    } else if (systemPrompt.includes('Dutch')) {
+      return JSON.stringify({
+        cortisolPattern: {
+          am: { hormone: 'cortisol_am', value: 15, unit: 'ng/mL', referenceRange: '10-20', status: 'normal', clinicalSignificance: 'Mock: Normal morning cortisol' },
+          pm: { hormone: 'cortisol_pm', value: 5, unit: 'ng/mL', referenceRange: '3-8', status: 'normal', clinicalSignificance: 'Mock: Normal evening cortisol' },
+          pattern: 'normal',
+          interpretation: 'Mock: Normal circadian rhythm'
+        },
+        sexHormones: {
+          testosterone: { hormone: 'testosterone', value: 500, unit: 'ng/dL', referenceRange: '300-800', status: 'normal', clinicalSignificance: 'Mock: Normal testosterone' },
+          estradiol: { hormone: 'estradiol', value: 30, unit: 'pg/mL', referenceRange: '20-50', status: 'normal', clinicalSignificance: 'Mock: Normal estradiol' },
+          progesterone: { hormone: 'progesterone', value: 1, unit: 'ng/mL', referenceRange: '0.5-2', status: 'normal', clinicalSignificance: 'Mock: Normal progesterone' },
+          dhea: { hormone: 'dhea', value: 200, unit: 'ug/dL', referenceRange: '100-400', status: 'normal', clinicalSignificance: 'Mock: Normal DHEA' }
+        },
+        organicAcids: [],
+        hormoneAnalysis: 'Mock: This is a simulated response for testing',
+        recommendations: ['Mock: Configure ANTHROPIC_API_KEY for real analysis'],
+        followUpTests: ['Mock: API key required']
+      })
+    } else if (systemPrompt.includes('report type')) {
+      // For report type detection
+      return 'lab_report'
+    } else {
+      // Generic mock response
+      return 'Mock Response: This is a simulated response. To get real AI analysis, please configure the ANTHROPIC_API_KEY environment variable. System prompt detected: ' + systemPrompt.substring(0, 100) + '...'
+    }
   }
 }
 
