@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { FileText, MessageSquare, Upload, FileCheck, Users, ClipboardList, Brain, Plus, Phone } from 'lucide-react'
 import { ComprehensiveAnalysisButton } from '@/components/analysis/ComprehensiveAnalysisButton'
-import { supabase } from '@/lib/supabase'
+// Removed - supabase singleton doesn't exist
 import { CallRecorder } from '@/components/calls/CallRecorder'
 import { CallConsentDialog } from '@/components/calls/CallConsentDialog'
 
@@ -307,9 +307,9 @@ export default function ClientDashboard() {
           id: report.id,
           name: `${report.report_type.toUpperCase()} Report`,
           type: report.report_type,
-          filePath: report.file_path || report.file_url || report.storage_path,
-          fileUrl: report.file_url || (report.file_path ? `/api/file-url` : undefined),
-          storageUrl: report.storage_path ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/lab-files/${report.storage_path}` : undefined
+          filePath: report.file_url, // Simplified - just use file_url
+          fileUrl: report.file_url,    // Direct URL from database
+          storageUrl: report.file_url   // Same URL for all purposes
         })),
         currentProtocol: protocols[0] ? {
           id: protocols[0].id,
