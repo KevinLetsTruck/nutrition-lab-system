@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   const keyStatus = client.getApiKeyStatus()
   
   // Test the connection
-  let connectionTest = { success: false, error: 'Not tested' }
+  let connectionTest: { success: boolean; error?: string } = { success: false, error: 'Not tested' }
   if (keyStatus.found) {
     connectionTest = await client.testConnection()
   }
