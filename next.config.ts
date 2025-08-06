@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   compress: true,
   generateEtags: true,
   
+  // Enable standalone output for Railway deployment
+  output: 'standalone',
+  
   // External packages for server-side processing
   serverExternalPackages: [],
   
@@ -17,6 +20,8 @@ const nextConfig: NextConfig = {
         fs: false,
         path: false,
         os: false,
+        net: false,
+        tls: false,
       };
     }
     
