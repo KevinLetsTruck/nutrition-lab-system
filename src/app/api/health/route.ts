@@ -1,33 +1,99 @@
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase';
 
-export async function GET() {
-  const checks = {
-    resendConfigured: !!process.env.RESEND_API_KEY,
-    databaseUrl: !!process.env.DATABASE_URL,
-    supabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-    supabaseAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    supabaseServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-    nextAuthSecret: !!process.env.NEXTAUTH_SECRET,
-    nextAuthUrl: !!process.env.NEXTAUTH_URL,
-    appUrl: !!process.env.NEXT_PUBLIC_APP_URL,
-  }
+export const dynamic = 'force-dynamic';
 
-  const allHealthy = Object.values(checks).every(check => check)
-
-  return NextResponse.json({
-    status: allHealthy ? 'healthy' : 'unhealthy',
-    checks,
-    timestamp: new Date().toISOString()
-  })
+interface HealthCheck {
+  status: 'healthy' | 'unhealthy';
+  timestamp: string;
+  version: string;
+  checks: {
+    environment: {
+      status: boolean;
+      missing: string[];
+    };
+    database: {
+      status: boolean;
+      error?: string;
+    };
+  };
 }
 
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+export async function GET() {
+  const startTime = Date.now();
+  
+  // Initialize health check response
+  const healthCheck: HealthCheck = {
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    version: process.env.npm_package_version || '0.1.0',
+    checks: {
+      environment: {
+        status: true,
+        missing: []
+      },
+      database: {
+        status: true
+      }
     }
-  })
-} 
+  };
+
+  // Check required environment variables
+  const requiredEnvVars = [
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'SUPABASE_SERVICE_ROLE_KEY',
+    'ANTHROPIC_API_KEY'
+  ];
+
+  const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+  
+  if (missingEnvVars.length > 0) {
+    healthCheck.checks.environment.status = false;
+    healthCheck.checks.environment.missing = missingEnvVars;
+    healthCheck.status = 'unhealthy';
+  }
+
+  // Test database connection
+  try {
+    const supabase = createClient();
+    
+    // Simple query to test connection
+    const { error } = await supabase
+      .from('clients')
+      .select('id')
+      .limit(1);
+
+    if (error) {
+      healthCheck.checks.database.status = false;
+      healthCheck.checks.database.error = error.message;
+      healthCheck.status = 'unhealthy';
+    }
+  } catch (error) {
+    healthCheck.checks.database.status = false;
+    healthCheck.checks.database.error = error instanceof Error ? error.message : 'Unknown database error';
+    healthCheck.status = 'unhealthy';
+  }
+
+  // Add response time
+  const responseTime = Date.now() - startTime;
+  
+  // Set appropriate status code
+  const statusCode = healthCheck.status === 'healthy' ? 200 : 503;
+  
+  // Return response with no-cache headers
+  return NextResponse.json(
+    {
+      ...healthCheck,
+      responseTime: `${responseTime}ms`
+    },
+    {
+      status: statusCode,
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Surrogate-Control': 'no-store'
+      }
+    }
+  );
+}
