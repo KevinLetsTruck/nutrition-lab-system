@@ -9,18 +9,19 @@ export async function GET(request: NextRequest) {
   
   try {
     // Simple hardcoded fix - just update file_url
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const updates = [
       {
         id: '713f5d32-2385-458c-b3b4-173289fca9f6',
-        file_url: 'https://qmuvbhfpgwtdcxijgmyn.supabase.co/storage/v1/object/public/lab-files/clients/336ac9e9-dda3-477f-89d5-241df47b8745/1754455407444_corkadel_carole_fit176_report_07jul25.pdf'
+        file_url: `${supabaseUrl}/storage/v1/object/public/lab-files/clients/336ac9e9-dda3-477f-89d5-241df47b8745/1754455407444_corkadel_carole_fit176_report_07jul25.pdf`
       },
       {
         id: 'ec99b292-e5cb-4442-9404-0c3622ab5657',
-        file_url: 'https://qmuvbhfpgwtdcxijgmyn.supabase.co/storage/v1/object/public/lab-files/clients/336ac9e9-dda3-477f-89d5-241df47b8745/1754455407444_corkadel_carole_fit176_report_07jul25.pdf'
+        file_url: `${supabaseUrl}/storage/v1/object/public/lab-files/clients/336ac9e9-dda3-477f-89d5-241df47b8745/1754455407444_corkadel_carole_fit176_report_07jul25.pdf`
       },
       {
         id: '49f40728-89bf-4706-bcaf-fcca5c453c98',
-        file_url: 'https://qmuvbhfpgwtdcxijgmyn.supabase.co/storage/v1/object/public/lab-files/clients/336ac9e9-dda3-477f-89d5-241df47b8745/1754455408916_Symptom-Burden-Bar-Graph-17-1.pdf'
+        file_url: `${supabaseUrl}/storage/v1/object/public/lab-files/clients/336ac9e9-dda3-477f-89d5-241df47b8745/1754455408916_Symptom-Burden-Bar-Graph-17-1.pdf`
       }
     ]
     

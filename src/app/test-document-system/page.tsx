@@ -11,7 +11,7 @@ export default function TestDocumentSystem() {
   const [showPDF, setShowPDF] = useState(false)
   const [selectedPDF, setSelectedPDF] = useState<any>(null)
   
-  const testUrl = 'https://qmuvbhfpgwtdcxijgmyn.supabase.co/storage/v1/object/public/lab-files/clients/336ac9e9-dda3-477f-89d5-241df47b8745/1754455407444_corkadel_carole_fit176_report_07jul25.pdf'
+  const testUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/lab-files/clients/336ac9e9-dda3-477f-89d5-241df47b8745/1754455407444_corkadel_carole_fit176_report_07jul25.pdf`
   
   const runDiagnosis = async () => {
     setLoading(true)
