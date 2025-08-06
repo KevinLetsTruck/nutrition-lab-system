@@ -68,16 +68,19 @@ export async function POST(request: NextRequest) {
         const client = await db.getClientById(clientId)
         
         if (!client) {
-          return NextResponse.json({ error: 'Invalid client ID' }, { status: 400 })
-        }
-        
-        // Verify the email matches
-        if (client.email !== clientEmail) {
-          return NextResponse.json({ error: 'Client email mismatch' }, { status: 400 })
+          console.log('[UPLOAD] Client ID not found in database:', clientId)
+          console.log('[UPLOAD] Will create/find client by email instead')
+          // Don't fail - we'll create/find the client by email below
+        } else {
+          // Verify the email matches
+          if (client.email !== clientEmail) {
+            console.log('[UPLOAD] Client email mismatch:', client.email, '!==', clientEmail)
+            return NextResponse.json({ error: 'Client email mismatch' }, { status: 400 })
+          }
         }
       } catch (error) {
-        console.error('Error verifying client:', error)
-        return NextResponse.json({ error: 'Invalid client ID' }, { status: 400 })
+        console.error('[UPLOAD] Error verifying client:', error)
+        // Don't fail - we'll create/find the client by email below
       }
     }
     
@@ -193,10 +196,23 @@ export async function POST(request: NextRequest) {
 
     // Find or create client (use provided clientId or find/create one)
     let targetClientId: string
-    if (clientId) {
-      // Use the provided clientId (already validated above)
-      targetClientId = clientId
-    } else {
+    let clientVerified = false
+    
+    // Check if we successfully verified the client ID above
+    if (clientId && !quickAnalysis) {
+      try {
+        const verifyClient = await db.getClientById(clientId)
+        if (verifyClient && verifyClient.email === clientEmail) {
+          targetClientId = clientId
+          clientVerified = true
+          console.log('[UPLOAD] Using verified client ID:', clientId)
+        }
+      } catch (error) {
+        // Client verification failed, will create/find by email
+      }
+    }
+    
+    if (!clientVerified) {
       // Find or create client
       try {
         const existingClient = await db.searchClients(clientEmail)
