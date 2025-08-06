@@ -379,8 +379,8 @@ export default function ClientDashboard() {
         
         // Add client information
         formData.append('clientEmail', client.email)
-        formData.append('clientFirstName', client.first_name)
-        formData.append('clientLastName', client.last_name)
+        formData.append('clientFirstName', client.name.split(' ')[0] || '')
+        formData.append('clientLastName', client.name.split(' ').slice(1).join(' ') || '')
         formData.append('category', 'client_documents')
         formData.append('clientId', client.id) // Add client ID for validation
         
