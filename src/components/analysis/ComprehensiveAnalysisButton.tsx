@@ -239,7 +239,14 @@ export const ComprehensiveAnalysisButton = ({ clientId, clientName }: Comprehens
       
       {/* Analysis Overview */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Analysis Overview</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Analysis Overview</h3>
+          {analysis.analysis?.aiProvider && (
+            <Badge variant={analysis.analysis.aiProvider === 'claude' ? 'default' : 'secondary'}>
+              {analysis.analysis.aiProvider === 'claude' ? '✅ AI Analysis' : '⚠️ Mock Analysis'}
+            </Badge>
+          )}
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="text-center p-4 bg-blue-50 rounded-lg">
