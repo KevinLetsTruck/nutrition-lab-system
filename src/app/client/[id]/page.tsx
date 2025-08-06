@@ -416,8 +416,8 @@ export default function ClientDashboard() {
         formData.append('clientId', client.id) // Add client ID for validation
         
         try {
-          // Temporarily use fixed endpoint
-          const response = await fetch('/api/upload-fixed', {
+          // Use correct endpoint that saves to proper location
+          const response = await fetch('/api/upload-correct', {
             method: 'POST',
             body: formData,
             credentials: 'include' // Include cookies for authentication
