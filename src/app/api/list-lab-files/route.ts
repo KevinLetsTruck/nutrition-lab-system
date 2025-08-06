@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const results = {
       bucket: 'lab-files',
       isPublic: false,
-      contents: {}
+      contents: {} as Record<string, any>
     }
     
     // Check root
