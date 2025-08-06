@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find or create client (use provided clientId or find/create one)
-    let targetClientId: string
+    let targetClientId: string = ''
     let clientVerified = false
     
     // Check if we successfully verified the client ID above
@@ -233,6 +233,15 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         )
       }
+    }
+
+    // Ensure we have a valid targetClientId
+    if (!targetClientId) {
+      console.error('[UPLOAD] No target client ID after client lookup')
+      return NextResponse.json(
+        { error: 'Failed to identify client' },
+        { status: 500 }
+      )
     }
 
     const results = []
