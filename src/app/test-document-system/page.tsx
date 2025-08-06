@@ -20,7 +20,7 @@ export default function TestDocumentSystem() {
       const data = await response.json()
       setTestResults(data)
     } catch (error) {
-      setTestResults({ error: error.message })
+      setTestResults({ error: error instanceof Error ? error.message : 'Unknown error' })
     }
     setLoading(false)
   }
@@ -32,7 +32,7 @@ export default function TestDocumentSystem() {
       const data = await response.json()
       setTestResults(data)
     } catch (error) {
-      setTestResults({ error: error.message })
+      setTestResults({ error: error instanceof Error ? error.message : 'Unknown error' })
     }
     setLoading(false)
   }
