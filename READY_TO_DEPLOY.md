@@ -2,7 +2,7 @@
 
 ## 🎉 ALL MAJOR FEATURES WORKING!
 
-### Latest Commit: `18f1686`
+### Latest Commit: `ed45739`
 - ✅ All TypeScript errors resolved
 - ✅ All build errors fixed
 - ✅ File upload working perfectly
@@ -50,6 +50,8 @@
 28. ✅ **Comprehensive Analysis Fix** - Added mock analysis fallback when ANTHROPIC_API_KEY unavailable
 29. ✅ **ClaudeClient Singleton Fix** - Removed singleton pattern to ensure fresh env vars in serverless environment
 30. ✅ **Mock Analysis TypeScript Fix** - Fixed clientProfile property name to match interface
+31. ✅ **Runtime Environment Fix** - Forced Node.js runtime for API routes to ensure env vars work
+32. ✅ **Environment Diagnostics** - Added comprehensive diagnostic endpoints for debugging
 
 ## Known Working Features:
 - ✅ User authentication and login
@@ -103,6 +105,8 @@ https://ajwudhwruxxdshqjeqij.supabase.co
 - `/api/final-fix` - Smart fix that handles both public and private buckets
 - `/api/test-claude-fix` - Test Claude/Anthropic API integration
 - `/api/test-env-claude` - Check if ANTHROPIC_API_KEY is detected
+- `/api/diagnose-env` - Comprehensive environment variable diagnostics
+- `/api/test-node-runtime` - Test Node.js runtime with actual Claude API call
 - `/test-document-system` - Test page for verifying document system
 
 ## Environment Variables Required:
