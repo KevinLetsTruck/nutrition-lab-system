@@ -17,6 +17,7 @@ export function PDFViewer({ isOpen, onClose, pdfUrl, title, fileName }: PDFViewe
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [zoom, setZoom] = useState(100)
+  const [iframeError, setIframeError] = useState(false)
 
   const handleDownload = () => {
     const link = document.createElement('a')
@@ -121,21 +122,45 @@ export function PDFViewer({ isOpen, onClose, pdfUrl, title, fileName }: PDFViewe
             </Card>
           ) : (
             <div className="h-full rounded-lg overflow-hidden relative bg-white">
-              <iframe
-                src={`${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1&view=FitH&zoom=${zoom}`}
-                className="w-full h-full"
-                style={{ minHeight: '600px' }}
-                onLoad={() => setIsLoading(false)}
-                onError={() => {
-                  setError('Failed to load PDF. Please try opening in a new tab.')
-                  setIsLoading(false)
-                }}
-              />
-              {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                    <p className="text-muted-foreground">Loading PDF...</p>
+              {!iframeError ? (
+                <>
+                  <iframe
+                    src={pdfUrl}
+                    className="w-full h-full"
+                    style={{ minHeight: '600px' }}
+                    onLoad={() => {
+                      setIsLoading(false)
+                      console.log('PDF loaded successfully')
+                    }}
+                    onError={() => {
+                      console.error('Iframe error loading PDF')
+                      setIframeError(true)
+                      setIsLoading(false)
+                    }}
+                  />
+                  {isLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-background">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                        <p className="text-muted-foreground">Loading PDF...</p>
+                        <p className="text-xs text-muted-foreground mt-2">If this takes too long, try the "Open" button above</p>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center p-8">
+                    <p className="text-lg mb-4">Unable to display PDF in viewer</p>
+                    <p className="text-muted-foreground mb-6">This might be due to browser security settings.</p>
+                    <div className="space-y-2">
+                      <Button onClick={handleOpenInNewTab} variant="default" className="w-full">
+                        Open PDF in New Tab
+                      </Button>
+                      <Button onClick={handleDownload} variant="outline" className="w-full">
+                        Download PDF
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
