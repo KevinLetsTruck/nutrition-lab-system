@@ -3,6 +3,9 @@ import { ClientDataAggregator } from '@/lib/analysis/client-data-aggregator'
 import { ComprehensiveAnalyzer } from '@/lib/analysis/comprehensive-analyzer'
 import { createClient } from '@supabase/supabase-js'
 
+// Force Node.js runtime to ensure all environment variables are available
+export const runtime = 'nodejs'
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
