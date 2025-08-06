@@ -63,13 +63,18 @@
 ## Production URL:
 https://nutrition-lab-system-lets-truck.vercel.app/
 
+## Supabase URL:
+https://ajwudhwruxxdshqjeqij.supabase.co
+
 ## Key Endpoints:
 - `/clients` - Client listing
 - `/client/[id]` - Client detail page with all features
 - `/api/fix-documents?clientId=[id]&forceAll=true` - Fix orphaned documents
 - `/api/debug-lab-reports?clientId=[id]` - Debug document issues
 - `/api/diagnose-system` - Full system diagnosis for document issues
-- `/api/simple-fix` - Quick fix to update file_url for Kevin's documents
+- `/api/fix-urls-simple` - Fix document URLs with correct Supabase URL
+- `/api/verify-pdfs` - Check if PDFs are accessible at their URLs
+- `/api/check-schema` - Check database schema for lab_reports table
 - `/test-document-system` - Test page for verifying document system
 
 ## Environment Variables Required:
