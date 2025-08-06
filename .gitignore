@@ -69,3 +69,6 @@ Thumbs.db
 # Railway deployment files (contain sensitive data)
 .env.railway
 .railway-command.sh
+.railway-push-progress
+.railway-push-errors.log
+railway-verification.log

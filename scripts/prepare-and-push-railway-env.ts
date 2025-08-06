@@ -114,7 +114,7 @@ function addRailwayVariables(variables: EnvVariable[]): EnvVariable[] {
 function generateRailwayCommandMasked(variables: EnvVariable[]): string {
   // Generate individual set commands with masked values
   const commands = variables.map(({ key }) => 
-    `railway variables set ${key}=<value>`
+    `railway variables --set ${key}=<value>`
   )
 
   return commands.join(' && ')
@@ -134,7 +134,7 @@ function generateRailwayCommand(variables: EnvVariable[]): string {
 
   // Generate individual set commands
   const commands = variables.map(({ key, value }) => 
-    `railway variables set ${key}=${escapeShellValue(value)}`
+    `railway variables --set ${key}=${escapeShellValue(value)}`
   )
 
   return commands.join(' && ')
