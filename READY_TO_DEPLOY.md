@@ -2,7 +2,7 @@
 
 ## 🎉 ALL MAJOR FEATURES WORKING!
 
-### Latest Commit: `b707a43`
+### Latest Commit: `c315bd6`
 - ✅ All TypeScript errors resolved
 - ✅ All build errors fixed
 - ✅ File upload working perfectly
@@ -75,6 +75,10 @@ https://ajwudhwruxxdshqjeqij.supabase.co
 - `/api/fix-urls-simple` - Fix document URLs with correct Supabase URL
 - `/api/verify-pdfs` - Check if PDFs are accessible at their URLs
 - `/api/check-schema` - Check database schema for lab_reports table
+- `/api/check-buckets` - List all storage buckets in Supabase
+- `/api/find-files` - Search for files across all buckets
+- `/api/create-bucket` - Create lab-files bucket if missing
+- `/api/quick-fix-bucket` - Try using lab-documents bucket instead
 - `/test-document-system` - Test page for verifying document system
 
 ## Environment Variables Required:
