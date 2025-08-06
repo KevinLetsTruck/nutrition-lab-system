@@ -65,3 +65,7 @@ Thumbs.db
 /dist
 /build
 .env*.local
+
+# Railway deployment files (contain sensitive data)
+.env.railway
+.railway-command.sh

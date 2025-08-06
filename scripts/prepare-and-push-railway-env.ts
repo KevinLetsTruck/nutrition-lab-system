@@ -110,7 +110,17 @@ function addRailwayVariables(variables: EnvVariable[]): EnvVariable[] {
   return Array.from(varMap.values())
 }
 
-// Generate Railway CLI command
+// Generate Railway CLI command with masked values for display
+function generateRailwayCommandMasked(variables: EnvVariable[]): string {
+  // Generate individual set commands with masked values
+  const commands = variables.map(({ key }) => 
+    `railway variables set ${key}=<value>`
+  )
+
+  return commands.join(' && ')
+}
+
+// Generate actual Railway CLI command (for file output only)
 function generateRailwayCommand(variables: EnvVariable[]): string {
   // Escape values for shell command
   const escapeShellValue = (value: string): string => {
@@ -187,7 +197,13 @@ async function main() {
 
     // Step 5: Generate Railway CLI command
     info('\nGenerating Railway CLI command...')
-    const command = generateRailwayCommand(variables)
+    const actualCommand = generateRailwayCommand(variables)
+    const maskedCommand = generateRailwayCommandMasked(variables)
+    
+    // Write actual command to a secure file
+    const commandFilePath = path.join(process.cwd(), '.railway-command.sh')
+    fs.writeFileSync(commandFilePath, `#!/bin/bash\n# Railway Environment Variable Setup\n# Generated at: ${new Date().toISOString()}\n# IMPORTANT: Delete this file after running it!\n\n${actualCommand}\n`, { mode: 0o600 })
+    success(`Secure command file created: ${commandFilePath}`)
 
     // Step 6: Show summary
     console.log()
@@ -224,19 +240,28 @@ async function main() {
     log('2. Link your project (if not already linked):', colors.yellow)
     console.log(`   ${colors.dim}railway link${colors.reset}`)
     console.log()
-    log('3. Copy and run this command to set all variables:', colors.yellow)
+    log('3. Run the generated command file to set all variables:', colors.yellow)
+    console.log(`   ${colors.bright}${colors.green}bash .railway-command.sh${colors.reset}`)
     console.log()
-    console.log(`${colors.cyan}${command}${colors.reset}`)
+    log('   OR set variables manually with this format:', colors.yellow)
+    console.log(`   ${colors.cyan}${maskedCommand}${colors.reset}`)
     console.log()
-    log('4. Verify variables were set correctly:', colors.yellow)
+    log('4. Delete the command file (IMPORTANT!):', colors.yellow)
+    console.log(`   ${colors.bright}${colors.red}rm .railway-command.sh${colors.reset}`)
+    console.log()
+    log('5. Verify variables were set correctly:', colors.yellow)
     console.log(`   ${colors.dim}railway variables${colors.reset}`)
     console.log()
-    log('5. Deploy your application:', colors.yellow)
+    log('6. Deploy your application:', colors.yellow)
     console.log(`   ${colors.dim}railway up${colors.reset}`)
     console.log()
     
-    warning('Note: The command above has been formatted for security.')
-    warning('Your actual API keys and secrets are in .env.railway')
+    warning('Security Note: Your actual API keys are stored securely in:')
+    warning('  - .env.railway (clean environment file)')
+    warning('  - .railway-command.sh (executable command with real values)')
+    warning('\nMAKE SURE TO ADD THESE TO YOUR .gitignore:')
+    warning('  - .env.railway')
+    warning('  - .railway-command.sh')
     console.log()
     
     success('Preparation complete! Follow the instructions above to deploy.')
