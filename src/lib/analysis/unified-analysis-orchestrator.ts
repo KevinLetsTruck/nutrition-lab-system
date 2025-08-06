@@ -5,6 +5,7 @@ import ClaudeClient from '../claude-client'
 import { ClientDataAggregator } from './client-data-aggregator'
 import { ComprehensiveAnalyzer } from './comprehensive-analyzer'
 import { SupplementRecommender } from './supplement-recommender'
+import { createClient } from '@supabase/supabase-js'
 
 export interface UnifiedAnalysisRequest {
   fileBuffer?: Buffer
@@ -41,7 +42,14 @@ export class UnifiedAnalysisOrchestrator {
     this.documentClassifier = new IntelligentDocumentClassifier()
     this.functionalAnalyzer = new TruckDriverFunctionalAnalyzer()
     this.claudeClient = ClaudeClient.getInstance()
-    this.dataAggregator = new ClientDataAggregator()
+    
+    // Create Supabase client for data aggregator
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    
+    this.dataAggregator = new ClientDataAggregator(supabase)
     this.comprehensiveAnalyzer = new ComprehensiveAnalyzer()
     this.supplementRecommender = new SupplementRecommender()
   }
