@@ -8,6 +8,10 @@ import { SupabaseStorageService } from '@/lib/supabase-storage'
 import { getServerSession } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
+  console.log('[UPLOAD] === NEW UPLOAD REQUEST ===')
+  console.log('[UPLOAD] Request URL:', request.url)
+  console.log('[UPLOAD] Request method:', request.method)
+  
   try {
     // Rate limiting first
     const rateLimiter = getRateLimiter('upload')
@@ -30,6 +34,8 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData()
+    console.log('[UPLOAD] FormData received')
+    
     const files = formData.getAll('file') as File[]
     const clientEmail = formData.get('clientEmail') as string
     const clientFirstName = formData.get('clientFirstName') as string
@@ -37,6 +43,16 @@ export async function POST(request: NextRequest) {
     const category = formData.get('category') as string
     const quickAnalysis = formData.get('quickAnalysis') as string
     const clientId = formData.get('clientId') as string
+    
+    console.log('[UPLOAD] Parsed form data:', {
+      filesCount: files.length,
+      clientEmail,
+      clientFirstName,
+      clientLastName,
+      category,
+      quickAnalysis,
+      clientId
+    })
     
     // Check authentication (except for quick analysis or client uploads)
     if (quickAnalysis !== 'true' && !clientId) {
@@ -66,6 +82,7 @@ export async function POST(request: NextRequest) {
     }
     
     if (!files || files.length === 0) {
+      console.log('[UPLOAD] No files provided - returning 400')
       return NextResponse.json(
         { error: 'No files provided' },
         { status: 400 }
@@ -163,6 +180,11 @@ export async function POST(request: NextRequest) {
 
     // Regular upload mode (requires client information)
     if (!clientEmail || !clientFirstName || !clientLastName) {
+      console.log('[UPLOAD] Missing client information - returning 400', {
+        hasEmail: !!clientEmail,
+        hasFirstName: !!clientFirstName,
+        hasLastName: !!clientLastName
+      })
       return NextResponse.json(
         { error: 'Missing client information (email, firstName, lastName)' },
         { status: 400 }
@@ -201,12 +223,17 @@ export async function POST(request: NextRequest) {
     const errors = []
 
     // Process each file
+    console.log('[UPLOAD] Processing files:', files.length)
     for (const file of files) {
       try {
+        console.log('[UPLOAD] Processing file:', file.name, 'size:', file.size, 'type:', file.type)
+        
         // Validate file
         const validation = validateFile(file)
+        console.log('[UPLOAD] Validation result:', validation)
         
         if (!validation.valid) {
+          console.log('[UPLOAD] File validation failed:', file.name, validation.error)
           errors.push({
             filename: file.name,
             error: validation.error
@@ -215,15 +242,19 @@ export async function POST(request: NextRequest) {
         }
 
         // Convert File to Buffer for storage upload
+        console.log('[UPLOAD] Converting file to buffer...')
         const arrayBuffer = await file.arrayBuffer()
         const fileBuffer = Buffer.from(arrayBuffer)
+        console.log('[UPLOAD] Buffer created, size:', fileBuffer.length)
         
         // Upload file to Supabase Storage
+        console.log('[UPLOAD] Calling saveFile with category:', category, 'clientId:', targetClientId)
         const storageFile = await saveFile(fileBuffer, file.name, category, {
           clientId: targetClientId,
           clientEmail,
           uploadedBy: 'api'
         }, true) // Use service role for server-side uploads
+        console.log('[UPLOAD] SaveFile returned:', storageFile)
         
         // Create lab report record in database
         const reportType = determineReportType(file.name, file.type, category)
@@ -280,10 +311,12 @@ export async function POST(request: NextRequest) {
         // Don't wait for analysis to complete - return upload success immediately
         
       } catch (error) {
-        console.error('Error processing file:', file.name, error)
+        console.error('[UPLOAD] Error processing file:', file.name, error)
+        console.error('[UPLOAD] Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
         errors.push({
           filename: file.name,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: errorMessage
         })
       }
     }
