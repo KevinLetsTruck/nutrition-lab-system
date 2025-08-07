@@ -75,7 +75,7 @@ async function trackCosts() {
   if (metrics.totalRequests === 0) {
     console.log('   ℹ️  No requests recorded yet - start using the AI service to see metrics');
   } else {
-    if (parseFloat(metrics.cacheHitRate || '0') < 30) {
+    if (parseFloat(metrics.cacheHitRate) < 30) {
       console.log('   ⚠️  Low cache hit rate - consider increasing TTL');
     }
     
