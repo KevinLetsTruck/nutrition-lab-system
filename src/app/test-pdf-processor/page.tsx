@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -109,9 +109,9 @@ export default function TestPDFProcessor() {
   }
 
   // Fetch reports on component mount
-  useState(() => {
+  useEffect(() => {
     fetchReports()
-  })
+  }, [])
 
   const getStatusColor = (confidence: number) => {
     if (confidence >= 0.9) return 'text-green-600'
