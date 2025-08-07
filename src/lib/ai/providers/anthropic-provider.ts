@@ -145,8 +145,8 @@ export class AnthropicProvider implements AIProvider {
       });
 
       const content = response.content
-        .filter((block): block is Anthropic.TextBlock => block.type === 'text')
-        .map(block => block.text)
+        .filter((block: any) => block.type === 'text')
+        .map((block: any) => block.text)
         .join('\n');
 
       const latency = Date.now() - startTime;
