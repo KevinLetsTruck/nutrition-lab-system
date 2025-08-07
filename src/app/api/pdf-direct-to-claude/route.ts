@@ -110,8 +110,8 @@ Please provide guidance on:
     
     // Extract the response text
     const responseText = message.content
-      .filter(block => block.type === 'text')
-      .map(block => block.text)
+              .filter((block: any) => block.type === 'text')
+        .map((block: any) => block.text)
       .join('\n')
     
     return NextResponse.json({
