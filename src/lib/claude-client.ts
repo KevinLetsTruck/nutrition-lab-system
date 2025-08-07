@@ -334,7 +334,7 @@ class ClaudeClient {
     console.log('[CLAUDE] Analyzing', pageImages.length, 'PDF pages as images')
     
     // Build the content array with text instructions and all page images
-    const content: Anthropic.MessageParam['content'] = []
+    const content: any[] = []
     
     // Add initial instruction
     content.push({
