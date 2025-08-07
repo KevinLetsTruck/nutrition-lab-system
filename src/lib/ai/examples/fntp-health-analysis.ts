@@ -3,7 +3,7 @@
  * Demonstrates how to use the enhanced AnthropicProvider for Kevin Rutherford's FNTP practice
  */
 
-import { aiService } from '../index';
+import { getAIService } from '../index';
 
 // Example 1: Analyze lab results for a truck driver
 export async function analyzeTruckDriverLabResults() {
@@ -78,6 +78,7 @@ export async function analyzeTruckDriverLabResults() {
   try {
     console.log('Analyzing health data for truck driver...\n');
     
+    const aiService = getAIService();
     const analysis = await aiService.analyzeHealth(healthData, {
       provider: 'anthropic', // Use Anthropic for FNTP analysis
       useCache: true
@@ -160,6 +161,7 @@ export async function analyzeTruckDriverLabResults() {
 
 // Example 2: Quick symptom analysis for truck drivers
 export async function quickTruckDriverSymptomCheck() {
+  const aiService = getAIService();
   const symptomData = {
     demographics: {
       occupation: 'Truck Driver'
@@ -189,6 +191,7 @@ export async function quickTruckDriverSymptomCheck() {
 
 // Example 3: Analyze dietary patterns for truck drivers
 export async function analyzeTruckDriverDiet() {
+  const aiService = getAIService();
   const dietData = {
     demographics: {
       occupation: 'Truck Driver',
