@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
+import { getAIService } from '@/lib/ai'
 
 export async function POST(request: NextRequest) {
   // This endpoint is disabled in production due to pdf-parse dependency
@@ -30,12 +30,26 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(arrayBuffer)
     
     // Initialize Anthropic
+    // NOTE: This endpoint uses Claude's Vision API which is not yet supported by the AI service
+    // So we need to use direct Anthropic client
     const apiKey = process.env.ANTHROPIC_API_KEY
     if (!apiKey) {
-      throw new Error('ANTHROPIC_API_KEY not configured')
+      return NextResponse.json({ 
+        error: 'Vision API requires ANTHROPIC_API_KEY environment variable',
+        suggestion: 'The AI service does not yet support Claude Vision API. Please configure ANTHROPIC_API_KEY.'
+      }, { status: 503 })
     }
     
-    const anthropic = new Anthropic({ apiKey })
+    let anthropic: any
+    try {
+      const Anthropic = require('@anthropic-ai/sdk').default
+      anthropic = new Anthropic({ apiKey })
+    } catch (error) {
+      return NextResponse.json({ 
+        error: 'Failed to initialize Anthropic client',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }, { status: 500 })
+    }
     
     // Method 1: Try direct base64 image approach (simpler)
     // This works if the PDF is actually just an embedded image

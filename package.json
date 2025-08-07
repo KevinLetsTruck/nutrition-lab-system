@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test:ai": "node scripts/test-ai-service.js",
     "db:query": "node scripts/query-runner.js",
     "db:migrate": "node scripts/run-onboarding-migration-simple.js",
     "db:migrate:streamlined": "node scripts/run-streamlined-migration.js",
@@ -57,6 +58,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
     "form-data": "^4.0.4",
+    "ioredis": "^5.7.0",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^2.5.2",
     "lodash": "^4.17.21",
@@ -84,6 +86,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@types/ioredis": "^4.28.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

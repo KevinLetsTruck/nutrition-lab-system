@@ -4,6 +4,8 @@ import MasterAnalyzer from '@/lib/lab-analyzers/master-analyzer'
 import DatabaseService from '@/lib/database-service'
 import { getRateLimiter, getClientIdentifier, createRateLimitHeaders } from '@/lib/rate-limiter'
 import { db } from '@/lib/supabase'
+import { getAIService } from '@/lib/ai'
+import type { AIServiceError } from '@/lib/ai'
 
 // Add retry configuration
 const RETRY_CONFIG = {
@@ -33,16 +35,158 @@ function logError(context: string, error: any, additionalInfo?: any) {
 
 // Redirect to enhanced analyze if available
 export async function POST(request: NextRequest) {
-  // First, let's check if this is a quick analysis request
+  // Clone request to check body type
   const requestClone = request.clone()
-  let isQuickAnalysis = false
+  let body: any = null
   
   try {
-    const body = await requestClone.json()
-    isQuickAnalysis = body.quickAnalysis === true
+    body = await requestClone.json()
   } catch (e) {
-    // If we can't parse the body, continue with standard flow
+    return NextResponse.json(
+      { error: 'Invalid request body' },
+      { status: 400 }
+    )
   }
+  
+  // Check if this is an AI service request (health analysis or general prompt)
+  if (body.type === 'health' || body.prompt) {
+    console.log('[ANALYZE] AI Service request detected')
+    const startTime = Date.now()
+    
+    try {
+      // Get the AI service singleton
+      const aiService = getAIService()
+      
+      // Determine if this is a health analysis or general prompt
+      if (body.type === 'health' && body.data) {
+        console.log('[ANALYZE] Processing health analysis request')
+        
+        try {
+          // Call health analysis with caching enabled by default
+          const analysis = await aiService.analyzeHealth(body.data, {
+            provider: body.provider,
+            useCache: body.useCache !== false // Default to true
+          })
+          
+          console.log('[ANALYZE] Health analysis completed successfully', {
+            confidence: analysis.confidence,
+            findingsCount: analysis.findings.length,
+            recommendationsCount: analysis.recommendations.length,
+            processingTime: Date.now() - startTime
+          })
+          
+          return NextResponse.json({
+            success: true,
+            type: 'health',
+            analysis,
+            processingTime: Date.now() - startTime,
+            cached: body.useCache !== false
+          })
+          
+        } catch (error) {
+          console.error('[ANALYZE] Health analysis failed:', error)
+          
+          // Check if it's an AI service error with all providers failed
+          if (error instanceof Error && error.message.includes('All providers failed')) {
+            return NextResponse.json(
+              {
+                error: 'AI service unavailable',
+                message: 'All AI providers are currently unavailable. Please try again later.',
+                details: error.message,
+                type: 'SERVICE_UNAVAILABLE'
+              },
+              { status: 503 }
+            )
+          }
+          
+          throw error
+        }
+        
+      } else if (body.prompt) {
+        console.log('[ANALYZE] Processing general AI prompt request', {
+          promptLength: body.prompt.length,
+          provider: body.provider
+        })
+        
+        try {
+          // Call AI completion with caching enabled by default
+          const response = await aiService.complete(body.prompt, {
+            provider: body.provider,
+            useCache: body.useCache !== false, // Default to true
+            temperature: body.temperature,
+            maxTokens: body.maxTokens,
+            systemPrompt: body.systemPrompt
+          })
+          
+          console.log('[ANALYZE] AI completion successful', {
+            provider: response.provider,
+            model: response.model,
+            cached: response.cached,
+            latency: response.latency,
+            processingTime: Date.now() - startTime
+          })
+          
+          return NextResponse.json({
+            success: true,
+            type: 'completion',
+            response: {
+              content: response.content,
+              provider: response.provider,
+              model: response.model,
+              cached: response.cached,
+              usage: response.usage,
+              latency: response.latency
+            },
+            processingTime: Date.now() - startTime
+          })
+          
+        } catch (error) {
+          console.error('[ANALYZE] AI completion failed:', error)
+          
+          // Check if it's an AI service error with all providers failed
+          if (error instanceof Error && error.message.includes('All providers failed')) {
+            return NextResponse.json(
+              {
+                error: 'AI service unavailable',
+                message: 'All AI providers are currently unavailable. Please try again later.',
+                details: error.message,
+                type: 'SERVICE_UNAVAILABLE'
+              },
+              { status: 503 }
+            )
+          }
+          
+          throw error
+        }
+      }
+      
+    } catch (error) {
+      console.error('[ANALYZE] AI Service error:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        type: body.type || 'completion'
+      })
+      
+      // Return appropriate error response
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      const isServiceError = errorMessage.includes('provider') || errorMessage.includes('API')
+      
+      return NextResponse.json(
+        {
+          error: 'AI analysis failed',
+          message: isServiceError 
+            ? 'The AI service is temporarily unavailable. Please try again in a few moments.'
+            : 'An error occurred during analysis. Please check your input and try again.',
+          details: errorMessage,
+          processingTime: Date.now() - startTime
+        },
+        { status: isServiceError ? 503 : 500 }
+      )
+    }
+  }
+  
+  // Continue with existing file-based analysis logic
+  let isQuickAnalysis = body.quickAnalysis === true
   
   // Check if AWS Textract is configured and this is NOT a quick analysis
   const hasTextract = !!(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY)
@@ -89,7 +233,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { labReportId, filename, clientEmail, clientFirstName, clientLastName, useClientPriority, filePath, fileName, quickAnalysis, bucket } = await request.json()
+    const { labReportId, filename, clientEmail, clientFirstName, clientLastName, useClientPriority, filePath, fileName, quickAnalysis, bucket } = body
     
     console.log('[ANALYZE] Request params:', { 
       labReportId, 

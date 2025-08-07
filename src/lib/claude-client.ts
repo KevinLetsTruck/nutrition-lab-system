@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk'
+import { getAIService } from '@/lib/ai'
 import { env } from '@/lib/config/env'
 
 // Types for different lab report analyses
@@ -110,49 +110,31 @@ export interface FITTestResult {
 }
 
 class ClaudeClient {
-  private client: Anthropic | null = null
+  private aiService = getAIService()
   private isMockMode: boolean = false
 
   constructor() {
+    // Check if we have API key for compatibility logging
     const apiKey = env.get('ANTHROPIC_API_KEY')
     
     // Log environment info for debugging
     console.log('[CLAUDE] Environment:', env.get('NODE_ENV'))
+    console.log('[CLAUDE] Using AI Service framework')
     console.log('[CLAUDE] API key available:', !!apiKey)
     
-    if (apiKey) {
-      console.log('[CLAUDE] API key length:', apiKey.length)
-      console.log('[CLAUDE] API key format valid:', apiKey.startsWith('sk-ant-'))
-      
-      try {
-        this.client = new Anthropic({ 
-          apiKey,
-          defaultHeaders: {
-            'anthropic-version': '2023-06-01'
-          }
-        })
-        console.log('[CLAUDE] Client initialized successfully')
-      } catch (initError) {
-        console.error('[CLAUDE] Failed to initialize Anthropic client:', initError)
-        console.log('[CLAUDE] Falling back to mock mode')
-        this.isMockMode = true
-      }
-    } else {
-      console.warn('[CLAUDE] ANTHROPIC_API_KEY is not available - using mock mode')
-      console.log('[CLAUDE] Mock mode enabled for development/testing')
-      this.isMockMode = true
-    }
+    // The AI service handles provider initialization and fallback
+    console.log('[CLAUDE] AI Service ready with automatic provider fallback')
   }
 
   static getInstance(): ClaudeClient {
-    // Always create a new instance to ensure fresh environment variables
+    // Always create a new instance for compatibility
     console.log('[CLAUDE] getInstance called - creating new instance')
     return new ClaudeClient()
   }
 
   // Updated method to support both text and vision inputs
   private async analyzeWithClaude(
-    prompt: string | Anthropic.MessageParam['content'], 
+    prompt: string | any, 
     systemPrompt: string
   ): Promise<string> {
     console.log('[CLAUDE] ===== Starting Claude API call =====')
@@ -167,55 +149,64 @@ class ClaudeClient {
       console.log('[CLAUDE] Multi-modal prompt with', Array.isArray(prompt) ? prompt.length : 1, 'parts')
     }
     
-    // Check if we're in mock mode
-    if (this.isMockMode || !this.client) {
-      console.log('[CLAUDE] Running in mock mode - returning simulated response')
-      return this.generateMockResponse(prompt, systemPrompt)
-    }
-    
     try {
-      const requestPayload = {
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 4000,
-        temperature: 0,
-        system: systemPrompt,
-        messages: [{ 
-          role: 'user' as const, 
-          content: prompt 
-        }]
-      }
-      
-      console.log('[CLAUDE] Request payload:', {
-        model: requestPayload.model,
-        max_tokens: requestPayload.max_tokens,
-        temperature: requestPayload.temperature,
-        systemPromptLength: systemPrompt.length,
-        contentType: isTextOnly ? 'text' : 'multi-modal'
-      })
-      
-      console.log('[CLAUDE] Sending request to Anthropic API...')
-      const startTime = Date.now()
-      
-      const message = await this.client!.messages.create(requestPayload)
-      
-      const endTime = Date.now()
-      console.log('[CLAUDE] API call successful! Response time:', endTime - startTime, 'ms')
-      console.log('[CLAUDE] Response details:', {
-        id: message.id,
-        model: message.model,
-        role: message.role,
-        usage: message.usage,
-        stop_reason: message.stop_reason
-      })
-      
-      if (message.content && message.content.length > 0 && message.content[0].type === 'text') {
-        const responseText = message.content[0].text
+      // For text-only prompts, we can use the AI service directly
+      if (isTextOnly) {
+        console.log('[CLAUDE] Using AI Service for text completion...')
+        const startTime = Date.now()
+        
+        const response = await this.aiService.complete(prompt, {
+          systemPrompt,
+          temperature: 0,
+          maxTokens: 4000,
+          provider: 'anthropic', // Prefer Anthropic for compatibility
+          useCache: false // Disable caching for lab reports as they're unique
+        })
+        
+        const endTime = Date.now()
+        console.log('[CLAUDE] AI Service call successful! Response time:', endTime - startTime, 'ms')
+        console.log('[CLAUDE] Response details:', {
+          provider: response.provider,
+          model: response.model,
+          cached: response.cached,
+          usage: response.usage,
+          latency: response.latency
+        })
+        
+        const responseText = response.content
         console.log('[CLAUDE] Response text length:', responseText.length)
         console.log('[CLAUDE] First 200 chars of response:', responseText.substring(0, 200))
         return responseText
       } else {
-        console.error('[CLAUDE] Unexpected response format:', message)
-        throw new Error('Received empty or invalid response from Claude')
+        // For multi-modal inputs (images/PDFs), we need to format the prompt as text
+        // The AI service doesn't yet support image inputs directly
+        console.log('[CLAUDE] Multi-modal content detected - converting to text prompt')
+        
+        // If the prompt contains base64 image data, we'll need to handle it differently
+        // For now, extract text content and use that
+        let textContent = ''
+        if (Array.isArray(prompt)) {
+          for (const part of prompt) {
+            if (part.type === 'text') {
+              textContent += part.text + '\n'
+            } else if (part.type === 'image') {
+              textContent += '[Image content - visual analysis not available through AI service yet]\n'
+            }
+          }
+        }
+        
+        console.log('[CLAUDE] Extracted text content length:', textContent.length)
+        
+        const response = await this.aiService.complete(textContent, {
+          systemPrompt,
+          temperature: 0,
+          maxTokens: 4000,
+          provider: 'anthropic',
+          useCache: false
+        })
+        
+        console.log('[CLAUDE] AI Service call successful for multi-modal content')
+        return response.content
       }
       
     } catch (error) {
@@ -223,53 +214,27 @@ class ClaudeClient {
       console.error('[CLAUDE] Error type:', error?.constructor?.name)
       console.error('[CLAUDE] Error details:', error)
       
-      // Provide detailed error information
-      if (error instanceof Anthropic.APIError) {
-        console.error('[CLAUDE] Anthropic API Error Details:', {
-          status: error.status,
-          headers: error.headers,
-          error: error.error,
-          message: error.message
-        })
+      // Handle AI Service errors
+      if (error instanceof Error) {
+        console.error('[CLAUDE] Error message:', error.message)
         
-        // Log the raw error response if available
-        if (error.error) {
-          console.error('[CLAUDE] Raw error response:', JSON.stringify(error.error, null, 2))
-        }
-        
-        // Handle specific error types
-        if (error.status === 401) {
+        // Map error messages for compatibility
+        if (error.message.includes('API_KEY_MISSING')) {
           throw new Error('AI analysis failed: Invalid API key. Please check your ANTHROPIC_API_KEY environment variable.')
-        } else if (error.status === 400) {
-          // Extract more specific error message from the response
-          const errorMessage = (error.error as any)?.error?.message || error.message || 'Bad request'
-          throw new Error(`AI analysis failed: Invalid request - ${errorMessage}`)
-        } else if (error.status === 429) {
+        } else if (error.message.includes('rate limit')) {
           throw new Error('AI analysis failed: Rate limit exceeded. Please try again in a few moments.')
-        } else if (error.status === 500 || error.status === 502 || error.status === 503) {
-          throw new Error(`AI analysis failed: Claude API service error (${error.status}). Please try again.`)
-        } else {
-          throw new Error(`AI analysis failed: ${error.message} (Status: ${error.status})`)
-        }
-      } else if (error instanceof Error) {
-        console.error('[CLAUDE] JavaScript Error:', {
-          message: error.message,
-          stack: error.stack
-        })
-        
-        // Network errors or other issues
-        if (error.message.includes('ECONNREFUSED') || error.message.includes('ENOTFOUND')) {
-          throw new Error('AI analysis failed: Unable to connect to Claude API. Please check your internet connection.')
+        } else if (error.message.includes('All providers failed')) {
+          throw new Error('AI analysis failed: Service temporarily unavailable. Please try again.')
         } else if (error.message.includes('timeout')) {
           throw new Error('AI analysis failed: Request timed out. The document may be too large or complex.')
-        } else if (error.message.includes('fetch failed')) {
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
           throw new Error('AI analysis failed: Network error. Please check your internet connection.')
         } else {
           throw new Error(`AI analysis failed: ${error.message}`)
         }
       } else {
         console.error('[CLAUDE] Unknown error type:', error)
-        throw new Error('AI analysis failed: An unexpected error occurred while communicating with Claude API')
+        throw new Error('AI analysis failed: An unexpected error occurred')
       }
     }
   }
@@ -321,7 +286,7 @@ class ClaudeClient {
     console.log('[CLAUDE] Number of images:', images.length)
     
     // Construct multi-modal message content
-    const content: Anthropic.MessageParam['content'] = [
+    const content = [
       {
         type: 'text',
         text: textPrompt
@@ -349,12 +314,12 @@ class ClaudeClient {
     console.log('[CLAUDE] Document type:', document.source.media_type)
     
     // Construct multi-modal message content with document
-    const content: Anthropic.MessageParam['content'] = [
+    const content = [
       {
         type: 'text',
         text: textPrompt
       },
-      document as any  // Cast to any to handle TypeScript type issues
+      document
     ]
     
     return await this.analyzeWithClaude(content, systemPrompt)
@@ -738,7 +703,7 @@ Return ONLY the JSON object with the analysis structure specified above. Do not 
   }
 
   // Mock response generator for when API key is not available
-  private generateMockResponse(prompt: string | Anthropic.MessageParam['content'], systemPrompt: string): string {
+  private generateMockResponse(prompt: string | any, systemPrompt: string): string {
     const promptText = typeof prompt === 'string' ? prompt : 'multi-modal content'
     
     // Check what type of analysis is being requested based on system prompt

@@ -1,7 +1,7 @@
-import Anthropic from '@anthropic-ai/sdk'
+import { getAIService } from '@/lib/ai'
 
 export interface PDFProcessorConfig {
-  anthropicApiKey: string
+  anthropicApiKey?: string  // Optional - will use AI service if not provided
   maxRetries?: number
   maxPDFSizeMB?: number
 }
@@ -53,14 +53,28 @@ export interface ProcessingLog {
 }
 
 export class PDFProcessor {
-  private anthropic: Anthropic
+  private aiService = getAIService()
+  private anthropic: any = null  // Direct Anthropic client for PDF/document support
   private config: Required<PDFProcessorConfig>
   private processingLogs: ProcessingLog[] = []
 
   constructor(config: PDFProcessorConfig) {
-    this.anthropic = new Anthropic({ apiKey: config.anthropicApiKey })
+    console.log('[PDFProcessor] Using AI Service framework with fallback for PDF documents')
+    
+    // NOTE: The AI service doesn't support Claude's document API yet
+    // So we need to keep direct Anthropic client for PDF processing
+    // Once AI service supports documents, this can be removed
+    if (config.anthropicApiKey) {
+      try {
+        const Anthropic = require('@anthropic-ai/sdk').default
+        this.anthropic = new Anthropic({ apiKey: config.anthropicApiKey })
+      } catch (error) {
+        console.warn('[PDFProcessor] Could not initialize Anthropic client:', error)
+      }
+    }
+    
     this.config = {
-      anthropicApiKey: config.anthropicApiKey,
+      anthropicApiKey: config.anthropicApiKey || '',
       maxRetries: config.maxRetries ?? 3,
       maxPDFSizeMB: config.maxPDFSizeMB ?? 5  // Claude API limit is 5MB
     }
@@ -187,6 +201,13 @@ export class PDFProcessor {
       // Strip any data URL prefix if present
       const cleanBase64 = pdfBase64.replace(/^data:application\/pdf;base64,/, '')
       
+      // Use direct Anthropic client if available (for PDF document support)
+      // Otherwise fall back to extracting text and using AI service
+      if (!this.anthropic) {
+        console.log('[PDFProcessor] No direct Anthropic client, falling back to text extraction')
+        throw new Error('Direct PDF processing requires Anthropic API key in config')
+      }
+      
       const response = await this.anthropic.messages.create({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 4000,
@@ -254,15 +275,15 @@ ${options?.clientName ? `- Patient/Client name: ${options.clientName}` : ''}
 
 Please provide a general structure and recommendations for this type of report.`
 
-    const response = await this.anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 4000,
+    // This is text-only, so we can use the AI service
+    const aiResponse = await this.aiService.complete(fallbackPrompt, {
       temperature: 0,
-      messages: [{
-        role: 'user',
-        content: fallbackPrompt
-      }]
+      maxTokens: 4000,
+      provider: 'anthropic',
+      useCache: false
     })
+    
+    const response = { content: [{ type: 'text', text: aiResponse.content }] }
 
     const responseText = response.content[0].type === 'text' ? response.content[0].text : ''
     const labReport = this.parseClaudeResponse(responseText, reportType)
@@ -297,6 +318,12 @@ Common test types:
 
 Return ONLY the test type identifier (e.g., "fit_test") with no other text.`
 
+      if (!this.anthropic) {
+        console.log('[PDFProcessor] No direct Anthropic client for report type detection')
+        // Default to 'general' if we can't detect
+        return 'general'
+      }
+      
       const response = await this.anthropic.messages.create({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 50,

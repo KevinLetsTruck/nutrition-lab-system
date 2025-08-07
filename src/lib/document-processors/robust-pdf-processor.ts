@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk'
+import { getAIService } from '@/lib/ai'
 
 export interface ProcessedDocument {
   text: string
@@ -12,13 +12,10 @@ export interface ProcessedDocument {
 }
 
 export class RobustPDFProcessor {
-  private anthropic: Anthropic | null = null
+  private aiService = getAIService()
 
   constructor() {
-    const apiKey = process.env.ANTHROPIC_API_KEY
-    if (apiKey) {
-      this.anthropic = new Anthropic({ apiKey })
-    }
+    console.log('[RobustPDF] Using AI Service framework')
   }
 
   async processPDF(fileBuffer: Buffer): Promise<ProcessedDocument> {
@@ -55,7 +52,10 @@ export class RobustPDFProcessor {
           warnings.push('OCR extraction yielded minimal content')
           
           // Step 3: Fall back to vision API if available
-          if (this.anthropic) {
+          const providerStatus = this.aiService.getProviderStatus()
+          const hasAIProvider = Object.values(providerStatus).some(p => p.available)
+          
+          if (hasAIProvider) {
             console.log('[ROBUST-PDF] OCR insufficient, attempting vision API...')
             const visionResult = await this.extractWithVisionAPI(fileBuffer)
             
@@ -67,6 +67,8 @@ export class RobustPDFProcessor {
             } else {
               warnings.push('Vision API extraction failed')
             }
+          } else {
+            warnings.push('Vision API not available (no AI providers configured)')
           }
         }
       }

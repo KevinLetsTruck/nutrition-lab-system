@@ -1,22 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { CallType, AICallSummary, CallPriority, NoteType } from '@/types/calls'
-import OpenAI from 'openai'
-import Anthropic from '@anthropic-ai/sdk'
+import { getAIService } from '@/lib/ai'
 
 export async function POST(request: NextRequest) {
   try {
     console.log('[CALL-PROCESSING] Starting recording processing...')
     
-    // Initialize OpenAI client for transcription (at runtime)
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    })
-
-    // Initialize Anthropic client for analysis (at runtime)
-    const anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    })
+    // Get AI service for analysis
+    const aiService = getAIService()
+    
+    // NOTE: OpenAI Whisper transcription is not yet supported by the AI service
+    // So we need to use direct OpenAI client for transcription
+    let openai: any
+    if (process.env.OPENAI_API_KEY) {
+      try {
+        const OpenAI = require('openai').default
+        openai = new OpenAI({
+          apiKey: process.env.OPENAI_API_KEY,
+        })
+      } catch (error) {
+        console.error('[CALL-PROCESSING] Failed to initialize OpenAI client:', error)
+      }
+    }
     
     // Parse form data
     const formData = await request.formData()
@@ -99,6 +105,10 @@ export async function POST(request: NextRequest) {
       // Convert buffer to File for OpenAI API
       const transcriptionFile = new File([buffer], 'audio.webm', { type: audioFile.type })
       
+      if (!openai) {
+        throw new Error('OpenAI client not initialized. Whisper transcription requires OPENAI_API_KEY.')
+      }
+      
       const transcription = await openai.audio.transcriptions.create({
         file: transcriptionFile,
         model: 'whisper-1',
@@ -144,13 +154,15 @@ Extract and organize as JSON with this exact structure:
 
 Focus on FNTP-relevant health information for truck drivers. If information for a field is not mentioned, use empty string or empty array as appropriate.`
 
-      const message = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 2000,
+      const response = await aiService.complete(userPrompt, {
+        systemPrompt,
         temperature: 0,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }]
+        maxTokens: 2000,
+        provider: 'anthropic',
+        useCache: false
       })
+      
+      const message = { content: [{ type: 'text', text: response.content }] }
 
       let aiSummary: AICallSummary
       try {

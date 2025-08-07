@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
+import { getAIService } from '@/lib/ai'
 
 export async function POST(request: NextRequest) {
   // This endpoint is disabled in production due to pdf-parse dependency
@@ -32,13 +32,8 @@ export async function POST(request: NextRequest) {
     
     console.log('[PDF-DIRECT] Converted to base64, length:', base64.length)
     
-    // Initialize Anthropic client
-    const apiKey = process.env.ANTHROPIC_API_KEY
-    if (!apiKey) {
-      throw new Error('ANTHROPIC_API_KEY not configured')
-    }
-    
-    const anthropic = new Anthropic({ apiKey })
+    // Get AI service
+    const aiService = getAIService()
     
     // First, try to extract text using pdf-parse (simple, no external dependencies)
     let extractedText = ''
@@ -61,11 +56,15 @@ export async function POST(request: NextRequest) {
       // Send as text (most reliable)
       console.log('[PDF-DIRECT] Sending as text to Claude...')
       
-      message = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 4000,
-        temperature: 0,
-        system: `You are Kevin Rutherford, FNTP, analyzing health documents for truck drivers. 
+      const response = await aiService.complete(
+        `Please analyze this health document and provide a comprehensive functional medicine assessment.
+
+Document: ${file.name}
+
+Content:
+${extractedText}`,
+        {
+          systemPrompt: `You are Kevin Rutherford, FNTP, analyzing health documents for truck drivers. 
 Provide comprehensive functional medicine analysis including:
 - Document type identification
 - Key health markers and values
@@ -73,30 +72,21 @@ Provide comprehensive functional medicine analysis including:
 - Personalized recommendations
 - Supplement protocols
 - Lifestyle modifications`,
-        messages: [{
-          role: 'user',
-          content: `Please analyze this health document and provide a comprehensive functional medicine assessment.
-
-Document: ${file.name}
-
-Content:
-${extractedText}`
-        }]
-      })
+          temperature: 0,
+          maxTokens: 4000,
+          provider: 'anthropic',
+          useCache: false
+        }
+      )
+      message = { content: [{ type: 'text', text: response.content }], usage: response.usage }
     } else {
       // Try sending as image (Claude can OCR images)
       console.log('[PDF-DIRECT] Sending as image to Claude...')
       
       // Note: This is a simplified approach. In production, you'd convert PDF pages to images
       // For now, we'll send a message explaining the limitation
-      message = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 4000,
-        temperature: 0,
-        system: `You are Kevin Rutherford, FNTP, analyzing health documents.`,
-        messages: [{
-          role: 'user',
-          content: `I have a PDF file "${file.name}" that couldn't be processed as text. 
+      const response = await aiService.complete(
+        `I have a PDF file "${file.name}" that couldn't be processed as text. 
 
 The file is ${file.size} bytes and appears to be an image-based PDF or has extraction issues.
 
@@ -104,9 +94,16 @@ Please provide guidance on:
 1. What type of document this likely is based on the filename
 2. What information would typically be found in such a document
 3. How to proceed with the analysis
-4. Alternative ways to submit this document`
-        }]
-      })
+4. Alternative ways to submit this document`,
+        {
+          systemPrompt: `You are Kevin Rutherford, FNTP, analyzing health documents.`,
+          temperature: 0,
+          maxTokens: 4000,
+          provider: 'anthropic',
+          useCache: false
+        }
+      )
+      message = { content: [{ type: 'text', text: response.content }], usage: response.usage }
     }
     
     console.log('[PDF-DIRECT] Claude responded successfully')
