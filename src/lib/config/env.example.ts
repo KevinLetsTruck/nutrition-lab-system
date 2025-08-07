@@ -27,11 +27,11 @@ if (env.has('OPENAI_API_KEY')) {
 env.debug();
 
 // Example 5: Validate required variables
-const required = ['ANTHROPIC_API_KEY', 'NEXT_PUBLIC_SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'] as const;
-const missing = env.validateRequired(required);
-if (missing.length > 0) {
-  console.error('Missing required environment variables:', missing);
-}
+// const required = ['ANTHROPIC_API_KEY', 'NEXT_PUBLIC_SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'];
+// const missing = env.validateRequired(required as (keyof EnvironmentVariables)[]);
+// if (missing.length > 0) {
+//   console.error('Missing required environment variables:', missing);
+// }
 
 // Example 6: Get environment status for health checks
 const status = env.getStatus();
