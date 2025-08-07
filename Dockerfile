@@ -16,18 +16,18 @@ RUN npm ci --legacy-peer-deps
 # Copy application files
 COPY . .
 
-# Build the Next.js application
-RUN npm run build
+# Build the Next.js application and prepare standalone output
+RUN npm run build && \
+    cp -r public .next/standalone/public && \
+    cp -r .next/static .next/standalone/.next/static
 
 # Production stage
 FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Copy built application
+# Copy the standalone application
 COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
 
 # Set environment to production
 ENV NODE_ENV=production
