@@ -95,6 +95,9 @@ export async function GET(request: NextRequest) {
         message: string;
         affectedProviders?: string[];
         action?: string;
+        failedRequests?: number;
+        lastError?: string;
+        avgResponseTime?: number;
       }>
     };
     
