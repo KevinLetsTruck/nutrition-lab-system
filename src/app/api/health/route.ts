@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { env } from '@/lib/config/env';
 
 export const dynamic = 'force-dynamic';
@@ -56,8 +56,6 @@ export async function GET() {
 
   // Test database connection
   try {
-    const supabase = createClient();
-    
     // Simple query to test connection
     const { error } = await supabase
       .from('clients')
