@@ -29,6 +29,9 @@ WORKDIR /app
 # Copy the standalone application
 COPY --from=builder /app/.next/standalone ./
 
+# Debug: List files
+RUN ls -la
+
 # Set environment to production
 ENV NODE_ENV=production
 ENV PORT=8080
