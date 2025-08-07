@@ -124,7 +124,7 @@ export class PDFProcessor {
           console.error(`[PDFProcessor] Attempt ${attempt + 1} failed:`, error)
           
           // Check if it's a specific error about PDFs not being supported
-          if (error instanceof Anthropic.APIError && error.message.includes('document')) {
+          if (error instanceof Error && error.message && error.message.includes('document')) {
             console.log('[PDFProcessor] Native PDF not supported, falling back to text-only mode')
             result = await this.processAsText(pdfBuffer, options)
             break
