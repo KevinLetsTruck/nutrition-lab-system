@@ -41,6 +41,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Railway deployment files
+railway-env-*.txt
+railway-set-env-vars.sh
+removed-commits.txt
+incremental-deployment-plan.md
+
 # production files
 /uploads
 /logs
