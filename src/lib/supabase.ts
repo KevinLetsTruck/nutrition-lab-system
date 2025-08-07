@@ -30,7 +30,18 @@ export const getSupabaseClient = (): SupabaseClient => {
   return supabaseInstance
 }
 
-export const supabase = getSupabaseClient()
+// Export singleton instance for backward compatibility
+// During build time, we create a lazy getter to avoid initialization errors
+let _supabase: SupabaseClient | null = null
+
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(target, prop, receiver) {
+    if (!_supabase) {
+      _supabase = getSupabaseClient()
+    }
+    return Reflect.get(_supabase, prop, receiver)
+  }
+})
 
 // Server-side Supabase client with service role key
 let serverSupabaseInstance: SupabaseClient | null = null

@@ -12,9 +12,15 @@ RUN npm ci --legacy-peer-deps
 COPY . .
 
 # Build the application
+# We set dummy values during build to avoid errors
+ENV NEXT_PUBLIC_SUPABASE_URL=https://dummy.supabase.co
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=dummy-key
+ENV SUPABASE_SERVICE_ROLE_KEY=dummy-service-key
+ENV ANTHROPIC_API_KEY=dummy-anthropic-key
+
 RUN npm run build
 
-# Set environment
+# Set runtime environment
 ENV NODE_ENV=production
 ENV PORT=8080
 ENV HOSTNAME=0.0.0.0
