@@ -30,8 +30,8 @@ async function trackCosts() {
   
   console.log('📊 Usage Metrics:');
   console.log(`   Total Requests: ${metrics.totalRequests}`);
-  console.log(`   Cache Hit Rate: ${metrics.cacheHitRate}`);
-  console.log(`   Success Rate: ${metrics.successRate}`);
+  console.log(`   Cache Hit Rate: ${metrics.cacheHitRate.toFixed(2)}%`);
+  console.log(`   Success Rate: ${metrics.successRate.toFixed(2)}%`);
   console.log(`   Average Latency: ${metrics.averageLatencyMs}ms`);
   
   console.log('\n📈 Provider Usage:');
@@ -75,7 +75,7 @@ async function trackCosts() {
   if (metrics.totalRequests === 0) {
     console.log('   ℹ️  No requests recorded yet - start using the AI service to see metrics');
   } else {
-    if (parseFloat(metrics.cacheHitRate) < 30) {
+    if (metrics.cacheHitRate < 30) {
       console.log('   ⚠️  Low cache hit rate - consider increasing TTL');
     }
     
