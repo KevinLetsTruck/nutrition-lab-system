@@ -251,7 +251,7 @@ class ClaudeClient {
     console.log('[CLAUDE] Image size (base64):', imageBase64.length, 'chars')
     
     // Construct multi-modal message content
-    const content: Anthropic.MessageParam['content'] = [
+    const content: any[] = [
       {
         type: 'text',
         text: analysisPrompt
