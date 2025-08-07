@@ -27,32 +27,32 @@ async function demonstrateCaching() {
     timestamp: Date.now()
   };
   
-  cache.set(cacheKey, mockResponse);
+  await cache.set(cacheKey, mockResponse);
   console.log('Response cached successfully');
 
   // Retrieve from cache
-  const cachedValue = cache.get(cacheKey);
+  const cachedValue = await cache.get(cacheKey);
   console.log('Retrieved from cache:', cachedValue ? 'Success' : 'Failed');
 
   // Example 2: Custom TTL
   console.log('\n2. Custom TTL (10 seconds):');
   const shortLivedKey = cache.generateKey('Short-lived query', {});
-  cache.set(shortLivedKey, { data: 'This expires quickly' }, 10000); // 10 seconds
+  await cache.set(shortLivedKey, { data: 'This expires quickly' }, 10000); // 10 seconds
   
-  console.log('Immediately after caching:', cache.get(shortLivedKey) ? 'Found' : 'Not found');
+  console.log('Immediately after caching:', await cache.get(shortLivedKey) ? 'Found' : 'Not found');
   
   // Wait 11 seconds to see expiration
   console.log('Waiting 11 seconds...');
   await new Promise(resolve => setTimeout(resolve, 11000));
-  console.log('After 11 seconds:', cache.get(shortLivedKey) ? 'Found' : 'Not found (expired)');
+  console.log('After 11 seconds:', await cache.get(shortLivedKey) ? 'Found' : 'Not found (expired)');
 
   // Example 3: Cache statistics
   console.log('\n3. Cache Statistics:');
-  const stats = cache.getStats();
+  const stats = await cache.getStats();
   console.log(`Total entries: ${stats.size}`);
   console.log('Entries:', stats.entries.map(e => ({
     key: e.key.substring(0, 16) + '...',
-    expiresAt: new Date(e.expiresAt).toLocaleTimeString()
+    expiresAt: e.expiresAt ? new Date(e.expiresAt).toLocaleTimeString() : 'N/A'
   })));
 
   // Example 4: Different prompts generate different keys
@@ -66,9 +66,9 @@ async function demonstrateCaching() {
 
   // Example 5: Clear cache
   console.log('\n5. Clearing Cache:');
-  console.log(`Before clear: ${cache.size()} entries`);
-  cache.clear();
-  console.log(`After clear: ${cache.size()} entries`);
+  console.log(`Before clear: ${await cache.size()} entries`);
+  await cache.clear();
+  console.log(`After clear: ${await cache.size()} entries`);
 }
 
 // Demonstrate real-world usage with AI responses
@@ -82,7 +82,7 @@ async function realWorldExample() {
     const cacheKey = cache.generateKey(prompt, options);
     
     // Check cache first
-    const cached = cache.get(cacheKey);
+    const cached = await cache.get(cacheKey);
     if (cached) {
       console.log(`✅ Cache HIT for prompt: "${prompt.substring(0, 30)}..."`);
       return { ...cached, fromCache: true };
@@ -98,7 +98,7 @@ async function realWorldExample() {
     };
 
     // Cache the response
-    cache.set(cacheKey, response);
+    await cache.set(cacheKey, response);
     
     return { ...response, fromCache: false };
   }
