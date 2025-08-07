@@ -90,7 +90,12 @@ export async function GET(request: NextRequest) {
         },
         providerUsage: metrics.providerUsage
       },
-      alerts: []
+      alerts: [] as Array<{
+        level: string;
+        message: string;
+        affectedProviders?: string[];
+        action?: string;
+      }>
     };
     
     // Add alerts if needed
