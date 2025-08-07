@@ -1,0 +1,187 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// User and Authentication Models
+model User {
+  id                   String          @id @default(uuid())
+  email                String          @unique
+  passwordHash         String          @map("password_hash")
+  role                 UserRole        @default(CLIENT)
+  emailVerified        Boolean         @default(false) @map("email_verified")
+  onboardingCompleted  Boolean         @default(false) @map("onboarding_completed")
+  createdAt            DateTime        @default(now()) @map("created_at")
+  updatedAt            DateTime        @updatedAt @map("updated_at")
+  lastLogin            DateTime?       @map("last_login")
+  
+  // Relations
+  clientProfile        ClientProfile?
+  adminProfile         AdminProfile?
+  sessions             UserSession[]
+  emailVerifications   EmailVerification[]
+  
+  @@map("users")
+}
+
+model ClientProfile {
+  id                    String         @id @default(uuid())
+  userId                String         @unique @map("user_id")
+  firstName             String         @map("first_name")
+  lastName              String         @map("last_name")
+  phone                 String?
+  onboardingData        Json?          @map("onboarding_data")
+  consultationStatus    String         @default("pending") @map("consultation_status")
+  emailSequenceStatus   String[]       @default([]) @map("email_sequence_status")
+  createdAt             DateTime       @default(now()) @map("created_at")
+  updatedAt             DateTime       @updatedAt @map("updated_at")
+  
+  // Relations
+  user                  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("client_profiles")
+}
+
+model AdminProfile {
+  id               String         @id @default(uuid())
+  userId           String         @unique @map("user_id")
+  name             String
+  title            String?
+  specializations  String[]
+  clientCapacity   Int            @default(50) @map("client_capacity")
+  activeSessions   Int            @default(0) @map("active_sessions")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+  
+  // Relations
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("admin_profiles")
+}
+
+model UserSession {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  tokenHash   String    @map("token_hash")
+  ipAddress   String?   @map("ip_address")
+  userAgent   String?   @map("user_agent")
+  expiresAt   DateTime  @map("expires_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("user_sessions")
+}
+
+model EmailVerification {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  email       String
+  token       String    @unique
+  expiresAt   DateTime  @map("expires_at")
+  used        Boolean   @default(false)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([token])
+  @@index([userId])
+  @@map("email_verifications")
+}
+
+model RateLimit {
+  id            String    @id @default(uuid())
+  identifier    String
+  action        String
+  attempts      Int       @default(1)
+  lastAttempt   DateTime  @default(now()) @map("last_attempt")
+  lockedUntil   DateTime? @map("locked_until")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  
+  @@unique([identifier, action])
+  @@index([identifier, action])
+  @@map("rate_limits")
+}
+
+// Lab Report Models
+model Client {
+  id                  String         @id @default(uuid())
+  email               String         @unique
+  firstName           String         @map("first_name")
+  lastName            String         @map("last_name")
+  dateOfBirth         DateTime?      @map("date_of_birth")
+  phone               String?
+  address             String?
+  emergencyContact    String?        @map("emergency_contact")
+  medicalHistory      String?        @map("medical_history")
+  allergies           String?
+  currentMedications  String?        @map("current_medications")
+  createdAt           DateTime       @default(now()) @map("created_at")
+  updatedAt           DateTime       @updatedAt @map("updated_at")
+  
+  // Relations
+  labReports          LabReport[]
+  
+  @@map("clients")
+}
+
+model LabReport {
+  id                String            @id @default(uuid())
+  clientId          String            @map("client_id")
+  reportType        ReportType        @map("report_type")
+  reportDate        DateTime          @map("report_date")
+  status            ProcessingStatus  @default(PENDING)
+  filePath          String?           @map("file_path")
+  fileSize          Int?              @map("file_size")
+  analysisResults   Json?             @map("analysis_results")
+  notes             String?
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  
+  // Relations
+  client            Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@index([clientId])
+  @@index([reportType])
+  @@index([status])
+  @@map("lab_reports")
+}
+
+// Enums
+enum UserRole {
+  CLIENT @map("client")
+  ADMIN  @map("admin")
+  
+  @@map("user_role")
+}
+
+enum ReportType {
+  NUTRIQ      @map("nutriq")
+  KBMO        @map("kbmo")
+  DUTCH       @map("dutch")
+  CGM         @map("cgm")
+  FOOD_PHOTO  @map("food_photo")
+  
+  @@map("report_type")
+}
+
+enum ProcessingStatus {
+  PENDING     @map("pending")
+  PROCESSING  @map("processing")
+  COMPLETED   @map("completed")
+  FAILED      @map("failed")
+  
+  @@map("processing_status")
+}

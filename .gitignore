@@ -73,3 +73,9 @@ Thumbs.db
 /dist
 /build
 .env*.local
+
+# Prisma
+prisma/migrations/
+*.db
+*.db-journal
+.env.migrate
