@@ -51,7 +51,11 @@ export class AIService {
       successfulRequests: 0,
       failedRequests: 0,
       cacheHits: 0,
-      providerUsage: {},
+      providerUsage: {
+        anthropic: 0,
+        openai: 0,
+        mock: 0
+      },
       averageLatency: 0,
       startTime: Date.now()
     };
