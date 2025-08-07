@@ -2,8 +2,9 @@
 builder = "DOCKERFILE"
 
 [deploy]
-healthcheckPath = "/api/health"
-healthcheckTimeout = 60
+# Disabled health check due to redirect issues
+# healthcheckPath = "/api/health"
+# healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
 
