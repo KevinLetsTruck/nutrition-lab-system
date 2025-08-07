@@ -1,43 +1,25 @@
-# Use Node.js 20 Alpine for smaller image
-FROM node:20-alpine AS builder
+FROM node:20-alpine
 
-# Install dependencies for native modules
-RUN apk add --no-cache python3 make g++
-
-# Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies with legacy peer deps flag
+# Install all dependencies
 RUN npm ci --legacy-peer-deps
 
-# Copy application files
+# Copy all files
 COPY . .
 
-# Build the Next.js application and prepare standalone output
-RUN npm run build && \
-    cp -r public .next/standalone/public && \
-    cp -r .next/static .next/standalone/.next/static
+# Build the application
+RUN npm run build
 
-# Production stage
-FROM node:20-alpine AS runner
-
-WORKDIR /app
-
-# Copy the standalone application
-COPY --from=builder /app/.next/standalone ./
-
-# Debug: List files
-RUN ls -la
-
-# Set environment to production
+# Set environment
 ENV NODE_ENV=production
 ENV PORT=8080
 ENV HOSTNAME=0.0.0.0
 
 EXPOSE 8080
 
-# Start the application
-CMD ["node", "server.js"]
+# Start with the standalone server
+CMD ["node", ".next/standalone/server.js"]
