@@ -150,9 +150,10 @@ async function example6_cachedQueries() {
 
 // Example 7: Error handling and fallback
 async function example7_errorHandling() {
+  const aiService = getAIService();
+  
   try {
     // Force a specific provider that might fail
-    const aiService = getAIService();
     const response = await aiService.complete(
       'Test prompt',
       {
