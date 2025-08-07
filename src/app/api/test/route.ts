@@ -1,16 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   return NextResponse.json({
-    message: 'API is working',
+    status: 'ok',
+    message: 'Nutrition Lab System API is running',
     timestamp: new Date().toISOString(),
-    headers: Object.fromEntries(request.headers.entries()),
-    url: request.url,
-    env: {
-      nodeEnv: process.env.NODE_ENV,
-      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      hasSupabaseKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      hasJwtSecret: !!process.env.JWT_SECRET
-    }
-  })
+    environment: process.env.NODE_ENV || 'unknown'
+  });
 }

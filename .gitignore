@@ -47,6 +47,7 @@ railway-set-env-vars.sh
 removed-commits.txt
 incremental-deployment-plan.md
 monitor-deployment.sh
+monitor-railway.sh
 
 # production files
 /uploads
