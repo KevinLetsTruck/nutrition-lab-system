@@ -1,233 +1,507 @@
 # AI Service Framework
 
-A robust, multi-provider AI service framework with automatic fallback, caching, and health monitoring.
+A robust, provider-agnostic AI service framework with intelligent fallback, caching, and monitoring capabilities designed for the Nutrition Lab System.
 
-## Features
+## 🚀 Quick Start
 
-- **Multiple AI Providers**: Support for Anthropic (Claude), OpenAI, and Mock providers
-- **Automatic Fallback**: Seamlessly switches to available providers when one fails
-- **Response Caching**: Built-in caching with configurable TTL
-- **Health Monitoring**: Automatic health checks for all providers
-- **Retry Logic**: Configurable retry with exponential backoff
-- **Type Safety**: Full TypeScript support with comprehensive interfaces
-- **Health Analysis**: Specialized methods for analyzing health and lab data
-
-## Installation
-
-The AI service is already integrated into the project. To use it:
+### Basic Usage
 
 ```typescript
-import { aiService } from '@/lib/ai';
-```
+import { getAIService } from '@/lib/ai';
 
-## Configuration
+// Get the singleton AI service instance
+const aiService = getAIService();
 
-The service is configured through environment variables:
-
-- `ANTHROPIC_API_KEY`: Your Anthropic API key
-- `OPENAI_API_KEY`: Your OpenAI API key
-
-Default configuration can be found in `config.ts`.
-
-## Basic Usage
-
-### Simple Text Completion
-
-```typescript
-const response = await aiService.complete('Your prompt here');
+// Simple completion
+const response = await aiService.complete('What are the benefits of vitamin D?');
 console.log(response.content);
-```
 
-### With Options
-
-```typescript
-const response = await aiService.complete('Your prompt', {
-  provider: 'anthropic',
-  model: 'claude-3-5-sonnet-20241022',
-  temperature: 0.7,
-  maxTokens: 2000,
-  systemPrompt: 'You are a helpful assistant.',
+// With specific provider
+const response = await aiService.complete('Analyze this symptom pattern', {
+  provider: 'anthropic',  // or 'openai', 'mock'
+  temperature: 0.3,       // Lower = more focused
+  maxTokens: 500
 });
 ```
 
-### Health Analysis
+### Health Analysis (FNTP Specific)
 
 ```typescript
-const analysis = await aiService.analyzeHealth({
-  labResults: { /* lab data */ },
-  symptoms: { /* symptoms data */ },
-  medications: [ /* medications */ ],
-  lifestyle: { /* lifestyle factors */ }
+// Analyze lab results
+const labData = {
+  cholesterol: 220,
+  hdl: 45,
+  ldl: 155,
+  triglycerides: 180,
+  glucose: 105
+};
+
+const analysis = await aiService.analyzeHealth(labData);
+console.log(analysis.findings);     // Health findings
+console.log(analysis.recommendations); // Nutrition recommendations
+console.log(analysis.confidence);   // Confidence score
+```
+
+### Common FNTP Use Cases
+
+```typescript
+// 1. Analyze comprehensive lab panel
+const comprehensiveAnalysis = await aiService.complete(`
+  Analyze these lab results for nutritional deficiencies:
+  - Vitamin D: 18 ng/mL
+  - B12: 180 pg/mL
+  - Ferritin: 12 ng/mL
+  - TSH: 4.5 mIU/L
+  
+  Provide functional nutrition recommendations.
+`, {
+  temperature: 0.2,  // More precise for medical data
+  useCache: true     // Cache for repeated queries
 });
 
-console.log(analysis.summary);
-console.log(analysis.findings);
-console.log(analysis.recommendations);
-```
+// 2. Generate meal plan based on conditions
+const mealPlan = await aiService.complete(`
+  Create a 3-day meal plan for a client with:
+  - Hypothyroidism
+  - Iron deficiency
+  - Gluten sensitivity
+  
+  Include foods rich in selenium, iron, and B vitamins.
+`, {
+  maxTokens: 1000,
+  provider: 'anthropic'  // Claude is good for detailed plans
+});
 
-## Provider Management
-
-### Check Provider Status
-
-```typescript
-const status = aiService.getProviderStatus();
-// Returns: { anthropic: { available: true, healthy: true, lastCheck: Date }, ... }
-```
-
-### Force Specific Provider
-
-```typescript
-const response = await aiService.complete('prompt', {
-  provider: 'openai' // or 'anthropic', 'mock'
+// 3. Supplement protocol generation
+const supplementProtocol = await aiService.complete(`
+  Based on these symptoms and labs:
+  - Chronic fatigue
+  - Hair loss
+  - Cold intolerance
+  - Ferritin: 15 ng/mL
+  - TSH: 5.2 mIU/L
+  
+  Suggest evidence-based supplement protocol with dosing.
+`, {
+  temperature: 0.1,  // Very focused for dosing
+  useCache: false    // Always fresh for medical advice
 });
 ```
 
-## Caching
+## ⚙️ Configuration Options
 
-Caching is enabled by default. To disable for a specific request:
+### Environment Variables
 
-```typescript
-const response = await aiService.complete('prompt', {
-  useCache: false
-});
+```bash
+# AI Provider Keys (at least one required)
+ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-...
+
+# Caching (optional)
+REDIS_URL=redis://localhost:6379  # Enables persistent caching
+
+# Debug Mode
+AI_DEBUG=true  # Enables detailed logging
 ```
 
-### Cache Management
+### Service Configuration
 
 ```typescript
-// Get cache statistics
-const stats = aiService.getCacheStats();
+import { getAIService, AIServiceConfig } from '@/lib/ai';
 
-// Clear cache
-aiService.clearCache();
+const config: Partial<AIServiceConfig> = {
+  // Provider configuration
+  providers: {
+    anthropic: {
+      apiKey: process.env.ANTHROPIC_API_KEY,
+      model: 'claude-3-sonnet-20240229',  // or claude-3-opus for complex tasks
+      maxTokens: 4096
+    },
+    openai: {
+      apiKey: process.env.OPENAI_API_KEY,
+      model: 'gpt-4-turbo-preview',
+      maxTokens: 4096
+    }
+  },
+  
+  // Caching configuration
+  cache: {
+    enabled: true,
+    ttl: 3600000,  // 1 hour default
+  },
+  
+  // Retry configuration
+  retry: {
+    maxRetries: 3,
+    initialDelay: 1000,
+    maxDelay: 10000,
+    retryableErrors: ['rate_limit', 'timeout', 'network_error']
+  },
+  
+  // Enable debug logging
+  debug: process.env.NODE_ENV === 'development'
+};
+
+// Apply custom configuration
+const aiService = getAIService(config);
 ```
 
-## Error Handling
+## 🔌 Adding New Providers
 
-The service includes comprehensive error handling:
+### 1. Create Provider Class
 
 ```typescript
-try {
-  const response = await aiService.complete('prompt');
-} catch (error) {
-  if (error instanceof AIServiceError) {
-    console.error('AI Service Error:', error.code, error.message);
-    console.error('Provider:', error.provider);
+// lib/ai/providers/new-provider.ts
+import { AIProvider, AIResponse, AIOptions } from '../types';
+
+export class NewProvider implements AIProvider {
+  name: AIProviderType = 'new-provider';
+  private client: any;
+  
+  constructor(config: { apiKey: string }) {
+    this.client = new SomeAIClient({ apiKey: config.apiKey });
+  }
+  
+  async isHealthy(): Promise<boolean> {
+    try {
+      await this.client.ping();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  
+  async complete(prompt: string, options?: AIOptions): Promise<AIResponse> {
+    const response = await this.client.complete({
+      prompt,
+      temperature: options?.temperature ?? 0.7,
+      max_tokens: options?.maxTokens ?? 1000
+    });
+    
+    return {
+      content: response.text,
+      provider: this.name,
+      model: response.model,
+      usage: {
+        promptTokens: response.usage.input_tokens,
+        completionTokens: response.usage.output_tokens,
+        totalTokens: response.usage.total_tokens
+      }
+    };
+  }
+  
+  async analyzeHealth(data: any, options?: AIOptions): Promise<HealthAnalysis> {
+    // Implement health-specific analysis
+    const prompt = this.formatHealthPrompt(data);
+    const response = await this.complete(prompt, options);
+    return this.parseHealthResponse(response.content);
   }
 }
 ```
 
-## Health Analysis Features
-
-### Analyze Lab Results
+### 2. Register Provider
 
 ```typescript
-import { analyzeLabResults } from '@/lib/ai';
+// lib/ai/ai-service.ts - in initializeProviders()
+if (config.providers.newProvider?.apiKey) {
+  this.providers.set('new-provider', new NewProvider({
+    apiKey: config.providers.newProvider.apiKey
+  }));
+}
+```
 
-const analysis = await analyzeLabResults({
-  cbc: { hemoglobin: { value: 14.5, unit: 'g/dL' } },
-  metabolic: { glucose: { value: 95, unit: 'mg/dL' } }
+## 📊 Monitoring and Metrics
+
+### Real-time Health Check
+
+```typescript
+// Check all providers health
+const healthStatus = await aiService.healthCheck();
+console.log(healthStatus);
+// {
+//   anthropic: { healthy: true, lastCheck: Date, responseTime: 245 },
+//   openai: { healthy: false, lastCheck: Date, error: 'API key invalid' },
+//   mock: { healthy: true, lastCheck: Date, responseTime: 0 }
+// }
+```
+
+### Service Metrics
+
+```typescript
+// Get comprehensive metrics
+const metrics = aiService.getMetrics();
+console.log(metrics);
+// {
+//   totalRequests: 1250,
+//   successfulRequests: 1230,
+//   failedRequests: 20,
+//   cacheHits: 450,
+//   successRate: '98.40%',
+//   cacheHitRate: '36.00%',
+//   averageLatency: 1842,
+//   averageLatencyMs: 1842,
+//   providerUsage: {
+//     anthropic: 780,
+//     openai: 450,
+//     mock: 20
+//   },
+//   uptime: '2h 34m 12s'
+// }
+```
+
+### API Health Endpoint
+
+```bash
+# Monitor AI service health
+curl http://localhost:3000/api/ai/health | jq '.'
+
+# Response includes:
+# - Provider health status
+# - Current metrics
+# - Cache statistics
+# - Overall system status
+```
+
+### Setting Up Alerts
+
+```typescript
+// Example: Alert on high failure rate
+setInterval(async () => {
+  const metrics = aiService.getMetrics();
+  const failureRate = (metrics.failedRequests / metrics.totalRequests) * 100;
+  
+  if (failureRate > 5) {
+    console.error(`⚠️ High AI failure rate: ${failureRate.toFixed(2)}%`);
+    // Send alert to monitoring service
+  }
+}, 60000); // Check every minute
+```
+
+## 🔧 Troubleshooting
+
+### Common Issues and Solutions
+
+#### 1. "All AI providers failed"
+
+```typescript
+// Check provider status
+const status = aiService.getProviderStatus();
+console.log(status);
+
+// Common causes:
+// - Invalid API keys
+// - Rate limiting
+// - Network issues
+
+// Solution: Ensure at least one provider is configured
+if (!process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) {
+  console.error('No AI providers configured!');
+}
+```
+
+#### 2. High Latency
+
+```typescript
+// Enable debug mode to see timing
+const aiService = getAIService({ debug: true });
+
+// Check cache hit rate
+const metrics = aiService.getMetrics();
+if (parseFloat(metrics.cacheHitRate) < 20) {
+  console.log('Low cache hit rate - consider longer TTL');
+}
+```
+
+#### 3. Rate Limiting
+
+```typescript
+// Implement request throttling
+const queue = [];
+const MAX_CONCURRENT = 5;
+
+async function throttledRequest(prompt: string) {
+  while (queue.length >= MAX_CONCURRENT) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
+  const promise = aiService.complete(prompt);
+  queue.push(promise);
+  
+  try {
+    return await promise;
+  } finally {
+    queue.splice(queue.indexOf(promise), 1);
+  }
+}
+```
+
+#### 4. Cache Not Working
+
+```bash
+# Check Redis connection
+redis-cli ping
+
+# Verify environment variable
+echo $REDIS_URL
+
+# Test cache directly
+npx tsx scripts/test-redis-cache.ts
+```
+
+## 💰 Cost Optimization Tips
+
+### 1. Enable Caching
+
+```typescript
+// Always use cache for repeated queries
+const response = await aiService.complete(prompt, {
+  useCache: true  // Default, but be explicit
+});
+
+// Set appropriate TTL for different content types
+await aiService.complete(prompt, {
+  useCache: true,
+  cacheTTL: 24 * 60 * 60 * 1000  // 24 hours for stable content
 });
 ```
 
-### Generate Comprehensive Report
+### 2. Use Appropriate Models
 
 ```typescript
-import { generateHealthReport } from '@/lib/ai';
+// Use cheaper models for simple tasks
+const summary = await aiService.complete('Summarize this text', {
+  provider: 'openai',
+  model: 'gpt-3.5-turbo',  // Cheaper than GPT-4
+  maxTokens: 200
+});
 
-const report = await generateHealthReport({
-  labResults: { /* ... */ },
-  symptoms: { /* ... */ },
-  medications: [ /* ... */ ],
-  lifestyle: { /* ... */ }
+// Use powerful models only when needed
+const complexAnalysis = await aiService.complete('Complex medical analysis...', {
+  provider: 'anthropic',
+  model: 'claude-3-opus-20240229',  // Most capable but expensive
+  temperature: 0.1
 });
 ```
 
-## Advanced Features
-
-### Custom Provider Configuration
+### 3. Implement Prompt Optimization
 
 ```typescript
-import { AIService } from '@/lib/ai';
+// Bad: Verbose prompt
+const bad = await aiService.complete(`
+  I would like you to analyze these lab results and provide 
+  a comprehensive analysis with detailed explanations...
+  [500 words of instructions]
+`);
 
-const customService = new AIService({
-  providers: {
-    anthropic: {
-      apiKey: 'your-key',
-      defaultModel: 'claude-3-haiku-20240307',
-      timeout: 60000,
-    }
-  },
-  cache: {
-    ttl: 7200000, // 2 hours
-    maxSize: 200
-  },
-  fallbackProvider: 'mock',
-  debug: true
+// Good: Concise prompt
+const good = await aiService.complete(`
+  Analyze these labs for nutritional deficiencies:
+  - Vitamin D: 18 ng/mL
+  - B12: 180 pg/mL
+  
+  Format: Finding | Recommendation
+`);
+```
+
+### 4. Batch Similar Requests
+
+```typescript
+// Instead of multiple calls
+const results = [];
+for (const client of clients) {
+  results.push(await aiService.analyzeHealth(client.labs));
+}
+
+// Batch into single call
+const batchPrompt = clients.map((c, i) => 
+  `Client ${i + 1}:\n${JSON.stringify(c.labs)}`
+).join('\n\n');
+
+const batchAnalysis = await aiService.complete(
+  `Analyze these ${clients.length} client lab panels:\n${batchPrompt}`
+);
+```
+
+### 5. Monitor Usage
+
+```typescript
+// Track costs by provider
+const metrics = aiService.getMetrics();
+const costs = {
+  anthropic: metrics.providerUsage.anthropic * 0.015,  // ~$0.015/1K tokens
+  openai: metrics.providerUsage.openai * 0.03,         // ~$0.03/1K tokens
+};
+
+console.log('Estimated costs:', costs);
+```
+
+### 6. Use Mock Provider for Development
+
+```typescript
+// Force mock provider in development
+const aiService = getAIService({
+  providers: process.env.NODE_ENV === 'development' 
+    ? { mock: {} }
+    : { anthropic: { apiKey: process.env.ANTHROPIC_API_KEY } }
 });
 ```
 
-### Direct Provider Access
+## 🏥 FNTP-Specific Best Practices
+
+### 1. Medical Data Handling
 
 ```typescript
-import { AnthropicProvider } from '@/lib/ai';
-
-const provider = new AnthropicProvider();
-const response = await provider.complete('prompt');
-```
-
-## Architecture
-
-```
-lib/ai/
-├── config.ts           # Configuration and constants
-├── types.ts            # TypeScript interfaces
-├── cache-manager.ts    # Caching implementation
-├── ai-service.ts       # Main orchestrator
-├── providers/
-│   ├── anthropic-provider.ts
-│   ├── openai-provider.ts
-│   └── mock-provider.ts
-└── index.ts           # Singleton export
-```
-
-## Testing
-
-The framework includes a mock provider for testing:
-
-```typescript
-// In tests, use the mock provider
-const response = await aiService.complete('test prompt', {
-  provider: 'mock'
+// Always use low temperature for medical analysis
+const analysis = await aiService.complete(medicalPrompt, {
+  temperature: 0.1,  // High precision
+  useCache: false    // Fresh analysis for medical data
 });
 ```
 
-## Best Practices
+### 2. Client Privacy
 
-1. **Use Caching**: Enable caching for repeated queries to reduce API costs
-2. **Handle Errors**: Always wrap AI calls in try-catch blocks
-3. **Monitor Health**: Check provider status before critical operations
-4. **Set Appropriate Models**: Use smaller models for simple tasks
-5. **Configure Timeouts**: Adjust timeouts based on your use case
+```typescript
+// Anonymize data before sending
+const sanitized = {
+  ...labData,
+  clientId: 'REDACTED',
+  name: 'REDACTED'
+};
 
-## Troubleshooting
+const analysis = await aiService.analyzeHealth(sanitized);
+```
 
-### Provider Not Available
+### 3. Structured Outputs
 
-If a provider is not available, check:
-1. Environment variables are set correctly
-2. API keys are valid
-3. Provider health status
+```typescript
+// Request structured format for parsing
+const prompt = `
+Analyze these symptoms and return JSON:
+{
+  "primary_concerns": [],
+  "nutritional_deficiencies": [],
+  "supplement_recommendations": [],
+  "dietary_changes": []
+}
 
-### High Latency
+Symptoms: ${symptoms}
+`;
 
-1. Check provider health status
-2. Consider using a different provider
-3. Enable caching for repeated queries
-4. Reduce max tokens if appropriate
+const response = await aiService.complete(prompt);
+const structured = JSON.parse(response.content);
+```
 
-### Cache Issues
+## 📚 Additional Resources
 
-1. Clear cache if stale data is suspected
-2. Check cache statistics for debugging
-3. Adjust TTL based on your needs
+- [AI Provider Comparison](./providers/README.md)
+- [Cache Manager Documentation](./REDIS_CACHING.md)
+- [API Endpoints Guide](../../docs/AI_ANALYZE_ENDPOINT.md)
+- [Health Monitoring](../../docs/AI_HEALTH_MONITORING.md)
+
+## 🤝 Contributing
+
+When adding new features:
+1. Update types in `types.ts`
+2. Add provider tests in `__tests__`
+3. Update this README
+4. Add cost estimates for new providers
