@@ -42,7 +42,7 @@ export function getAIService(config?: Partial<AIServiceConfig>): AIService {
     const finalConfig: Partial<AIServiceConfig> = config || {
       providers: {
         anthropic: {
-          apiKey: env.get('ANTHROPIC_API_KEY') || env.get('NEXT_PUBLIC_ANTHROPIC_API_KEY'),
+          apiKey: env.get('ANTHROPIC_API_KEY') || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY,
         },
         openai: {
           apiKey: env.get('OPENAI_API_KEY'),
