@@ -9,6 +9,8 @@ restartPolicyMaxRetries = 3
 
 # Make environment variables available during build
 [build.env]
+DATABASE_URL = { variable = "DATABASE_URL" }
+DIRECT_URL = { variable = "DIRECT_URL" }
 NEXT_PUBLIC_SUPABASE_URL = { variable = "NEXT_PUBLIC_SUPABASE_URL" }
 NEXT_PUBLIC_SUPABASE_ANON_KEY = { variable = "NEXT_PUBLIC_SUPABASE_ANON_KEY" }
 SUPABASE_SERVICE_ROLE_KEY = { variable = "SUPABASE_SERVICE_ROLE_KEY" }
