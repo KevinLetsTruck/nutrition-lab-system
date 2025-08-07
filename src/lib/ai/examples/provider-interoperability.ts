@@ -3,7 +3,7 @@
  * Demonstrates how AnthropicProvider and OpenAIProvider are fully interchangeable
  */
 
-import { aiService } from '../index';
+import { getAIService } from '../index';
 import { AIResponse, HealthAnalysis } from '../types';
 
 // Example health data for analysis
@@ -44,6 +44,7 @@ const truckDriverHealthData = {
  * Demonstrates provider fallback behavior
  */
 export async function demonstrateProviderFallback() {
+  const aiService = getAIService();
   console.log('=== PROVIDER INTEROPERABILITY DEMONSTRATION ===\n');
 
   // Test 1: Try with Anthropic (primary)
@@ -109,6 +110,7 @@ export async function demonstrateProviderFallback() {
  * Compare responses from both providers
  */
 export async function compareProviderResponses() {
+  const aiService = getAIService();
   console.log('\n=== COMPARING PROVIDER RESPONSES ===\n');
 
   const testPrompt = 'What are the top 3 health risks for long-haul truck drivers?';
@@ -163,6 +165,7 @@ export async function compareProviderResponses() {
  * Test failover scenario
  */
 export async function testFailoverScenario() {
+  const aiService = getAIService();
   console.log('\n=== TESTING FAILOVER SCENARIO ===\n');
 
   // Simulate a scenario where we need high availability
