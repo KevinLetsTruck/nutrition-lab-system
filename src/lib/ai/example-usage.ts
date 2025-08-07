@@ -4,11 +4,12 @@
  * This file demonstrates how to use the AI service in your application
  */
 
-import { aiService, analyzeLabResults, generateHealthReport } from './index';
+import { getAIService, analyzeLabResults, generateHealthReport } from './index';
 
 // Example 1: Simple text completion
 async function example1_simpleCompletion() {
   try {
+    const aiService = getAIService();
     const response = await aiService.complete(
       'What are the key nutritional considerations for someone with prediabetes?'
     );
@@ -24,6 +25,7 @@ async function example1_simpleCompletion() {
 // Example 2: Completion with specific provider and options
 async function example2_providerSpecificCompletion() {
   try {
+    const aiService = getAIService();
     const response = await aiService.complete(
       'Explain the relationship between gut health and immune function',
       {
@@ -148,6 +150,7 @@ async function example6_cachedQueries() {
 async function example7_errorHandling() {
   try {
     // Force a specific provider that might fail
+    const aiService = getAIService();
     const response = await aiService.complete(
       'Test prompt',
       {
