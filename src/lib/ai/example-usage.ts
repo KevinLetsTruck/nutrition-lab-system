@@ -114,6 +114,7 @@ async function example4_comprehensiveHealthReport() {
 
 // Example 5: Check provider status
 async function example5_checkProviderStatus() {
+  const aiService = getAIService();
   const status = aiService.getProviderStatus();
   
   console.log('AI Provider Status:');
@@ -127,6 +128,7 @@ async function example5_checkProviderStatus() {
 
 // Example 6: Use caching for repeated queries
 async function example6_cachedQueries() {
+  const aiService = getAIService();
   const prompt = 'What are the symptoms of vitamin B12 deficiency?';
   
   // First call - will hit the API
