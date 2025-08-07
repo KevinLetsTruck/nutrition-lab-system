@@ -98,6 +98,7 @@ export async function GET(request: NextRequest) {
         failedRequests?: number;
         lastError?: string;
         avgResponseTime?: number;
+        averageLatency?: string;
       }>
     };
     
