@@ -9,6 +9,8 @@
     "lint": "next lint",
     "test:ai": "node scripts/test-ai-service.js",
     "ai:costs": "tsx scripts/ai-cost-tracker.ts",
+    "ai:verify": "tsx scripts/verify-ai-framework.ts",
+    "ai:verify:deployment": "tsx scripts/verify-ai-deployment.ts",
     "db:query": "node scripts/query-runner.js",
     "db:migrate": "node scripts/run-onboarding-migration-simple.js",
     "db:migrate:streamlined": "node scripts/run-streamlined-migration.js",
