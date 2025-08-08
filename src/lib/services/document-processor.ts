@@ -1,5 +1,5 @@
 import { OCRService } from './ocr-service'
-import ClaudeClient from '@/lib/claude-client'
+import { getAIServiceManager } from '@/lib/ai'
 import { prisma } from '@/lib/prisma'
 
 interface ProcessingResult {
@@ -12,11 +12,10 @@ interface ProcessingResult {
 
 export class DocumentProcessor {
   private ocrService: OCRService
-  private claudeClient: ClaudeClient
+  private aiManager = getAIServiceManager()
   
   constructor() {
     this.ocrService = OCRService.getInstance()
-    this.claudeClient = ClaudeClient.getInstance()
   }
 
   async processLabDocument(
@@ -238,13 +237,23 @@ Return a JSON object with:
 }`
 
     try {
-      // Use the Claude client's analyze method
-      const response = await this.claudeClient.analyzePractitionerReport(
-        prompt,
-        'You are a medical lab analysis expert. Analyze the provided lab results and return structured JSON data.'
-      )
+      // Use the AI service manager
+      const response = await this.aiManager.createCompletion({
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a medical lab analysis expert. Analyze the provided lab results and return structured JSON data.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.3,
+        maxTokens: 4096
+      })
       
-      const enhanced = JSON.parse(response)
+      const enhanced = JSON.parse(response.content)
       return {
         ...structuredData,
         ...enhanced
