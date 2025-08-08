@@ -1,0 +1,639 @@
+// Complete Prisma Schema for FNTP Practice
+// Functional Nutrition Therapy Practice Management System
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ==================== CORE MODELS ====================
+
+model Client {
+  id                String       @id @default(cuid())
+  email             String       @unique
+  name              String
+  phone             String?
+  dateOfBirth       DateTime?    @map("date_of_birth")
+  occupation        String?
+  isTruckDriver     Boolean      @default(false) @map("is_truck_driver")
+  
+  // Health Profile
+  healthGoals       Json?        @map("health_goals") // Array of goals
+  medicalHistory    Json?        @map("medical_history") // Conditions, surgeries, etc.
+  medications       Json?        // Current medications with dosages
+  supplements       Json?        // Current supplements
+  allergies         String[]     @default([])
+  dietaryRestrictions String[]   @default([]) @map("dietary_restrictions")
+  
+  // Contact & Emergency
+  address           String?
+  city              String?
+  state             String?
+  zipCode           String?      @map("zip_code")
+  emergencyContact  String?      @map("emergency_contact")
+  emergencyPhone    String?      @map("emergency_phone")
+  
+  // Practice Management
+  referralSource    String?      @map("referral_source")
+  insuranceProvider String?      @map("insurance_provider")
+  insuranceId       String?      @map("insurance_id")
+  
+  // Relationships
+  user              User?        @relation(fields: [userId], references: [id])
+  userId            String?      @unique @map("user_id")
+  assessments       Assessment[]
+  documents         Document[]
+  labResults        LabResult[]
+  protocols         Protocol[]
+  notes             Note[]
+  appointments      Appointment[]
+  communications    Communication[]
+  progressMetrics   ProgressMetric[]
+  mealPlans         MealPlan[]
+  
+  // Metadata
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  lastContactAt     DateTime?    @map("last_contact_at")
+  isActive          Boolean      @default(true) @map("is_active")
+  archivedAt        DateTime?    @map("archived_at")
+  
+  @@index([email])
+  @@index([createdAt])
+  @@index([isTruckDriver])
+  @@map("clients")
+}
+
+model Assessment {
+  id                String       @id @default(cuid())
+  clientId          String       @map("client_id")
+  client            Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  type              AssessmentType
+  status            AssessmentStatus @default(IN_PROGRESS)
+  
+  // Assessment Data
+  responses         Json         // All questionnaire responses
+  symptomBurden     Json?        @map("symptom_burden") // Calculated scores by category
+  aiAnalysis        Json?        @map("ai_analysis") // Claude's analysis
+  rootCauses        Json?        @map("root_causes") // Identified root causes
+  priorityAreas     String[]     @default([]) @map("priority_areas")
+  
+  // Versioning
+  version           Int          @default(1)
+  previousId        String?      @map("previous_id")
+  
+  // Metadata
+  startedAt         DateTime     @default(now()) @map("started_at")
+  completedAt       DateTime?    @map("completed_at")
+  reviewedAt        DateTime?    @map("reviewed_at")
+  reviewedBy        String?      @map("reviewed_by")
+  
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  
+  @@index([clientId, type])
+  @@index([status])
+  @@index([completedAt])
+  @@map("assessments")
+}
+
+model Document {
+  id                String       @id @default(cuid())
+  clientId          String       @map("client_id")
+  client            Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  // Document Info
+  type              DocumentType
+  category          String?      // Sub-category within type
+  fileName          String       @map("file_name")
+  fileType          String       @map("file_type") // mime type
+  fileSize          Int          @map("file_size") // bytes
+  
+  // Storage
+  storageUrl        String       @map("storage_url") // S3 or Supabase storage URL
+  bucketName        String?      @map("bucket_name")
+  
+  // Analysis
+  aiAnalysis        Json?        @map("ai_analysis") // Extracted data from Claude
+  extractedText     String?      @map("extracted_text") @db.Text
+  metadata          Json?        // Additional document metadata
+  
+  // Relationships
+  labResults        LabResult[]
+  
+  // Metadata
+  uploadedAt        DateTime     @default(now()) @map("uploaded_at")
+  uploadedBy        String?      @map("uploaded_by")
+  isActive          Boolean      @default(true) @map("is_active")
+  
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  
+  @@index([clientId, type])
+  @@index([uploadedAt])
+  @@map("documents")
+}
+
+model LabResult {
+  id                String       @id @default(cuid())
+  clientId          String       @map("client_id")
+  client            Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  // Lab Info
+  labName           String       @map("lab_name") // Quest, LabCorp, etc.
+  testType          LabTestType  @map("test_type")
+  testDate          DateTime     @map("test_date")
+  receivedDate      DateTime     @default(now()) @map("received_date")
+  
+  // Results
+  results           Json         // Structured test results
+  abnormalFlags     Json?        @map("abnormal_flags") // Tests outside range
+  criticalValues    Json?        @map("critical_values") // Critical results
+  
+  // Analysis
+  aiInterpretation  Json?        @map("ai_interpretation") // Claude's analysis
+  clinicalNotes     String?      @map("clinical_notes") @db.Text
+  actionItems       String[]     @default([]) @map("action_items")
+  
+  // Document Link
+  documentId        String?      @map("document_id")
+  document          Document?    @relation(fields: [documentId], references: [id])
+  
+  // Metadata
+  reviewedAt        DateTime?    @map("reviewed_at")
+  reviewedBy        String?      @map("reviewed_by")
+  followUpDate      DateTime?    @map("follow_up_date")
+  
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  
+  @@index([clientId, testType])
+  @@index([testDate])
+  @@map("lab_results")
+}
+
+model Protocol {
+  id                String       @id @default(cuid())
+  clientId          String       @map("client_id")
+  client            Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  name              String
+  type              ProtocolType
+  status            ProtocolStatus @default(DRAFT)
+  
+  // Protocol Details
+  phases            Json         // Array of protocol phases
+  currentPhase      Int          @default(1) @map("current_phase")
+  
+  // Supplement Protocol
+  supplements       SupplementRecommendation[]
+  
+  // Dietary Protocol
+  dietaryGuidelines Json?        @map("dietary_guidelines")
+  eliminationFoods  String[]     @default([]) @map("elimination_foods")
+  reintroductionPlan Json?       @map("reintroduction_plan")
+  
+  // Lifestyle Protocol
+  lifestyleRecs     Json?        @map("lifestyle_recommendations")
+  exercisePlan      Json?        @map("exercise_plan")
+  stressManagement  Json?        @map("stress_management")
+  
+  // Tracking
+  startDate         DateTime?    @map("start_date")
+  endDate           DateTime?    @map("end_date")
+  checkInSchedule   Json?        @map("check_in_schedule") // When to follow up
+  
+  // Metadata
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  createdBy         String       @map("created_by")
+  
+  @@index([clientId, type])
+  @@index([status])
+  @@map("protocols")
+}
+
+model SupplementRecommendation {
+  id                String       @id @default(cuid())
+  protocolId        String       @map("protocol_id")
+  protocol          Protocol     @relation(fields: [protocolId], references: [id], onDelete: Cascade)
+  
+  // Supplement Info
+  name              String
+  brand             String?
+  dosage            String
+  timing            String       // "With breakfast", "Before bed", etc.
+  duration          String?      // "3 months", "Ongoing", etc.
+  
+  // Sourcing
+  source            SupplementSource @default(FULLSCRIPT)
+  productUrl        String?      @map("product_url")
+  productCode       String?      @map("product_code")
+  monthlyCost       Decimal?     @map("monthly_cost") @db.Decimal(10, 2)
+  
+  // Clinical Info
+  purpose           String       // Why this supplement
+  phase             Int          @default(1) // Which protocol phase
+  priority          Int          @default(3) // 1=Critical, 2=Important, 3=Supportive
+  
+  // Truck Driver Considerations
+  truckCompatible   Boolean      @default(true) @map("truck_compatible")
+  storageNotes      String?      @map("storage_notes") // "Keep refrigerated", etc.
+  travelTips        String?      @map("travel_tips")
+  
+  // Compliance
+  startedAt         DateTime?    @map("started_at")
+  discontinuedAt    DateTime?    @map("discontinued_at")
+  discontinuedReason String?     @map("discontinued_reason")
+  
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  
+  @@index([protocolId, phase])
+  @@map("supplement_recommendations")
+}
+
+model Note {
+  id                String       @id @default(cuid())
+  clientId          String       @map("client_id")
+  client            Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  type              NoteType
+  category          String?      // "Progress", "Concern", "Success", etc.
+  
+  content           String       @db.Text
+  
+  // Context
+  appointmentId     String?      @map("appointment_id")
+  appointment       Appointment? @relation(fields: [appointmentId], references: [id])
+  
+  // Privacy
+  isPrivate         Boolean      @default(false) @map("is_private") // Practitioner only
+  sharedWithClient  Boolean      @default(false) @map("shared_with_client")
+  
+  // Metadata
+  createdAt         DateTime     @default(now()) @map("created_at")
+  createdBy         String       @map("created_by")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  
+  @@index([clientId, type])
+  @@index([createdAt])
+  @@map("notes")
+}
+
+model Appointment {
+  id                String       @id @default(cuid())
+  clientId          String       @map("client_id")
+  client            Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  type              AppointmentType
+  status            AppointmentStatus @default(SCHEDULED)
+  
+  // Scheduling
+  scheduledAt       DateTime     @map("scheduled_at")
+  duration          Int          @default(60) // minutes
+  location          String?      // "Office", "Zoom", "Phone"
+  meetingUrl        String?      @map("meeting_url")
+  
+  // Session Info
+  chiefComplaint    String?      @map("chief_complaint")
+  goals             String[]     @default([])
+  
+  // Notes
+  preSessionNotes   String?      @map("pre_session_notes") @db.Text
+  sessionNotes      String?      @map("session_notes") @db.Text
+  followUpActions   String[]     @default([]) @map("follow_up_actions")
+  
+  // Related
+  notes             Note[]
+  
+  // Billing
+  fee               Decimal?     @db.Decimal(10, 2)
+  paid              Boolean      @default(false)
+  insuranceClaim    String?      @map("insurance_claim")
+  
+  // Metadata
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  completedAt       DateTime?    @map("completed_at")
+  cancelledAt       DateTime?    @map("cancelled_at")
+  noShowAt          DateTime?    @map("no_show_at")
+  
+  @@index([clientId, scheduledAt])
+  @@index([status])
+  @@map("appointments")
+}
+
+model Communication {
+  id                String       @id @default(cuid())
+  clientId          String       @map("client_id")
+  client            Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  type              CommunicationType
+  direction         Direction    // INBOUND or OUTBOUND
+  
+  // Content
+  subject           String?
+  content           String       @db.Text
+  
+  // Email specific
+  emailFrom         String?      @map("email_from")
+  emailTo           String?      @map("email_to")
+  emailMessageId    String?      @map("email_message_id")
+  
+  // Phone/SMS specific
+  phoneNumber       String?      @map("phone_number")
+  callDuration      Int?         @map("call_duration") // seconds
+  
+  // Status
+  status            String?      // "sent", "delivered", "read", "replied"
+  
+  // Metadata
+  sentAt            DateTime     @default(now()) @map("sent_at")
+  readAt            DateTime?    @map("read_at")
+  repliedAt         DateTime?    @map("replied_at")
+  
+  createdAt         DateTime     @default(now()) @map("created_at")
+  createdBy         String?      @map("created_by")
+  
+  @@index([clientId, type])
+  @@index([sentAt])
+  @@map("communications")
+}
+
+model ProgressMetric {
+  id                String       @id @default(cuid())
+  clientId          String       @map("client_id")
+  client            Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  category          String       // "Energy", "Digestion", "Sleep", "Pain", etc.
+  metric            String       // Specific metric name
+  value             Decimal      @db.Decimal(10, 2)
+  unit              String?      // "1-10 scale", "hours", "%", etc.
+  
+  // Context
+  notes             String?
+  reportedBy        String       @default("client") @map("reported_by") // "client" or "practitioner"
+  
+  // Metadata
+  recordedAt        DateTime     @default(now()) @map("recorded_at")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  
+  @@index([clientId, category])
+  @@index([recordedAt])
+  @@map("progress_metrics")
+}
+
+model MealPlan {
+  id                String       @id @default(cuid())
+  clientId          String       @map("client_id")
+  client            Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  name              String
+  type              MealPlanType // ELIMINATION, REINTRODUCTION, MAINTENANCE
+  
+  // Plan Details
+  startDate         DateTime     @map("start_date")
+  endDate           DateTime?    @map("end_date")
+  
+  // Meal Structure
+  meals             Json         // Daily meal structure
+  recipes           Json?        // Recipe links/details
+  shoppingLists     Json?        @map("shopping_lists")
+  
+  // Truck Driver Adaptations
+  truckFriendly     Boolean      @default(false) @map("truck_friendly")
+  noRefrigeration   Boolean      @default(false) @map("no_refrigeration")
+  quickPrepOptions  Json?        @map("quick_prep_options")
+  
+  // Compliance
+  adherenceNotes    Json?        @map("adherence_notes")
+  
+  // Metadata
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  createdBy         String       @map("created_by")
+  
+  @@index([clientId, type])
+  @@map("meal_plans")
+}
+
+// ==================== AUTH & USER MANAGEMENT ====================
+
+model User {
+  id                String       @id @default(cuid())
+  email             String       @unique
+  passwordHash      String       @map("password_hash")
+  
+  role              UserRole     @default(CLIENT)
+  isActive          Boolean      @default(true) @map("is_active")
+  emailVerified     Boolean      @default(false) @map("email_verified")
+  
+  // Profile
+  client            Client?
+  practitioner      Practitioner?
+  
+  // Auth
+  sessions          Session[]
+  
+  // Metadata
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  lastLoginAt       DateTime?    @map("last_login_at")
+  
+  @@map("users")
+}
+
+model Practitioner {
+  id                String       @id @default(cuid())
+  userId            String       @unique @map("user_id")
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name              String
+  title             String?
+  credentials       String[]     @default([])
+  
+  // Practice Info
+  licenseNumber     String?      @map("license_number")
+  licenseState      String?      @map("license_state")
+  npiNumber         String?      @map("npi_number")
+  
+  // Availability
+  availability      Json?        // Weekly schedule
+  timeZone          String       @default("America/Chicago") @map("time_zone")
+  
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  
+  @@map("practitioners")
+}
+
+model Session {
+  id                String       @id @default(cuid())
+  userId            String       @map("user_id")
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  token             String       @unique
+  
+  // Session Info
+  ipAddress         String?      @map("ip_address")
+  userAgent         String?      @map("user_agent")
+  
+  // Validity
+  expiresAt         DateTime     @map("expires_at")
+  revokedAt         DateTime?    @map("revoked_at")
+  
+  createdAt         DateTime     @default(now()) @map("created_at")
+  lastActivityAt    DateTime     @default(now()) @map("last_activity_at")
+  
+  @@index([userId])
+  @@index([token])
+  @@map("sessions")
+}
+
+// ==================== ENUMS ====================
+
+enum UserRole {
+  CLIENT
+  PRACTITIONER
+  ADMIN
+  
+  @@map("user_role")
+}
+
+enum AssessmentType {
+  NAQ           @map("naq")
+  HEALTH_HISTORY @map("health_history")
+  FOOD_DIARY    @map("food_diary")
+  SYMPTOM_SURVEY @map("symptom_survey")
+  
+  @@map("assessment_type")
+}
+
+enum AssessmentStatus {
+  IN_PROGRESS   @map("in_progress")
+  COMPLETED     @map("completed")
+  REVIEWED      @map("reviewed")
+  ARCHIVED      @map("archived")
+  
+  @@map("assessment_status")
+}
+
+enum DocumentType {
+  LAB_REPORT    @map("lab_report")
+  MEDICAL_RECORD @map("medical_record")
+  INSURANCE     @map("insurance")
+  CONSENT_FORM  @map("consent_form")
+  FOOD_JOURNAL  @map("food_journal")
+  OTHER         @map("other")
+  
+  @@map("document_type")
+}
+
+enum LabTestType {
+  BLOOD_PANEL   @map("blood_panel")
+  NUTRIQ        @map("nutriq")
+  DUTCH         @map("dutch")
+  KBMO          @map("kbmo")
+  GI_MAP        @map("gi_map")
+  ORGANIC_ACIDS @map("organic_acids")
+  SIBO_BREATH   @map("sibo_breath")
+  FOOD_SENSITIVITY @map("food_sensitivity")
+  MICRONUTRIENT @map("micronutrient")
+  HORMONE_PANEL @map("hormone_panel")
+  OTHER         @map("other")
+  
+  @@map("lab_test_type")
+}
+
+enum ProtocolType {
+  COMPREHENSIVE @map("comprehensive")
+  SUPPLEMENT    @map("supplement")
+  DIETARY       @map("dietary")
+  LIFESTYLE     @map("lifestyle")
+  
+  @@map("protocol_type")
+}
+
+enum ProtocolStatus {
+  DRAFT         @map("draft")
+  ACTIVE        @map("active")
+  PAUSED        @map("paused")
+  COMPLETED     @map("completed")
+  DISCONTINUED  @map("discontinued")
+  
+  @@map("protocol_status")
+}
+
+enum SupplementSource {
+  FULLSCRIPT    @map("fullscript")
+  WELLEVATE     @map("wellevate")
+  PURE          @map("pure")
+  DESIGNS_HEALTH @map("designs_health")
+  DIRECT        @map("direct")
+  OTHER         @map("other")
+  
+  @@map("supplement_source")
+}
+
+enum NoteType {
+  SESSION       @map("session")
+  PROGRESS      @map("progress")
+  CLINICAL      @map("clinical")
+  COMMUNICATION @map("communication")
+  GENERAL       @map("general")
+  
+  @@map("note_type")
+}
+
+enum AppointmentType {
+  INITIAL       @map("initial")
+  FOLLOW_UP     @map("follow_up")
+  CHECK_IN      @map("check_in")
+  LAB_REVIEW    @map("lab_review")
+  EMERGENCY     @map("emergency")
+  
+  @@map("appointment_type")
+}
+
+enum AppointmentStatus {
+  SCHEDULED     @map("scheduled")
+  CONFIRMED     @map("confirmed")
+  COMPLETED     @map("completed")
+  CANCELLED     @map("cancelled")
+  NO_SHOW       @map("no_show")
+  RESCHEDULED   @map("rescheduled")
+  
+  @@map("appointment_status")
+}
+
+enum CommunicationType {
+  EMAIL         @map("email")
+  PHONE         @map("phone")
+  SMS           @map("sms")
+  PORTAL        @map("portal")
+  
+  @@map("communication_type")
+}
+
+enum Direction {
+  INBOUND       @map("inbound")
+  OUTBOUND      @map("outbound")
+  
+  @@map("direction")
+}
+
+enum MealPlanType {
+  ELIMINATION   @map("elimination")
+  REINTRODUCTION @map("reintroduction")
+  MAINTENANCE   @map("maintenance")
+  THERAPEUTIC   @map("therapeutic")
+  
+  @@map("meal_plan_type")
+}
