@@ -45,7 +45,7 @@ export default function ClientDashboard() {
 
   useEffect(() => {
     fetchUserData()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchUserData = async () => {
     try {
