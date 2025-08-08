@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { authMiddleware } from '@/lib/auth-middleware'
 
 export async function middleware(request: NextRequest) {
-  // For now, just pass through all requests
-  // Database health checks are better handled at the API level
-  // rather than in Edge Runtime middleware
-  return NextResponse.next()
+  // Skip middleware for API routes and static files
+  const path = request.nextUrl.pathname
+  
+  if (path.startsWith('/api/') || path.startsWith('/_next/')) {
+    return NextResponse.next()
+  }
+  
+  // Apply auth middleware
+  return authMiddleware(request)
 }
 
 export const config = {

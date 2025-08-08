@@ -1,139 +1,178 @@
-'use client'
-
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from 'next/link'
-import { useAuth } from '@/lib/auth-context'
+import { FileText, Activity, Users, Brain, ArrowRight } from 'lucide-react'
 
 export default function HomePage() {
-  const router = useRouter()
-  const { user, loading } = useAuth()
-
-  useEffect(() => {
-    // Redirect admins directly to clients page
-    if (!loading && user && user.role === 'admin') {
-      router.push('/clients')
-    }
-  }, [user, loading, router])
-
-  // Show loading state while checking auth to prevent flash
-  if (loading || (user && user.role === 'admin')) {
-    return (
-      <div className="min-h-screen bg-gradient-dark flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-foreground-secondary">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-dark">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      {/* Header */}
+      <header className="container mx-auto px-4 py-6">
+        <nav className="flex justify-between items-center">
+          <div className="text-2xl font-bold text-blue-600">Nutrition Lab System</div>
+          <div className="flex items-center space-x-4">
+            <Link href="/login" className="text-gray-600 hover:text-gray-900 transition-colors">
+              Login
+            </Link>
+            <Link
+              href="/register"
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Get Started
+            </Link>
+          </div>
+        </nav>
+      </header>
+
       {/* Hero Section */}
-      <section className="relative py-24 px-6">
-        <div className="container mx-auto max-w-6xl text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 bg-primary/10 text-primary border border-primary/20 rounded-full">
-            <span className="text-sm font-medium">🚛 FNTP Certified • Truck Driver Specialist</span>
+      <main className="container mx-auto px-4 py-16">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 bg-blue-100 text-blue-800 border border-blue-200 rounded-full">
+            <span className="text-sm font-medium">🚛 FNTP Certified • Truck Driver Health Specialist</span>
           </div>
           
-          <h1 className="text-6xl md:text-7xl font-heading font-bold mb-6 leading-tight">
-            Transform Your Life Through{" "}
-            <span className="gradient-text">
-              Holistic Health Coaching
-            </span>
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+            Functional Medicine for 
+            <span className="text-blue-600"> Truck Drivers</span>
           </h1>
-          
-          <p className="text-xl text-foreground-secondary max-w-4xl mx-auto mb-10 leading-relaxed">
-            Start your journey to optimal health with evidence-based nutritional
-            guidance and personalized wellness strategies designed just for you
+          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            Comprehensive health analysis and personalized protocols designed for life on the road. 
+            Upload lab results, complete assessments, and get AI-powered recommendations.
           </p>
-          
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="xl" asChild className="shadow-2xl shadow-blue-500/25">
-              <Link href="/start-assessment">
-                Begin Your Health Journey
-                <span className="ml-2">→</span>
-              </Link>
-            </Button>
-            <Button variant="outline" size="xl" asChild className="border-primary/30 hover:border-primary">
-              <Link href="/results">View Sample Report</Link>
-            </Button>
+            <Link
+              href="/register"
+              className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors inline-flex items-center"
+            >
+              Start Your Health Journey
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+            <Link
+              href="/login"
+              className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold border-2 border-blue-600 hover:bg-blue-50 transition-colors"
+            >
+              Login to Dashboard
+            </Link>
           </div>
         </div>
-        
-        {/* Background decoration */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background pointer-events-none" />
-      </section>
 
-      {/* Features Section */}
-      <section className="py-20 px-6">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-heading font-bold mb-4 gradient-text">
-              Professional Health Assessment Platform
-            </h2>
-            <p className="text-xl text-foreground-secondary">
-              Advanced functional medicine tools designed for truck driver health optimization
+        {/* Features Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+          <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+            <div className="bg-blue-100 p-3 rounded-lg w-12 h-12 mb-4 flex items-center justify-center">
+              <FileText className="h-6 w-6 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Lab Analysis</h3>
+            <p className="text-gray-600">
+              Upload lab results for AI-powered analysis with functional medicine insights and truck driver specific ranges
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="group hover:scale-105 transition-all duration-300">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-brand rounded-lg flex items-center justify-center mb-4">
-                  <span className="text-white text-xl">📊</span>
-                </div>
-                <CardTitle>Comprehensive Assessment</CardTitle>
-                <CardDescription>
-                  150-question functional medicine evaluation targeting truck driver health challenges
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            <Card className="group hover:scale-105 transition-all duration-300">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-brand rounded-lg flex items-center justify-center mb-4">
-                  <span className="text-white text-xl">🎯</span>
-                </div>
-                <CardTitle>AI-Powered Analysis</CardTitle>
-                <CardDescription>
-                  Intelligent pattern recognition and root cause identification with personalized protocols
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            <Card className="group hover:scale-105 transition-all duration-300">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-brand rounded-lg flex items-center justify-center mb-4">
-                  <span className="text-white text-xl">🚛</span>
-                </div>
-                <CardTitle>Truck Driver Specialized</CardTitle>
-                <CardDescription>
-                  Road-compatible protocols designed for the unique challenges of professional driving
-                </CardDescription>
-              </CardHeader>
-            </Card>
+
+          <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+            <div className="bg-green-100 p-3 rounded-lg w-12 h-12 mb-4 flex items-center justify-center">
+              <Activity className="h-6 w-6 text-green-600" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Health Assessments</h3>
+            <p className="text-gray-600">
+              Complete NAQ and functional medicine questionnaires to identify root causes and symptom patterns
+            </p>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+            <div className="bg-purple-100 p-3 rounded-lg w-12 h-12 mb-4 flex items-center justify-center">
+              <Brain className="h-6 w-6 text-purple-600" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">AI Protocols</h3>
+            <p className="text-gray-600">
+              Receive personalized supplement, dietary, and lifestyle recommendations optimized for truckers
+            </p>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+            <div className="bg-orange-100 p-3 rounded-lg w-12 h-12 mb-4 flex items-center justify-center">
+              <Users className="h-6 w-6 text-orange-600" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Expert Support</h3>
+            <p className="text-gray-600">
+              Connect with functional medicine practitioners who understand the unique challenges of trucking
+            </p>
           </div>
         </div>
-      </section>
 
-      {/* Call to Action */}
-      <section className="py-16 px-6 border-t border-border">
-        <div className="container mx-auto max-w-4xl text-center">
-          <h3 className="text-3xl font-heading font-bold mb-4 gradient-text">
-            Ready to Start Your Health Journey?
-          </h3>
-          <p className="text-lg text-foreground-secondary mb-8">
-            Join hundreds of satisfied clients who have transformed their health
-          </p>
-          <Button size="lg" asChild>
-            <Link href="/start-assessment">Get Started Now</Link>
-          </Button>
+        {/* How It Works */}
+        <div className="bg-gray-50 rounded-2xl p-8 mb-16">
+          <h2 className="text-3xl font-bold text-center mb-8">How It Works</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                1
+              </div>
+              <h3 className="font-semibold mb-2">Upload Your Labs</h3>
+              <p className="text-gray-600">
+                Submit lab results from LabCorp, Quest, or any provider. Our OCR extracts and analyzes all markers.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                2
+              </div>
+              <h3 className="font-semibold mb-2">Complete Assessment</h3>
+              <p className="text-gray-600">
+                Answer targeted questions about symptoms, lifestyle, and health goals specific to trucking life.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                3
+              </div>
+              <h3 className="font-semibold mb-2">Get Your Protocol</h3>
+              <p className="text-gray-600">
+                Receive comprehensive analysis with supplement protocols, dietary plans, and lifestyle modifications.
+              </p>
+            </div>
+          </div>
         </div>
-      </section>
+
+        {/* CTA Section */}
+        <div className="bg-blue-600 text-white rounded-2xl p-8 text-center">
+          <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Health?</h2>
+          <p className="text-lg mb-6 opacity-90">
+            Join thousands of truck drivers taking control of their health with functional medicine
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="/register"
+              className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-block"
+            >
+              Create Free Account
+            </Link>
+            <Link
+              href="/lab-upload"
+              className="bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition-colors inline-block"
+            >
+              Try Demo Analysis
+            </Link>
+          </div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="container mx-auto px-4 py-8 mt-16 border-t border-gray-200">
+        <div className="flex flex-col md:flex-row justify-between items-center">
+          <div className="mb-4 md:mb-0">
+            <p className="text-gray-600">&copy; 2024 Nutrition Lab System. All rights reserved.</p>
+          </div>
+          <div className="flex space-x-6">
+            <Link href="/terms" className="text-gray-600 hover:text-gray-900">
+              Terms
+            </Link>
+            <Link href="/privacy" className="text-gray-600 hover:text-gray-900">
+              Privacy
+            </Link>
+            <Link href="/contact" className="text-gray-600 hover:text-gray-900">
+              Contact
+            </Link>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
