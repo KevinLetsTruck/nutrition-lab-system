@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { ClientService } from '@/lib/db/client-service';
 import { handleAPIError, APIRequestError } from '@/lib/error-handler';
 
 export async function GET(request: NextRequest) {
-  const supabase = createServerSupabaseClient();
-  
   try {
     // Get query parameters for filtering
     const searchParams = request.nextUrl.searchParams;
@@ -12,34 +10,39 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0');
     const search = searchParams.get('search') || '';
     
-    // Build query
-    let query = supabase
-      .from('clients')
-      .select('id, first_name, last_name, email, created_at')
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+    let result;
     
-    // Add search filter if provided
     if (search) {
-      query = query.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%`);
+      // Use search functionality
+      result = await ClientService.searchClients({
+        query: search,
+        skip: offset,
+        take: limit,
+        orderBy: 'createdAt',
+        orderDirection: 'desc'
+      });
+    } else {
+      // Get all clients
+      result = await ClientService.getClients({
+        skip: offset,
+        take: limit,
+        orderBy: 'createdAt',
+        orderDirection: 'desc'
+      });
     }
     
-    const { data: clients, error, count } = await query;
-    
-    if (error) {
-      throw new APIRequestError(
-        'Failed to fetch clients',
-        500,
-        {
-          supabaseError: error.message,
-          code: error.code
-        }
-      );
-    }
+    // Transform to match expected format
+    const clients = result.clients.map(client => ({
+      id: client.id,
+      first_name: client.firstName,
+      last_name: client.lastName,
+      email: client.email,
+      created_at: client.createdAt
+    }));
     
     return NextResponse.json({
-      clients: clients || [],
-      count: count || clients?.length || 0,
+      clients,
+      count: result.total,
       limit,
       offset
     });

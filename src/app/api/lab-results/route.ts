@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/auth-utils'
 
 export async function GET(request: NextRequest) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_KEY!
-  )
   try {
     // Authenticate user
     const user = await getAuthenticatedUser(request)
@@ -19,40 +15,46 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    // Build query
-    let query = supabase
-      .from('lab_results')
-      .select(`
-        *,
-        clients(
-          id,
-          first_name,
-          last_name,
-          email
-        )
-      `)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1)
+    // Build where clause
+    const where = clientId ? { clientId } : {}
 
-    // Filter by client if specified
-    if (clientId) {
-      query = query.eq('client_id', clientId)
-    }
+    // Get lab results with client info
+    const [labResults, total] = await Promise.all([
+      prisma.labReport.findMany({
+        where,
+        include: {
+          client: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          },
+          nutriqResult: true
+        },
+        orderBy: {
+          createdAt: 'desc'
+        },
+        skip: offset,
+        take: limit
+      }),
+      prisma.labReport.count({ where })
+    ])
 
-    const { data, error, count } = await query
-
-    if (error) {
-      console.error('Failed to fetch lab results:', error)
-      return NextResponse.json(
-        { error: 'Failed to fetch lab results' },
-        { status: 500 }
-      )
-    }
+    // Transform to match expected format
+    const data = labResults.map(result => ({
+      ...result,
+      first_name: result.client.firstName,
+      last_name: result.client.lastName,
+      email: result.client.email,
+      clients: result.client
+    }))
 
     return NextResponse.json({
       success: true,
-      data: data || [],
-      total: count || 0,
+      data,
+      total,
       limit,
       offset
     })

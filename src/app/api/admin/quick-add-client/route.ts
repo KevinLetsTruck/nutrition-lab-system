@@ -3,6 +3,7 @@ import { AuthService } from '@/lib/auth-service'
 import { EmailService } from '@/lib/email-service'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { getServerSession } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -37,11 +38,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if email already exists
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email)
-      .single()
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
+    })
 
     if (existingUser) {
       return NextResponse.json(
@@ -59,100 +58,104 @@ export async function POST(request: NextRequest) {
     // Hash the password
     const passwordHash = await bcrypt.hash(tempPassword, 12)
 
-    // Create user account
-    const userId = uuidv4()
-    const { error: userError } = await supabase
-      .from('users')
-      .insert({
-        id: userId,
-        email,
-        password_hash: passwordHash,
-        role: 'client',
-        email_verified: false,
-        onboarding_completed: false
+    // Create user account with client profile in a transaction
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        // Create user
+        const user = await tx.user.create({
+          data: {
+            email,
+            passwordHash,
+            role: 'CLIENT',
+            emailVerified: false,
+            onboardingCompleted: false
+          }
+        })
+
+        // Create client profile
+        const clientProfile = await tx.clientProfile.create({
+          data: {
+            userId: user.id,
+            firstName,
+            lastName,
+            onboardingData: {
+              age: parseInt(age),
+              healthConcerns,
+              goals,
+              addedBy: 'admin_quick_add'
+            }
+          }
+        })
+
+        // Also create a client record for lab reports
+        const client = await tx.client.create({
+          data: {
+            email,
+            firstName,
+            lastName
+          }
+        })
+
+        return { user, clientProfile, client }
       })
 
-    if (userError) {
-      console.error('Error creating user:', userError)
+      const userId = result.user.id
+
+      // Upload files if provided
+      if (files.length > 0) {
+        for (const file of files) {
+          try {
+            const fileName = `${userId}/${Date.now()}-${file.name}`
+            const { error: uploadError } = await supabase.storage
+              .from('client-files')
+              .upload(fileName, file)
+
+            if (uploadError) {
+              console.error('Error uploading file:', uploadError)
+              // Continue with other files even if one fails
+            }
+          } catch (error) {
+            console.error('Error processing file upload:', error)
+          }
+        }
+      }
+
+      // Send welcome email with login credentials
+      try {
+        const welcomeEmailSent = await emailService.sendWelcomeEmail(
+          email,
+          firstName,
+          tempPassword
+        )
+
+        if (!welcomeEmailSent) {
+          console.warn('Failed to send welcome email, but client was created successfully')
+        }
+      } catch (emailError) {
+        console.error('Error sending welcome email:', emailError)
+        // Don't fail the entire operation if email fails
+      }
+
+      // Start email sequence
+      try {
+        await emailService.startEmailSequence(userId, 'welcome')
+      } catch (sequenceError) {
+        console.error('Error starting email sequence:', sequenceError)
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: 'Client created successfully',
+        userId,
+        tempPassword // Only return in development
+      })
+    } catch (error) {
+      console.error('Error creating user:', error)
       return NextResponse.json(
         { error: 'Failed to create user account' },
         { status: 500 }
       )
     }
-
-    // Create client profile
-    const { error: profileError } = await supabase
-      .from('client_profiles')
-      .insert({
-        user_id: userId,
-        first_name: firstName,
-        last_name: lastName,
-        onboarding_data: {
-          age: parseInt(age),
-          healthConcerns,
-          goals,
-          addedBy: 'admin_quick_add'
-        }
-      })
-
-    if (profileError) {
-      console.error('Error creating client profile:', profileError)
-      // Clean up user if profile creation fails
-      await supabase.from('users').delete().eq('id', userId)
-      return NextResponse.json(
-        { error: 'Failed to create client profile' },
-        { status: 500 }
-      )
-    }
-
-    // Upload files if provided
-    if (files.length > 0) {
-      for (const file of files) {
-        try {
-          const fileName = `${userId}/${Date.now()}-${file.name}`
-          const { error: uploadError } = await supabase.storage
-            .from('client-files')
-            .upload(fileName, file)
-
-          if (uploadError) {
-            console.error('Error uploading file:', uploadError)
-            // Continue with other files even if one fails
-          }
-        } catch (error) {
-          console.error('Error processing file upload:', error)
-        }
-      }
-    }
-
-    // Send welcome email with login credentials
-    try {
-      const welcomeEmailSent = await emailService.sendWelcomeEmail(
-        email,
-        firstName,
-        tempPassword
-      )
-
-      if (!welcomeEmailSent) {
-        console.warn('Failed to send welcome email, but client was created successfully')
-      }
-    } catch (emailError) {
-      console.error('Error sending welcome email:', emailError)
-      // Don't fail the entire operation if email fails
-    }
-
-    // Start email sequence
-    try {
-      await emailService.startEmailSequence(userId, 'welcome')
-    } catch (sequenceError) {
-      console.error('Error starting email sequence:', sequenceError)
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: 'Client created successfully',
-      userId,
-      tempPassword // Only return in development
-    })
 
   } catch (error) {
     console.error('Error in quick-add client:', error)

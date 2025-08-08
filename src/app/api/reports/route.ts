@@ -1,36 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase'
+import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient()
-    
     // Get all lab reports with client information
-    const { data: reports, error } = await supabase
-      .from('lab_reports')
-      .select(`
-        *,
-        clients (
-          id,
-          first_name,
-          last_name,
-          email
-        )
-      `)
-      .order('created_at', { ascending: false })
-    
-    if (error) {
-      console.error('Error fetching reports:', error)
-      return NextResponse.json(
-        { error: 'Failed to fetch reports' },
-        { status: 500 }
-      )
-    }
+    const reports = await prisma.labReport.findMany({
+      include: {
+        client: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        nutriqResult: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
     
     // Transform the data to match expected format
     const transformedReports = reports.map(report => ({
       ...report,
-      client: report.clients
+      first_name: report.client.firstName,
+      last_name: report.client.lastName,
+      clients: {
+        id: report.client.id,
+        first_name: report.client.firstName,
+        last_name: report.client.lastName,
+        email: report.client.email
+      }
     }))
     
     return NextResponse.json({

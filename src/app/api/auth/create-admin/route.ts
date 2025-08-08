@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase'
+import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
-import { v4 as uuidv4 } from 'uuid'
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,14 +21,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = createServerSupabaseClient()
-
     // Check if user already exists
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email.toLowerCase())
-      .single()
+    const existingUser = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() }
+    })
 
     if (existingUser) {
       return NextResponse.json(
@@ -40,63 +35,54 @@ export async function POST(request: NextRequest) {
 
     // Hash password
     const passwordHash = await bcrypt.hash(password, 12)
-    const userId = uuidv4()
 
-    // Create user
-    const { data: newUser, error: userError } = await supabase
-      .from('users')
-      .insert({
-        id: userId,
-        email: email.toLowerCase(),
-        password_hash: passwordHash,
-        role: 'admin',
-        email_verified: true,
-        onboarding_completed: true,
-        created_at: new Date().toISOString()
+    // Create user and admin profile in a transaction
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        // Create user
+        const newUser = await tx.user.create({
+          data: {
+            email: email.toLowerCase(),
+            passwordHash,
+            role: 'ADMIN',
+            emailVerified: true,
+            onboardingCompleted: true
+          }
+        })
+
+        // Create admin profile
+        const adminProfile = await tx.adminProfile.create({
+          data: {
+            userId: newUser.id,
+            name: name,
+            title: 'Administrator',
+            specializations: ['General'],
+            clientCapacity: 100,
+            activeSessions: 0
+          }
+        })
+
+        return { user: newUser, profile: adminProfile }
       })
-      .select()
-      .single()
 
-    if (userError) {
+      const { user: newUser } = result
+
+      return NextResponse.json({
+        success: true,
+        message: 'Admin account created successfully',
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          role: 'admin'
+        }
+      })
+    } catch (error) {
+      console.error('Error creating admin:', error)
       return NextResponse.json(
-        { error: 'Failed to create user', details: userError.message },
+        { error: 'Failed to create admin profile' },
         { status: 500 }
       )
     }
-
-    // Create admin profile
-    const { error: profileError } = await supabase
-      .from('admin_profiles')
-      .insert({
-        id: uuidv4(),
-        user_id: userId,
-        name: name,
-        title: 'Administrator',
-        specializations: ['General'],
-        client_capacity: 100,
-        active_sessions: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-
-    if (profileError) {
-      // Rollback user creation
-      await supabase.from('users').delete().eq('id', userId)
-      return NextResponse.json(
-        { error: 'Failed to create admin profile', details: profileError.message },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: 'Admin account created successfully',
-      user: {
-        id: userId,
-        email: newUser.email,
-        role: 'admin'
-      }
-    })
   } catch (error) {
     console.error('Create admin error:', error)
     return NextResponse.json(
