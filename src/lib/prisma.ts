@@ -21,32 +21,42 @@ const logLevels: LogDefinition[] =
 
 // Railway-optimized connection string processing
 function getOptimizedDatabaseUrl(): string {
-  let url = process.env.DATABASE_URL || ''
+  const url = process.env.DATABASE_URL
   
-  // Parse existing URL
-  const urlObj = new URL(url)
-  const params = new URLSearchParams(urlObj.search)
+  // If no DATABASE_URL, return undefined to use Prisma's default handling
+  if (!url) {
+    return process.env.DATABASE_URL as string // This will be undefined
+  }
   
-  // Railway-specific optimizations
-  if (!params.has('pgbouncer')) params.set('pgbouncer', 'true')
-  if (!params.has('sslmode')) params.set('sslmode', 'require')
-  if (!params.has('connect_timeout')) params.set('connect_timeout', '30')
-  if (!params.has('statement_timeout')) params.set('statement_timeout', '30000')
-  if (!params.has('pool_timeout')) params.set('pool_timeout', '30')
-  if (!params.has('connection_limit')) params.set('connection_limit', '10')
-  
-  // Reconstruct URL with optimized params
-  urlObj.search = params.toString()
-  return urlObj.toString()
+  try {
+    // Parse existing URL
+    const urlObj = new URL(url)
+    const params = new URLSearchParams(urlObj.search)
+    
+    // Railway-specific optimizations
+    if (!params.has('pgbouncer')) params.set('pgbouncer', 'true')
+    if (!params.has('sslmode')) params.set('sslmode', 'require')
+    if (!params.has('connect_timeout')) params.set('connect_timeout', '30')
+    if (!params.has('statement_timeout')) params.set('statement_timeout', '30000')
+    if (!params.has('pool_timeout')) params.set('pool_timeout', '30')
+    if (!params.has('connection_limit')) params.set('connection_limit', '10')
+    
+    // Reconstruct URL with optimized params
+    urlObj.search = params.toString()
+    return urlObj.toString()
+  } catch (error) {
+    console.error('Invalid DATABASE_URL format:', error)
+    return url // Return original URL if parsing fails
+  }
 }
 
 // Configure Prisma options for Railway
 const prismaOptions: Prisma.PrismaClientOptions = {
-  datasources: {
+  datasources: process.env.DATABASE_URL ? {
     db: {
       url: getOptimizedDatabaseUrl()
     }
-  },
+  } : undefined,
   log: logLevels,
   errorFormat: process.env.NODE_ENV === 'development' ? 'pretty' : 'minimal',
 }
@@ -199,20 +209,22 @@ async function handleConnection() {
     throw new Error('DATABASE_URL environment variable is not set')
   }
   
-  try {
-    const url = new URL(databaseUrl)
-    console.log(`🔗 Connecting to database at ${url.hostname}`)
-    
-    // Log connection parameters for debugging
-    const params = new URLSearchParams(url.search)
-    console.log('📊 Connection parameters:', {
-      sslmode: params.get('sslmode') || 'not set',
-      connection_limit: params.get('connection_limit') || 'not set',
-      pool_timeout: params.get('pool_timeout') || 'not set',
-      pgbouncer: params.get('pgbouncer') || 'not set'
-    })
-  } catch (error) {
-    console.error('Invalid DATABASE_URL format:', error)
+  if (databaseUrl) {
+    try {
+      const url = new URL(databaseUrl)
+      console.log(`🔗 Connecting to database at ${url.hostname}`)
+      
+      // Log connection parameters for debugging
+      const params = new URLSearchParams(url.search)
+      console.log('📊 Connection parameters:', {
+        sslmode: params.get('sslmode') || 'not set',
+        connection_limit: params.get('connection_limit') || 'not set',
+        pool_timeout: params.get('pool_timeout') || 'not set',
+        pgbouncer: params.get('pgbouncer') || 'not set'
+      })
+    } catch (error) {
+      console.error('Invalid DATABASE_URL format:', error)
+    }
   }
   
   // Connect on first use with retry
