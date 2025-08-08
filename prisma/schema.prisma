@@ -140,6 +140,14 @@ model Client {
   protocolRecommendations ProtocolRecommendation[]
   notes               Note[]
   
+  // Lab Analysis Relations
+  labResults           LabResult[]
+  labProtocols         LabProtocol[]
+  cgmData              CgmData[]
+  labComparisons       LabComparison[]
+  progressTracking     ProgressTracking[]
+  comprehensiveAnalyses ComprehensiveAnalysis[]
+  
   @@map("clients")
 }
 
@@ -354,4 +362,277 @@ enum ProcessingStatus {
   FAILED      @map("failed")
   
   @@map("processing_status")
+}
+
+// Lab Analysis System Models
+model LabTestCatalog {
+  id                    String          @id @default(uuid())
+  testCode              String          @unique @map("test_code")
+  testName              String          @map("test_name")
+  category              String          // metabolic, hormones, inflammation, nutritional, functional
+  subcategory           String?
+  unit                  String?
+  standardRangeLow      Float?          @map("standard_range_low")
+  standardRangeHigh     Float?          @map("standard_range_high")
+  optimalRangeLow       Float?          @map("optimal_range_low")
+  optimalRangeHigh      Float?          @map("optimal_range_high")
+  truckDriverRangeLow   Float?          @map("truck_driver_range_low")
+  truckDriverRangeHigh  Float?          @map("truck_driver_range_high")
+  criticalLow           Float?          @map("critical_low")
+  criticalHigh          Float?          @map("critical_high")
+  description           String?         @db.Text
+  clinicalSignificance  String?         @map("clinical_significance") @db.Text
+  truckDriverConsiderations String?     @map("truck_driver_considerations") @db.Text
+  relatedPatterns       String[]        @map("related_patterns")
+  interpretationNotes   Json?           @map("interpretation_notes")
+  createdAt             DateTime        @default(now()) @map("created_at")
+  updatedAt             DateTime        @updatedAt @map("updated_at")
+  
+  // Relations
+  labValues             LabValue[]
+  labComparisons        LabComparison[]
+  
+  @@map("lab_test_catalog")
+}
+
+model LabResult {
+  id                    String          @id @default(uuid())
+  clientId              String          @map("client_id")
+  labName               String?         @map("lab_name")
+  collectionDate        DateTime?       @map("collection_date")
+  reportDate            DateTime?       @map("report_date")
+  fileUrl               String?         @map("file_url") @db.Text
+  fileType              String?         @map("file_type")
+  processingStatus      String          @default("pending") @map("processing_status")
+  processingError       String?         @map("processing_error") @db.Text
+  rawText               String?         @map("raw_text") @db.Text
+  structuredData        Json?           @map("structured_data")
+  aiAnalysis            Json?           @map("ai_analysis")
+  detectedPatterns      Json[]          @map("detected_patterns")
+  confidenceScores      Json?           @map("confidence_scores")
+  createdAt             DateTime        @default(now()) @map("created_at")
+  updatedAt             DateTime        @updatedAt @map("updated_at")
+  
+  // Relations
+  client                Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  labValues             LabValue[]
+  labPatterns           LabPattern[]
+  labProtocols          LabProtocol[]
+  
+  @@index([clientId])
+  @@index([processingStatus])
+  @@index([collectionDate])
+  @@map("lab_results")
+}
+
+model LabValue {
+  id                    String          @id @default(uuid())
+  labResultId           String          @map("lab_result_id")
+  testCatalogId         String?         @map("test_catalog_id")
+  testName              String          @map("test_name")
+  value                 Float?
+  valueText             String?         @map("value_text")
+  unit                  String?
+  referenceRange        String?         @map("reference_range")
+  flag                  String?
+  isOptimal             Boolean?        @map("is_optimal")
+  isTruckDriverOptimal  Boolean?        @map("is_truck_driver_optimal")
+  interpretation        String?         @db.Text
+  createdAt             DateTime        @default(now()) @map("created_at")
+  
+  // Relations
+  labResult             LabResult       @relation(fields: [labResultId], references: [id], onDelete: Cascade)
+  testCatalog           LabTestCatalog? @relation(fields: [testCatalogId], references: [id])
+  
+  @@index([labResultId])
+  @@index([testCatalogId])
+  @@map("lab_values")
+}
+
+model LabPattern {
+  id                    String          @id @default(uuid())
+  labResultId           String          @map("lab_result_id")
+  patternName           String          @map("pattern_name")
+  patternCategory       String          @map("pattern_category")
+  confidenceScore       Float           @map("confidence_score")
+  supportingMarkers     Json[]          @map("supporting_markers")
+  clinicalSignificance  String?         @map("clinical_significance") @db.Text
+  truckDriverImpact     String?         @map("truck_driver_impact") @db.Text
+  priorityLevel         String          @map("priority_level")
+  createdAt             DateTime        @default(now()) @map("created_at")
+  
+  // Relations
+  labResult             LabResult       @relation(fields: [labResultId], references: [id], onDelete: Cascade)
+  
+  @@index([labResultId])
+  @@index([patternName])
+  @@map("lab_patterns")
+}
+
+model LabProtocol {
+  id                    String          @id @default(uuid())
+  labResultId           String          @map("lab_result_id")
+  clientId              String          @map("client_id")
+  protocolType          String          @map("protocol_type")
+  priority              String
+  title                 String
+  description           String?         @db.Text
+  specificRecommendations Json[]        @map("specific_recommendations")
+  supplementProtocol    Json?           @map("supplement_protocol")
+  dietaryModifications  Json?           @map("dietary_modifications")
+  lifestyleInterventions Json?          @map("lifestyle_interventions")
+  retestSchedule        Json?           @map("retest_schedule")
+  truckDriverAdaptations String?        @map("truck_driver_adaptations") @db.Text
+  createdAt             DateTime        @default(now()) @map("created_at")
+  
+  // Relations
+  labResult             LabResult       @relation(fields: [labResultId], references: [id], onDelete: Cascade)
+  client                Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@index([clientId])
+  @@map("lab_protocols")
+}
+
+model CgmData {
+  id                    String          @id @default(uuid())
+  clientId              String          @map("client_id")
+  deviceType            String?         @map("device_type")
+  readingDatetime       DateTime        @map("reading_datetime")
+  glucoseValue          Int             @map("glucose_value")
+  trendArrow            String?         @map("trend_arrow")
+  mealTag               String?         @map("meal_tag")
+  notes                 String?         @db.Text
+  screenshotUrl         String?         @map("screenshot_url") @db.Text
+  extractedFromImage    Boolean         @default(false) @map("extracted_from_image")
+  createdAt             DateTime        @default(now()) @map("created_at")
+  
+  // Relations
+  client                Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@index([clientId])
+  @@index([readingDatetime])
+  @@map("cgm_data")
+}
+
+model LabComparison {
+  id                    String          @id @default(uuid())
+  clientId              String          @map("client_id")
+  testCatalogId         String          @map("test_catalog_id")
+  previousValue         Float           @map("previous_value")
+  previousDate          DateTime        @map("previous_date")
+  currentValue          Float           @map("current_value")
+  currentDate           DateTime        @map("current_date")
+  changeAmount          Float           @map("change_amount")
+  changePercentage      Float           @map("change_percentage")
+  trend                 String
+  rateOfChange          Float           @map("rate_of_change")
+  clinicalSignificance  String?         @map("clinical_significance") @db.Text
+  createdAt             DateTime        @default(now()) @map("created_at")
+  
+  // Relations
+  client                Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  testCatalog           LabTestCatalog  @relation(fields: [testCatalogId], references: [id])
+  
+  @@index([clientId, testCatalogId])
+  @@map("lab_comparisons")
+}
+
+model PatternLibrary {
+  id                    String          @id @default(uuid())
+  patternName           String          @unique @map("pattern_name")
+  patternCategory       String          @map("pattern_category")
+  description           String?         @db.Text
+  requiredMarkers       String[]        @map("required_markers")
+  optionalMarkers       String[]        @map("optional_markers")
+  detectionRules        Json            @map("detection_rules")
+  clinicalInterpretation String?        @map("clinical_interpretation") @db.Text
+  functionalMedicineApproach String?    @map("functional_medicine_approach") @db.Text
+  truckDriverConsiderations String?     @map("truck_driver_considerations") @db.Text
+  interventionPriority  String          @map("intervention_priority")
+  createdAt             DateTime        @default(now()) @map("created_at")
+  updatedAt             DateTime        @updatedAt @map("updated_at")
+  
+  @@map("pattern_library")
+}
+
+// Comprehensive Analysis Models
+model ComprehensiveAnalysis {
+  id                    String          @id @default(uuid())
+  clientId              String          @map("client_id")
+  analysisDate          DateTime        @default(now()) @map("analysis_date")
+  rootCauses            Json            @map("root_causes")
+  systemsPriority       Json            @map("systems_priority")
+  progressComparison    Json?           @map("progress_comparison")
+  supplementProtocol    Json            @map("supplement_protocol")
+  treatmentPhases       Json            @map("treatment_phases")
+  urgentConcerns        String[]        @map("urgent_concerns")
+  successMetrics        Json?           @map("success_metrics")
+  practitionerNotes     String?         @map("practitioner_notes") @db.Text
+  createdAt             DateTime        @default(now()) @map("created_at")
+  updatedAt             DateTime        @updatedAt @map("updated_at")
+  
+  // Relations
+  client                Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  supplementRecommendations SupplementRecommendation[]
+  analysisArtifacts     AnalysisArtifact[]
+  
+  @@index([clientId])
+  @@index([analysisDate])
+  @@map("comprehensive_analyses")
+}
+
+model SupplementRecommendation {
+  id                    String          @id @default(uuid())
+  analysisId            String          @map("analysis_id")
+  supplementName        String          @map("supplement_name")
+  dosage                String?
+  timing                String?
+  source                String?
+  productUrl            String?         @map("product_url") @db.Text
+  monthlyCost           Float?          @map("monthly_cost")
+  phase                 Int?
+  rationale             String?         @db.Text
+  truckCompatible       Boolean         @default(true) @map("truck_compatible")
+  instructions          String?         @db.Text
+  practitionerCode      String?         @map("practitioner_code")
+  inStock               Boolean         @default(true) @map("in_stock")
+  createdAt             DateTime        @default(now()) @map("created_at")
+  
+  // Relations
+  analysis              ComprehensiveAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  
+  @@index([analysisId])
+  @@map("supplement_recommendations")
+}
+
+model ProgressTracking {
+  id                    String          @id @default(uuid())
+  clientId              String          @map("client_id")
+  trackingDate          DateTime        @map("tracking_date")
+  metricType            String          @map("metric_type")
+  metricValue           Float           @map("metric_value")
+  metricNotes           String?         @map("metric_notes") @db.Text
+  createdAt             DateTime        @default(now()) @map("created_at")
+  
+  // Relations
+  client                Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@index([clientId])
+  @@index([trackingDate])
+  @@map("progress_tracking")
+}
+
+model AnalysisArtifact {
+  id                    String          @id @default(uuid())
+  analysisId            String          @map("analysis_id")
+  artifactType          String          @map("artifact_type")
+  content               String          @db.Text
+  fileName              String?         @map("file_name")
+  createdAt             DateTime        @default(now()) @map("created_at")
+  
+  // Relations
+  analysis              ComprehensiveAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  
+  @@index([analysisId])
+  @@map("analysis_artifacts")
 }

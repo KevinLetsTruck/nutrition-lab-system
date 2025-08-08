@@ -297,7 +297,20 @@ export type {
   OnboardingProgress,
   ClientFile,
   ProtocolRecommendation,
-  Note
+  Note,
+  // Lab Analysis Types
+  LabTestCatalog,
+  LabResult,
+  LabValue,
+  LabPattern,
+  LabProtocol,
+  CgmData,
+  LabComparison,
+  PatternLibrary,
+  ComprehensiveAnalysis,
+  SupplementRecommendation,
+  ProgressTracking,
+  AnalysisArtifact
 } from '@prisma/client'
 
 // Utility functions for common database operations

@@ -11,7 +11,7 @@
     "db:migrate": "node scripts/run-onboarding-migration-simple.js",
     "db:migrate:streamlined": "node scripts/run-streamlined-migration.js",
     "db:migrate:auth": "node scripts/run-auth-migration.js",
-    "db:seed": "node scripts/seed.js",
+    "db:seed": "prisma db seed",
     "storage:init": "node scripts/init-storage.js",
     "storage:init-calls": "node scripts/init-call-recordings-storage.js",
     "storage:test": "node scripts/test-storage.js",
@@ -34,7 +34,6 @@
     "db:migrate:prod": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
-    "db:seed": "prisma db seed",
     "postinstall": "prisma generate",
     "test:db-connection": "node scripts/test-railway-connection.js",
     "db:health": "curl http://localhost:3000/api/db-health"
