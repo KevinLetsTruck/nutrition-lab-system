@@ -1,72 +1,96 @@
-import { NextResponse } from 'next/server'
-import { runDatabaseDiagnostic } from '@/lib/db/diagnostic'
+import { NextRequest, NextResponse } from 'next/server'
+import { checkDatabaseHealth } from '@/lib/prisma'
+import { connectionTester, DatabaseConnectionTester } from '@/lib/db/connection-test'
+import { getDatabaseHealthStatus, forceHealthCheck } from '@/middleware/database-health'
 
-export const dynamic = 'force-dynamic'
-
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    console.log('Starting database health check...')
+    const { searchParams } = new URL(request.url)
+    const action = searchParams.get('action')
     
-    const diagnostic = await runDatabaseDiagnostic()
-    
-    // Determine overall health status
-    const isHealthy = 
-      (diagnostic.connections.supabaseClient.success || 
-       diagnostic.connections.supabaseServiceClient.success || 
-       diagnostic.connections.postgresqlDirect.success) &&
-      diagnostic.tables.found.length > 0
-
-    const status = isHealthy ? 200 : 503
-    
-    // Add summary
-    const summary = {
-      healthy: isHealthy,
-      workingConnections: [
-        diagnostic.connections.supabaseClient.success && 'supabase-client',
-        diagnostic.connections.supabaseServiceClient.success && 'supabase-service',
-        diagnostic.connections.postgresqlDirect.success && 'postgresql-direct'
-      ].filter(Boolean),
-      tableStatus: `${diagnostic.tables.found.length} found, ${diagnostic.tables.missing.length} missing`,
-      canRead: diagnostic.operations.read.success,
-      canWrite: diagnostic.operations.write.success
+    // Run different health checks based on action
+    switch (action) {
+      case 'full-test':
+        // Run comprehensive connection tests
+        const testResults = await connectionTester.runAllTests()
+        return NextResponse.json(testResults)
+        
+      case 'leak-check':
+        // Check for connection leaks
+        const leakResults = await DatabaseConnectionTester.checkConnectionLeaks()
+        return NextResponse.json(leakResults)
+        
+      case 'force-check':
+        // Force a health check
+        const forcedHealth = await forceHealthCheck()
+        return NextResponse.json(forcedHealth)
+        
+      case 'status':
+        // Get current health status from middleware
+        const status = getDatabaseHealthStatus()
+        return NextResponse.json(status)
+        
+      default:
+        // Standard health check
+        const health = await checkDatabaseHealth()
+        
+        // Set appropriate status code
+        const statusCode = health.status === 'healthy' ? 200 : 503
+        
+        return NextResponse.json(health, { status: statusCode })
     }
-    
-    return NextResponse.json(
-      {
-        summary,
-        diagnostic,
-        timestamp: new Date().toISOString()
-      },
-      { 
-        status,
-        headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate',
-          'Content-Type': 'application/json'
-        }
-      }
-    )
   } catch (error: any) {
     console.error('Database health check error:', error)
     
     return NextResponse.json(
       {
-        summary: {
-          healthy: false,
-          error: 'Diagnostic failed to run'
-        },
+        status: 'unhealthy',
         error: {
-          message: error.message,
+          message: error.message || 'Unknown error',
+          code: error.code,
           stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         },
         timestamp: new Date().toISOString()
       },
-      { 
-        status: 500,
-        headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate',
-          'Content-Type': 'application/json'
-        }
-      }
+      { status: 503 }
+    )
+  }
+}
+
+// POST endpoint to trigger connection recovery
+export async function POST(request: NextRequest) {
+  try {
+    const { action } = await request.json()
+    
+    if (action === 'reconnect') {
+      console.log('🔄 Attempting database reconnection...')
+      
+      // Force reconnection
+      const { prisma } = await import('@/lib/prisma')
+      await prisma.$disconnect()
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      await prisma.$connect()
+      
+      // Check health after reconnection
+      const health = await checkDatabaseHealth()
+      
+      return NextResponse.json({
+        message: 'Reconnection attempted',
+        health
+      })
+    }
+    
+    return NextResponse.json(
+      { error: 'Invalid action' },
+      { status: 400 }
+    )
+  } catch (error: any) {
+    return NextResponse.json(
+      {
+        error: 'Reconnection failed',
+        message: error.message
+      },
+      { status: 500 }
     )
   }
 }

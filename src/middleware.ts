@@ -1,19 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { databaseHealthMiddleware } from '@/middleware/database-health'
 
 export async function middleware(request: NextRequest) {
-  // Temporarily disabled - allow all requests through
-  return NextResponse.next()
+  // Skip database health checks in development
+  if (process.env.NODE_ENV === 'development') {
+    return NextResponse.next()
+  }
+  
+  // Apply database health middleware for production
+  return databaseHealthMiddleware(request)
 }
 
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
+     * Match all request paths including API routes
+     * Exclude only static assets and Next.js internals
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
