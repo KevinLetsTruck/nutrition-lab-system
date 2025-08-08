@@ -1,0 +1,16 @@
+# Copy these environment variable updates to your Railway app service
+# Replace YOUR_POSTGRES_URL with the actual URL from your PostgreSQL service
+
+# REPLACE the existing DATABASE_URL with this (add connection pool settings):
+DATABASE_URL=YOUR_POSTGRES_URL?sslmode=require&connection_limit=10&pool_timeout=30
+
+# UPDATE the DIRECT_URL to use Railway PostgreSQL:
+DIRECT_URL=YOUR_POSTGRES_URL?sslmode=require
+
+# ADD this new variable:
+DATABASE_URL_UNPOOLED=YOUR_POSTGRES_URL?sslmode=require
+
+# Example (yours will be different):
+# DATABASE_URL=postgresql://postgres:abc123xyz@containers-us-west-123.railway.app:5432/railway?sslmode=require&connection_limit=10&pool_timeout=30
+# DIRECT_URL=postgresql://postgres:abc123xyz@containers-us-west-123.railway.app:5432/railway?sslmode=require
+# DATABASE_URL_UNPOOLED=postgresql://postgres:abc123xyz@containers-us-west-123.railway.app:5432/railway?sslmode=require
