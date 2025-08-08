@@ -28,6 +28,7 @@ model User {
   adminProfile         AdminProfile?
   sessions             UserSession[]
   emailVerifications   EmailVerification[]
+  notes                Note[]
   
   @@map("users")
 }
@@ -133,6 +134,11 @@ model Client {
   
   // Relations
   labReports          LabReport[]
+  aiConversations     AiConversation[]
+  onboardingProgress  OnboardingProgress?
+  clientFiles         ClientFile[]
+  protocolRecommendations ProtocolRecommendation[]
+  notes               Note[]
   
   @@map("clients")
 }
@@ -152,11 +158,171 @@ model LabReport {
   
   // Relations
   client            Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  nutriqResult      NutriqResult?
   
   @@index([clientId])
   @@index([reportType])
   @@index([status])
   @@map("lab_reports")
+}
+
+// Additional Models found in codebase
+
+model NutriqResult {
+  id                String      @id @default(uuid())
+  labReportId       String      @unique @map("lab_report_id")
+  overallScore      Float?      @map("overall_score")
+  systemScores      Json?       @map("system_scores")
+  deficiencies      Json?
+  recommendations   Json?
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+  
+  // Relations
+  labReport         LabReport   @relation(fields: [labReportId], references: [id], onDelete: Cascade)
+  
+  @@map("nutriq_results")
+}
+
+model AiConversation {
+  id                String      @id @default(uuid())
+  clientId          String      @map("client_id")
+  assessmentType    String      @map("assessment_type")
+  status            String      @default("active")
+  startedAt         DateTime    @default(now()) @map("started_at")
+  completedAt       DateTime?   @map("completed_at")
+  metadata          Json?
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+  
+  // Relations
+  client            Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  messages          ConversationMessage[]
+  analyses          ConversationAnalysis[]
+  
+  @@index([clientId])
+  @@index([assessmentType])
+  @@map("ai_conversations")
+}
+
+model ConversationMessage {
+  id                    String      @id @default(uuid())
+  conversationId        String      @map("conversation_id")
+  content              String
+  structuredResponse   Json?       @map("structured_response")
+  questionId           String?     @map("question_id")
+  section              String?
+  role                 String      @default("user")
+  createdAt            DateTime    @default(now()) @map("created_at")
+  
+  // Relations
+  conversation         AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  @@index([conversationId])
+  @@map("conversation_messages")
+}
+
+model ConversationAnalysis {
+  id                String      @id @default(uuid())
+  conversationId    String      @map("conversation_id")
+  analysisType      String      @map("analysis_type")
+  results           Json
+  createdAt         DateTime    @default(now()) @map("created_at")
+  
+  // Relations
+  conversation      AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  @@index([conversationId])
+  @@map("conversation_analysis")
+}
+
+model OnboardingSession {
+  id                String      @id @default(uuid())
+  token             String      @unique
+  email             String
+  firstName         String?     @map("first_name")
+  lastName          String?     @map("last_name")
+  currentStep       Int         @default(1) @map("current_step")
+  sessionData       Json?       @map("session_data")
+  expiresAt         DateTime    @map("expires_at")
+  completedAt       DateTime?   @map("completed_at")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+  
+  @@index([token])
+  @@index([email])
+  @@map("onboarding_sessions")
+}
+
+model OnboardingProgress {
+  id                String      @id @default(uuid())
+  clientId          String      @unique @map("client_id")
+  stepsCompleted    String[]    @default([]) @map("steps_completed")
+  currentStep       String?     @map("current_step")
+  progressData      Json?       @map("progress_data")
+  completedAt       DateTime?   @map("completed_at")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+  
+  // Relations
+  client            Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@map("onboarding_progress")
+}
+
+model ClientFile {
+  id                String      @id @default(uuid())
+  clientId          String      @map("client_id")
+  fileName          String      @map("file_name")
+  fileType          String      @map("file_type")
+  fileSize          Int         @map("file_size")
+  storageUrl        String      @map("storage_url")
+  publicUrl         String?     @map("public_url")
+  metadata          Json?
+  uploadedAt        DateTime    @default(now()) @map("uploaded_at")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  
+  // Relations
+  client            Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@index([clientId])
+  @@map("client_files")
+}
+
+model ProtocolRecommendation {
+  id                String      @id @default(uuid())
+  clientId          String      @map("client_id")
+  protocolType      String      @map("protocol_type")
+  recommendations   Json
+  priority          Int         @default(0)
+  status            String      @default("pending")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+  
+  // Relations
+  client            Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@index([clientId])
+  @@map("protocol_recommendations")
+}
+
+model Note {
+  id                String      @id @default(uuid())
+  clientId          String      @map("client_id")
+  authorId          String      @map("author_id")
+  content           String
+  category          String?
+  isPrivate         Boolean     @default(false) @map("is_private")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+  
+  // Relations
+  client            Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  author            User        @relation(fields: [authorId], references: [id])
+  
+  @@index([clientId])
+  @@index([authorId])
+  @@map("notes")
 }
 
 // Enums
@@ -173,6 +339,10 @@ enum ReportType {
   DUTCH       @map("dutch")
   CGM         @map("cgm")
   FOOD_PHOTO  @map("food_photo")
+  FIT_TEST    @map("fit_test")
+  STOOL_TEST  @map("stool_test")
+  BLOOD_TEST  @map("blood_test")
+  GENERAL     @map("general")
   
   @@map("report_type")
 }

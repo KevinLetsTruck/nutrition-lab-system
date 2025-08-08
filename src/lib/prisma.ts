@@ -147,7 +147,28 @@ if (process.env.NODE_ENV === 'production') {
 export { prisma }
 
 // Export types for use in other files
-export type { User, Client, LabReport, UserRole, ReportType, ProcessingStatus } from '@prisma/client'
+export type { 
+  User, 
+  Client, 
+  LabReport, 
+  UserRole, 
+  ReportType, 
+  ProcessingStatus,
+  ClientProfile,
+  AdminProfile,
+  UserSession,
+  EmailVerification,
+  RateLimit,
+  NutriqResult,
+  AiConversation,
+  ConversationMessage,
+  ConversationAnalysis,
+  OnboardingSession,
+  OnboardingProgress,
+  ClientFile,
+  ProtocolRecommendation,
+  Note
+} from '@prisma/client'
 
 // Utility functions for common database operations
 export const db = {
