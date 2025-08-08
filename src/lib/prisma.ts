@@ -171,7 +171,6 @@ class PrismaClientWithRetry extends PrismaClient {
 
 // Singleton pattern for Next.js
 declare global {
-  // eslint-disable-next-line no-var
   var prisma: PrismaClientWithRetry | undefined
 }
 
@@ -188,6 +187,11 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Connection management for Railway
 async function handleConnection() {
+  // Skip in Edge Runtime
+  if (typeof (globalThis as any).EdgeRuntime !== 'undefined') {
+    return
+  }
+  
   // Validate DATABASE_URL
   const databaseUrl = process.env.DATABASE_URL
   
@@ -222,7 +226,10 @@ async function handleConnection() {
           console.error(`Connection attempt ${i + 1}/${retries} failed:`, error)
           if (i === retries - 1) {
             console.error('Failed to connect to database after all retries')
-            process.exit(1)
+            // Don't use process.exit in Edge Runtime
+            if (typeof (globalThis as any).EdgeRuntime === 'undefined' && typeof process !== 'undefined' && process.exit) {
+              process.exit(1)
+            }
           }
           // Wait before retry with exponential backoff
           await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000))
@@ -237,19 +244,21 @@ async function handleConnection() {
 // Initialize connection handling
 handleConnection()
 
-// Graceful shutdown
-if (process.env.NODE_ENV === 'production') {
-  process.on('SIGTERM', async () => {
-    console.log('SIGTERM received, closing database connections...')
-    await prisma.disconnect()
-    process.exit(0)
-  })
-  
-  process.on('SIGINT', async () => {
-    console.log('SIGINT received, closing database connections...')
-    await prisma.disconnect()
-    process.exit(0)
-  })
+// Graceful shutdown - only in Node.js runtime
+if (typeof (globalThis as any).EdgeRuntime === 'undefined' && typeof process !== 'undefined' && process.env.NODE_ENV === 'production') {
+  if (process.on) {
+    process.on('SIGTERM', async () => {
+      console.log('SIGTERM received, closing database connections...')
+      await prisma.disconnect()
+      process.exit(0)
+    })
+    
+    process.on('SIGINT', async () => {
+      console.log('SIGINT received, closing database connections...')
+      await prisma.disconnect()
+      process.exit(0)
+    })
+  }
 }
 
 // Export typed Prisma client

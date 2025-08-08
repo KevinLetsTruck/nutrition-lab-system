@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { checkDatabaseHealth } from '@/lib/prisma'
+import { checkDatabaseHealth, enhancedPrisma } from '@/lib/prisma'
 import { connectionTester, DatabaseConnectionTester } from '@/lib/db/connection-test'
-import { getDatabaseHealthStatus, forceHealthCheck } from '@/middleware/database-health'
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,12 +21,15 @@ export async function GET(request: NextRequest) {
         
       case 'force-check':
         // Force a health check
-        const forcedHealth = await forceHealthCheck()
+        const forcedHealth = await checkDatabaseHealth()
         return NextResponse.json(forcedHealth)
         
       case 'status':
-        // Get current health status from middleware
-        const status = getDatabaseHealthStatus()
+        // Get current connection status
+        const status = {
+          connectionStatus: enhancedPrisma.getConnectionStatus(),
+          timestamp: new Date().toISOString()
+        }
         return NextResponse.json(status)
         
       default:

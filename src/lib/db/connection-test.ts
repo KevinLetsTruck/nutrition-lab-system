@@ -143,8 +143,9 @@ export class DatabaseConnectionTester {
       const note = await prisma.note.create({
         data: {
           clientId: 'test-connection-' + Date.now(),
+          authorId: 'test-author-' + Date.now(),
           content: 'Connection test note',
-          type: 'general'
+          category: 'test'
         }
       })
       

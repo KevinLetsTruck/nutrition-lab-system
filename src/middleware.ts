@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { databaseHealthMiddleware } from '@/middleware/database-health'
 
 export async function middleware(request: NextRequest) {
-  // Skip database health checks in development
-  if (process.env.NODE_ENV === 'development') {
-    return NextResponse.next()
-  }
-  
-  // Apply database health middleware for production
-  return databaseHealthMiddleware(request)
+  // For now, just pass through all requests
+  // Database health checks are better handled at the API level
+  // rather than in Edge Runtime middleware
+  return NextResponse.next()
 }
 
 export const config = {
