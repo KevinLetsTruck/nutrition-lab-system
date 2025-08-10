@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "build:prod": "next build --no-lint",
     "postbuild": "echo 'Database setup will be run separately'",
     "start": "next start",
     "start:simple": "next start",
