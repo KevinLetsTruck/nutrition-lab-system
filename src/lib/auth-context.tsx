@@ -12,9 +12,13 @@ interface User {
 interface AuthContextType {
   user: User | null
   loading: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string, redirectTo?: string | null) => Promise<void>
   logout: () => Promise<void>
   checkAuth: () => Promise<void>
+  refreshToken: () => Promise<void>
+  isAuthenticated: boolean
+  isAdmin: boolean
+  isClient: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -24,8 +28,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
+  // Computed properties
+  const isAuthenticated = !!user
+  const isAdmin = user?.role?.toLowerCase() === 'admin'
+  const isClient = user?.role?.toLowerCase() === 'client'
+
+  // Auto refresh token every 30 minutes
   useEffect(() => {
     checkAuth()
+    
+    // Set up token refresh interval
+    const interval = setInterval(() => {
+      if (user) {
+        refreshToken()
+      }
+    }, 30 * 60 * 1000) // 30 minutes
+
+    return () => clearInterval(interval)
   }, [])
 
   const checkAuth = async () => {
@@ -92,8 +111,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // Refresh token to extend session
+  const refreshToken = async () => {
+    try {
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setUser(data.user)
+      } else if (response.status === 401) {
+        // Token expired, logout
+        await logout()
+      }
+    } catch (error) {
+      console.error('Token refresh failed:', error)
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, checkAuth }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      login, 
+      logout, 
+      checkAuth,
+      refreshToken,
+      isAuthenticated,
+      isAdmin,
+      isClient
+    }}>
       {children}
     </AuthContext.Provider>
   )

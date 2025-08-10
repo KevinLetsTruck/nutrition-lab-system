@@ -14,6 +14,8 @@ import {
   LogOut,
   Loader2
 } from 'lucide-react'
+import { RouteGuard } from '@/components/RouteGuard'
+import { useAuth } from '@/lib/auth-context'
 
 interface UserData {
   id: string
@@ -32,8 +34,8 @@ interface DashboardStats {
   upcomingAppointments: number
 }
 
-export default function ClientDashboard() {
-  const [user, setUser] = useState<UserData | null>(null)
+function ClientDashboardContent() {
+  const { user, logout } = useAuth()
   const [stats, setStats] = useState<DashboardStats>({
     totalReports: 0,
     pendingReports: 0,
@@ -44,20 +46,11 @@ export default function ClientDashboard() {
   const router = useRouter()
 
   useEffect(() => {
-    fetchUserData()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    fetchDashboardData()
+  }, [])
 
-  const fetchUserData = async () => {
+  const fetchDashboardData = async () => {
     try {
-      const response = await fetch('/api/auth/me')
-      if (!response.ok) {
-        router.push('/login')
-        return
-      }
-      
-      const data = await response.json()
-      setUser(data.user)
-      
       // Fetch dashboard stats
       // In production, this would be a separate API call
       setStats({
@@ -67,20 +60,14 @@ export default function ClientDashboard() {
         upcomingAppointments: 1
       })
     } catch (error) {
-      console.error('Failed to fetch user data:', error)
-      router.push('/login')
+      console.error('Failed to fetch dashboard data:', error)
     } finally {
       setLoading(false)
     }
   }
 
   const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' })
-      router.push('/login')
-    } catch (error) {
-      console.error('Logout failed:', error)
-    }
+    await logout()
   }
 
   if (loading) {
@@ -90,8 +77,6 @@ export default function ClientDashboard() {
       </div>
     )
   }
-
-  if (!user) return null
 
   const quickActions = [
     {
@@ -134,9 +119,9 @@ export default function ClientDashboard() {
               <User className="h-8 w-8 text-gray-400 mr-3" />
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  Welcome, {user.profile?.firstName || 'Client'}!
+                  Welcome, {user?.profile?.firstName || 'Client'}!
                 </h1>
-                <p className="text-sm text-gray-500">{user.email}</p>
+                <p className="text-sm text-gray-500">{user?.email}</p>
               </div>
             </div>
             <button
@@ -256,5 +241,13 @@ export default function ClientDashboard() {
         </div>
       </main>
     </div>
+  )
+}
+
+export default function ClientDashboard() {
+  return (
+    <RouteGuard allowedRoles={['client']}>
+      <ClientDashboardContent />
+    </RouteGuard>
   )
 }

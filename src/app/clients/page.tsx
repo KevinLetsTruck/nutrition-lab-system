@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/auth-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { RouteGuard } from '@/components/RouteGuard'
 
 interface Client {
   id: string
@@ -31,13 +32,7 @@ function ClientsContent() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showArchived, setShowArchived] = useState(false)
 
-  // Check authentication
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/auth')
-      return
-    }
-  }, [user, authLoading, router])
+  // No need to check auth here - RouteGuard handles it
 
   useEffect(() => {
     const search = searchParams.get('search')
@@ -244,12 +239,14 @@ function ClientsContent() {
 
 export default function ClientsPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    }>
-      <ClientsContent />
-    </Suspense>
+    <RouteGuard allowedRoles={['admin']}>
+      <Suspense fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      }>
+        <ClientsContent />
+      </Suspense>
+    </RouteGuard>
   )
 }

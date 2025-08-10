@@ -4,8 +4,11 @@ import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { ClientPage } from '@/components/ProtectedPage'
+import { useAuth } from '@/lib/auth-context'
 
-export default function LabUploadPage() {
+function LabUploadContent() {
+  const { user } = useAuth()
   const [files, setFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
   const [uploadStatus, setUploadStatus] = useState<{
@@ -40,8 +43,10 @@ export default function LabUploadPage() {
       formData.append('files', file)
     })
     
-    // Add client ID (in real app, this would come from auth context)
-    formData.append('clientId', '32782cc9-841b-4d90-95ab-46caeedbcdfc')
+    // Add client ID from auth context
+    if (user?.id) {
+      formData.append('clientId', user.id)
+    }
 
     try {
       const response = await fetch('/api/lab-upload', {
@@ -171,5 +176,13 @@ export default function LabUploadPage() {
         </ol>
       </div>
     </div>
+  )
+}
+
+export default function LabUploadPage() {
+  return (
+    <ClientPage>
+      <LabUploadContent />
+    </ClientPage>
   )
 }
