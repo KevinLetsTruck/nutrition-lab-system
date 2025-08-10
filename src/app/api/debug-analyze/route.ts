@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     console.log('[DEBUG-ANALYZE] Starting debug analysis:', { bucket, path })
     
     // Step 1: Try to load the file
-    const { SupabaseStorageService } = require('@/lib/supabase-storage')
+    // const { SupabaseStorageService } = require('@/lib/supabase-storage') // TODO: Replace
     const storageService = new SupabaseStorageService(true) // Use service role
     
     console.log('[DEBUG-ANALYZE] Attempting to download file...')
