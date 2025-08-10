@@ -31,7 +31,7 @@ export async function getServerSession(request?: NextRequest): Promise<ServerSes
     return {
       userId: tokenResult.user.id,
       email: tokenResult.user.email,
-      role: tokenResult.user.role
+      role: tokenResult.user.role.toUpperCase() as 'CLIENT' | 'ADMIN'
     }
   } catch (error) {
     console.error('[Auth] Session verification error:', error)

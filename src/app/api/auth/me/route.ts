@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
       user: {
         id: user.id,
         email: user.email,
-        role: user.role.toLowerCase(),
+        role: user.role.toLowerCase() as 'admin' | 'client',
         emailVerified: user.emailVerified,
         onboardingCompleted: user.onboardingCompleted
       },

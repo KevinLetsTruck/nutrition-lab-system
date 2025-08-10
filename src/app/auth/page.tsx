@@ -43,15 +43,15 @@ export default function AuthPage() {
       // Check for redirect parameter first
       const from = searchParams.get('from')
       if (from) {
-        router.push(from)
+        router.replace(from)
       } else {
         // Redirect based on user role
         if (user.role === 'admin') {
-          router.push('/clients')
+          router.replace('/clients')
         } else if (user.role === 'client') {
-          router.push('/client/success')
+          router.replace('/client/success')
         } else {
-          router.push('/dashboard')
+          router.replace('/dashboard')
         }
       }
     }

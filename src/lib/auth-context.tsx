@@ -31,10 +31,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkAuth = async () => {
     try {
       const response = await fetch('/api/auth/me')
+      console.log('Auth check response status:', response.status)
       if (response.ok) {
         const data = await response.json()
+        console.log('Auth check user data:', data.user)
         setUser(data.user)
       } else {
+        console.log('Auth check failed with status:', response.status)
         setUser(null)
       }
     } catch (error) {
@@ -74,13 +77,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     if (destination) {
       console.log('Redirecting to:', destination)
-      router.push(destination)
+      router.replace(destination)
     } else {
       // Default redirect based on role
       const defaultRoute = data.user.role === 'admin' ? '/clients' : 
                           data.user.role === 'client' ? '/client/success' : '/dashboard'
       console.log('Redirecting to default:', defaultRoute)
-      router.push(defaultRoute)
+      router.replace(defaultRoute)
     }
   }
 
