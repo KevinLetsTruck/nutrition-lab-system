@@ -43,27 +43,14 @@ export default function AuthPage() {
       console.log('Auth page - User detected:', user)
       console.log('Auth page - Redirect from:', searchParams.get('from'))
       
-      // Add a small delay to ensure everything is ready
-      setTimeout(() => {
-        // Check for redirect parameter first
-        const from = searchParams.get('from')
-        if (from) {
-          console.log('Redirecting to from param:', from)
-          window.location.href = from
-        } else {
-          // Redirect based on user role
-          if (user.role === 'admin') {
-            console.log('Redirecting admin to /clients')
-            window.location.href = '/clients'
-          } else if (user.role === 'client') {
-            console.log('Redirecting client to /client/dashboard')
-            window.location.href = '/client/dashboard'
-          } else {
-            console.log('Redirecting to /clients (default)')
-            window.location.href = '/clients'
-          }
-        }
-      }, 500)
+      // Redirect based on user role
+      if (user.role === 'admin') {
+        router.push('/clients')
+      } else if (user.role === 'client') {
+        router.push('/client/dashboard')
+      } else {
+        router.push('/clients')
+      }
     }
   }, [user, authLoading, router, searchParams])
 

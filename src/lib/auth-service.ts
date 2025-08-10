@@ -339,7 +339,9 @@ export class AuthService {
   // Verify JWT token
   async verifyToken(token: string): Promise<{ valid: boolean; user?: User; error?: string }> {
     try {
+      console.log('[AuthService] Verifying token with JWT_SECRET:', JWT_SECRET)
       const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload
+      console.log('[AuthService] Token decoded successfully:', decoded.userId)
       
       // Check if session exists and is valid using Prisma
       const session = await prisma.userSession.findFirst({
@@ -379,8 +381,9 @@ export class AuthService {
           lastLogin: user.lastLogin || undefined
         }
       }
-    } catch (error) {
-      return { valid: false, error: 'Invalid token' }
+    } catch (error: any) {
+      console.error('[AuthService] Token verification error:', error.message)
+      return { valid: false, error: error.message || 'Invalid token' }
     }
   }
 
