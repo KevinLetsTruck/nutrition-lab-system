@@ -91,7 +91,7 @@ export default function AuthPage() {
         }
 
         // Call registration API directly
-        const response = await fetch('/api/auth/register', {
+        const response = await fetch('/api/auth/register-prisma', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(userData)

@@ -46,8 +46,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const login = async (email: string, password: string) => {
-    // Temporarily use direct login while fixing database connection
-    const response = await fetch('/api/auth/direct-login', {
+    // Use Prisma-based login endpoint
+    const response = await fetch('/api/auth/login-prisma', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
