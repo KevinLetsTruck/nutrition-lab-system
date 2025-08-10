@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     
     // Drop existing tables and types if they exist (for clean setup)
     await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS client_profiles CASCADE`)
+    await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS admin_profiles CASCADE`)
     await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS clients CASCADE`)
     await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS users CASCADE`)
     await prisma.$executeRawUnsafe(`DROP TYPE IF EXISTS user_role CASCADE`)
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
       )
     `)
     
-    // Create client_profiles table
+    // Create client_profiles table with all expected columns
     await prisma.$executeRawUnsafe(`
       CREATE TABLE client_profiles (
         id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
@@ -55,6 +56,22 @@ export async function GET(request: NextRequest) {
         first_name TEXT NOT NULL,
         last_name TEXT NOT NULL,
         phone TEXT,
+        onboarding_data JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+    
+    // Create admin_profiles table
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE admin_profiles (
+        id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        user_id TEXT UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        title TEXT,
+        specializations TEXT[],
+        client_capacity INTEGER DEFAULT 50,
+        active_sessions INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -83,17 +100,40 @@ export async function GET(request: NextRequest) {
     
     // Create admin user
     const adminPassword = await hash('Admin123!', 10)
+    const adminId = 'a0000000-0000-0000-0000-000000000001'
     await prisma.$executeRawUnsafe(`
-      INSERT INTO users (email, password_hash, role, email_verified, onboarding_completed)
-      VALUES ('admin@nutritionlab.com', '${adminPassword}', 'admin', true, true)
+      INSERT INTO users (id, email, password_hash, role, email_verified, onboarding_completed)
+      VALUES ('${adminId}', 'admin@nutritionlab.com', '${adminPassword}', 'admin', true, true)
       ON CONFLICT (email) DO NOTHING
+    `)
+    
+    // Create admin profile
+    await prisma.$executeRawUnsafe(`
+      INSERT INTO admin_profiles (user_id, name, title)
+      VALUES ('${adminId}', 'Admin User', 'System Administrator')
+      ON CONFLICT (user_id) DO NOTHING
     `)
     
     // Create client user  
     const clientPassword = await hash('Client123!', 10)
+    const clientId = 'c0000000-0000-0000-0000-000000000001'
     await prisma.$executeRawUnsafe(`
-      INSERT INTO users (email, password_hash, role, email_verified, onboarding_completed)
-      VALUES ('john.trucker@example.com', '${clientPassword}', 'client', true, true)
+      INSERT INTO users (id, email, password_hash, role, email_verified, onboarding_completed)
+      VALUES ('${clientId}', 'john.trucker@example.com', '${clientPassword}', 'client', true, true)
+      ON CONFLICT (email) DO NOTHING
+    `)
+    
+    // Create client profile
+    await prisma.$executeRawUnsafe(`
+      INSERT INTO client_profiles (user_id, first_name, last_name, phone)
+      VALUES ('${clientId}', 'John', 'Trucker', '555-123-4567')
+      ON CONFLICT (user_id) DO NOTHING
+    `)
+    
+    // Also add to clients table
+    await prisma.$executeRawUnsafe(`
+      INSERT INTO clients (id, email, first_name, last_name, phone)
+      VALUES ('${clientId}', 'john.trucker@example.com', 'John', 'Trucker', '555-123-4567')
       ON CONFLICT (email) DO NOTHING
     `)
     
