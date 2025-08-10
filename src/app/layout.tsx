@@ -15,12 +15,12 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "DestinationHealth - Professional Health Coaching Platform",
+  title: "Nutrition Lab System - Professional Health Coaching Platform",
   description: "Transform your health with evidence-based nutritional guidance and personalized wellness strategies designed for truck drivers and health-conscious individuals.",
   keywords: ["health coaching", "nutrition", "functional medicine", "truck driver health", "wellness", "FNTP"],
   authors: [{ name: "Kevin Rutherford, FNTP" }],
   creator: "Kevin Rutherford, FNTP",
-  publisher: "DestinationHealth",
+  publisher: "Nutrition Lab System",
   formatDetection: {
     email: false,
     address: false,
@@ -28,14 +28,14 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL('https://destinationhealth.com'),
   openGraph: {
-    title: "DestinationHealth - Professional Health Coaching Platform",
+    title: "Nutrition Lab System - Professional Health Coaching Platform",
     description: "Transform your health with evidence-based nutritional guidance and personalized wellness strategies.",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "DestinationHealth - Professional Health Coaching Platform",
+    title: "Nutrition Lab System - Professional Health Coaching Platform",
     description: "Transform your health with evidence-based nutritional guidance and personalized wellness strategies.",
   },
 };

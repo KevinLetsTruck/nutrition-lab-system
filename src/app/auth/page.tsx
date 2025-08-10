@@ -137,10 +137,10 @@ export default function AuthPage() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-6">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-brand">
-              <span className="text-white font-bold text-lg">DH</span>
+              <span className="text-white font-bold text-lg">NL</span>
             </div>
             <span className="text-2xl font-heading font-bold gradient-text">
-              DestinationHealth
+              Nutrition Lab System
             </span>
           </div>
           <h1 className="text-3xl font-heading font-bold text-foreground mb-2">

@@ -57,7 +57,7 @@ export default function ClientSuccessPage() {
               </svg>
             </div>
             <CardTitle className="text-3xl font-bold text-white">
-              Welcome to DestinationHealth!
+              Welcome to Nutrition Lab System!
             </CardTitle>
             <CardDescription className="text-slate-400 text-lg">
               Your onboarding is complete and your health journey begins now
@@ -122,7 +122,7 @@ export default function ClientSuccessPage() {
 
             <div className="text-center space-y-4">
               <p className="text-slate-300">
-                Thank you for choosing DestinationHealth for your health journey!
+                Thank you for choosing Nutrition Lab System for your health journey!
               </p>
               
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
