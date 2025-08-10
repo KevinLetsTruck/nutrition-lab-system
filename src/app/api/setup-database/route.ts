@@ -40,13 +40,16 @@ export async function GET(request: NextRequest) {
       })
     }
     
-    // Tables don't exist - return instruction
-    console.log('Tables do not exist')
+    // Tables don't exist or need updating
+    console.log('Setting up database tables...')
     
-    // Since we can't run prisma commands from within the app,
-    // we'll create the initial admin user manually
     try {
-      console.log('Running Prisma push programmatically...')
+      // Drop existing tables if they exist (for clean setup)
+      await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS client_profiles CASCADE`)
+      await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS clients CASCADE`)
+      await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS users CASCADE`)
+      
+      console.log('Creating tables with correct schema...')
       
       // This will create the tables based on the schema
       await prisma.$executeRawUnsafe(`
@@ -56,6 +59,7 @@ export async function GET(request: NextRequest) {
           password_hash TEXT NOT NULL,
           role TEXT NOT NULL DEFAULT 'CLIENT',
           email_verified BOOLEAN DEFAULT false,
+          onboarding_completed BOOLEAN DEFAULT false,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           last_login TIMESTAMP
