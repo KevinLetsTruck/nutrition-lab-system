@@ -35,107 +35,49 @@ export interface AIAnalysis {
 
 // Lab Reports Queries
 export async function createLabReport(report: Omit<LabReport, 'id' | 'created_at' | 'updated_at'>) {
-  const { data, error } = await supabase
-    .from('lab_reports')
-    .insert(report)
-    .select()
-    .single()
-
-  if (error) throw error
-  return data
+  // TODO: Implement with Prisma
+  throw new Error('createLabReport not implemented with Prisma yet')
 }
 
 export async function getLabReportsByUserId(userId: string) {
-  const { data, error } = await supabase
-    .from('lab_reports')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-
-  if (error) throw error
-  return data
+  // TODO: Implement with Prisma
+  throw new Error('getLabReportsByUserId not implemented with Prisma yet')
 }
 
 export async function getLabReportById(id: string) {
-  const { data, error } = await supabase
-    .from('lab_reports')
-    .select('*')
-    .eq('id', id)
-    .single()
-
-  if (error) throw error
-  return data
+  // TODO: Implement with Prisma
+  throw new Error('getLabReportById not implemented with Prisma yet')
 }
 
 export async function updateLabReportStatus(id: string, status: LabReport['status']) {
-  const { data, error } = await supabase
-    .from('lab_reports')
-    .update({ status })
-    .eq('id', id)
-    .select()
-    .single()
-
-  if (error) throw error
-  return data
+  // TODO: Implement with Prisma
+  throw new Error('updateLabReportStatus not implemented with Prisma yet')
 }
 
 // Lab Results Queries
 export async function createLabResults(results: Omit<LabResult, 'id' | 'created_at'>[]) {
-  const { data, error } = await supabase
-    .from('lab_results')
-    .insert(results)
-    .select()
-
-  if (error) throw error
-  return data
+  // TODO: Implement with Prisma
+  throw new Error('createLabResults not implemented with Prisma yet')
 }
 
 export async function getLabResultsByReportId(reportId: string) {
-  const { data, error } = await supabase
-    .from('lab_results')
-    .select('*')
-    .eq('lab_report_id', reportId)
-    .order('test_name')
-
-  if (error) throw error
-  return data
+  // TODO: Implement with Prisma
+  throw new Error('getLabResultsByReportId not implemented with Prisma yet')
 }
 
 // AI Analysis Queries
 export async function createAIAnalysis(analysis: Omit<AIAnalysis, 'id' | 'created_at'>) {
-  const { data, error } = await supabase
-    .from('ai_analysis')
-    .insert(analysis)
-    .select()
-    .single()
-
-  if (error) throw error
-  return data
+  // TODO: Implement with Prisma
+  throw new Error('createAIAnalysis not implemented with Prisma yet')
 }
 
 export async function getAIAnalysisByReportId(reportId: string) {
-  const { data, error } = await supabase
-    .from('ai_analysis')
-    .select('*')
-    .eq('lab_report_id', reportId)
-    .order('created_at', { ascending: false })
-
-  if (error) throw error
-  return data
+  // TODO: Implement with Prisma
+  throw new Error('getAIAnalysisByReportId not implemented with Prisma yet')
 }
 
 // Combined Queries
 export async function getCompleteLabReport(id: string) {
-  const { data, error } = await supabase
-    .from('lab_reports')
-    .select(`
-      *,
-      lab_results (*),
-      ai_analysis (*)
-    `)
-    .eq('id', id)
-    .single()
-
-  if (error) throw error
-  return data
+  // TODO: Implement with Prisma
+  throw new Error('getCompleteLabReport not implemented with Prisma yet')
 }

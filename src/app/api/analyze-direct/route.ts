@@ -102,6 +102,8 @@ Focus on:
     // If clientId provided, save to database
     if (clientId) {
       try {
+        // TODO: Replace with Prisma
+        /*
         const { data: labReport, error } = await supabase
           .from('lab_reports')
           .insert({
@@ -121,6 +123,8 @@ Focus on:
           console.log('[ANALYZE-DIRECT] Saved to database, ID:', labReport.id)
           result.labReportId = labReport.id
         }
+        */
+        console.log('[ANALYZE-DIRECT] Database save skipped - Supabase code commented out')
       } catch (dbError) {
         console.error('[ANALYZE-DIRECT] Database error:', dbError)
       }

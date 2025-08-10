@@ -1,424 +1,348 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  // directUrl = env("DIRECT_URL") // Only needed for local development
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// User and Authentication Models
 model User {
-  id                   String          @id @default(uuid())
-  email                String          @unique
-  passwordHash         String          @map("password_hash")
-  role                 UserRole        @default(CLIENT)
-  emailVerified        Boolean         @default(false) @map("email_verified")
-  onboardingCompleted  Boolean         @default(false) @map("onboarding_completed")
-  createdAt            DateTime        @default(now()) @map("created_at")
-  updatedAt            DateTime        @updatedAt @map("updated_at")
-  lastLogin            DateTime?       @map("last_login")
-  
-  // Relations
-  clientProfile        ClientProfile?
-  adminProfile         AdminProfile?
-  sessions             UserSession[]
-  emailVerifications   EmailVerification[]
-  notes                Note[]
-  
+  id                  String              @id @default(uuid())
+  email               String              @unique
+  passwordHash        String              @map("password_hash")
+  role                UserRole            @default(CLIENT)
+  emailVerified       Boolean             @default(false) @map("email_verified")
+  onboardingCompleted Boolean             @default(false) @map("onboarding_completed")
+  createdAt           DateTime            @default(now()) @map("created_at")
+  updatedAt           DateTime            @updatedAt @map("updated_at")
+  lastLogin           DateTime?           @map("last_login")
+  adminProfile        AdminProfile?
+  clientProfile       ClientProfile?
+  emailVerifications  EmailVerification[]
+  notes               Note[]
+  sessions            UserSession[]
+
   @@map("users")
 }
 
 model ClientProfile {
-  id                    String         @id @default(uuid())
-  userId                String         @unique @map("user_id")
-  firstName             String         @map("first_name")
-  lastName              String         @map("last_name")
-  phone                 String?
-  onboardingData        Json?          @map("onboarding_data")
-  consultationStatus    String         @default("pending") @map("consultation_status")
-  emailSequenceStatus   String[]       @default([]) @map("email_sequence_status")
-  createdAt             DateTime       @default(now()) @map("created_at")
-  updatedAt             DateTime       @updatedAt @map("updated_at")
-  
-  // Relations
-  user                  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id                  String   @id @default(uuid())
+  userId              String   @unique @map("user_id")
+  firstName           String   @map("first_name")
+  lastName            String   @map("last_name")
+  phone               String?
+  onboardingData      Json?    @map("onboarding_data")
+  consultationStatus  String   @default("pending") @map("consultation_status")
+  emailSequenceStatus String[] @default([]) @map("email_sequence_status")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("client_profiles")
 }
 
 model AdminProfile {
-  id               String         @id @default(uuid())
-  userId           String         @unique @map("user_id")
-  name             String
-  title            String?
-  specializations  String[]
-  clientCapacity   Int            @default(50) @map("client_capacity")
-  activeSessions   Int            @default(0) @map("active_sessions")
-  createdAt        DateTime       @default(now()) @map("created_at")
-  updatedAt        DateTime       @updatedAt @map("updated_at")
-  
-  // Relations
-  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id              String   @id @default(uuid())
+  userId          String   @unique @map("user_id")
+  name            String
+  title           String?
+  specializations String[]
+  clientCapacity  Int      @default(50) @map("client_capacity")
+  activeSessions  Int      @default(0) @map("active_sessions")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("admin_profiles")
 }
 
 model UserSession {
-  id          String    @id @default(uuid())
-  userId      String    @map("user_id")
-  tokenHash   String    @map("token_hash")
-  ipAddress   String?   @map("ip_address")
-  userAgent   String?   @map("user_agent")
-  expiresAt   DateTime  @map("expires_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  
-  // Relations
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  tokenHash String   @map("token_hash")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([expiresAt])
   @@map("user_sessions")
 }
 
 model EmailVerification {
-  id          String    @id @default(uuid())
-  userId      String    @map("user_id")
-  email       String
-  token       String    @unique
-  expiresAt   DateTime  @map("expires_at")
-  used        Boolean   @default(false)
-  createdAt   DateTime  @default(now()) @map("created_at")
-  
-  // Relations
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  email     String
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([token])
   @@index([userId])
   @@map("email_verifications")
 }
 
 model RateLimit {
-  id            String    @id @default(uuid())
-  identifier    String
-  action        String
-  attempts      Int       @default(1)
-  lastAttempt   DateTime  @default(now()) @map("last_attempt")
-  lockedUntil   DateTime? @map("locked_until")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  
+  id          String    @id @default(uuid())
+  identifier  String
+  action      String
+  attempts    Int       @default(1)
+  lastAttempt DateTime  @default(now()) @map("last_attempt")
+  lockedUntil DateTime? @map("locked_until")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
   @@unique([identifier, action])
   @@index([identifier, action])
   @@map("rate_limits")
 }
 
-// Lab Report Models
 model Client {
-  id                  String         @id @default(uuid())
-  email               String         @unique
-  firstName           String         @map("first_name")
-  lastName            String         @map("last_name")
-  dateOfBirth         DateTime?      @map("date_of_birth")
-  phone               String?
-  address             String?
-  emergencyContact    String?        @map("emergency_contact")
-  medicalHistory      String?        @map("medical_history")
-  allergies           String?
-  currentMedications  String?        @map("current_medications")
-  createdAt           DateTime       @default(now()) @map("created_at")
-  updatedAt           DateTime       @updatedAt @map("updated_at")
-  
-  // Relations
-  labReports          LabReport[]
-  aiConversations     AiConversation[]
-  onboardingProgress  OnboardingProgress?
-  clientFiles         ClientFile[]
+  id                      String                   @id @default(uuid())
+  email                   String                   @unique
+  firstName               String                   @map("first_name")
+  lastName                String                   @map("last_name")
+  dateOfBirth             DateTime?                @map("date_of_birth")
+  phone                   String?
+  address                 String?
+  emergencyContact        String?                  @map("emergency_contact")
+  medicalHistory          String?                  @map("medical_history")
+  allergies               String?
+  currentMedications      String?                  @map("current_medications")
+  createdAt               DateTime                 @default(now()) @map("created_at")
+  updatedAt               DateTime                 @updatedAt @map("updated_at")
+  aiConversations         AiConversation[]
+  cgmData                 CgmData[]
+  clientFiles             ClientFile[]
+  comprehensiveAnalyses   ComprehensiveAnalysis[]
+  labComparisons          LabComparison[]
+  labProtocols            LabProtocol[]
+  labReports              LabReport[]
+  labResults              LabResult[]
+  notes                   Note[]
+  onboardingProgress      OnboardingProgress?
+  progressTracking        ProgressTracking[]
   protocolRecommendations ProtocolRecommendation[]
-  notes               Note[]
-  
-  // Lab Analysis Relations
-  labResults           LabResult[]
-  labProtocols         LabProtocol[]
-  cgmData              CgmData[]
-  labComparisons       LabComparison[]
-  progressTracking     ProgressTracking[]
-  comprehensiveAnalyses ComprehensiveAnalysis[]
-  
+
   @@map("clients")
 }
 
 model LabReport {
-  id                String            @id @default(uuid())
-  clientId          String            @map("client_id")
-  reportType        ReportType        @map("report_type")
-  reportDate        DateTime          @map("report_date")
-  status            ProcessingStatus  @default(PENDING)
-  filePath          String?           @map("file_path")
-  fileSize          Int?              @map("file_size")
-  analysisResults   Json?             @map("analysis_results")
-  notes             String?
-  createdAt         DateTime          @default(now()) @map("created_at")
-  updatedAt         DateTime          @updatedAt @map("updated_at")
-  
-  // Relations
-  client            Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  nutriqResult      NutriqResult?
-  
+  id              String           @id @default(uuid())
+  clientId        String           @map("client_id")
+  reportType      ReportType       @map("report_type")
+  reportDate      DateTime         @map("report_date")
+  status          ProcessingStatus @default(PENDING)
+  filePath        String?          @map("file_path")
+  fileSize        Int?             @map("file_size")
+  analysisResults Json?            @map("analysis_results")
+  notes           String?
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  client          Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  nutriqResult    NutriqResult?
+
   @@index([clientId])
   @@index([reportType])
   @@index([status])
   @@map("lab_reports")
 }
 
-// Additional Models found in codebase
-
 model NutriqResult {
-  id                String      @id @default(uuid())
-  labReportId       String      @unique @map("lab_report_id")
-  overallScore      Float?      @map("overall_score")
-  systemScores      Json?       @map("system_scores")
-  deficiencies      Json?
-  recommendations   Json?
-  createdAt         DateTime    @default(now()) @map("created_at")
-  updatedAt         DateTime    @updatedAt @map("updated_at")
-  
-  // Relations
-  labReport         LabReport   @relation(fields: [labReportId], references: [id], onDelete: Cascade)
-  
+  id              String    @id @default(uuid())
+  labReportId     String    @unique @map("lab_report_id")
+  overallScore    Float?    @map("overall_score")
+  systemScores    Json?     @map("system_scores")
+  deficiencies    Json?
+  recommendations Json?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  labReport       LabReport @relation(fields: [labReportId], references: [id], onDelete: Cascade)
+
   @@map("nutriq_results")
 }
 
 model AiConversation {
-  id                String      @id @default(uuid())
-  clientId          String      @map("client_id")
-  assessmentType    String      @map("assessment_type")
-  status            String      @default("active")
-  startedAt         DateTime    @default(now()) @map("started_at")
-  completedAt       DateTime?   @map("completed_at")
-  metadata          Json?
-  createdAt         DateTime    @default(now()) @map("created_at")
-  updatedAt         DateTime    @updatedAt @map("updated_at")
-  
-  // Relations
-  client            Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  messages          ConversationMessage[]
-  analyses          ConversationAnalysis[]
-  
+  id             String                 @id @default(uuid())
+  clientId       String                 @map("client_id")
+  assessmentType String                 @map("assessment_type")
+  status         String                 @default("active")
+  startedAt      DateTime               @default(now()) @map("started_at")
+  completedAt    DateTime?              @map("completed_at")
+  metadata       Json?
+  createdAt      DateTime               @default(now()) @map("created_at")
+  updatedAt      DateTime               @updatedAt @map("updated_at")
+  client         Client                 @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  analyses       ConversationAnalysis[]
+  messages       ConversationMessage[]
+
   @@index([clientId])
   @@index([assessmentType])
   @@map("ai_conversations")
 }
 
 model ConversationMessage {
-  id                    String      @id @default(uuid())
-  conversationId        String      @map("conversation_id")
-  content              String
-  structuredResponse   Json?       @map("structured_response")
-  questionId           String?     @map("question_id")
-  section              String?
-  role                 String      @default("user")
-  createdAt            DateTime    @default(now()) @map("created_at")
-  
-  // Relations
-  conversation         AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  
+  id                 String         @id @default(uuid())
+  conversationId     String         @map("conversation_id")
+  content            String
+  structuredResponse Json?          @map("structured_response")
+  questionId         String?        @map("question_id")
+  section            String?
+  role               String         @default("user")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  conversation       AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
   @@index([conversationId])
   @@map("conversation_messages")
 }
 
 model ConversationAnalysis {
-  id                String      @id @default(uuid())
-  conversationId    String      @map("conversation_id")
-  analysisType      String      @map("analysis_type")
-  results           Json
-  createdAt         DateTime    @default(now()) @map("created_at")
-  
-  // Relations
-  conversation      AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  
+  id             String         @id @default(uuid())
+  conversationId String         @map("conversation_id")
+  analysisType   String         @map("analysis_type")
+  results        Json
+  createdAt      DateTime       @default(now()) @map("created_at")
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
   @@index([conversationId])
   @@map("conversation_analysis")
 }
 
 model OnboardingSession {
-  id                String      @id @default(uuid())
-  token             String      @unique
-  email             String
-  firstName         String?     @map("first_name")
-  lastName          String?     @map("last_name")
-  currentStep       Int         @default(1) @map("current_step")
-  sessionData       Json?       @map("session_data")
-  expiresAt         DateTime    @map("expires_at")
-  completedAt       DateTime?   @map("completed_at")
-  createdAt         DateTime    @default(now()) @map("created_at")
-  updatedAt         DateTime    @updatedAt @map("updated_at")
-  
+  id          String    @id @default(uuid())
+  token       String    @unique
+  email       String
+  firstName   String?   @map("first_name")
+  lastName    String?   @map("last_name")
+  currentStep Int       @default(1) @map("current_step")
+  sessionData Json?     @map("session_data")
+  expiresAt   DateTime  @map("expires_at")
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
   @@index([token])
   @@index([email])
   @@map("onboarding_sessions")
 }
 
 model OnboardingProgress {
-  id                String      @id @default(uuid())
-  clientId          String      @unique @map("client_id")
-  stepsCompleted    String[]    @default([]) @map("steps_completed")
-  currentStep       String?     @map("current_step")
-  progressData      Json?       @map("progress_data")
-  completedAt       DateTime?   @map("completed_at")
-  createdAt         DateTime    @default(now()) @map("created_at")
-  updatedAt         DateTime    @updatedAt @map("updated_at")
-  
-  // Relations
-  client            Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  
+  id             String    @id @default(uuid())
+  clientId       String    @unique @map("client_id")
+  stepsCompleted String[]  @default([]) @map("steps_completed")
+  currentStep    String?   @map("current_step")
+  progressData   Json?     @map("progress_data")
+  completedAt    DateTime? @map("completed_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  client         Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
   @@map("onboarding_progress")
 }
 
 model ClientFile {
-  id                String      @id @default(uuid())
-  clientId          String      @map("client_id")
-  fileName          String      @map("file_name")
-  fileType          String      @map("file_type")
-  fileSize          Int         @map("file_size")
-  storageUrl        String      @map("storage_url")
-  publicUrl         String?     @map("public_url")
-  metadata          Json?
-  uploadedAt        DateTime    @default(now()) @map("uploaded_at")
-  createdAt         DateTime    @default(now()) @map("created_at")
-  
-  // Relations
-  client            Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  
+  id         String   @id @default(uuid())
+  clientId   String   @map("client_id")
+  fileName   String   @map("file_name")
+  fileType   String   @map("file_type")
+  fileSize   Int      @map("file_size")
+  storageUrl String   @map("storage_url")
+  publicUrl  String?  @map("public_url")
+  metadata   Json?
+  uploadedAt DateTime @default(now()) @map("uploaded_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  client     Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
   @@index([clientId])
   @@map("client_files")
 }
 
 model ProtocolRecommendation {
-  id                String      @id @default(uuid())
-  clientId          String      @map("client_id")
-  protocolType      String      @map("protocol_type")
-  recommendations   Json
-  priority          Int         @default(0)
-  status            String      @default("pending")
-  createdAt         DateTime    @default(now()) @map("created_at")
-  updatedAt         DateTime    @updatedAt @map("updated_at")
-  
-  // Relations
-  client            Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  
+  id              String   @id @default(uuid())
+  clientId        String   @map("client_id")
+  protocolType    String   @map("protocol_type")
+  recommendations Json
+  priority        Int      @default(0)
+  status          String   @default("pending")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
   @@index([clientId])
   @@map("protocol_recommendations")
 }
 
 model Note {
-  id                String      @id @default(uuid())
-  clientId          String      @map("client_id")
-  authorId          String      @map("author_id")
-  content           String
-  category          String?
-  isPrivate         Boolean     @default(false) @map("is_private")
-  createdAt         DateTime    @default(now()) @map("created_at")
-  updatedAt         DateTime    @updatedAt @map("updated_at")
-  
-  // Relations
-  client            Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  author            User        @relation(fields: [authorId], references: [id])
-  
+  id        String   @id @default(uuid())
+  clientId  String   @map("client_id")
+  authorId  String   @map("author_id")
+  content   String
+  category  String?
+  isPrivate Boolean  @default(false) @map("is_private")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  author    User     @relation(fields: [authorId], references: [id])
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
   @@index([clientId])
   @@index([authorId])
   @@map("notes")
 }
 
-// Enums
-enum UserRole {
-  CLIENT @map("client")
-  ADMIN  @map("admin")
-  
-  @@map("user_role")
-}
-
-enum ReportType {
-  NUTRIQ      @map("nutriq")
-  KBMO        @map("kbmo")
-  DUTCH       @map("dutch")
-  CGM         @map("cgm")
-  FOOD_PHOTO  @map("food_photo")
-  FIT_TEST    @map("fit_test")
-  STOOL_TEST  @map("stool_test")
-  BLOOD_TEST  @map("blood_test")
-  GENERAL     @map("general")
-  
-  @@map("report_type")
-}
-
-enum ProcessingStatus {
-  PENDING     @map("pending")
-  PROCESSING  @map("processing")
-  COMPLETED   @map("completed")
-  FAILED      @map("failed")
-  
-  @@map("processing_status")
-}
-
-// Lab Analysis System Models
 model LabTestCatalog {
-  id                    String          @id @default(uuid())
-  testCode              String          @unique @map("test_code")
-  testName              String          @map("test_name")
-  category              String          // metabolic, hormones, inflammation, nutritional, functional
-  subcategory           String?
-  unit                  String?
-  standardRangeLow      Float?          @map("standard_range_low")
-  standardRangeHigh     Float?          @map("standard_range_high")
-  optimalRangeLow       Float?          @map("optimal_range_low")
-  optimalRangeHigh      Float?          @map("optimal_range_high")
-  truckDriverRangeLow   Float?          @map("truck_driver_range_low")
-  truckDriverRangeHigh  Float?          @map("truck_driver_range_high")
-  criticalLow           Float?          @map("critical_low")
-  criticalHigh          Float?          @map("critical_high")
-  description           String?         @db.Text
-  clinicalSignificance  String?         @map("clinical_significance") @db.Text
-  truckDriverConsiderations String?     @map("truck_driver_considerations") @db.Text
-  relatedPatterns       String[]        @map("related_patterns")
-  interpretationNotes   Json?           @map("interpretation_notes")
-  createdAt             DateTime        @default(now()) @map("created_at")
-  updatedAt             DateTime        @updatedAt @map("updated_at")
-  
-  // Relations
-  labValues             LabValue[]
-  labComparisons        LabComparison[]
-  
+  id                        String          @id @default(uuid())
+  testCode                  String          @unique @map("test_code")
+  testName                  String          @map("test_name")
+  category                  String
+  subcategory               String?
+  unit                      String?
+  standardRangeLow          Float?          @map("standard_range_low")
+  standardRangeHigh         Float?          @map("standard_range_high")
+  optimalRangeLow           Float?          @map("optimal_range_low")
+  optimalRangeHigh          Float?          @map("optimal_range_high")
+  truckDriverRangeLow       Float?          @map("truck_driver_range_low")
+  truckDriverRangeHigh      Float?          @map("truck_driver_range_high")
+  criticalLow               Float?          @map("critical_low")
+  criticalHigh              Float?          @map("critical_high")
+  description               String?
+  clinicalSignificance      String?         @map("clinical_significance")
+  truckDriverConsiderations String?         @map("truck_driver_considerations")
+  relatedPatterns           String[]        @map("related_patterns")
+  interpretationNotes       Json?           @map("interpretation_notes")
+  createdAt                 DateTime        @default(now()) @map("created_at")
+  updatedAt                 DateTime        @updatedAt @map("updated_at")
+  labComparisons            LabComparison[]
+  labValues                 LabValue[]
+
   @@map("lab_test_catalog")
 }
 
 model LabResult {
-  id                    String          @id @default(uuid())
-  clientId              String          @map("client_id")
-  labName               String?         @map("lab_name")
-  collectionDate        DateTime?       @map("collection_date")
-  reportDate            DateTime?       @map("report_date")
-  fileUrl               String?         @map("file_url") @db.Text
-  fileType              String?         @map("file_type")
-  processingStatus      String          @default("pending") @map("processing_status")
-  processingError       String?         @map("processing_error") @db.Text
-  rawText               String?         @map("raw_text") @db.Text
-  structuredData        Json?           @map("structured_data")
-  aiAnalysis            Json?           @map("ai_analysis")
-  detectedPatterns      Json[]          @map("detected_patterns")
-  confidenceScores      Json?           @map("confidence_scores")
-  createdAt             DateTime        @default(now()) @map("created_at")
-  updatedAt             DateTime        @updatedAt @map("updated_at")
-  
-  // Relations
-  client                Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  labValues             LabValue[]
-  labPatterns           LabPattern[]
-  labProtocols          LabProtocol[]
-  
+  id               String        @id @default(uuid())
+  clientId         String        @map("client_id")
+  labName          String?       @map("lab_name")
+  collectionDate   DateTime?     @map("collection_date")
+  reportDate       DateTime?     @map("report_date")
+  fileUrl          String?       @map("file_url")
+  fileType         String?       @map("file_type")
+  processingStatus String        @default("pending") @map("processing_status")
+  processingError  String?       @map("processing_error")
+  rawText          String?       @map("raw_text")
+  structuredData   Json?         @map("structured_data")
+  aiAnalysis       Json?         @map("ai_analysis")
+  detectedPatterns Json[]        @map("detected_patterns")
+  confidenceScores Json?         @map("confidence_scores")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+  labPatterns      LabPattern[]
+  labProtocols     LabProtocol[]
+  client           Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  labValues        LabValue[]
+
   @@index([clientId])
   @@index([processingStatus])
   @@index([collectionDate])
@@ -426,213 +350,224 @@ model LabResult {
 }
 
 model LabValue {
-  id                    String          @id @default(uuid())
-  labResultId           String          @map("lab_result_id")
-  testCatalogId         String?         @map("test_catalog_id")
-  testName              String          @map("test_name")
-  value                 Float?
-  valueText             String?         @map("value_text")
-  unit                  String?
-  referenceRange        String?         @map("reference_range")
-  flag                  String?
-  isOptimal             Boolean?        @map("is_optimal")
-  isTruckDriverOptimal  Boolean?        @map("is_truck_driver_optimal")
-  interpretation        String?         @db.Text
-  createdAt             DateTime        @default(now()) @map("created_at")
-  
-  // Relations
-  labResult             LabResult       @relation(fields: [labResultId], references: [id], onDelete: Cascade)
-  testCatalog           LabTestCatalog? @relation(fields: [testCatalogId], references: [id])
-  
+  id                   String          @id @default(uuid())
+  labResultId          String          @map("lab_result_id")
+  testCatalogId        String?         @map("test_catalog_id")
+  testName             String          @map("test_name")
+  value                Float?
+  valueText            String?         @map("value_text")
+  unit                 String?
+  referenceRange       String?         @map("reference_range")
+  flag                 String?
+  isOptimal            Boolean?        @map("is_optimal")
+  isTruckDriverOptimal Boolean?        @map("is_truck_driver_optimal")
+  interpretation       String?
+  createdAt            DateTime        @default(now()) @map("created_at")
+  labResult            LabResult       @relation(fields: [labResultId], references: [id], onDelete: Cascade)
+  testCatalog          LabTestCatalog? @relation(fields: [testCatalogId], references: [id])
+
   @@index([labResultId])
   @@index([testCatalogId])
   @@map("lab_values")
 }
 
 model LabPattern {
-  id                    String          @id @default(uuid())
-  labResultId           String          @map("lab_result_id")
-  patternName           String          @map("pattern_name")
-  patternCategory       String          @map("pattern_category")
-  confidenceScore       Float           @map("confidence_score")
-  supportingMarkers     Json[]          @map("supporting_markers")
-  clinicalSignificance  String?         @map("clinical_significance") @db.Text
-  truckDriverImpact     String?         @map("truck_driver_impact") @db.Text
-  priorityLevel         String          @map("priority_level")
-  createdAt             DateTime        @default(now()) @map("created_at")
-  
-  // Relations
-  labResult             LabResult       @relation(fields: [labResultId], references: [id], onDelete: Cascade)
-  
+  id                   String    @id @default(uuid())
+  labResultId          String    @map("lab_result_id")
+  patternName          String    @map("pattern_name")
+  patternCategory      String    @map("pattern_category")
+  confidenceScore      Float     @map("confidence_score")
+  supportingMarkers    Json[]    @map("supporting_markers")
+  clinicalSignificance String?   @map("clinical_significance")
+  truckDriverImpact    String?   @map("truck_driver_impact")
+  priorityLevel        String    @map("priority_level")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  labResult            LabResult @relation(fields: [labResultId], references: [id], onDelete: Cascade)
+
   @@index([labResultId])
   @@index([patternName])
   @@map("lab_patterns")
 }
 
 model LabProtocol {
-  id                    String          @id @default(uuid())
-  labResultId           String          @map("lab_result_id")
-  clientId              String          @map("client_id")
-  protocolType          String          @map("protocol_type")
-  priority              String
-  title                 String
-  description           String?         @db.Text
-  specificRecommendations Json[]        @map("specific_recommendations")
-  supplementProtocol    Json?           @map("supplement_protocol")
-  dietaryModifications  Json?           @map("dietary_modifications")
-  lifestyleInterventions Json?          @map("lifestyle_interventions")
-  retestSchedule        Json?           @map("retest_schedule")
-  truckDriverAdaptations String?        @map("truck_driver_adaptations") @db.Text
-  createdAt             DateTime        @default(now()) @map("created_at")
-  
-  // Relations
-  labResult             LabResult       @relation(fields: [labResultId], references: [id], onDelete: Cascade)
-  client                Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  
+  id                      String    @id @default(uuid())
+  labResultId             String    @map("lab_result_id")
+  clientId                String    @map("client_id")
+  protocolType            String    @map("protocol_type")
+  priority                String
+  title                   String
+  description             String?
+  specificRecommendations Json[]    @map("specific_recommendations")
+  supplementProtocol      Json?     @map("supplement_protocol")
+  dietaryModifications    Json?     @map("dietary_modifications")
+  lifestyleInterventions  Json?     @map("lifestyle_interventions")
+  retestSchedule          Json?     @map("retest_schedule")
+  truckDriverAdaptations  String?   @map("truck_driver_adaptations")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  client                  Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  labResult               LabResult @relation(fields: [labResultId], references: [id], onDelete: Cascade)
+
   @@index([clientId])
   @@map("lab_protocols")
 }
 
 model CgmData {
-  id                    String          @id @default(uuid())
-  clientId              String          @map("client_id")
-  deviceType            String?         @map("device_type")
-  readingDatetime       DateTime        @map("reading_datetime")
-  glucoseValue          Int             @map("glucose_value")
-  trendArrow            String?         @map("trend_arrow")
-  mealTag               String?         @map("meal_tag")
-  notes                 String?         @db.Text
-  screenshotUrl         String?         @map("screenshot_url") @db.Text
-  extractedFromImage    Boolean         @default(false) @map("extracted_from_image")
-  createdAt             DateTime        @default(now()) @map("created_at")
-  
-  // Relations
-  client                Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  
+  id                 String   @id @default(uuid())
+  clientId           String   @map("client_id")
+  deviceType         String?  @map("device_type")
+  readingDatetime    DateTime @map("reading_datetime")
+  glucoseValue       Int      @map("glucose_value")
+  trendArrow         String?  @map("trend_arrow")
+  mealTag            String?  @map("meal_tag")
+  notes              String?
+  screenshotUrl      String?  @map("screenshot_url")
+  extractedFromImage Boolean  @default(false) @map("extracted_from_image")
+  createdAt          DateTime @default(now()) @map("created_at")
+  client             Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
   @@index([clientId])
   @@index([readingDatetime])
   @@map("cgm_data")
 }
 
 model LabComparison {
-  id                    String          @id @default(uuid())
-  clientId              String          @map("client_id")
-  testCatalogId         String          @map("test_catalog_id")
-  previousValue         Float           @map("previous_value")
-  previousDate          DateTime        @map("previous_date")
-  currentValue          Float           @map("current_value")
-  currentDate           DateTime        @map("current_date")
-  changeAmount          Float           @map("change_amount")
-  changePercentage      Float           @map("change_percentage")
-  trend                 String
-  rateOfChange          Float           @map("rate_of_change")
-  clinicalSignificance  String?         @map("clinical_significance") @db.Text
-  createdAt             DateTime        @default(now()) @map("created_at")
-  
-  // Relations
-  client                Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  testCatalog           LabTestCatalog  @relation(fields: [testCatalogId], references: [id])
-  
+  id                   String         @id @default(uuid())
+  clientId             String         @map("client_id")
+  testCatalogId        String         @map("test_catalog_id")
+  previousValue        Float          @map("previous_value")
+  previousDate         DateTime       @map("previous_date")
+  currentValue         Float          @map("current_value")
+  currentDate          DateTime       @map("current_date")
+  changeAmount         Float          @map("change_amount")
+  changePercentage     Float          @map("change_percentage")
+  trend                String
+  rateOfChange         Float          @map("rate_of_change")
+  clinicalSignificance String?        @map("clinical_significance")
+  createdAt            DateTime       @default(now()) @map("created_at")
+  client               Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  testCatalog          LabTestCatalog @relation(fields: [testCatalogId], references: [id])
+
   @@index([clientId, testCatalogId])
   @@map("lab_comparisons")
 }
 
 model PatternLibrary {
-  id                    String          @id @default(uuid())
-  patternName           String          @unique @map("pattern_name")
-  patternCategory       String          @map("pattern_category")
-  description           String?         @db.Text
-  requiredMarkers       String[]        @map("required_markers")
-  optionalMarkers       String[]        @map("optional_markers")
-  detectionRules        Json            @map("detection_rules")
-  clinicalInterpretation String?        @map("clinical_interpretation") @db.Text
-  functionalMedicineApproach String?    @map("functional_medicine_approach") @db.Text
-  truckDriverConsiderations String?     @map("truck_driver_considerations") @db.Text
-  interventionPriority  String          @map("intervention_priority")
-  createdAt             DateTime        @default(now()) @map("created_at")
-  updatedAt             DateTime        @updatedAt @map("updated_at")
-  
+  id                         String   @id @default(uuid())
+  patternName                String   @unique @map("pattern_name")
+  patternCategory            String   @map("pattern_category")
+  description                String?
+  requiredMarkers            String[] @map("required_markers")
+  optionalMarkers            String[] @map("optional_markers")
+  detectionRules             Json     @map("detection_rules")
+  clinicalInterpretation     String?  @map("clinical_interpretation")
+  functionalMedicineApproach String?  @map("functional_medicine_approach")
+  truckDriverConsiderations  String?  @map("truck_driver_considerations")
+  interventionPriority       String   @map("intervention_priority")
+  createdAt                  DateTime @default(now()) @map("created_at")
+  updatedAt                  DateTime @updatedAt @map("updated_at")
+
   @@map("pattern_library")
 }
 
-// Comprehensive Analysis Models
 model ComprehensiveAnalysis {
-  id                    String          @id @default(uuid())
-  clientId              String          @map("client_id")
-  analysisDate          DateTime        @default(now()) @map("analysis_date")
-  rootCauses            Json            @map("root_causes")
-  systemsPriority       Json            @map("systems_priority")
-  progressComparison    Json?           @map("progress_comparison")
-  supplementProtocol    Json            @map("supplement_protocol")
-  treatmentPhases       Json            @map("treatment_phases")
-  urgentConcerns        String[]        @map("urgent_concerns")
-  successMetrics        Json?           @map("success_metrics")
-  practitionerNotes     String?         @map("practitioner_notes") @db.Text
-  createdAt             DateTime        @default(now()) @map("created_at")
-  updatedAt             DateTime        @updatedAt @map("updated_at")
-  
-  // Relations
-  client                Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  id                        String                     @id @default(uuid())
+  clientId                  String                     @map("client_id")
+  analysisDate              DateTime                   @default(now()) @map("analysis_date")
+  rootCauses                Json                       @map("root_causes")
+  systemsPriority           Json                       @map("systems_priority")
+  progressComparison        Json?                      @map("progress_comparison")
+  supplementProtocol        Json                       @map("supplement_protocol")
+  treatmentPhases           Json                       @map("treatment_phases")
+  urgentConcerns            String[]                   @map("urgent_concerns")
+  successMetrics            Json?                      @map("success_metrics")
+  practitionerNotes         String?                    @map("practitioner_notes")
+  createdAt                 DateTime                   @default(now()) @map("created_at")
+  updatedAt                 DateTime                   @updatedAt @map("updated_at")
+  analysisArtifacts         AnalysisArtifact[]
+  client                    Client                     @relation(fields: [clientId], references: [id], onDelete: Cascade)
   supplementRecommendations SupplementRecommendation[]
-  analysisArtifacts     AnalysisArtifact[]
-  
+
   @@index([clientId])
   @@index([analysisDate])
   @@map("comprehensive_analyses")
 }
 
 model SupplementRecommendation {
-  id                    String          @id @default(uuid())
-  analysisId            String          @map("analysis_id")
-  supplementName        String          @map("supplement_name")
-  dosage                String?
-  timing                String?
-  source                String?
-  productUrl            String?         @map("product_url") @db.Text
-  monthlyCost           Float?          @map("monthly_cost")
-  phase                 Int?
-  rationale             String?         @db.Text
-  truckCompatible       Boolean         @default(true) @map("truck_compatible")
-  instructions          String?         @db.Text
-  practitionerCode      String?         @map("practitioner_code")
-  inStock               Boolean         @default(true) @map("in_stock")
-  createdAt             DateTime        @default(now()) @map("created_at")
-  
-  // Relations
-  analysis              ComprehensiveAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
-  
+  id               String                @id @default(uuid())
+  analysisId       String                @map("analysis_id")
+  supplementName   String                @map("supplement_name")
+  dosage           String?
+  timing           String?
+  source           String?
+  productUrl       String?               @map("product_url")
+  monthlyCost      Float?                @map("monthly_cost")
+  phase            Int?
+  rationale        String?
+  truckCompatible  Boolean               @default(true) @map("truck_compatible")
+  instructions     String?
+  practitionerCode String?               @map("practitioner_code")
+  inStock          Boolean               @default(true) @map("in_stock")
+  createdAt        DateTime              @default(now()) @map("created_at")
+  analysis         ComprehensiveAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
   @@index([analysisId])
   @@map("supplement_recommendations")
 }
 
 model ProgressTracking {
-  id                    String          @id @default(uuid())
-  clientId              String          @map("client_id")
-  trackingDate          DateTime        @map("tracking_date")
-  metricType            String          @map("metric_type")
-  metricValue           Float           @map("metric_value")
-  metricNotes           String?         @map("metric_notes") @db.Text
-  createdAt             DateTime        @default(now()) @map("created_at")
-  
-  // Relations
-  client                Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  
+  id           String   @id @default(uuid())
+  clientId     String   @map("client_id")
+  trackingDate DateTime @map("tracking_date")
+  metricType   String   @map("metric_type")
+  metricValue  Float    @map("metric_value")
+  metricNotes  String?  @map("metric_notes")
+  createdAt    DateTime @default(now()) @map("created_at")
+  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
   @@index([clientId])
   @@index([trackingDate])
   @@map("progress_tracking")
 }
 
 model AnalysisArtifact {
-  id                    String          @id @default(uuid())
-  analysisId            String          @map("analysis_id")
-  artifactType          String          @map("artifact_type")
-  content               String          @db.Text
-  fileName              String?         @map("file_name")
-  createdAt             DateTime        @default(now()) @map("created_at")
-  
-  // Relations
-  analysis              ComprehensiveAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
-  
+  id           String                @id @default(uuid())
+  analysisId   String                @map("analysis_id")
+  artifactType String                @map("artifact_type")
+  content      String
+  fileName     String?               @map("file_name")
+  createdAt    DateTime              @default(now()) @map("created_at")
+  analysis     ComprehensiveAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
   @@index([analysisId])
   @@map("analysis_artifacts")
+}
+
+enum UserRole {
+  CLIENT @map("client")
+  ADMIN  @map("admin")
+
+  @@map("user_role")
+}
+
+enum ReportType {
+  NUTRIQ     @map("nutriq")
+  KBMO       @map("kbmo")
+  DUTCH      @map("dutch")
+  CGM        @map("cgm")
+  FOOD_PHOTO @map("food_photo")
+  FIT_TEST   @map("fit_test")
+  STOOL_TEST @map("stool_test")
+  BLOOD_TEST @map("blood_test")
+  GENERAL    @map("general")
+
+  @@map("report_type")
+}
+
+enum ProcessingStatus {
+  PENDING    @map("pending")
+  PROCESSING @map("processing")
+  COMPLETED  @map("completed")
+  FAILED     @map("failed")
+
+  @@map("processing_status")
 }
