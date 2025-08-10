@@ -17,8 +17,8 @@ echo "   If not, run: railway login"
 # Set the environment variables
 echo "⚙️  Setting DATABASE_URL with connection pooling and DIRECT_URL..."
 railway variables \
-  --set "DATABASE_URL=postgresql://postgres:XglbRYGHA8h8pw80@db.ajwudhwruxxdshqjeqij.supabase.co:5432/postgres?pgbouncer=true&sslmode=require&connect_timeout=30&statement_timeout=30000&pool_timeout=30" \
-  --set "DIRECT_URL=postgresql://postgres:XglbRYGHA8h8pw80@db.ajwudhwruxxdshqjeqij.supabase.co:5432/postgres"
+  --set "DATABASE_URL=postgresql://neondb_owner:npg_x3p0OaeAkjYN@ep-odd-unit-afkqrpp6-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require" \
+  --set "DIRECT_URL=postgresql://neondb_owner:npg_x3p0OaeAkjYN@ep-odd-unit-afkqrpp6.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require"
 
 echo "✅ Environment variables updated!"
 echo ""
