@@ -28,10 +28,10 @@ function getOptimizedDatabaseUrl(): string | undefined {
     return undefined
   }
   
-  // During build, skip database URL optimization
-  if (process.env.NEXT_PHASE === 'phase-production-build') {
-    console.log('⚠️  Build phase detected - skipping database connection')
-    return undefined
+  // During build, return dummy URL
+  if (process.env.NEXT_PHASE === 'phase-production-build' || url.includes('dummy')) {
+    console.log('⚠️  Build phase detected - using dummy database URL')
+    return 'postgresql://dummy:dummy@localhost:5432/dummy?sslmode=disable'
   }
   
   try {
@@ -57,12 +57,13 @@ function getOptimizedDatabaseUrl(): string | undefined {
 }
 
 // Configure Prisma options for Railway
+const optimizedUrl = getOptimizedDatabaseUrl()
 const prismaOptions: Prisma.PrismaClientOptions = {
-  datasources: process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('dummy') ? {
+  datasources: {
     db: {
-      url: getOptimizedDatabaseUrl()!
+      url: optimizedUrl || 'postgresql://dummy:dummy@localhost:5432/dummy?sslmode=disable'
     }
-  } : undefined,
+  },
   log: logLevels,
   errorFormat: process.env.NODE_ENV === 'development' ? 'pretty' : 'minimal',
 }
@@ -146,6 +147,13 @@ class PrismaClientWithRetry extends PrismaClient {
   
   // Custom connect method with health check
   async connect(): Promise<void> {
+    // Skip connection during build
+    const url = getOptimizedDatabaseUrl()
+    if (url?.includes('dummy')) {
+      console.log('⚠️  Skipping database connection (build phase)')
+      return
+    }
+    
     const startTime = Date.now()
     try {
       await this.$connect()
@@ -213,6 +221,12 @@ async function handleConnection() {
   
   if (!databaseUrl) {
     throw new Error('DATABASE_URL environment variable is not set')
+  }
+  
+  // Skip during build phase
+  if (databaseUrl.includes('dummy')) {
+    console.log('⚠️  Build phase detected - skipping database connection')
+    return
   }
   
   if (databaseUrl) {
