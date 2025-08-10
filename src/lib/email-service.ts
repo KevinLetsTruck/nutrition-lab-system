@@ -29,7 +29,8 @@ export interface EmailSequence {
 }
 
 export class EmailService {
-  private supabase = createServerSupabaseClient()
+  // private supabase = createServerSupabaseClient() // TODO: Replace with Prisma
+  private supabase: any = null
 
   // Email verification
   async sendVerificationEmail(email: string, token: string, firstName: string): Promise<boolean> {
