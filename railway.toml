@@ -1,7 +1,9 @@
 [build]
 builder = "NIXPACKS"
+buildCommand = "npm ci && npx prisma generate && npx prisma db push && npm run build"
 
 [deploy]
+startCommand = "npm run start"
 healthcheckPath = "/api/health-check"
 healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"

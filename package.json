@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "postbuild": "echo 'Database setup will be run separately'",
-    "start": "node scripts/check-and-setup-db.js && next start",
+    "start": "next start",
     "start:simple": "next start",
     "lint": "next lint",
     "db:query": "node scripts/query-runner.js",
