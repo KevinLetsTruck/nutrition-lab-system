@@ -48,15 +48,17 @@ export async function GET(request: NextRequest) {
       )
     `)
     
-    // Create client_profiles table with all expected columns
+    // Create client_profiles table with ALL expected columns from Prisma schema
     await prisma.$executeRawUnsafe(`
       CREATE TABLE client_profiles (
         id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-        user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        user_id TEXT UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         first_name TEXT NOT NULL,
         last_name TEXT NOT NULL,
         phone TEXT,
         onboarding_data JSONB,
+        consultation_status TEXT DEFAULT 'pending',
+        email_sequence_status TEXT[] DEFAULT '{}',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
