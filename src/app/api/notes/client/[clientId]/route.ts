@@ -4,7 +4,7 @@ import { getServerSession } from '@/lib/auth'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { clientId: string } }
+  { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
     // Check authentication
@@ -13,7 +13,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { clientId } = params
+    const { clientId } = await params
 
     // Fetch client data
     const client = await prisma.client.findUnique({
