@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AuthService } from '@/lib/auth-service'
 import { EmailService } from '@/lib/email-service'
-import { createServerSupabaseClient } from '@/lib/supabase'
+
 import { getServerSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
@@ -15,7 +15,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     
-    const supabase = createServerSupabaseClient()
     const authService = new AuthService()
     const emailService = new EmailService()
 
@@ -101,23 +100,10 @@ export async function POST(request: NextRequest) {
 
       const userId = result.user.id
 
-      // Upload files if provided
+      // TODO: Implement file upload with new storage solution
+      // For now, file uploads are disabled
       if (files.length > 0) {
-        for (const file of files) {
-          try {
-            const fileName = `${userId}/${Date.now()}-${file.name}`
-            const { error: uploadError } = await supabase.storage
-              .from('client-files')
-              .upload(fileName, file)
-
-            if (uploadError) {
-              console.error('Error uploading file:', uploadError)
-              // Continue with other files even if one fails
-            }
-          } catch (error) {
-            console.error('Error processing file upload:', error)
-          }
-        }
+        console.log(`Skipping upload of ${files.length} files - storage not implemented yet`)
       }
 
       // Send welcome email with login credentials

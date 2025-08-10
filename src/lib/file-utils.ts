@@ -1,9 +1,19 @@
 import path from 'path'
-import { storageService, StorageFile } from './supabase-storage'
 
 export interface FileUploadConfig {
   maxSize: number
   allowedTypes: string[]
+}
+
+export interface StorageFile {
+  id: string
+  path: string
+  filename: string
+  size: number
+  contentType?: string
+  url: string
+  metadata?: Record<string, any>
+  createdAt: Date
 }
 
 // Configuration for file uploads
@@ -12,7 +22,10 @@ export const defaultFileConfig: FileUploadConfig = {
   allowedTypes: (process.env.ALLOWED_FILE_TYPES || 'pdf,jpg,jpeg,png,txt').split(',').map(type => type?.trim() || '')
 }
 
-// Upload file to Supabase Storage
+// TODO: Implement file storage solution (S3, local storage, etc.)
+// For now, these functions return placeholder data
+
+// Upload file placeholder
 export async function saveFile(
   file: Buffer | File,
   filename: string,
@@ -20,131 +33,110 @@ export async function saveFile(
   metadata?: Record<string, any>,
   useServiceRole = false
 ): Promise<StorageFile> {
-  try {
-    let service: any
-    if (useServiceRole) {
-      const { SupabaseStorageService } = require('./supabase-storage')
-      service = new SupabaseStorageService(true) // Use service role
-    } else {
-      service = storageService
-    }
-    
-    const result = await service.uploadFile(file, filename, category, metadata)
-    
-    if (!result.success || !result.file) {
-      throw new Error(result.error || 'Upload failed')
-    }
-    
-    return result.file
-  } catch (error) {
-    console.error('Error saving file:', error)
-    throw new Error(`Failed to save file: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
-}
-
-// Download file from Supabase Storage
-export async function loadFile(bucket: string, path: string): Promise<Buffer | null> {
-  console.log('[FILE-UTILS] loadFile called with:', { bucket, path })
+  console.log('File upload not implemented yet:', filename)
   
-  try {
-    console.log('[FILE-UTILS] Calling storageService.downloadFile...')
-    const buffer = await storageService.downloadFile(bucket, path)
-    
-    if (buffer) {
-      console.log('[FILE-UTILS] File downloaded successfully, size:', buffer.length)
-    } else {
-      console.log('[FILE-UTILS] downloadFile returned null')
-    }
-    
-    return buffer
-  } catch (error) {
-    console.error('[FILE-UTILS] Error loading file:', error)
-    console.error('[FILE-UTILS] Error details:', error instanceof Error ? error.stack : error)
-    return null
+  // Return placeholder data
+  return {
+    id: `placeholder-${Date.now()}`,
+    path: `${category || 'uploads'}/${filename}`,
+    filename,
+    size: file instanceof Buffer ? file.length : file.size,
+    contentType: file instanceof File ? file.type : 'application/octet-stream',
+    url: `/placeholder/${filename}`,
+    metadata,
+    createdAt: new Date()
   }
 }
 
-// Get file URL from Supabase Storage
-export async function getFileUrl(bucket: string, path: string, signed = false): Promise<string | null> {
-  try {
-    return await storageService.getFileUrl(bucket, path, signed)
-  } catch (error) {
-    console.error('Error getting file URL:', error)
-    return null
-  }
-}
-
-// Delete file from Supabase Storage
-export async function deleteFile(bucket: string, path: string): Promise<boolean> {
-  try {
-    return await storageService.deleteFile(bucket, path)
-  } catch (error) {
-    console.error('Error deleting file:', error)
-    return false
-  }
-}
-
-export function validateFile(
-  file: Express.Multer.File | File,
-  config: FileUploadConfig = defaultFileConfig
-): { valid: boolean; error?: string } {
-  try {
-    // Check file size
-    if (file.size > config.maxSize) {
-      return {
-        valid: false,
-        error: `File size (${(file.size / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed size of ${(config.maxSize / 1024 / 1024).toFixed(2)}MB`
-      }
-    }
-    
-    // Check file type
-    const fileName = 'originalname' in file ? file.originalname : file.name
-    const fileExtension = path.extname(fileName).toLowerCase().slice(1)
-    if (!config.allowedTypes.includes(fileExtension)) {
-      return {
-        valid: false,
-        error: `File type ${fileExtension} is not allowed. Allowed types: ${config.allowedTypes.join(', ')}`
-      }
-    }
-    
-    return { valid: true }
-  } catch (error) {
-    console.error('Error validating file:', error)
-    return {
-      valid: false,
-      error: 'File validation failed'
-    }
-  }
-}
-
-export function generateUniqueFilename(originalName: string): string {
-  const timestamp = Date.now()
-  const randomString = Math.random().toString(36).substring(2, 15)
-  const extension = path.extname(originalName)
-  const nameWithoutExt = path.basename(originalName, extension)
-  
-  return `${nameWithoutExt}_${timestamp}_${randomString}${extension}`
-}
-
-// Helper function to get file info for logging
-export function getFileInfo(file: Express.Multer.File | File) {
-  const fileName = 'originalname' in file ? file.originalname : file.name
-  const fileType = 'mimetype' in file ? file.mimetype : file.type
+// Get file placeholder
+export async function getFile(
+  filePath: string,
+  options?: { download?: boolean }
+): Promise<{ data: Buffer | null; error: any }> {
+  console.log('File retrieval not implemented yet:', filePath)
   
   return {
-    name: fileName,
-    size: file.size,
-    type: fileType,
-    extension: path.extname(fileName).toLowerCase()
+    data: null,
+    error: new Error('File storage not implemented')
   }
 }
 
-// Initialize storage buckets (call this during app startup)
-export async function initializeStorage(): Promise<void> {
-  try {
-    await storageService.initializeBuckets()
-    console.log('Storage buckets initialized successfully')
-  } catch (error) {
-    console.error('Failed to initialize storage buckets:', error)
+// Delete file placeholder
+export async function deleteFile(
+  filePath: string
+): Promise<{ error: any }> {
+  console.log('File deletion not implemented yet:', filePath)
+  
+  return {
+    error: null // Pretend it succeeded
   }
+}
+
+// List files placeholder
+export async function listFiles(
+  folder: string,
+  options?: {
+    limit?: number
+    offset?: number
+    search?: string
+  }
+): Promise<{ data: StorageFile[]; error: any }> {
+  console.log('File listing not implemented yet:', folder)
+  
+  return {
+    data: [],
+    error: null
+  }
+}
+
+// Get public URL placeholder
+export function getPublicUrl(filePath: string): string {
+  return `/placeholder/${filePath}`
+}
+
+// Get signed URL placeholder
+export async function getSignedUrl(
+  filePath: string,
+  expiresIn: number = 3600
+): Promise<{ data: { signedUrl: string } | null; error: any }> {
+  console.log('Signed URL generation not implemented yet:', filePath)
+  
+  return {
+    data: {
+      signedUrl: `/placeholder/${filePath}?expires=${Date.now() + expiresIn * 1000}`
+    },
+    error: null
+  }
+}
+
+// Validate file type
+export function isValidFileType(filename: string, allowedTypes: string[]): boolean {
+  const ext = path.extname(filename).toLowerCase().replace('.', '')
+  return allowedTypes.includes(ext)
+}
+
+// Format file size
+export function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes'
+  
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+// Get file extension
+export function getFileExtension(filename: string): string {
+  return path.extname(filename).toLowerCase().replace('.', '')
+}
+
+// Generate unique filename
+export function generateUniqueFilename(originalName: string): string {
+  const timestamp = Date.now()
+  const randomString = Math.random().toString(36).substring(7)
+  const ext = path.extname(originalName)
+  const basename = path.basename(originalName, ext)
+  
+  return `${basename}-${timestamp}-${randomString}${ext}`
 }

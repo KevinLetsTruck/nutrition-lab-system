@@ -8,9 +8,9 @@
 type EnvironmentVariables = {
   ANTHROPIC_API_KEY?: string;
   OPENAI_API_KEY?: string;
-  NEXT_PUBLIC_SUPABASE_URL?: string;
-  NEXT_PUBLIC_SUPABASE_ANON_KEY?: string;
-  SUPABASE_SERVICE_ROLE_KEY?: string;
+  DATABASE_URL?: string;
+  DIRECT_URL?: string;
+  JWT_SECRET?: string;
   NODE_ENV?: string;
   PORT?: string;
 };
@@ -24,9 +24,9 @@ class EnvironmentConfig {
     this.config = {
       ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
       OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      DATABASE_URL: process.env.DATABASE_URL,
+      DIRECT_URL: process.env.DIRECT_URL,
+      JWT_SECRET: process.env.JWT_SECRET,
       NODE_ENV: process.env.NODE_ENV,
       PORT: process.env.PORT,
     };
@@ -102,9 +102,9 @@ class EnvironmentConfig {
     const sensitiveVars: (keyof EnvironmentVariables)[] = [
       'ANTHROPIC_API_KEY',
       'OPENAI_API_KEY',
-      'NEXT_PUBLIC_SUPABASE_URL',
-      'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-      'SUPABASE_SERVICE_ROLE_KEY'
+      'DATABASE_URL',
+      'DIRECT_URL',
+      'JWT_SECRET'
     ];
 
     sensitiveVars.forEach(key => {
@@ -127,9 +127,9 @@ class EnvironmentConfig {
     const allVars: (keyof EnvironmentVariables)[] = [
       'ANTHROPIC_API_KEY',
       'OPENAI_API_KEY',
-      'NEXT_PUBLIC_SUPABASE_URL',
-      'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-      'SUPABASE_SERVICE_ROLE_KEY',
+      'DATABASE_URL',
+      'DIRECT_URL',
+      'JWT_SECRET',
       'NODE_ENV',
       'PORT'
     ];

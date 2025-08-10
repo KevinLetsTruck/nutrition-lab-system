@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { prisma } from './prisma'
 import { AnalysisResult, AnalyzedReport } from './lab-analyzers/master-analyzer'
 import { NutriQParsedReport } from './lab-analyzers/nutriq-analyzer'
 import { KBMOParsedReport } from './lab-analyzers/kbmo-analyzer'

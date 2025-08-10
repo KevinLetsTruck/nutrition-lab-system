@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Search, Plus, Archive, Users, UserCheck, Clock } from 'lucide-react'
 import Navigation from '@/components/Navigation'
-import { supabase } from '@/lib/supabase'
+import { prisma } from '@/lib/prisma'
 import { useAuth } from '@/lib/auth-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -47,25 +47,17 @@ function ClientsContent() {
         console.log('🔍 Starting to fetch clients...')
         setLoading(true)
         
-        let query = supabase
-          .from('clients')
-          .select('*')
-          .order('created_at', { ascending: false })
-
-        // Comment out archived filtering until column is added
-        // if (!showArchived) {
-        //   query = query.is('archived_at', null)
-        // }
-
-        const { data, error } = await query
-
-        console.log('📊 Supabase response:', { data, error })
-        console.log('📊 Number of clients:', data?.length || 0)
-
-        if (error) {
-          console.error('❌ Error fetching clients:', error)
+        const response = await fetch('/api/clients')
+        
+        if (!response.ok) {
+          console.error('❌ Error fetching clients:', response.statusText)
           return
         }
+
+        const data = await response.json()
+
+        console.log('📊 API response:', data)
+        console.log('📊 Number of clients:', data?.length || 0)
 
         setClients(data || [])
         console.log('✅ Clients set in state:', data?.length || 0)

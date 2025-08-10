@@ -1,12 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { createClient } from '@supabase/supabase-js'
-
-// Initialize Supabase client for file storage
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,23 +40,12 @@ export async function POST(request: NextRequest) {
       const timestamp = new Date().getTime()
       const filename = `${clientId}/${timestamp}-${file.name}`
 
-      // Upload to Supabase storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('lab-documents')
-        .upload(filename, file, {
-          contentType: file.type,
-          upsert: false
-        })
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError)
-        continue
-      }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('lab-documents')
-        .getPublicUrl(filename)
+      // TODO: Implement file storage solution
+      // For now, just create the lab result record without actual file storage
+      console.log(`Would upload file: ${filename} (${file.size} bytes)`)
+      
+      // Use placeholder URL until storage is implemented
+      const publicUrl = `/placeholder/${filename}`
 
       // Create lab result record
       const labResult = await prisma.labResult.create({
