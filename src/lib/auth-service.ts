@@ -341,27 +341,27 @@ export class AuthService {
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload
       
-      // Check if session exists and is valid
-      const { data: sessions } = await this.supabase
-        .from('user_sessions')
-        .select('*')
-        .eq('user_id', decoded.userId)
-        .gt('expires_at', new Date().toISOString())
-        .order('created_at', { ascending: false })
-        .limit(1)
-      
-      const session = sessions?.[0]
+      // Check if session exists and is valid using Prisma
+      const session = await prisma.userSession.findFirst({
+        where: {
+          userId: decoded.userId,
+          expiresAt: {
+            gt: new Date()
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      })
       
       if (!session) {
         return { valid: false, error: 'Session expired' }
       }
       
-      // Get user data
-      const { data: user } = await this.supabase
-        .from('users')
-        .select('*')
-        .eq('id', decoded.userId)
-        .single()
+      // Get user data using Prisma
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId }
+      })
       
       if (!user) {
         return { valid: false, error: 'User not found' }
@@ -372,11 +372,11 @@ export class AuthService {
         user: {
           id: user.id,
           email: user.email,
-          role: user.role,
-          emailVerified: user.email_verified,
-          onboardingCompleted: user.onboarding_completed,
-          createdAt: new Date(user.created_at),
-          lastLogin: user.last_login ? new Date(user.last_login) : undefined
+          role: user.role.toLowerCase() as 'admin' | 'client',
+          emailVerified: user.emailVerified,
+          onboardingCompleted: user.onboardingCompleted,
+          createdAt: user.createdAt,
+          lastLogin: user.lastLogin || undefined
         }
       }
     } catch (error) {

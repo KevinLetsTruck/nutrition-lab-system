@@ -59,7 +59,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const data = await response.json()
+    console.log('Login successful, setting user:', data.user)
     setUser(data.user)
+    
+    // Force a small delay to ensure state is updated
+    await new Promise(resolve => setTimeout(resolve, 100))
     
     // Use provided redirect or check URL parameter
     let destination = redirectTo
@@ -69,16 +73,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     
     if (destination) {
+      console.log('Redirecting to:', destination)
       router.push(destination)
     } else {
       // Default redirect based on role
-      if (data.user.role === 'admin') {
-        router.push('/clients')
-      } else if (data.user.role === 'client') {
-        router.push('/client/success')
-      } else {
-        router.push('/dashboard')
-      }
+      const defaultRoute = data.user.role === 'admin' ? '/clients' : 
+                          data.user.role === 'client' ? '/client/success' : '/dashboard'
+      console.log('Redirecting to default:', defaultRoute)
+      router.push(defaultRoute)
     }
   }
 

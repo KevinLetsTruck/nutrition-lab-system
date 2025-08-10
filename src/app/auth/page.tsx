@@ -40,16 +40,22 @@ export default function AuthPage() {
   // Redirect if user is already authenticated
   useEffect(() => {
     if (!authLoading && user) {
-      // Redirect based on user role
-      if (user.role === 'admin') {
-        router.push('/clients')
-      } else if (user.role === 'client') {
-        router.push('/client/success')
+      // Check for redirect parameter first
+      const from = searchParams.get('from')
+      if (from) {
+        router.push(from)
       } else {
-        router.push('/dashboard')
+        // Redirect based on user role
+        if (user.role === 'admin') {
+          router.push('/clients')
+        } else if (user.role === 'client') {
+          router.push('/client/success')
+        } else {
+          router.push('/dashboard')
+        }
       }
     }
-  }, [user, authLoading, router])
+  }, [user, authLoading, router, searchParams])
 
   // Don't render the form if user is authenticated or still loading
   if (authLoading) {
