@@ -1,5 +1,5 @@
 import { Resend } from 'resend'
-import { createServerSupabaseClient } from './supabase'
+// import { createServerSupabaseClient } from './supabase' // TODO: Replace with Prisma
 
 // Don't initialize at module level - use lazy initialization
 let resend: Resend | null = null

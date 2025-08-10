@@ -1,5 +1,5 @@
 import { UnifiedAnalysisOrchestrator } from '../analysis/unified-analysis-orchestrator'
-import { supabase } from '../supabase'
+// import { supabase } from '../supabase' // TODO: Replace with Prisma
 // Database operations handled through supabase directly
 
 export interface WorkflowConfig {

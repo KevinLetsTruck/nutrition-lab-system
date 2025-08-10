@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from './supabase'
+// import { createServerSupabaseClient } from './supabase' // TODO: Replace with Prisma
 import { CompleteOnboardingData } from './onboarding-schemas'
 import { randomUUID } from 'crypto'
 
