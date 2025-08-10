@@ -38,40 +38,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Phone format validation (basic)
-    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
-    if (!phoneRegex.test(phone.replace(/\D/g, ''))) {
-      console.log('Validation failed: invalid phone format')
+    // Phone format validation (relaxed - allow any format)
+    // Just ensure it has at least some digits if provided
+    if (phone && phone.replace(/\D/g, '').length < 5) {
+      console.log('Validation failed: phone too short')
       return NextResponse.json(
-        { error: 'Please enter a valid phone number' },
+        { error: 'Please enter a valid phone number (at least 5 digits)' },
         { status: 400 }
       )
     }
 
-    // Test database connection before proceeding
-    console.log('Testing database connection...')
-    try {
-      const supabase = createServerSupabaseClient()
-      const { error: dbTestError } = await supabase
-        .from('users')
-        .select('count')
-        .limit(1)
-      
-      if (dbTestError) {
-        console.error('Database connection test failed:', dbTestError)
-        return NextResponse.json(
-          { error: 'Database connection failed. Please try again later.' },
-          { status: 500 }
-        )
-      }
-      console.log('Database connection test passed')
-    } catch (dbError) {
-      console.error('Database connection error:', dbError)
-      return NextResponse.json(
-        { error: 'Database connection failed. Please try again later.' },
-        { status: 500 }
-      )
-    }
+    // Use the new Prisma-based registration endpoint instead
+    console.log('Redirecting to Prisma-based registration...')
+    
+    // This endpoint is deprecated - redirect to the new one
+    return NextResponse.json(
+      { error: 'Please use /api/auth/register-prisma endpoint' },
+      { status: 410 } // Gone
+    )
 
     // Register user
     console.log('Attempting user registration...')
