@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { execSync } from 'child_process'
 import { prisma } from '@/lib/prisma'
+import { hash } from 'bcryptjs'
 
 export async function GET(request: NextRequest) {
   // Simple auth check - only allow with a secret key
@@ -40,24 +40,91 @@ export async function GET(request: NextRequest) {
       })
     }
     
-    // Tables don't exist, create them
-    console.log('Creating database tables...')
-    execSync('npx prisma db push --skip-generate', { 
-      stdio: 'inherit',
-      env: { ...process.env }
-    })
+    // Tables don't exist - return instruction
+    console.log('Tables do not exist')
     
-    console.log('Seeding database...')
-    execSync('npx prisma db seed', { 
-      stdio: 'inherit',
-      env: { ...process.env }
-    })
-    
-    return NextResponse.json({
-      success: true,
-      message: 'Database setup complete',
-      tables: 'created'
-    })
+    // Since we can't run prisma commands from within the app,
+    // we'll create the initial admin user manually
+    try {
+      console.log('Running Prisma push programmatically...')
+      
+      // This will create the tables based on the schema
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS users (
+          id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+          email TEXT UNIQUE NOT NULL,
+          password_hash TEXT NOT NULL,
+          role TEXT NOT NULL DEFAULT 'CLIENT',
+          email_verified BOOLEAN DEFAULT false,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          last_login TIMESTAMP
+        )
+      `)
+      
+      // Create other essential tables
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS client_profiles (
+          id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+          user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          first_name TEXT NOT NULL,
+          last_name TEXT NOT NULL,
+          phone TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `)
+      
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS clients (
+          id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+          email TEXT UNIQUE NOT NULL,
+          first_name TEXT NOT NULL,
+          last_name TEXT NOT NULL,
+          date_of_birth TIMESTAMP,
+          phone TEXT,
+          address TEXT,
+          emergency_contact TEXT,
+          medical_history TEXT,
+          allergies TEXT,
+          current_medications TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `)
+      
+      // Create admin user
+      const adminPassword = await hash('Admin123!', 10)
+      await prisma.$executeRawUnsafe(`
+        INSERT INTO users (email, password_hash, role, email_verified)
+        VALUES ('admin@nutritionlab.com', '${adminPassword}', 'ADMIN', true)
+        ON CONFLICT (email) DO NOTHING
+      `)
+      
+      // Create client user
+      const clientPassword = await hash('Client123!', 10)
+      await prisma.$executeRawUnsafe(`
+        INSERT INTO users (email, password_hash, role, email_verified)
+        VALUES ('john.trucker@example.com', '${clientPassword}', 'CLIENT', true)
+        ON CONFLICT (email) DO NOTHING
+      `)
+      
+      return NextResponse.json({
+        success: true,
+        message: 'Basic tables and users created',
+        tables: 'created',
+        note: 'Run "railway run npx prisma db push" locally for complete schema'
+      })
+      
+    } catch (createError: any) {
+      console.error('Table creation error:', createError)
+      return NextResponse.json({
+        success: false,
+        message: 'Manual table creation failed', 
+        error: createError.message,
+        note: 'You need to run "railway run npx prisma db push" from your local machine'
+      })
+    }
     
   } catch (error: any) {
     console.error('Database setup error:', error)
