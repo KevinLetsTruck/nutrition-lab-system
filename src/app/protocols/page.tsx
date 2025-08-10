@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Navigation from '@/components/Navigation'
-import { supabase } from '@/lib/supabase'
+// import { supabase } from '@/lib/supabase' // TODO: Replace with Prisma
 
 interface Protocol {
   id: string

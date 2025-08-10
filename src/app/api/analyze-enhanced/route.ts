@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import DatabaseService from '@/lib/database-service'
-import { SupabaseStorageService } from '@/lib/supabase-storage'
+// import { SupabaseStorageService } from '@/lib/supabase-storage' // TODO: Replace with file storage
 import MasterAnalyzer from '@/lib/lab-analyzers/master-analyzer'
 import { DocumentProcessorFactory } from '@/lib/document-processors/document-processor-factory'
 import { TextractProcessor } from '@/lib/document-processors/textract-processor'

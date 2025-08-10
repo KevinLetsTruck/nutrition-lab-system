@@ -1,4 +1,5 @@
-import { supabase } from './supabase'
+// import { supabase } from './supabase' // TODO: Replace with Prisma
+import { prisma } from './prisma'
 import { ReportData, ClientData, NutriQData, LabData, NoteData, ProtocolData, AnalysisVersion } from '@/components/reports/PractitionerAnalysis'
 
 export async function fetchClientData(clientId: string): Promise<ReportData> {

@@ -1,50 +1,53 @@
-# Neon PostgreSQL Setup for Nutrition Lab System
+# Neon Database Setup
 
-## Quick Setup Steps
+## Overview
+This application now uses Neon PostgreSQL database exclusively. All Supabase dependencies have been removed.
 
-### 1. Create Neon Account
-1. Go to https://neon.tech
-2. Sign up for a free account (GitHub, Google, or email)
-3. You'll get a free PostgreSQL database instantly
+## Database Connection
+The app uses two connection strings from Neon:
+- `DATABASE_URL` - Pooled connection for general queries
+- `DIRECT_URL` - Direct connection for migrations
 
-### 2. Create a New Project
-1. Click "Create a project"
-2. Project name: `nutrition-lab-system`
-3. Database name: `nutrition` (or keep default)
-4. Region: Choose closest to you
-5. Click "Create project"
+## Authentication
+- Uses JWT tokens with bcrypt for password hashing
+- Sessions stored in PostgreSQL via Prisma
+- No dependency on Supabase Auth
 
-### 3. Get Your Connection String
-After creation, you'll see a connection string like:
-```
-postgresql://username:password@ep-cool-name-123456.us-east-2.aws.neon.tech/nutrition?sslmode=require
-```
+## File Storage
+- Supabase Storage has been removed
+- File upload endpoints currently use placeholder URLs
+- TODO: Implement S3 or another storage solution
 
-### 4. Update Your Environment
-Create a `.env.neon` file:
-```bash
-DATABASE_URL="your-neon-connection-string-here"
-DIRECT_URL="your-neon-connection-string-here"
-```
+## Migration Status
+- ✅ Database queries migrated to Prisma
+- ✅ Authentication using Prisma + JWT
+- ✅ All Supabase packages removed
+- ⚠️ File storage needs implementation
 
-### 5. Push Schema to Neon
-```bash
-# Use the Neon database URL
-npx dotenv -e .env.neon -- npx prisma db push
-
-# Seed the database
-npx dotenv -e .env.neon -- npx prisma db seed
+## Environment Variables Required
+```env
+DATABASE_URL=postgresql://...@ep-xxx-pooler.neon.tech/neondb?sslmode=require
+DIRECT_URL=postgresql://...@ep-xxx.neon.tech/neondb?sslmode=require
+JWT_SECRET=your-secret-key
+ANTHROPIC_API_KEY=your-anthropic-key
 ```
 
-### 6. Update Railway Environment
-Once the schema is created in Neon, we can:
-1. Export the schema from Neon
-2. Import it to Railway
-3. Or continue using Neon temporarily
+## Files Changed
+1. Removed files:
+   - src/lib/supabase.ts
+   - src/lib/supabase-storage.ts
 
-## Benefits
-- Free tier includes 3GB storage
-- Instant setup
-- Public connection string works from anywhere
-- Full PostgreSQL compatibility
-- No credit card required
+2. Updated files:
+   - package.json (removed @supabase/supabase-js)
+   - src/lib/auth-service.ts (new Prisma-based auth)
+   - src/lib/config/env.ts (removed Supabase vars)
+   - src/app/clients/page.tsx (uses Prisma API)
+   - src/lib/file-utils.ts (placeholder implementation)
+
+3. New files:
+   - src/app/api/clients/route.ts (Prisma-based API)
+
+## Next Steps
+1. Implement file storage solution (S3 recommended)
+2. Update all remaining test/debug files
+3. Test all functionality with Neon database

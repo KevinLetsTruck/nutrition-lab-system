@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import ClaudeClient from '@/lib/claude-client'
-import { supabase } from '@/lib/supabase'
+// import { supabase } from '@/lib/supabase' // TODO: Replace with Prisma
 
 export async function POST(request: NextRequest) {
   try {

@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { FileText, MessageSquare, Upload, FileCheck, Users, ClipboardList, Brain, Plus, Phone } from 'lucide-react'
 import { ComprehensiveAnalysisButton } from '@/components/analysis/ComprehensiveAnalysisButton'
-import { createClient } from '@supabase/supabase-js'
+// import { createClient } from '@supabase/supabase-js' // TODO: Replace with Prisma
 import { CallRecorder } from '@/components/calls/CallRecorder'
 import { CallConsentDialog } from '@/components/calls/CallConsentDialog'
 

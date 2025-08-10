@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/lib/auth-context'
-import { supabase } from '@/lib/supabase'
 import { 
   Users, 
   FileText, 
@@ -74,24 +73,13 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch clients count
-      const { count: totalClients } = await supabase
-        .from('clients')
-        .select('*', { count: 'exact', head: true })
-
-      const { count: activeClients } = await supabase
-        .from('clients')
-        .select('*', { count: 'exact', head: true })
-        .is('archived_at', null)
-
-      // Fetch today's assessments
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
+      // Fetch dashboard stats from API
+      const response = await fetch('/api/dashboard/stats')
+      if (!response.ok) {
+        throw new Error('Failed to fetch stats')
+      }
       
-      const { count: assessmentsToday } = await supabase
-        .from('structured_assessments')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', today.toISOString())
+      const data = await response.json()
 
       // Fetch recent activity (mock data for now)
       const mockActivity: RecentActivity[] = [
@@ -129,14 +117,7 @@ export default function Dashboard() {
         }
       ]
 
-      setStats({
-        totalClients: totalClients || 0,
-        activeClients: activeClients || 0,
-        assessmentsToday: assessmentsToday || 0,
-        pendingReviews: 2,
-        protocolsGenerated: 23,
-        successRate: 94
-      })
+      setStats(data)
       setRecentActivity(mockActivity)
     } catch (error) {
       console.error('Error fetching dashboard data:', error)

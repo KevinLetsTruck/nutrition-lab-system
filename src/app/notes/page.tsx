@@ -8,7 +8,7 @@ import NoteModal from '@/components/NoteModal'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { FileText, MessageSquare } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+
 
 interface Note {
   id: string
