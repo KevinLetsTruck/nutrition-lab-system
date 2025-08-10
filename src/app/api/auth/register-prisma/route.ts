@@ -81,10 +81,11 @@ export async function POST(request: NextRequest) {
           lastName,
           phone: phone || null,
           dateOfBirth: null,
-          healthGoals: {},
-          medicalHistory: {},
-          medications: {},
-          supplements: {}
+          medicalHistory: null,
+          currentMedications: null,
+          allergies: null,
+          emergencyContact: null,
+          address: null
         }
       })
 
