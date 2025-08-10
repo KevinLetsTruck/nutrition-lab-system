@@ -74,7 +74,8 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       // Try fallback bucket
       console.log('[ANALYZE-ENHANCED] Failed to download from primary bucket, trying general bucket')
-      const fallbackDownload = await storageService.downloadFile('general', labReport.file_path)
+      // const fallbackDownload = await storageService.downloadFile('general', labReport.file_path)
+      const fallbackDownload = null
       if (!fallbackDownload) {
         throw new Error('File not found in any bucket')
       }
