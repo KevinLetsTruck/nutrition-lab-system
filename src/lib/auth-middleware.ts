@@ -38,6 +38,8 @@ const routeConfig: Record<string, RouteConfig> = {
 export async function authMiddleware(request: NextRequest) {
   const path = request.nextUrl.pathname
   
+  console.log('[Auth Middleware] Path:', path)
+  
   // Find matching route config
   let config: RouteConfig | undefined
   let matchedPath = ''
@@ -69,9 +71,11 @@ export async function authMiddleware(request: NextRequest) {
   
   // Check authentication
   const session = await getServerSession(request)
+  console.log('[Auth Middleware] Session:', session)
   
   // If no session and auth required, redirect to auth
   if (!session) {
+    console.log('[Auth Middleware] No session, redirecting to /auth')
     const url = request.nextUrl.clone()
     url.pathname = '/auth'
     url.searchParams.set('from', path)

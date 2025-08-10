@@ -16,6 +16,7 @@ export async function getServerSession(request?: NextRequest): Promise<ServerSes
     }
 
     const token = request.cookies.get('auth-token')?.value
+    console.log('[Auth] Token from cookie:', token ? 'exists' : 'missing')
 
     if (!token) {
       return null
@@ -23,16 +24,19 @@ export async function getServerSession(request?: NextRequest): Promise<ServerSes
 
     // Verify token and get user
     const tokenResult = await authService.verifyToken(token)
+    console.log('[Auth] Token verification result:', tokenResult)
     
     if (!tokenResult.valid || !tokenResult.user) {
       return null
     }
 
-    return {
+    const session = {
       userId: tokenResult.user.id,
       email: tokenResult.user.email,
       role: tokenResult.user.role.toUpperCase() as 'CLIENT' | 'ADMIN'
     }
+    console.log('[Auth] Returning session:', session)
+    return session
   } catch (error) {
     console.error('[Auth] Session verification error:', error)
     return null

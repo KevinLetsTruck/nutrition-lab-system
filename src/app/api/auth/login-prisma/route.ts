@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     // Create session
     const sessionId = uuidv4()
-    const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+    const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production'
     
     const token = jwt.sign(
       {
