@@ -20,12 +20,18 @@ const logLevels: LogDefinition[] =
       ]
 
 // Railway-optimized connection string processing
-function getOptimizedDatabaseUrl(): string {
+function getOptimizedDatabaseUrl(): string | undefined {
   const url = process.env.DATABASE_URL
   
   // If no DATABASE_URL, return undefined to use Prisma's default handling
   if (!url) {
-    return process.env.DATABASE_URL as string // This will be undefined
+    return undefined
+  }
+  
+  // During build, skip database URL optimization
+  if (process.env.NEXT_PHASE === 'phase-production-build') {
+    console.log('⚠️  Build phase detected - skipping database connection')
+    return undefined
   }
   
   try {
@@ -52,9 +58,9 @@ function getOptimizedDatabaseUrl(): string {
 
 // Configure Prisma options for Railway
 const prismaOptions: Prisma.PrismaClientOptions = {
-  datasources: process.env.DATABASE_URL ? {
+  datasources: process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('dummy') ? {
     db: {
-      url: getOptimizedDatabaseUrl()
+      url: getOptimizedDatabaseUrl()!
     }
   } : undefined,
   log: logLevels,
