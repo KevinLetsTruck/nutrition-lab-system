@@ -44,10 +44,18 @@ export async function GET(request: NextRequest) {
     console.log('Setting up database tables...')
     
     try {
-      // Drop existing tables if they exist (for clean setup)
+      // Drop existing tables and types if they exist (for clean setup)
       await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS client_profiles CASCADE`)
       await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS clients CASCADE`)
       await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS users CASCADE`)
+      await prisma.$executeRawUnsafe(`DROP TYPE IF EXISTS user_role CASCADE`)
+      
+      console.log('Creating enum types...')
+      
+      // Create the user_role enum
+      await prisma.$executeRawUnsafe(`
+        CREATE TYPE user_role AS ENUM ('client', 'admin')
+      `)
       
       console.log('Creating tables with correct schema...')
       
@@ -57,7 +65,7 @@ export async function GET(request: NextRequest) {
           id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
           email TEXT UNIQUE NOT NULL,
           password_hash TEXT NOT NULL,
-          role TEXT NOT NULL DEFAULT 'CLIENT',
+          role user_role NOT NULL DEFAULT 'client',
           email_verified BOOLEAN DEFAULT false,
           onboarding_completed BOOLEAN DEFAULT false,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -101,7 +109,7 @@ export async function GET(request: NextRequest) {
       const adminPassword = await hash('Admin123!', 10)
       await prisma.$executeRawUnsafe(`
         INSERT INTO users (email, password_hash, role, email_verified)
-        VALUES ('admin@nutritionlab.com', '${adminPassword}', 'ADMIN', true)
+        VALUES ('admin@nutritionlab.com', '${adminPassword}', 'admin', true)
         ON CONFLICT (email) DO NOTHING
       `)
       
@@ -109,7 +117,7 @@ export async function GET(request: NextRequest) {
       const clientPassword = await hash('Client123!', 10)
       await prisma.$executeRawUnsafe(`
         INSERT INTO users (email, password_hash, role, email_verified)
-        VALUES ('john.trucker@example.com', '${clientPassword}', 'CLIENT', true)
+        VALUES ('john.trucker@example.com', '${clientPassword}', 'client', true)
         ON CONFLICT (email) DO NOTHING
       `)
       
