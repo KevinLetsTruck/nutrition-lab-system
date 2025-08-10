@@ -59,11 +59,13 @@ export async function POST(request: NextRequest) {
     
     // Download file from storage
     console.log('[ANALYZE-ENHANCED] Downloading from bucket:', primaryBucket)
-    const storageService = new SupabaseStorageService(true) // Use service role
+    // TODO: Replace with file storage service
+    // const storageService = new SupabaseStorageService(true) // Use service role
     
     let fileBuffer: Buffer
     try {
-      const downloaded = await storageService.downloadFile(primaryBucket, labReport.file_path)
+      // const downloaded = await storageService.downloadFile(primaryBucket, labReport.file_path)
+      const downloaded = null
       if (!downloaded) {
         throw new Error('File not found in storage')
       }
