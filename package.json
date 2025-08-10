@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "prisma generate && prisma db push && prisma db seed && next build",
-    "start": "next start",
+    "build": "prisma generate && next build",
+    "postbuild": "echo 'Database setup will be run separately'",
+    "start": "node scripts/check-and-setup-db.js && next start",
+    "start:simple": "next start",
     "lint": "next lint",
     "db:query": "node scripts/query-runner.js",
     "db:migrate": "node scripts/run-onboarding-migration-simple.js",
