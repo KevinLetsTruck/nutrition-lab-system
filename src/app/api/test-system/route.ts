@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { db } from '@/lib/supabase'
+// import { db } from '@/lib/supabase'
 
 export async function GET(request: NextRequest) {
   const results = {

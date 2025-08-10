@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase'
+// import { createServerSupabaseClient } from '@/lib/supabase'
 import { CallType, AICallSummary, CallPriority, NoteType } from '@/types/calls'
 import OpenAI from 'openai'
 import Anthropic from '@anthropic-ai/sdk'

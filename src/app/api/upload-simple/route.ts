@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient, db } from '@/lib/supabase'
+// import { createServerSupabaseClient, db } from '@/lib/supabase'
 import DatabaseService from '@/lib/database-service'
 import MasterAnalyzer from '@/lib/lab-analyzers/master-analyzer'
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authService } from '@/lib/auth-service'
-import { createServerSupabaseClient } from '@/lib/supabase'
+// import { createServerSupabaseClient } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   console.log('Test registration request received')

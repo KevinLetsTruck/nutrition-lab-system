@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
+// import { createServerSupabaseClient } from '@/lib/supabase';
 import { symptomAISelector } from '@/lib/assessment/symptom-ai-selector';
 import { symptomQuestionFlow } from '@/lib/assessment/symptom-question-flow';
 import { PatternMatcher } from '@/lib/assessment/pattern-matcher';

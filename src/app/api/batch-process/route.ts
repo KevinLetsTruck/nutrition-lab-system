@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+// import { supabase } from '@/lib/supabase'
 import MasterAnalyzer from '@/lib/lab-analyzers/master-analyzer'
 import { MedicalTerminologyProcessor } from '@/lib/document-processors/medical-terminology-processor'
 import { v4 as uuidv4 } from 'uuid'

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { storageService } from '@/lib/supabase-storage'
+// import { storageService } from '@/lib/supabase-storage'
 
 interface TestResults {
   environment: {

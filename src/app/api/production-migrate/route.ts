@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase'
-import { storageService } from '@/lib/supabase-storage'
+// import { createServerSupabaseClient } from '@/lib/supabase'
+// import { storageService } from '@/lib/supabase-storage'
 
 interface CheckResult {
   id: string

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { saveFile, validateFile, getFileInfo } from '@/lib/file-utils'
 import { getRateLimiter, getClientIdentifier, createRateLimitHeaders } from '@/lib/rate-limiter'
-import { db } from '@/lib/supabase'
+// import { db } from '@/lib/supabase'
 import MasterAnalyzer from '@/lib/lab-analyzers/master-analyzer'
 import DatabaseService from '@/lib/database-service'
-import { SupabaseStorageService } from '@/lib/supabase-storage'
+// import { SupabaseStorageService } from '@/lib/supabase-storage'
 import { getServerSession } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {

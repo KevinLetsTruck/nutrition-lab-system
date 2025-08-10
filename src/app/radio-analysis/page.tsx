@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { FileText, Clock, MapPin, User, RefreshCw } from 'lucide-react'
 import Navigation from '@/components/Navigation'
-import { supabase } from '@/lib/supabase'
+// import { supabase } from '@/lib/supabase'
 
 interface AnalysisRecord {
   id: string
