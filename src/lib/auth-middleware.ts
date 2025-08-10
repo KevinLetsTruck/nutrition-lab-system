@@ -27,7 +27,6 @@ const routeConfig: Record<string, RouteConfig> = {
   '/protocols': { requireAuth: true, requireRole: 'CLIENT' },
   
   // Admin routes
-  '/dashboard': { requireAuth: true, requireRole: 'ADMIN' },
   '/clients': { requireAuth: true, requireRole: 'ADMIN' },
   '/admin': { requireAuth: true, requireRole: 'ADMIN' },
   

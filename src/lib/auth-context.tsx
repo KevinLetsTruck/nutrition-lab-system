@@ -82,8 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         window.location.href = destination
       } else {
         // Default redirect based on role
-        const defaultRoute = data.user.role === 'admin' ? '/clients' : 
-                            data.user.role === 'client' ? '/client/dashboard' : '/dashboard'
+        const defaultRoute = data.user.role === 'admin' ? '/clients' : '/client/dashboard'
         console.log('Auth context - Redirecting to default:', defaultRoute)
         window.location.href = defaultRoute
       }

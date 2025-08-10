@@ -9,12 +9,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
   
-  // TEMPORARILY BYPASS AUTH MIDDLEWARE FOR DEBUGGING
-  console.log('[Middleware] Path:', path)
-  return NextResponse.next()
-  
   // Apply auth middleware
-  // return authMiddleware(request)
+  return authMiddleware(request)
 }
 
 export const config = {

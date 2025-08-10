@@ -59,8 +59,8 @@ export default function AuthPage() {
             console.log('Redirecting client to /client/dashboard')
             window.location.href = '/client/dashboard'
           } else {
-            console.log('Redirecting to /dashboard')
-            window.location.href = '/dashboard'
+            console.log('Redirecting to /clients (default)')
+            window.location.href = '/clients'
           }
         }
       }, 500)
