@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ClientDataAggregator } from '@/lib/analysis/client-data-aggregator'
 import { ComprehensiveAnalyzer } from '@/lib/analysis/comprehensive-analyzer'
-import { createClient } from '@supabase/supabase-js'
+// import { createClient } from '@supabase/supabase-js'
 
 // Force Node.js runtime to ensure all environment variables are available
 export const runtime = 'nodejs'

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+// import { createClient } from '@supabase/supabase-js'
 import { getAuthenticatedUser } from '@/lib/auth-utils'
 import { jsPDF } from 'jspdf'
 

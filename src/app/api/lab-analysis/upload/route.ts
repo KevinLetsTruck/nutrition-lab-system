@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+// import { createClient } from '@supabase/supabase-js'
 import LabOCRProcessor from '@/lib/lab-analysis/ocr-processor'
 import { getAuthenticatedUser } from '@/lib/auth-utils'
 

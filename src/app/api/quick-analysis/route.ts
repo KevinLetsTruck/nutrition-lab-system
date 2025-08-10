@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+// import { createClient } from '@supabase/supabase-js'
 // import { SupabaseStorageService } from '@/lib/supabase-storage'
 import MasterAnalyzer from '@/lib/lab-analyzers/master-analyzer'
 import { TextractProcessor } from '@/lib/document-processors/textract-processor'

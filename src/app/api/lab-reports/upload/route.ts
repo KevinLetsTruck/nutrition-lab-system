@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 // Use production-friendly PDF processor
 import { PDFProcessor } from '@/lib/pdf-processor-production'
 import { getServerSession } from '@/lib/auth'
-import { createClient } from '@supabase/supabase-js'
+// import { createClient } from '@supabase/supabase-js'
 
 export async function POST(request: NextRequest) {
   console.log('[LabReports] Upload endpoint called')

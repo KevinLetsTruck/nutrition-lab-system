@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { saveFile, validateFile } from '@/lib/file-utils'
-import { createClient } from '@supabase/supabase-js'
+// import { createClient } from '@supabase/supabase-js'
 
 // Simplified upload that works with minimal validation
 export async function POST(request: NextRequest) {

@@ -5,7 +5,7 @@ import ClaudeClient from '../claude-client'
 import { ClientDataAggregator } from './client-data-aggregator'
 import { ComprehensiveAnalyzer } from './comprehensive-analyzer'
 import { SupplementRecommender } from './supplement-recommender'
-import { createClient } from '@supabase/supabase-js'
+// import { createClient } from '@supabase/supabase-js'
 
 export interface UnifiedAnalysisRequest {
   fileBuffer?: Buffer

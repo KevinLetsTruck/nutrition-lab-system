@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+// import { createClient } from '@supabase/supabase-js'
 
 export async function POST(request: NextRequest) {
   console.log('[UPLOAD-CORRECT] === NEW REQUEST ===')

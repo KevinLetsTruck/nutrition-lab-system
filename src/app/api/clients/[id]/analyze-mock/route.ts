@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ClientDataAggregator } from '@/lib/analysis/client-data-aggregator'
-import { createClient } from '@supabase/supabase-js'
+// import { createClient } from '@supabase/supabase-js'
 
 export async function POST(
   request: NextRequest,

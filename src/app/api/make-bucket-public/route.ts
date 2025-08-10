@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+// import { createClient } from '@supabase/supabase-js'
 
 export async function GET(request: NextRequest) {
   // This endpoint can only suggest the fix - Supabase doesn't allow changing bucket privacy via API

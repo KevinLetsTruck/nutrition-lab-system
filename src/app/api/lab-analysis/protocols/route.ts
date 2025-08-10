@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+// import { createClient } from '@supabase/supabase-js'
 import ProtocolGenerator from '@/lib/lab-analysis/protocol-generator'
 import { getAuthenticatedUser } from '@/lib/auth-utils'
 import { LabPattern, AIAnalysis, ClientPreferences } from '@/types/lab-analysis'
