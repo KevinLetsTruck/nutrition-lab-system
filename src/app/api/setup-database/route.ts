@@ -104,14 +104,14 @@ export async function GET(request: NextRequest) {
     await prisma.$executeRawUnsafe(`
       INSERT INTO users (id, email, password_hash, role, email_verified, onboarding_completed)
       VALUES ('${adminId}', 'admin@nutritionlab.com', '${adminPassword}', 'admin', true, true)
-      ON CONFLICT (email) DO NOTHING
+
     `)
     
     // Create admin profile
     await prisma.$executeRawUnsafe(`
       INSERT INTO admin_profiles (user_id, name, title)
       VALUES ('${adminId}', 'Admin User', 'System Administrator')
-      ON CONFLICT (user_id) DO NOTHING
+
     `)
     
     // Create client user  
@@ -120,21 +120,21 @@ export async function GET(request: NextRequest) {
     await prisma.$executeRawUnsafe(`
       INSERT INTO users (id, email, password_hash, role, email_verified, onboarding_completed)
       VALUES ('${clientId}', 'john.trucker@example.com', '${clientPassword}', 'client', true, true)
-      ON CONFLICT (email) DO NOTHING
+
     `)
     
     // Create client profile
     await prisma.$executeRawUnsafe(`
       INSERT INTO client_profiles (user_id, first_name, last_name, phone)
       VALUES ('${clientId}', 'John', 'Trucker', '555-123-4567')
-      ON CONFLICT (user_id) DO NOTHING
+
     `)
     
     // Also add to clients table
     await prisma.$executeRawUnsafe(`
       INSERT INTO clients (id, email, first_name, last_name, phone)
       VALUES ('${clientId}', 'john.trucker@example.com', 'John', 'Trucker', '555-123-4567')
-      ON CONFLICT (email) DO NOTHING
+
     `)
     
     console.log('Database setup complete!')
