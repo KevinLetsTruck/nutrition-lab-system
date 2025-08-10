@@ -40,20 +40,30 @@ export default function AuthPage() {
   // Redirect if user is already authenticated
   useEffect(() => {
     if (!authLoading && user) {
-      // Check for redirect parameter first
-      const from = searchParams.get('from')
-      if (from) {
-        router.replace(from)
-      } else {
-        // Redirect based on user role
-        if (user.role === 'admin') {
-          router.replace('/clients')
-        } else if (user.role === 'client') {
-          router.replace('/client/success')
+      console.log('Auth page - User detected:', user)
+      console.log('Auth page - Redirect from:', searchParams.get('from'))
+      
+      // Add a small delay to ensure everything is ready
+      setTimeout(() => {
+        // Check for redirect parameter first
+        const from = searchParams.get('from')
+        if (from) {
+          console.log('Redirecting to from param:', from)
+          window.location.href = from
         } else {
-          router.replace('/dashboard')
+          // Redirect based on user role
+          if (user.role === 'admin') {
+            console.log('Redirecting admin to /clients')
+            window.location.href = '/clients'
+          } else if (user.role === 'client') {
+            console.log('Redirecting client to /client/dashboard')
+            window.location.href = '/client/dashboard'
+          } else {
+            console.log('Redirecting to /dashboard')
+            window.location.href = '/dashboard'
+          }
         }
-      }
+      }, 500)
     }
   }, [user, authLoading, router, searchParams])
 

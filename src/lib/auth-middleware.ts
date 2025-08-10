@@ -86,20 +86,20 @@ export async function authMiddleware(request: NextRequest) {
     if (session.role === 'CLIENT') {
       url.pathname = '/client/dashboard'
     } else if (session.role === 'ADMIN') {
-      url.pathname = '/dashboard'
+      url.pathname = '/clients'
     } else {
       url.pathname = '/'
     }
     return NextResponse.redirect(url)
   }
   
-  // Check if user is trying to access login/register while authenticated
-  if (session && (path === '/login' || path === '/register')) {
+  // Check if user is trying to access login/register/auth while authenticated
+  if (session && (path === '/login' || path === '/register' || path === '/auth')) {
     const url = request.nextUrl.clone()
     if (session.role === 'CLIENT') {
       url.pathname = '/client/dashboard'
     } else if (session.role === 'ADMIN') {
-      url.pathname = '/dashboard'
+      url.pathname = '/clients'
     }
     return NextResponse.redirect(url)
   }

@@ -14,9 +14,9 @@ export default function StreamlinedOnboardingPage() {
   }
 
   const handleOnboardingExit = () => {
-    // Redirect to clients page when user exits onboarding
+    // Redirect to dashboard when user exits onboarding
     console.log('Onboarding exited by user')
-    router.push('/clients')
+    router.push('/client/dashboard')
   }
 
   // Generate a temporary client ID for demo purposes

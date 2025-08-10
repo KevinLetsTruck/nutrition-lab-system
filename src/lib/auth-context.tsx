@@ -75,16 +75,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       destination = params.get('from') || null
     }
     
-    if (destination) {
-      console.log('Redirecting to:', destination)
-      router.replace(destination)
-    } else {
-      // Default redirect based on role
-      const defaultRoute = data.user.role === 'admin' ? '/clients' : 
-                          data.user.role === 'client' ? '/client/success' : '/dashboard'
-      console.log('Redirecting to default:', defaultRoute)
-      router.replace(defaultRoute)
-    }
+    // Use window.location for redirect to ensure clean navigation
+    setTimeout(() => {
+      if (destination) {
+        console.log('Auth context - Redirecting to:', destination)
+        window.location.href = destination
+      } else {
+        // Default redirect based on role
+        const defaultRoute = data.user.role === 'admin' ? '/clients' : 
+                            data.user.role === 'client' ? '/client/dashboard' : '/dashboard'
+        console.log('Auth context - Redirecting to default:', defaultRoute)
+        window.location.href = defaultRoute
+      }
+    }, 500)
   }
 
   const logout = async () => {
