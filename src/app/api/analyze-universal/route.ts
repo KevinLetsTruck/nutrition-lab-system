@@ -128,6 +128,8 @@ export async function POST(request: NextRequest) {
     let labReportId: string | null = null
     if (clientId) {
       try {
+        // TODO: Replace with Prisma
+        /*
         const { data: labReport, error } = await supabase
           .from('lab_reports')
           .insert({
@@ -150,6 +152,8 @@ export async function POST(request: NextRequest) {
           // Save type-specific results
           await saveTypeSpecificResults(documentType, analysisResult, clientId, labReportId!)
         }
+        */
+        console.log('[ANALYZE-UNIVERSAL] Database save skipped - Supabase code commented out')
       } catch (dbError) {
         console.error('[ANALYZE-UNIVERSAL] Database error:', dbError)
       }
@@ -316,6 +320,9 @@ async function saveTypeSpecificResults(
   clientId: string,
   labReportId: string
 ): Promise<void> {
+  // TODO: Replace with Prisma
+  console.log('[ANALYZE-UNIVERSAL] saveTypeSpecificResults skipped - Supabase code commented out')
+  /*
   try {
     switch (documentType) {
       case 'nutriq':
@@ -338,4 +345,5 @@ async function saveTypeSpecificResults(
   } catch (error) {
     console.error('[ANALYZE-UNIVERSAL] Failed to save type-specific results:', error)
   }
+  */
 }
