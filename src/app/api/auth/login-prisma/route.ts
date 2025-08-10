@@ -19,8 +19,14 @@ export async function POST(request: NextRequest) {
     // Skip rate limiting for now - db.rateLimit methods don't exist
     // TODO: Implement rate limiting later
 
-    // Find user with profiles
-    const user = await db.user.findByEmail(email)
+    // Find user with profiles using Prisma directly
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: {
+        clientProfile: true,
+        adminProfile: true
+      }
+    })
     
     if (!user) {
       return NextResponse.json(
@@ -48,7 +54,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Update last login
-    await db.user.updateLastLogin(user.id)
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLogin: new Date() }
+    })
 
     // Create session
     const sessionId = uuidv4()
@@ -69,16 +78,25 @@ export async function POST(request: NextRequest) {
 
     // Create session record
     const tokenHash = await bcrypt.hash(token, 10)
-    await db.session.create({
-      userId: user.id,
-      tokenHash,
-      ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
-      userAgent: request.headers.get('user-agent') || undefined,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+    await prisma.userSession.create({
+      data: {
+        id: sessionId,
+        userId: user.id,
+        tokenHash,
+        ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null,
+        userAgent: request.headers.get('user-agent') || null,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+      }
     })
 
     // Clean up expired sessions
-    await db.session.deleteExpired().catch(console.error)
+    await prisma.userSession.deleteMany({
+      where: {
+        expiresAt: {
+          lt: new Date()
+        }
+      }
+    }).catch(console.error)
 
     // Prepare response
     const response = NextResponse.json({
