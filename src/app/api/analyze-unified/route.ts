@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { UnifiedAnalysisOrchestrator } from '@/lib/analysis/unified-analysis-orchestrator'
-import { supabase } from '@/lib/supabase'
+// import { supabase } from '@/lib/supabase' // TODO: Replace with Prisma
 
 // Database helper functions
 async function createLabReport(data: any) {

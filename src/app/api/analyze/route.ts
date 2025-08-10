@@ -3,7 +3,7 @@ import { loadFile } from '@/lib/file-utils'
 import MasterAnalyzer from '@/lib/lab-analyzers/master-analyzer'
 import DatabaseService from '@/lib/database-service'
 import { getRateLimiter, getClientIdentifier, createRateLimitHeaders } from '@/lib/rate-limiter'
-import { db } from '@/lib/supabase'
+// import { db } from '@/lib/supabase' // TODO: Replace with Prisma
 
 // Add retry configuration
 const RETRY_CONFIG = {
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
         try {
           // For quick analysis, we need to use the service role client
           // because the files were uploaded with service role
-          const { SupabaseStorageService } = await import('@/lib/supabase-storage')
+          // const { SupabaseStorageService } = await import('@/lib/supabase-storage') // TODO: Replace
           const storageService = new SupabaseStorageService(true) // Use service role
           
           console.log('[ANALYZE] Attempting to download file with service role client')
@@ -384,7 +384,7 @@ export async function POST(request: NextRequest) {
         try {
           
           // Use service role client for loading files
-          const { SupabaseStorageService } = await import('@/lib/supabase-storage')
+          // const { SupabaseStorageService } = await import('@/lib/supabase-storage') // TODO: Replace
           const storageService = new SupabaseStorageService(true) // Use service role
           
           fileBuffer = await storageService.downloadFile(primaryBucket, labReport.file_path)
