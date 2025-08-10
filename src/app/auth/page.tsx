@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -18,6 +18,7 @@ export default function AuthPage() {
   const [isClient, setIsClient] = useState(false)
   const { login, user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -120,7 +121,8 @@ export default function AuthPage() {
         )
       } else {
         // Login will handle navigation in auth context
-        await login(formData.email, formData.password)
+        const redirectTo = searchParams.get('from') || undefined
+        await login(formData.email, formData.password, redirectTo)
       }
     } catch (err: any) {
       console.error('Auth error:', err)

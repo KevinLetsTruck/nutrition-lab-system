@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, redirectTo?: string) => {
     // Use Prisma-based login endpoint
     const response = await fetch('/api/auth/login-prisma', {
       method: 'POST',
@@ -60,7 +60,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const data = await response.json()
     setUser(data.user)
-    router.push('/dashboard')
+    
+    // Use provided redirect or check URL parameter
+    let destination = redirectTo
+    if (!destination) {
+      const params = new URLSearchParams(window.location.search)
+      destination = params.get('from') || null
+    }
+    
+    if (destination) {
+      router.push(destination)
+    } else {
+      // Default redirect based on role
+      if (data.user.role === 'admin') {
+        router.push('/clients')
+      } else if (data.user.role === 'client') {
+        router.push('/client/success')
+      } else {
+        router.push('/dashboard')
+      }
+    }
   }
 
   const logout = async () => {

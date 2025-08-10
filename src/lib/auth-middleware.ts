@@ -10,6 +10,7 @@ interface RouteConfig {
 const routeConfig: Record<string, RouteConfig> = {
   // Public routes
   '/': { requireAuth: false },
+  '/auth': { requireAuth: false },
   '/login': { requireAuth: false },
   '/register': { requireAuth: false },
   '/reset-password': { requireAuth: false },
@@ -70,10 +71,10 @@ export async function authMiddleware(request: NextRequest) {
   // Check authentication
   const session = await getServerSession(request)
   
-  // If no session and auth required, redirect to login
+  // If no session and auth required, redirect to auth
   if (!session) {
     const url = request.nextUrl.clone()
-    url.pathname = '/login'
+    url.pathname = '/auth'
     url.searchParams.set('from', path)
     return NextResponse.redirect(url)
   }

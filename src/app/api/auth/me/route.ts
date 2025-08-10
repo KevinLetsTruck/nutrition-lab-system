@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { authService } from '@/lib/auth-service'
+import { prisma } from '@/lib/prisma'
+import jwt from 'jsonwebtoken'
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production'
+
+interface JWTPayload {
+  userId: string
+  email: string
+  role: string
+  sessionId: string
+  iat: number
+  exp: number
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,30 +24,60 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Verify token and get user
-    const tokenResult = await authService.verifyToken(token)
-    
-    if (!tokenResult.valid || !tokenResult.user) {
+    // Verify JWT token
+    let decoded: JWTPayload
+    try {
+      decoded = jwt.verify(token, JWT_SECRET) as JWTPayload
+    } catch (error) {
       return NextResponse.json(
-        { error: 'Invalid or expired session' },
+        { error: 'Invalid or expired token' },
         { status: 401 }
       )
     }
 
-    // Get user profile
-    const profileResult = await authService.getUserProfile(tokenResult.user.id)
-
-    if (!profileResult.success) {
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      include: {
+        clientProfile: true,
+        adminProfile: true
+      }
+    })
+    
+    if (!user) {
       return NextResponse.json(
-        { error: 'Failed to get user profile' },
-        { status: 500 }
+        { error: 'User not found' },
+        { status: 401 }
+      )
+    }
+
+    // Check if session is still valid
+    const session = await prisma.userSession.findFirst({
+      where: {
+        userId: user.id,
+        expiresAt: {
+          gt: new Date()
+        }
+      }
+    })
+    
+    if (!session) {
+      return NextResponse.json(
+        { error: 'Session expired' },
+        { status: 401 }
       )
     }
 
     return NextResponse.json({
       success: true,
-      user: tokenResult.user,
-      profile: profileResult.profile
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role.toLowerCase(),
+        emailVerified: user.emailVerified,
+        onboardingCompleted: user.onboardingCompleted
+      },
+      profile: user.clientProfile || user.adminProfile || null
     })
 
   } catch (error) {
@@ -45,4 +87,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-} 
+}
