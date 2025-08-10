@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "DATABASE_URL='postgresql://dummy:dummy@dummy:5432/dummy?sslmode=require' prisma generate && next build",
+    "build": "next build",
     "postbuild": "echo 'Database setup will be run separately'",
     "start": "node scripts/check-and-setup-db.js && next start",
     "start:simple": "next start",

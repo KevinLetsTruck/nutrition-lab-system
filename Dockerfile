@@ -15,20 +15,18 @@ RUN npm ci --legacy-peer-deps
 COPY . .
 
 # Build the application
-# Note: DATABASE_URL and other env vars are provided by Railway during build
-ARG DATABASE_URL
+# Use dummy DATABASE_URL for Prisma generation during build
+ENV DATABASE_URL="postgresql://dummy:dummy@dummy:5432/dummy?sslmode=require"
+
+# Set build-time arguments for Next.js public env vars
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
-ARG SUPABASE_SERVICE_ROLE_KEY
-ARG ANTHROPIC_API_KEY
 
-ENV DATABASE_URL=$DATABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
-ENV SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY
-ENV ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY
 
-RUN npm run build
+# Generate Prisma client and build Next.js
+RUN npx prisma generate && npm run build
 
 # Production stage
 FROM node:20-alpine AS runner
