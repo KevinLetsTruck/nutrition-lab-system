@@ -4,26 +4,13 @@ import { UnifiedAnalysisOrchestrator } from '@/lib/analysis/unified-analysis-orc
 
 // Database helper functions
 async function createLabReport(data: any) {
-  const { data: report, error } = await supabase
-    .from('lab_reports')
-    .insert(data)
-    .select()
-    .single()
-  
-  if (error) throw error
-  return report
+  // TODO: Replace with Prisma
+  throw new Error('createLabReport not implemented with Prisma yet')
 }
 
 async function updateLabReport(id: string, updates: any) {
-  const { data, error } = await supabase
-    .from('lab_reports')
-    .update(updates)
-    .eq('id', id)
-    .select()
-    .single()
-  
-  if (error) throw error
-  return data
+  // TODO: Replace with Prisma
+  throw new Error('updateLabReport not implemented with Prisma yet')
 }
 
 export async function POST(request: NextRequest) {
@@ -178,7 +165,7 @@ export async function GET() {
     ],
     configuration: {
       anthropicApiKey: hasApiKey ? 'configured' : 'missing',
-      supabase: hasSupabase ? 'configured' : 'missing'
+      // supabase: hasSupabase ? 'configured' : 'missing' // TODO: Remove
     },
     timestamp: new Date().toISOString()
   })
