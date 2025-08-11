@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
+import { Leaf } from 'lucide-react';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -27,68 +28,113 @@ export default function LoginPage() {
   }
   
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div 
+      className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8"
+      style={{
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+      }}
+    >
       <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to FNTP System
+        {/* Logo and Header */}
+        <div className="text-center">
+          <div className="flex justify-center items-center mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 rounded-xl bg-[#4ade80] shadow-lg">
+                <Leaf className="h-8 w-8 text-[#0f172a]" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-[#f1f5f9]">DestinationHealth</h1>
+                <p className="text-sm text-[#94a3b8]">FNTP Nutrition System</p>
+              </div>
+            </div>
+          </div>
+          
+          <h2 className="text-3xl font-bold text-[#f1f5f9] mb-2">
+            Welcome Back
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Access your nutrition practice dashboard
+          <p className="text-[#94a3b8]">
+            Sign in to access your nutrition practice dashboard
           </p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
+        {/* Login Form */}
+        <div className="card bg-[#1e293b] border border-[#334155] rounded-xl p-8 shadow-xl">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg">
+                <p className="text-sm font-medium">{error}</p>
+              </div>
+            )}
+            
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-[#f1f5f9] mb-2">
+                  Email Address
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  className="input w-full"
+                  placeholder="Enter your email"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-[#f1f5f9] mb-2">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  className="input w-full"
+                  placeholder="Enter your password"
+                />
+              </div>
             </div>
-          )}
+            
+            <div className="pt-4">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="btn-primary w-full flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="spinner w-4 h-4 mr-2"></div>
+                    Signing in...
+                  </>
+                ) : (
+                  'Sign In'
+                )}
+              </button>
+            </div>
+          </form>
           
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email" className="sr-only">Email</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-              />
+          <div className="mt-8 pt-6 border-t border-[#334155]">
+            <div className="text-center">
+              <p className="text-[#94a3b8]">
+                Don't have an account?{' '}
+                <Link 
+                  href="/register" 
+                  className="text-[#4ade80] hover:text-[#22c55e] font-medium transition-colors duration-200"
+                >
+                  Create one here
+                </Link>
+              </p>
             </div>
           </div>
-          
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-            >
-              {isLoading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
-          
-          <div className="text-center">
-            <span className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
-                Create one
-              </Link>
-            </span>
-          </div>
-        </form>
+        </div>
+        
+        {/* Footer */}
+        <div className="text-center">
+          <p className="text-xs text-[#94a3b8]">
+            © 2024 DestinationHealth. All rights reserved.
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -2,50 +2,55 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    /* DestinationHealth Dark Theme Design System */
+    
+    /* Primary Colors */
+    --primary-green: #4ade80;
+    --primary-green-hover: #22c55e;
+    --primary-green-light: rgba(74, 222, 128, 0.1);
+    
+    /* Dark Theme Base Colors */
+    --bg-primary: #1e293b;
+    --bg-secondary: #0f172a;
+    --bg-card: #1e293b;
+    --bg-hover: #334155;
+    
+    /* Text Colors */
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-accent: #4ade80;
+    
+    /* Border Colors */
+    --border-primary: #334155;
+    --border-hover: #475569;
+    
+    /* Additional Accents */
+    --orange-accent: #fb923c;
+    --red-accent: #ef4444;
+    
+    /* Design System Variables */
+    --background: 210 40% 11%; /* #1e293b */
+    --foreground: 213 20% 94%; /* #f1f5f9 */
+    --card: 210 40% 11%; /* #1e293b */
+    --card-foreground: 213 20% 94%; /* #f1f5f9 */
+    --popover: 217 33% 7%; /* #0f172a */
+    --popover-foreground: 213 20% 94%; /* #f1f5f9 */
+    --primary: 142 76% 68%; /* #4ade80 */
+    --primary-foreground: 217 33% 7%; /* #0f172a */
+    --secondary: 215 25% 27%; /* #334155 */
+    --secondary-foreground: 213 20% 94%; /* #f1f5f9 */
+    --muted: 215 25% 27%; /* #334155 */
+    --muted-foreground: 217 10% 64%; /* #94a3b8 */
+    --accent: 142 76% 68%; /* #4ade80 */
+    --accent-foreground: 217 33% 7%; /* #0f172a */
+    --destructive: 0 84% 60%; /* #ef4444 */
+    --destructive-foreground: 213 20% 94%; /* #f1f5f9 */
+    --border: 215 25% 27%; /* #334155 */
+    --input: 217 33% 7%; /* #0f172a */
+    --ring: 142 76% 68%; /* #4ade80 */
+    --radius: 0.75rem;
     --font-sans: var(--font-geist-sans);
     --font-mono: var(--font-geist-mono);
-  }
- 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
   }
 }
 
@@ -74,5 +79,130 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+  }
+}
+
+@layer components {
+  /* Primary Button (Green) */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold;
+    @apply hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98];
+    @apply transition-all duration-200 ease-out;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2;
+    @apply focus:ring-offset-background;
+    background: var(--primary-green);
+    color: var(--bg-secondary);
+  }
+  
+  .btn-primary:hover {
+    background: var(--primary-green-hover);
+    transform: translateY(-2px);
+  }
+
+  /* Secondary Button (Dark with border) */
+  .btn-secondary {
+    @apply bg-transparent text-foreground border border-border px-6 py-3 rounded-lg font-medium;
+    @apply hover:border-primary/50 hover:bg-primary/10;
+    @apply transition-all duration-200 ease-out;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2;
+    @apply focus:ring-offset-background;
+    border-color: var(--border-primary);
+  }
+  
+  .btn-secondary:hover {
+    border-color: var(--primary-green);
+    background: var(--primary-green-light);
+  }
+
+  /* Form Inputs */
+  .input {
+    @apply bg-input border border-border text-foreground px-4 py-3 rounded-lg;
+    @apply focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none;
+    @apply transition-all duration-200 ease-out;
+    @apply placeholder:text-muted-foreground;
+    background: var(--bg-secondary);
+    border-color: var(--border-primary);
+  }
+  
+  .input:focus {
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 3px var(--primary-green-light);
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-card border border-border rounded-xl p-6;
+    @apply shadow-lg hover:shadow-xl;
+    @apply transition-all duration-200 ease-out;
+    background: var(--bg-card);
+    border-color: var(--border-primary);
+  }
+  
+  .card:hover {
+    border-color: var(--border-hover);
+  }
+
+  /* Badges/Pills */
+  .badge {
+    @apply px-3 py-1 rounded-full text-xs font-medium;
+    background: var(--primary-green-light);
+    color: var(--primary-green);
+  }
+  
+  .badge-orange {
+    @apply px-3 py-1 rounded-full text-xs font-medium;
+    background: rgba(251, 146, 60, 0.2);
+    color: var(--orange-accent);
+  }
+  
+  .badge-red {
+    @apply px-3 py-1 rounded-full text-xs font-medium;
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--red-accent);
+  }
+
+  /* Navigation */
+  .nav-link {
+    @apply text-foreground hover:text-primary transition-colors duration-200;
+    @apply relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5;
+    @apply after:bg-primary after:transition-all after:duration-200;
+    @apply hover:after:w-full;
+  }
+  
+  .nav-link.active {
+    @apply text-primary after:w-full;
+    color: var(--primary-green);
+  }
+
+  /* Table Styles */
+  .table-dark {
+    @apply bg-card border border-border rounded-lg overflow-hidden;
+  }
+  
+  .table-dark tr:nth-child(even) {
+    background: var(--bg-secondary);
+  }
+  
+  .table-dark tr:nth-child(odd) {
+    background: var(--bg-card);
+  }
+  
+  .table-dark th {
+    @apply bg-secondary text-secondary-foreground px-6 py-4 text-left font-semibold;
+    background: var(--bg-secondary);
+  }
+  
+  .table-dark td {
+    @apply px-6 py-4 border-t border-border;
+    border-color: var(--border-primary);
+  }
+
+  /* Loading Spinner */
+  .spinner {
+    @apply animate-spin rounded-full border-2 border-border border-t-primary;
+    border-color: var(--border-primary);
+    border-top-color: var(--primary-green);
   }
 }

@@ -26,10 +26,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning={true}
+        style={{
+          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+          minHeight: '100vh'
+        }}
       >
         <AuthProvider>{children}</AuthProvider>
       </body>

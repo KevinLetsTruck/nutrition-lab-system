@@ -296,30 +296,30 @@ export default function ClientDashboard() {
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header Section */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-[#f1f5f9] mb-2">
           Client Management
         </h1>
-        <p className="text-gray-600">
+        <p className="text-[#94a3b8]">
           Manage your truck driver health optimization clients
         </p>
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6 border border-gray-200">
+      <div className="card mb-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#94a3b8] w-5 h-5" />
             <input
               type="text"
               placeholder="Search clients by name or email..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input w-full pl-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
           <select
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="input px-4 py-3 min-w-[160px]"
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
           >
@@ -331,7 +331,7 @@ export default function ClientDashboard() {
 
           <Link
             href="/dashboard/clients/new"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            className="btn-primary flex items-center justify-center gap-2 whitespace-nowrap"
           >
             <Plus className="w-5 h-5" />
             New Client
@@ -340,12 +340,13 @@ export default function ClientDashboard() {
       </div>
 
       {/* Client Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="card p-0 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full table-dark">
+          <thead>
             <tr>
               <th
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider cursor-pointer hover:bg-[#334155] select-none transition-colors duration-200"
                 onClick={() => handleSort("name")}
               >
                 <div className="flex items-center gap-1">
@@ -354,7 +355,7 @@ export default function ClientDashboard() {
                 </div>
               </th>
               <th
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider cursor-pointer hover:bg-[#334155] select-none transition-colors duration-200"
                 onClick={() => handleSort("status")}
               >
                 <div className="flex items-center gap-1">
@@ -364,7 +365,7 @@ export default function ClientDashboard() {
               </th>
 
               <th
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider cursor-pointer hover:bg-[#334155] select-none transition-colors duration-200"
                 onClick={() => handleSort("lastAssessment")}
               >
                 <div className="flex items-center gap-1">
@@ -373,40 +374,43 @@ export default function ClientDashboard() {
                 </div>
               </th>
 
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
                 Quick Actions
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
-                  Loading clients...
+                <td colSpan={5} className="px-6 py-8 text-center text-[#94a3b8]">
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="spinner w-5 h-5"></div>
+                    <span>Loading clients...</span>
+                  </div>
                 </td>
               </tr>
             ) : filteredAndSortedClients.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={5} className="px-6 py-8 text-center text-[#94a3b8]">
                   No clients found
                 </td>
               </tr>
             ) : (
               filteredAndSortedClients.map((client) => (
-                <tr key={client.id} className="hover:bg-gray-50">
+                <tr key={client.id} className="hover:bg-[#334155] transition-colors duration-200">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-[#f1f5f9]">
                         {client.firstName} {client.lastName}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-[#94a3b8]">
                         {client.email}
                       </div>
                       {client.isTruckDriver && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 mt-1">
+                        <span className="badge mt-1">
                           🚛 OTR Driver
                         </span>
                       )}
@@ -416,8 +420,8 @@ export default function ClientDashboard() {
                     <div className="status-display">
                       {updatingStatus === client.id ? (
                         <div className="flex items-center space-x-2">
-                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
-                          <span className="text-xs text-gray-500">
+                          <div className="spinner w-3 h-3"></div>
+                          <span className="text-xs text-[#94a3b8]">
                             Updating...
                           </span>
                         </div>
@@ -427,17 +431,17 @@ export default function ClientDashboard() {
                           onChange={(e) =>
                             handleStatusUpdate(client.id, e.target.value)
                           }
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border-0 cursor-pointer ${
+                          className={`input px-2 py-1 text-xs rounded-lg cursor-pointer min-w-[140px] ${
                             getStatusVariant(client.status) === "default"
-                              ? "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                              ? "text-blue-400"
                               : getStatusVariant(client.status) === "secondary"
-                              ? "bg-green-100 text-green-800 hover:bg-green-200"
+                              ? "text-green-400"
                               : getStatusVariant(client.status) === "outline"
-                              ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+                              ? "text-yellow-400"
                               : getStatusVariant(client.status) ===
                                 "destructive"
-                              ? "bg-red-100 text-red-800 hover:bg-red-200"
-                              : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                              ? "text-red-400"
+                              : "text-[#94a3b8]"
                           }`}
                         >
                           <option value="SIGNED_UP">Signed Up</option>
@@ -456,11 +460,11 @@ export default function ClientDashboard() {
                     </div>
                   </td>
 
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-[#94a3b8]">
                     {client.lastAssessment ? (
                       new Date(client.lastAssessment).toLocaleDateString()
                     ) : (
-                      <span className="text-yellow-600">Never assessed</span>
+                      <span className="text-yellow-400">Never assessed</span>
                     )}
                   </td>
 
@@ -468,7 +472,7 @@ export default function ClientDashboard() {
                     <div className="flex space-x-2">
                       <Link
                         href={`/dashboard/protocols/new?clientId=${client.id}`}
-                        className="text-purple-600 hover:text-purple-900"
+                        className="text-[#4ade80] hover:text-[#22c55e] transition-colors duration-200"
                         title="Create Protocol"
                       >
                         <FlaskConical className="w-4 h-4" />
@@ -476,17 +480,17 @@ export default function ClientDashboard() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-3">
                       <Link
                         href={`/dashboard/clients/${client.id}`}
-                        className="text-gray-600 hover:text-gray-900"
+                        className="text-[#94a3b8] hover:text-[#f1f5f9] transition-colors duration-200"
                         title="View Client"
                       >
                         <Eye className="w-4 h-4" />
                       </Link>
                       <Link
                         href={`/dashboard/clients/${client.id}/edit`}
-                        className="text-gray-600 hover:text-gray-900"
+                        className="text-[#94a3b8] hover:text-[#f1f5f9] transition-colors duration-200"
                         title="Edit Client"
                       >
                         <Edit className="w-4 h-4" />
@@ -498,7 +502,7 @@ export default function ClientDashboard() {
                             `${client.firstName} ${client.lastName}`
                           )
                         }
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-400 hover:text-red-300 transition-colors duration-200"
                         title="Delete Client"
                       >
                         <Trash2 className="w-4 h-4" />
