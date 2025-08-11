@@ -7,6 +7,11 @@ import PDFToolbar from "./PDFToolbar";
 import PDFSidebar from "./PDFSidebar";
 import { Annotation } from "./PDFViewer";
 
+// Extend HTMLCanvasElement to include our custom _renderTask property
+interface ExtendedHTMLCanvasElement extends HTMLCanvasElement {
+  _renderTask?: any;
+}
+
 // Configure PDF.js worker - done in useEffect to avoid hydration mismatch
 
 export interface Document {
@@ -52,7 +57,7 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
   allowPrint = true,
   allowShare = false,
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<ExtendedHTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
 
@@ -137,6 +142,11 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
       if (!pdf || !canvasRef.current) return;
 
       try {
+        // Cancel any previous render task
+        if (canvasRef.current._renderTask) {
+          canvasRef.current._renderTask.cancel();
+        }
+
         const page = await pdf.getPage(pageNum);
         const viewport = page.getViewport({ scale: state.scale });
         const canvas = canvasRef.current;
@@ -144,6 +154,9 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
 
         if (!context) return;
 
+        // Clear the canvas before rendering
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
@@ -152,9 +165,18 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
           viewport: viewport,
         };
 
-        await page.render(renderContext).promise;
+        // Store the render task so we can cancel it if needed
+        const renderTask = page.render(renderContext);
+        canvas._renderTask = renderTask;
+
+        await renderTask.promise;
+        
+        // Clear the render task reference when done
+        canvas._renderTask = null;
       } catch (error) {
-        console.error("Error rendering page:", error);
+        if (error.name !== 'RenderingCancelledException') {
+          console.error("Error rendering page:", error);
+        }
       }
     },
     [state.pdf, state.scale]
@@ -440,6 +462,16 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
       renderPage(state.currentPage);
     }
   }, [state.scale, renderPage, state.pdf, state.currentPage]);
+
+  // Cleanup effect to cancel render operations
+  useEffect(() => {
+    return () => {
+      // Cancel any pending render operation when component unmounts
+      if (canvasRef.current && canvasRef.current._renderTask) {
+        canvasRef.current._renderTask.cancel();
+      }
+    };
+  }, []);
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString("en-US", {
