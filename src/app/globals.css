@@ -75,10 +75,10 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: var(--border-primary);
   }
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply font-sans;
     background: var(--bg-primary);
     color: var(--text-primary);
   }
@@ -87,11 +87,8 @@
 @layer components {
   /* Primary Button (Green) */
   .btn-primary {
-    @apply bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold;
-    @apply hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98];
-    @apply transition-all duration-200 ease-out;
-    @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2;
-    @apply focus:ring-offset-background;
+    @apply px-6 py-3 rounded-lg font-semibold transition-all duration-200 ease-out;
+    @apply hover:scale-[1.02] active:scale-[0.98] focus:outline-none;
     background: var(--primary-green);
     color: var(--bg-secondary);
   }
@@ -103,12 +100,9 @@
 
   /* Secondary Button (Dark with border) */
   .btn-secondary {
-    @apply bg-transparent text-foreground border border-border px-6 py-3 rounded-lg font-medium;
-    @apply hover:border-primary/50 hover:bg-primary/10;
-    @apply transition-all duration-200 ease-out;
-    @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2;
-    @apply focus:ring-offset-background;
-    border-color: var(--border-primary);
+    @apply bg-transparent px-6 py-3 rounded-lg font-medium transition-all duration-200 ease-out focus:outline-none;
+    color: var(--text-primary);
+    border: 1px solid var(--border-primary);
   }
   
   .btn-secondary:hover {
@@ -118,12 +112,14 @@
 
   /* Form Inputs */
   .input {
-    @apply bg-input border border-border text-foreground px-4 py-3 rounded-lg;
-    @apply focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none;
-    @apply transition-all duration-200 ease-out;
-    @apply placeholder:text-muted-foreground;
+    @apply px-4 py-3 rounded-lg transition-all duration-200 ease-out focus:outline-none;
     background: var(--bg-secondary);
-    border-color: var(--border-primary);
+    border: 1px solid var(--border-primary);
+    color: var(--text-primary);
+  }
+  
+  .input::placeholder {
+    color: var(--text-secondary);
   }
   
   .input:focus {
@@ -133,11 +129,9 @@
 
   /* Cards */
   .card {
-    @apply bg-card border border-border rounded-xl p-6;
-    @apply shadow-lg hover:shadow-xl;
-    @apply transition-all duration-200 ease-out;
+    @apply rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 ease-out;
     background: var(--bg-card);
-    border-color: var(--border-primary);
+    border: 1px solid var(--border-primary);
   }
   
   .card:hover {
