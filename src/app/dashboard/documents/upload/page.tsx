@@ -2,7 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Upload, FileText, X, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  X,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
 import { useDropzone } from "react-dropzone";
 
 interface Client {
@@ -54,15 +61,17 @@ export default function DocumentUploadPage() {
       "application/pdf": [".pdf"],
       "image/*": [".jpg", ".jpeg", ".png"],
       "text/csv": [".csv"],
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
+        ".xlsx",
+      ],
     },
     onDrop: (acceptedFiles) => {
-      setFiles(prev => [...prev, ...acceptedFiles]);
+      setFiles((prev) => [...prev, ...acceptedFiles]);
     },
   });
 
   const removeFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleUpload = async () => {
@@ -118,10 +127,16 @@ export default function DocumentUploadPage() {
     return (
       <div className="max-w-2xl mx-auto p-6">
         <div className="text-center">
-          <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Upload Complete!</h1>
-          <p className="text-gray-600">Your documents have been uploaded successfully.</p>
-          <p className="text-sm text-gray-500 mt-2">Redirecting to client page...</p>
+          <CheckCircle className="w-16 h-16 text-[#4ade80] mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-[#f1f5f9] mb-2">
+            Upload Complete!
+          </h1>
+          <p className="text-[#94a3b8]">
+            Your documents have been uploaded successfully.
+          </p>
+          <p className="text-sm text-[#94a3b8] mt-2">
+            Redirecting to client page...
+          </p>
         </div>
       </div>
     );
@@ -130,35 +145,37 @@ export default function DocumentUploadPage() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Upload Documents</h1>
-        <p className="text-gray-600 mt-2">
+        <h1 className="text-3xl font-bold text-[#f1f5f9]">Upload Documents</h1>
+        <p className="text-[#94a3b8] mt-2">
           Upload lab reports, assessments, and other client documents
         </p>
       </div>
 
       {error && (
-        <div className="mb-6 p-4 border border-red-200 rounded-lg bg-red-50">
+        <div className="mb-6 p-4 border border-red-500/20 rounded-lg bg-red-500/10">
           <div className="flex items-center">
-            <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
-            <p className="text-red-700">{error}</p>
+            <AlertCircle className="w-5 h-5 text-red-400 mr-2" />
+            <p className="text-red-400">{error}</p>
           </div>
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Upload Form */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Document Details</h2>
+        <div className="card">
+          <h2 className="text-lg font-semibold text-[#f1f5f9] mb-4">
+            Document Details
+          </h2>
 
           {/* Client Selection */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[#f1f5f9] mb-2">
               Select Client *
             </label>
             <select
               value={selectedClientId}
               onChange={(e) => setSelectedClientId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input w-full"
               disabled={!!clientId} // Disable if clientId is pre-selected
             >
               <option value="">Choose a client...</option>
@@ -172,13 +189,13 @@ export default function DocumentUploadPage() {
 
           {/* Document Type */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[#f1f5f9] mb-2">
               Document Type *
             </label>
             <select
               value={documentType}
               onChange={(e) => setDocumentType(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input w-full"
             >
               <option value="lab_report">Lab Report</option>
               <option value="assessment">Assessment</option>
@@ -191,13 +208,13 @@ export default function DocumentUploadPage() {
           {/* Lab Type (conditional) */}
           {documentType === "lab_report" && (
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-[#f1f5f9] mb-2">
                 Lab Type
               </label>
               <select
                 value={labType}
                 onChange={(e) => setLabType(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input w-full"
               >
                 <option value="">Select lab type...</option>
                 <option value="nutriq">NutriQ</option>
@@ -215,16 +232,16 @@ export default function DocumentUploadPage() {
             <button
               onClick={handleUpload}
               disabled={uploading || !selectedClientId || files.length === 0}
-              className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+              className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {uploading ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   Uploading...
                 </>
               ) : (
                 <>
-                  <Upload className="w-4 h-4 mr-2" />
+                  <Upload className="w-4 h-4" />
                   Upload Documents
                 </>
               )}
@@ -233,28 +250,30 @@ export default function DocumentUploadPage() {
         </div>
 
         {/* File Drop Zone */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Add Files</h2>
+        <div className="card">
+          <h2 className="text-lg font-semibold text-[#f1f5f9] mb-4">
+            Add Files
+          </h2>
 
           {/* Dropzone */}
           <div
             {...getRootProps()}
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all ${
               isDragActive
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-300 hover:border-gray-400"
+                ? "border-[#4ade80] bg-[#4ade80]/10"
+                : "border-[#334155] hover:border-[#475569]"
             }`}
           >
             <input {...getInputProps()} />
-            <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <Upload className="w-12 h-12 text-[#94a3b8] mx-auto mb-4" />
             {isDragActive ? (
-              <p className="text-blue-600">Drop the files here...</p>
+              <p className="text-[#4ade80]">Drop the files here...</p>
             ) : (
               <>
-                <p className="text-gray-600 mb-2">
+                <p className="text-[#f1f5f9] mb-2">
                   Drag and drop files here, or click to select
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-[#94a3b8]">
                   Supports PDF, Images, CSV, Excel files
                 </p>
               </>
@@ -264,29 +283,29 @@ export default function DocumentUploadPage() {
           {/* File List */}
           {files.length > 0 && (
             <div className="mt-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">
+              <h3 className="text-sm font-medium text-[#f1f5f9] mb-2">
                 Selected Files ({files.length})
               </h3>
               <div className="space-y-2">
                 {files.map((file, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    className="flex items-center justify-between p-3 bg-[#0f172a] rounded-lg border border-[#334155]"
                   >
                     <div className="flex items-center">
-                      <FileText className="w-5 h-5 text-gray-400 mr-3" />
+                      <FileText className="w-5 h-5 text-[#94a3b8] mr-3" />
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-[#f1f5f9]">
                           {file.name}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-[#94a3b8]">
                           {(file.size / 1024 / 1024).toFixed(2)} MB
                         </p>
                       </div>
                     </div>
                     <button
                       onClick={() => removeFile(index)}
-                      className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                      className="p-1 text-[#94a3b8] hover:text-red-400 transition-colors"
                     >
                       <X className="w-4 h-4" />
                     </button>

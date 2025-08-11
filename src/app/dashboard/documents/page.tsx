@@ -93,11 +93,11 @@ export default function DocumentsPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "uploaded": return "bg-blue-100 text-blue-800";
-      case "processing": return "bg-yellow-100 text-yellow-800";
-      case "completed": return "bg-green-100 text-green-800";
-      case "failed": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "uploaded": return "badge text-blue-400";
+      case "processing": return "badge-orange";
+      case "completed": return "badge";
+      case "failed": return "badge-red";
+      default: return "badge";
     }
   };
 
@@ -115,74 +115,74 @@ export default function DocumentsPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600 mt-2">Loading documents...</p>
+          <div className="spinner h-8 w-8 mx-auto"></div>
+          <p className="text-[#94a3b8] mt-2">Loading documents...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Documents</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-[#f1f5f9]">Documents</h1>
+          <p className="text-[#94a3b8] mt-1">
             Manage all client documents, lab reports, and assessments
           </p>
         </div>
         <Link
           href="/dashboard/documents/upload"
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
+          className="btn-primary flex items-center gap-2"
         >
-          <Upload className="w-4 h-4 mr-2" />
+          <Upload className="w-4 h-4" />
           Upload Documents
         </Link>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg p-4 border">
+        <div className="card">
           <div className="flex items-center">
-            <FileText className="w-8 h-8 text-blue-600 mr-3" />
+            <FileText className="w-8 h-8 text-[#4ade80] mr-3" />
             <div>
-              <p className="text-sm text-gray-600">Total Documents</p>
-              <p className="text-2xl font-bold text-gray-900">{documents.length}</p>
+              <p className="text-sm text-[#94a3b8]">Total Documents</p>
+              <p className="text-2xl font-bold text-[#f1f5f9]">{documents.length}</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-white rounded-lg p-4 border">
+        <div className="card">
           <div className="flex items-center">
             <div className="text-2xl mr-3">🧪</div>
             <div>
-              <p className="text-sm text-gray-600">Lab Reports</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-[#94a3b8]">Lab Reports</p>
+              <p className="text-2xl font-bold text-[#f1f5f9]">
                 {documents.filter(d => d.documentType === "lab_report").length}
               </p>
             </div>
           </div>
         </div>
         
-        <div className="bg-white rounded-lg p-4 border">
+        <div className="card">
           <div className="flex items-center">
             <div className="text-2xl mr-3">📋</div>
             <div>
-              <p className="text-sm text-gray-600">Assessments</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-[#94a3b8]">Assessments</p>
+              <p className="text-2xl font-bold text-[#f1f5f9]">
                 {documents.filter(d => d.documentType === "assessment").length}
               </p>
             </div>
           </div>
         </div>
         
-        <div className="bg-white rounded-lg p-4 border">
+        <div className="card">
           <div className="flex items-center">
             <div className="text-2xl mr-3">✅</div>
             <div>
-              <p className="text-sm text-gray-600">Processed</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-[#94a3b8]">Processed</p>
+              <p className="text-2xl font-bold text-[#f1f5f9]">
                 {documents.filter(d => d.status === "completed").length}
               </p>
             </div>
@@ -191,32 +191,32 @@ export default function DocumentsPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg border p-4">
+      <div className="card">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-[#f1f5f9] mb-2">
               Search
             </label>
             <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[#94a3b8]" />
               <input
                 type="text"
                 placeholder="Search files or clients..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input w-full pl-10"
               />
             </div>
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-[#f1f5f9] mb-2">
               Status
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input w-full"
             >
               <option value="all">All Statuses</option>
               <option value="uploaded">Uploaded</option>
@@ -227,13 +227,13 @@ export default function DocumentsPage() {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-[#f1f5f9] mb-2">
               Type
             </label>
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input w-full"
             >
               <option value="all">All Types</option>
               <option value="lab_report">Lab Reports</option>
@@ -251,7 +251,7 @@ export default function DocumentsPage() {
                 setStatusFilter("all");
                 setTypeFilter("all");
               }}
-              className="w-full px-3 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+              className="btn-secondary w-full"
             >
               Clear Filters
             </button>
@@ -260,14 +260,14 @@ export default function DocumentsPage() {
       </div>
 
       {/* Documents List */}
-      <div className="bg-white rounded-lg border">
+      <div className="card p-0 overflow-hidden">
         {filteredDocuments.length === 0 ? (
-          <div className="text-center py-12">
-            <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <div className="text-center py-12 px-6">
+            <FileText className="w-12 h-12 text-[#94a3b8] mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-[#f1f5f9] mb-2">
               No documents found
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-[#94a3b8] mb-4">
               {documents.length === 0 
                 ? "Get started by uploading your first document"
                 : "Try adjusting your search or filters"
@@ -275,54 +275,54 @@ export default function DocumentsPage() {
             </p>
             <Link
               href="/dashboard/documents/upload"
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
+              className="btn-primary inline-flex items-center gap-2"
             >
-              <Upload className="w-4 h-4 mr-2" />
+              <Upload className="w-4 h-4" />
               Upload Document
             </Link>
           </div>
         ) : (
-          <div className="overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50">
+          <div className="overflow-x-auto">
+            <table className="w-full table-dark">
+              <thead>
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
                     Document
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
                     Client
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
                     Type
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
                     Size
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
                     Uploaded
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-right text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody>
                 {filteredDocuments.map((document) => (
-                  <tr key={document.id} className="hover:bg-gray-50">
+                  <tr key={document.id} className="hover:bg-[#334155] transition-colors duration-200">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="text-2xl mr-3">
                           {getTypeIcon(document.documentType)}
                         </div>
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-[#f1f5f9]">
                             {document.fileName}
                           </div>
                           {document.labType && (
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-[#94a3b8]">
                               {document.labType.toUpperCase()}
                             </div>
                           )}
@@ -332,14 +332,14 @@ export default function DocumentsPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link
                         href={`/dashboard/clients/${document.client.id}`}
-                        className="flex items-center text-blue-600 hover:text-blue-800"
+                        className="flex items-center text-[#4ade80] hover:text-[#22c55e] transition-colors duration-200"
                       >
                         <User className="w-4 h-4 mr-2" />
                         <div>
                           <div className="text-sm font-medium">
                             {document.client.firstName} {document.client.lastName}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-[#94a3b8]">
                             {document.client.email}
                           </div>
                         </div>
@@ -347,33 +347,29 @@ export default function DocumentsPage() {
                       </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-900 capitalize">
+                      <span className="text-sm text-[#f1f5f9] capitalize">
                         {document.documentType.replace("_", " ")}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                          document.status
-                        )}`}
-                      >
+                      <span className={getStatusColor(document.status)}>
                         {document.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#94a3b8]">
                       {formatFileSize(document.fileSize)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center text-sm text-gray-500">
+                      <div className="flex items-center text-sm text-[#94a3b8]">
                         <Calendar className="w-4 h-4 mr-1" />
                         {formatDate(document.uploadedAt)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end space-x-2">
+                      <div className="flex items-center justify-end space-x-3">
                         <button
                           onClick={() => window.open(document.fileUrl, "_blank")}
-                          className="text-blue-600 hover:text-blue-800 p-1"
+                          className="text-[#4ade80] hover:text-[#22c55e] p-1 transition-colors duration-200"
                           title="View Document"
                         >
                           <Eye className="w-4 h-4" />
@@ -381,7 +377,7 @@ export default function DocumentsPage() {
                         <a
                           href={document.fileUrl}
                           download={document.fileName}
-                          className="text-gray-600 hover:text-gray-800 p-1"
+                          className="text-[#94a3b8] hover:text-[#f1f5f9] p-1 transition-colors duration-200"
                           title="Download Document"
                         >
                           <Download className="w-4 h-4" />
