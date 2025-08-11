@@ -43,10 +43,10 @@ export default function TestMedicalUpload() {
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || [])
     
-    const newFiles: FileWithPreview[] = selectedFiles.map(file => {
+    const newFiles: FileWithPreview[] = selectedFiles.map((file, index) => {
       const fileWithPreview: FileWithPreview = {
         file,
-        id: Math.random().toString(36).substr(2, 9)
+        id: `file-${Date.now()}-${index}`
       }
 
       // Create preview for images
