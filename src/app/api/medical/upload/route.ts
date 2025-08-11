@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { medicalDocStorage } from '@/lib/medical/storage-service'
+import { documentProcessingWorker } from '@/lib/medical/processing-worker'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const MAX_FILES_PER_UPLOAD = 10
@@ -138,6 +139,15 @@ export async function POST(req: NextRequest) {
         })
         
         console.log(`✅ File ${fileNum} uploaded successfully: ${document.id}`)
+        
+        // Add to OCR processing queue
+        await documentProcessingWorker.addToQueue({
+          documentId: document.id,
+          priority: isRadioShow ? 10 : 5, // Higher priority for radio show
+          isRadioShow
+        })
+        
+        console.log(`🔄 Document queued for OCR processing: ${document.id}`)
         
         uploadResults.push({
           id: document.id,

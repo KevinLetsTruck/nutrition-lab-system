@@ -15,11 +15,25 @@ export default function TestMedicalPage() {
   const [files, setFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
   const [results, setResults] = useState<any>(null)
+  const [ocrStatus, setOcrStatus] = useState<any[]>([])
+  const [autoRefresh, setAutoRefresh] = useState(false)
 
   // Check S3 status on component mount
   useEffect(() => {
     checkS3Status()
   }, [])
+
+  // Auto-refresh OCR status
+  useEffect(() => {
+    if (autoRefresh && results?.documents?.length > 0) {
+      const interval = setInterval(() => {
+        const documentIds = results.documents.map((doc: any) => doc.id)
+        checkOCRStatus(documentIds)
+      }, 2000) // Check every 2 seconds
+
+      return () => clearInterval(interval)
+    }
+  }, [autoRefresh, results])
 
   const checkS3Status = async () => {
     try {
@@ -31,6 +45,18 @@ export default function TestMedicalPage() {
         s3Connected: false,
         message: 'Failed to check S3 status'
       })
+    }
+  }
+
+  const checkOCRStatus = async (documentIds: string[]) => {
+    try {
+      const statusPromises = documentIds.map(id => 
+        fetch(`/api/medical/documents/${id}/status`).then(r => r.json())
+      )
+      const statuses = await Promise.all(statusPromises)
+      setOcrStatus(statuses)
+    } catch (error) {
+      console.error('Failed to check OCR status:', error)
     }
   }
 
@@ -59,6 +85,13 @@ export default function TestMedicalPage() {
 
       const data = await response.json()
       setResults(data)
+      
+      // Start OCR monitoring if successful
+      if (data.success && data.documents.length > 0) {
+        setAutoRefresh(true)
+        const documentIds = data.documents.map((doc: any) => doc.id)
+        checkOCRStatus(documentIds)
+      }
     } catch (error) {
       setResults({
         success: false,
@@ -211,6 +244,77 @@ export default function TestMedicalPage() {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* OCR Processing Status */}
+        {ocrStatus.length > 0 && (
+          <div className="bg-[#1e293b] border border-[#334155] rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">OCR Processing Status</h2>
+              <button
+                onClick={() => setAutoRefresh(!autoRefresh)}
+                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  autoRefresh 
+                    ? 'bg-[#4ade80] text-[#0f172a]' 
+                    : 'bg-gray-600 text-gray-300'
+                }`}
+              >
+                {autoRefresh ? 'Auto-refresh ON' : 'Auto-refresh OFF'}
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              {ocrStatus.map((status) => (
+                <div key={status.id} className="bg-[#0f172a] p-4 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium">{status.originalFileName}</span>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      status.status === 'COMPLETED' ? 'bg-green-500/20 text-green-400' :
+                      status.status === 'PROCESSING' ? 'bg-yellow-500/20 text-yellow-400' :
+                      status.status === 'FAILED' ? 'bg-red-500/20 text-red-400' :
+                      'bg-gray-500/20 text-gray-400'
+                    }`}>
+                      {status.status}
+                    </span>
+                  </div>
+                  
+                  {status.status === 'COMPLETED' && (
+                    <div className="space-y-1 text-sm text-gray-400">
+                      <div>Type: {status.documentType}</div>
+                      <div>Confidence: {(status.ocrConfidence * 100).toFixed(1)}%</div>
+                      {status.metadata?.labSource && (
+                        <div>Lab Source: {status.metadata.labSource}</div>
+                      )}
+                      {status.metadata?.wordCount && (
+                        <div>Words Extracted: {status.metadata.wordCount}</div>
+                      )}
+                      {status.textPreview && (
+                        <div className="mt-2 p-2 bg-[#1e293b] rounded text-xs">
+                          <div className="text-gray-500 mb-1">Text Preview:</div>
+                          <div className="text-gray-300">{status.textPreview}</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {status.processing && (
+                    <div className="text-sm text-gray-400">
+                      Queue Status: {status.processing.status}
+                      {status.processing.startedAt && (
+                        <div>Started: {new Date(status.processing.startedAt).toLocaleTimeString()}</div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {status.errorMessage && (
+                    <div className="text-sm text-red-400 mt-2">
+                      Error: {status.errorMessage}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}
