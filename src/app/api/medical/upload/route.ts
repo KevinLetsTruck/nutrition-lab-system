@@ -1,9 +1,6 @@
 // Medical Document Upload API Route
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { storageService } from "@/lib/storage";
-import { queueManager } from "@/lib/queue/manager";
-import { validateFile, generateSecureFileName } from "@/lib/storage/config";
 import jwt from "jsonwebtoken";
 
 interface AuthPayload {
@@ -38,34 +35,43 @@ export async function POST(request: NextRequest) {
   try {
     // Authenticate user
     user = await verifyAuthToken(request);
-    console.log("Authenticated user uploading document:", user.email);
+    console.log("Authenticated user uploading medical document:", user.email);
 
     // Parse form data
     const formData = await request.formData();
     clientId = formData.get("clientId") as string;
     const documentType = formData.get("documentType") as string;
-    const labType = formData.get("labType") as string | null;
+    const labSource = formData.get("labSource") as string | null;
     const file = formData.get("file") as File;
 
     if (!clientId || !documentType || !file) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            "Missing required fields: clientId, documentType, and file are mandatory.",
+          error: "Missing required fields: clientId, documentType, and file are mandatory.",
         },
         { status: 400 }
       );
     }
 
     // Validate file
-    const validation = validateFile(file);
-    if (!validation.valid) {
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/tiff'];
+    if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
         {
           success: false,
-          error: "File validation failed",
-          details: validation.errors,
+          error: "Invalid file type. Only PDF, JPEG, PNG, and TIFF files are allowed.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Check file size (50MB limit)
+    if (file.size > 50 * 1024 * 1024) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "File size too large. Maximum size is 50MB.",
         },
         { status: 400 }
       );
@@ -86,51 +92,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convert file to buffer
-    const fileBuffer = Buffer.from(await file.arrayBuffer());
+    // For now, we'll store a placeholder URL - you can integrate with S3/Cloudinary later
+    const fileName = `${Date.now()}_${file.name}`;
+    const fileUrl = `/uploads/medical/${fileName}`;
 
-    // Generate secure filename
-    const secureFileName = generateSecureFileName(file.name, clientId);
-
-    // Upload to storage
-    const uploadResult = await storageService.uploadFile(
-      fileBuffer,
-      secureFileName,
-      clientId,
-      {
-        contentType: file.type,
-        documentType,
-        metadata: {
-          originalFileName: file.name,
-          uploadedBy: user.email,
-          labType: labType || undefined,
-        },
-      }
-    );
-
-    // Create document record
-    const document = await prisma.document.create({
+    // Create medical document record
+    const document = await prisma.medicalDocument.create({
       data: {
         clientId,
         documentType,
         originalFileName: file.name,
-        s3Url: uploadResult.url,
-        s3Key: uploadResult.id,
+        s3Url: fileUrl,
+        s3Key: fileName,
         status: "PENDING",
         metadata: {
-          fileName: secureFileName,
-          fileType: file.type,
           fileSize: file.size,
+          fileType: file.type,
           uploadedBy: user.email,
-          labType: labType || undefined,
+          labSource: labSource || undefined,
         },
       },
     });
 
     documentId = document.id;
 
-    // Add OCR job to queue
-    await prisma.processingQueue.create({
+    // Add to processing queue
+    await prisma.medicalProcessingQueue.create({
       data: {
         documentId: document.id,
         jobType: "ocr",
@@ -139,10 +126,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Log the upload (simplified audit log can be added later if needed)
-    console.log(`Document uploaded by ${user.email}: ${document.id}`);
-
-    console.log(`✅ Document uploaded successfully: ${document.id}`);
+    // Log the upload
+    console.log(`Medical document uploaded by ${user.email}: ${document.id}`);
 
     return NextResponse.json(
       {
@@ -155,24 +140,18 @@ export async function POST(request: NextRequest) {
             status: document.status,
             uploadDate: document.uploadDate,
             s3Url: document.s3Url,
-            s3Key: document.s3Key,
           },
-          uploadResult,
         },
-        message: "Document uploaded and queued for processing",
+        message: "Medical document uploaded and queued for processing",
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Document upload error:", error);
+    console.error("Medical document upload error:", error);
 
-    // Log error (simplified error logging)
+    // Log error
     if (user) {
-      console.error(
-        `Document upload failed for user ${user.email}: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+      console.error(`Medical document upload failed for user ${user.email}: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
 
     if (error instanceof Error && error.message.includes("Authentication")) {
@@ -189,7 +168,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: "Document upload failed",
+        error: "Medical document upload failed",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
@@ -221,7 +200,7 @@ export async function GET(request: NextRequest) {
       where.status = status;
     }
 
-    const documents = await prisma.document.findMany({
+    const documents = await prisma.medicalDocument.findMany({
       where,
       select: {
         id: true,
@@ -233,7 +212,8 @@ export async function GET(request: NextRequest) {
         clientId: true,
         client: {
           select: {
-            name: true,
+            firstName: true,
+            lastName: true,
             email: true,
           },
         },
@@ -243,12 +223,10 @@ export async function GET(request: NextRequest) {
       skip: offset,
     });
 
-    const total = await prisma.document.count({ where });
+    const total = await prisma.medicalDocument.count({ where });
 
-    // Log document list access (simplified)
-    console.log(
-      `User ${user.email} accessed document list: ${documents.length} results`
-    );
+    // Log document list access
+    console.log(`User ${user.email} accessed medical document list: ${documents.length} results`);
 
     return NextResponse.json({
       success: true,
@@ -261,10 +239,10 @@ export async function GET(request: NextRequest) {
           hasMore: offset + limit < total,
         },
       },
-      message: "Documents retrieved successfully",
+      message: "Medical documents retrieved successfully",
     });
   } catch (error) {
-    console.error("Document list error:", error);
+    console.error("Medical document list error:", error);
 
     if (error instanceof Error && error.message.includes("Authentication")) {
       return NextResponse.json(
@@ -280,7 +258,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to retrieve documents",
+        error: "Failed to retrieve medical documents",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }

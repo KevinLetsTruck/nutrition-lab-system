@@ -1,7 +1,6 @@
 // Medical Document Processing API Route
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { queueManager } from "@/lib/queue/manager";
 import jwt from "jsonwebtoken";
 
 interface AuthPayload {
@@ -35,10 +34,7 @@ export async function POST(request: NextRequest) {
 
   try {
     user = await verifyAuthToken(request);
-    console.log(
-      "Authenticated user triggering document processing:",
-      user.email
-    );
+    console.log("Authenticated user triggering medical document processing:", user.email);
 
     const body = await request.json();
     documentId = body.documentId;
@@ -56,12 +52,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Get document details
-    const document = await prisma.document.findUnique({
+    const document = await prisma.medicalDocument.findUnique({
       where: { id: documentId },
       include: {
         client: {
           select: {
-            name: true,
+            firstName: true,
+            lastName: true,
             email: true,
           },
         },
@@ -72,7 +69,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "Document not found",
+          error: "Medical document not found",
         },
         { status: 404 }
       );
@@ -81,7 +78,7 @@ export async function POST(request: NextRequest) {
     clientId = document.clientId;
 
     // Check if document is already being processed
-    const existingJobs = await prisma.processingQueue.findMany({
+    const existingJobs = await prisma.medicalProcessingQueue.findMany({
       where: {
         documentId: document.id,
         status: { in: ["QUEUED", "PROCESSING"] },
@@ -92,7 +89,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "Document is already being processed",
+          error: "Medical document is already being processed",
           details: {
             activeJobs: existingJobs.length,
             currentStatus: document.status,
@@ -107,8 +104,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            "Document is already processed. Use forceReprocess=true to reprocess.",
+          error: "Medical document is already processed. Use forceReprocess=true to reprocess.",
           details: {
             currentStatus: document.status,
             processedAt: document.processedAt,
@@ -119,7 +115,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update document status
-    await prisma.document.update({
+    await prisma.medicalDocument.update({
       where: { id: documentId },
       data: {
         status: "PROCESSING",
@@ -130,8 +126,12 @@ export async function POST(request: NextRequest) {
     const jobs = [];
 
     // Add OCR job if needed
-    if (!document.ocrText || document.status === "FAILED" || forceReprocess) {
-      const ocrJob = await prisma.processingQueue.create({
+    if (
+      !document.ocrText ||
+      document.status === "FAILED" ||
+      forceReprocess
+    ) {
+      const ocrJob = await prisma.medicalProcessingQueue.create({
         data: {
           documentId,
           jobType: "ocr",
@@ -146,10 +146,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Add analysis job if we have extracted text or if forcing reprocess
+    // Add analysis job if we have extracted text
     if (document.ocrText || forceReprocess) {
       // Get existing lab values for analysis
-      const labValues = await prisma.labValue.findMany({
+      const labValues = await prisma.medicalLabValue.findMany({
         where: { documentId },
         select: {
           testName: true,
@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
       });
 
       if (labValues.length > 0) {
-        const analysisJob = await prisma.processingQueue.create({
+        const analysisJob = await prisma.medicalProcessingQueue.create({
           data: {
             documentId,
             jobType: "analysis",
@@ -182,11 +182,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log processing initiation
-    console.log(
-      `User ${user.email} initiated processing for document ${documentId}: ${jobs.length} jobs created`
-    );
-
-    console.log(`✅ Document processing initiated: ${documentId}`);
+    console.log(`User ${user.email} initiated medical processing for document ${documentId}: ${jobs.length} jobs created`);
 
     return NextResponse.json(
       {
@@ -197,32 +193,16 @@ export async function POST(request: NextRequest) {
           jobs,
           estimatedCompletion: new Date(Date.now() + jobs.length * 60000), // Rough estimate
         },
-        message: "Document processing successfully initiated",
+        message: "Medical document processing successfully initiated",
       },
       { status: 202 }
     );
   } catch (error) {
-    console.error("Document processing error:", error);
+    console.error("Medical document processing error:", error);
 
-    // Create error audit log
+    // Log error
     if (user) {
-      try {
-        await prisma.auditLog.create({
-          data: {
-            userId: user.id,
-            userEmail: user.email,
-            action: "PROCESS",
-            resource: "DOCUMENT",
-            resourceId: documentId,
-            clientId,
-            success: false,
-            errorMessage:
-              error instanceof Error ? error.message : "Unknown error",
-          },
-        });
-      } catch (auditError) {
-        console.error("Failed to create audit log:", auditError);
-      }
+      console.error(`Medical document processing failed for user ${user.email}: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
 
     if (error instanceof Error && error.message.includes("Authentication")) {
@@ -239,7 +219,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: "Document processing failed",
+        error: "Medical document processing failed",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
@@ -258,10 +238,6 @@ export async function GET(request: NextRequest) {
     // Get processing queue status
     const where: any = {};
 
-    if (clientId) {
-      where.document = { clientId };
-    }
-
     if (status) {
       where.status = status;
     }
@@ -270,71 +246,44 @@ export async function GET(request: NextRequest) {
       where.jobType = jobType;
     }
 
-    const processingJobs = await prisma.processingJob.findMany({
+    // If clientId is provided, filter by documents belonging to that client
+    if (clientId) {
+      const clientDocuments = await prisma.medicalDocument.findMany({
+        where: { clientId },
+        select: { id: true },
+      });
+      where.documentId = {
+        in: clientDocuments.map(doc => doc.id),
+      };
+    }
+
+    const processingJobs = await prisma.medicalProcessingQueue.findMany({
       where,
-      include: {
-        document: {
-          select: {
-            id: true,
-            fileName: true,
-            originalFileName: true,
-            documentType: true,
-            status: true,
-            clientId: true,
-            client: {
-              select: {
-                firstName: true,
-                lastName: true,
-                email: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: { scheduledAt: "desc" },
+      orderBy: { createdAt: "desc" },
       take: 50,
     });
 
-    // Get queue health
-    const queueHealth = await queueManager.getAllQueuesHealth();
+    // Get queue summary
+    const queueSummary = {
+      total: processingJobs.length,
+      pending: processingJobs.filter((job) => job.status === "QUEUED").length,
+      active: processingJobs.filter((job) => job.status === "PROCESSING").length,
+      completed: processingJobs.filter((job) => job.status === "COMPLETED").length,
+      failed: processingJobs.filter((job) => job.status === "FAILED").length,
+    };
 
-    // Create audit log
-    await prisma.auditLog.create({
-      data: {
-        userId: user.id,
-        userEmail: user.email,
-        action: "READ",
-        resource: "PROCESSING_QUEUE",
-        clientId,
-        success: true,
-        details: {
-          query: { clientId, status, jobType },
-          resultCount: processingJobs.length,
-        },
-      },
-    });
+    console.log(`User ${user.email} accessed medical processing queue: ${processingJobs.length} jobs`);
 
     return NextResponse.json({
       success: true,
       data: {
         processingJobs,
-        queueHealth,
-        summary: {
-          total: processingJobs.length,
-          pending: processingJobs.filter((job) => job.status === "PENDING")
-            .length,
-          active: processingJobs.filter((job) => job.status === "ACTIVE")
-            .length,
-          completed: processingJobs.filter((job) => job.status === "COMPLETED")
-            .length,
-          failed: processingJobs.filter((job) => job.status === "FAILED")
-            .length,
-        },
+        summary: queueSummary,
       },
-      message: "Processing queue status retrieved successfully",
+      message: "Medical processing queue status retrieved successfully",
     });
   } catch (error) {
-    console.error("Processing queue status error:", error);
+    console.error("Medical processing queue status error:", error);
 
     if (error instanceof Error && error.message.includes("Authentication")) {
       return NextResponse.json(
@@ -350,7 +299,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to retrieve processing queue status",
+        error: "Failed to retrieve medical processing queue status",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
