@@ -18,6 +18,7 @@ export default function TestMedicalPage() {
   const [ocrStatus, setOcrStatus] = useState<any[]>([])
   const [autoRefresh, setAutoRefresh] = useState(false)
   const [labValues, setLabValues] = useState<any[]>([])
+  const [functionalAnalysis, setFunctionalAnalysis] = useState<any[]>([])
 
   // Check S3 status on component mount
   useEffect(() => {
@@ -62,6 +63,19 @@ export default function TestMedicalPage() {
     return null
   }
 
+  const fetchFunctionalAnalysis = async (documentId: string) => {
+    try {
+      const response = await fetch(`/api/medical/documents/${documentId}/analysis`)
+      if (response.ok) {
+        const data = await response.json()
+        return data
+      }
+    } catch (error) {
+      console.error('Failed to fetch functional analysis:', error)
+    }
+    return null
+  }
+
   const checkOCRStatus = async (documentIds: string[]) => {
     try {
       const statusPromises = documentIds.map(id => 
@@ -70,12 +84,17 @@ export default function TestMedicalPage() {
       const statuses = await Promise.all(statusPromises)
       setOcrStatus(statuses)
 
-      // Check for completed documents and fetch their lab values
+      // Check for completed documents and fetch their lab values and analysis
       const completedDocs = statuses.filter(status => status.status === 'COMPLETED')
       if (completedDocs.length > 0) {
         const labPromises = completedDocs.map(doc => fetchLabValues(doc.id))
         const labResults = await Promise.all(labPromises)
         setLabValues(labResults.filter(Boolean))
+
+        // Fetch functional analysis for completed documents
+        const analysisPromises = completedDocs.map(doc => fetchFunctionalAnalysis(doc.id))
+        const analysisResults = await Promise.all(analysisPromises)
+        setFunctionalAnalysis(analysisResults.filter(Boolean))
       }
     } catch (error) {
       console.error('Failed to check OCR status:', error)
@@ -396,6 +415,81 @@ export default function TestMedicalPage() {
                     </div>
                   )
                 })}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Functional Medicine Analysis Display */}
+        {functionalAnalysis.length > 0 && (
+          <div className="bg-[#1e293b] border border-[#334155] rounded-xl p-6">
+            <h2 className="text-xl font-semibold mb-4">Functional Medicine Analysis</h2>
+            
+            {functionalAnalysis.map((analysis, index) => (
+              <div key={index} className="mb-6 bg-[#0f172a] p-4 rounded-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-medium text-[#4ade80]">{analysis.document.originalFileName}</h3>
+                  <div className="flex items-center gap-3">
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      analysis.analysis.overallHealth.grade === 'A' ? 'bg-green-500/20 text-green-400' :
+                      analysis.analysis.overallHealth.grade === 'B' ? 'bg-blue-500/20 text-blue-400' :
+                      analysis.analysis.overallHealth.grade === 'C' ? 'bg-yellow-500/20 text-yellow-400' :
+                      analysis.analysis.overallHealth.grade === 'D' ? 'bg-orange-500/20 text-orange-400' :
+                      'bg-red-500/20 text-red-400'
+                    }`}>
+                      Grade {analysis.analysis.overallHealth?.grade || 'N/A'}
+                    </span>
+                    <span className="text-sm text-gray-400">
+                      Score: {analysis.analysis.overallHealth?.score || 0}/100
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="mb-4">
+                  <p className="text-gray-300">{analysis.analysis.overallHealth?.summary || 'Analysis in progress...'}</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="bg-[#1e293b] p-3 rounded border border-[#334155]">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-400">
+                        {analysis.analysis.patternsDetected || 0}
+                      </div>
+                      <div className="text-xs text-gray-400">Health Patterns</div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-[#1e293b] p-3 rounded border border-[#334155]">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-red-400">
+                        {analysis.analysis.criticalFindings || 0}
+                      </div>
+                      <div className="text-xs text-gray-400">Critical Findings</div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-[#1e293b] p-3 rounded border border-[#334155]">
+                    <div className="text-center">
+                      <div className={`text-2xl font-bold ${
+                        analysis.analysis.dotRiskLevel === 'high' ? 'text-red-400' :
+                        analysis.analysis.dotRiskLevel === 'medium' ? 'text-yellow-400' :
+                        'text-green-400'
+                      }`}>
+                        {analysis.analysis.dotRiskLevel?.toUpperCase() || 'LOW'}
+                      </div>
+                      <div className="text-xs text-gray-400">DOT Risk Level</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <button
+                    onClick={() => fetchFunctionalAnalysis(analysis.document.id)}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium transition-colors"
+                  >
+                    Refresh Analysis
+                  </button>
+                </div>
               </div>
             ))}
           </div>

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
+import { functionalAnalyzer } from './functional-analysis'
 
 export interface ExtractedLabValue {
   testName: string
@@ -215,6 +216,19 @@ export class LabValueExtractor {
       }
 
       console.log(`✅ Lab extraction complete: ${result.totalFound} values found (${result.highConfidenceCount} high confidence)`)
+      
+      // Automatically trigger functional medicine analysis
+      if (validatedValues.length > 0) {
+        console.log('🔬 Triggering functional medicine analysis...')
+        try {
+          const analysisResult = await functionalAnalyzer.analyzeDocument(documentId)
+          console.log(`🎯 Functional analysis complete: Grade ${analysisResult.overallHealth.grade}, ${analysisResult.patterns.length} patterns detected`)
+        } catch (analysisError) {
+          console.error('⚠️ Functional analysis failed:', analysisError)
+          // Don't fail lab extraction if analysis fails
+        }
+      }
+
       return result
 
     } catch (error) {
