@@ -1,0 +1,86 @@
+# FNTP Nutrition System - Automation Configuration
+# This file defines automation rules for the AI assistant
+
+automation:
+  level: "maximum"
+  require_approval: false
+  
+  terminal:
+    auto_execute: true
+    commands:
+      - all: true
+      - sudo: false  # Still require approval for sudo
+    
+  files:
+    auto_create: true
+    auto_edit: true
+    auto_delete: true
+    patterns:
+      allowed:
+        - "src/**/*"
+        - "public/**/*"
+        - "prisma/**/*"
+        - "docker/**/*"
+        - "*.json"
+        - "*.ts"
+        - "*.tsx"
+        - "*.js"
+        - "*.jsx"
+        - "*.css"
+        - "*.md"
+        - ".env.example"
+      protected:
+        - ".env"  # Only edit with explicit instruction
+        - "node_modules/**/*"
+        - ".git/**/*"
+  
+  database:
+    auto_migrate: true
+    auto_seed: true
+    auto_query: true
+    
+  development:
+    auto_install_deps: true
+    auto_fix_errors: true
+    auto_refactor: true
+    auto_test: true
+    
+  features:
+    implement_completely: true
+    include:
+      - models
+      - api_routes
+      - validations
+      - types
+      - components
+      - forms
+      - error_handling
+      - loading_states
+      - documentation
+      
+  decisions:
+    use_defaults: true
+    patterns:
+      - "industry_standard"
+      - "best_practices"
+      - "secure_by_default"
+      - "performant"
+      - "accessible"
+      
+workflow:
+  continuous_development: true
+  batch_operations: true
+  parallel_execution: true
+  
+error_handling:
+  auto_retry: true
+  max_attempts: 3
+  auto_debug: true
+  auto_fix: true
+  
+stop_conditions:
+  - "missing_api_keys"
+  - "business_logic_unclear"
+  - "cost_implications"
+  - "legal_requirements"
+  - "explicit_user_request"

@@ -1,0 +1,15 @@
+{
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+  "files.confirmDelete": false,
+  "workbench.editor.enablePreview": false,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "terminal.integrated.enableMultiLinePasteWarning": false
+}

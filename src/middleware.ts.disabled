@@ -1,0 +1,65 @@
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import jwt from 'jsonwebtoken';
+
+export function middleware(request: NextRequest) {
+  console.log('Middleware called for:', request.nextUrl.pathname);
+  console.log('JWT_SECRET in middleware:', process.env.JWT_SECRET);
+  
+  // List of paths that require authentication
+  const protectedPaths = ['/api/clients', '/api/documents', '/api/analysis', '/api/protocols'];
+  
+  // Exclude test endpoints
+  if (request.nextUrl.pathname.startsWith('/api/test-')) {
+    return NextResponse.next();
+  }
+  
+  const isProtectedPath = protectedPaths.some(path => 
+    request.nextUrl.pathname.startsWith(path)
+  );
+  
+  console.log('Is protected path:', isProtectedPath);
+  
+  if (isProtectedPath) {
+    const authHeader = request.headers.get('authorization');
+    console.log('Auth header:', authHeader);
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    
+    const token = authHeader.substring(7);
+    console.log('Token:', token.substring(0, 20) + '...');
+    
+    try {
+      const payload = jwt.verify(token, process.env.JWT_SECRET!) as any;
+      console.log('Token verified successfully:', payload);
+      
+      // Add user info to request headers for use in API routes
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set('x-user-id', payload.userId);
+      requestHeaders.set('x-user-role', payload.role);
+      
+      return NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      });
+    } catch (error) {
+      console.log('Token verification failed:', error);
+      return NextResponse.json(
+        { error: 'Invalid token' },
+        { status: 401 }
+      );
+    }
+  }
+  
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: '/api/:path*',
+};

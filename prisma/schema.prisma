@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  password      String
+  role          String    @default("admin")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Client {
+  id               String      @id @default(cuid())
+  firstName        String
+  lastName         String
+  email            String      @unique
+  phone            String?
+  dateOfBirth      DateTime?
+  isTruckDriver    Boolean     @default(true)
+  dotNumber        String?
+  cdlNumber        String?
+  
+  // Health Information
+  healthGoals      Json?
+  medications      Json?
+  conditions       Json?
+  allergies        Json?
+  
+  // Status
+  status           String      @default("active")
+  lastVisit        DateTime?
+  
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  
+  documents        Document[]
+  assessments      Assessment[]
+  protocols        Protocol[]
+  notes            Note[]
+  statuses         ClientStatus[]
+}
+
+model Document {
+  id               String      @id @default(cuid())
+  clientId         String
+  client           Client      @relation(fields: [clientId], references: [id])
+  
+  fileName         String
+  fileType         String
+  fileSize         Int
+  fileUrl          String
+  
+  documentType     String      // lab_report, assessment, other
+  labType          String?     // nutriq, labcorp, quest, dutch, kbmo
+  
+  // Processing Status
+  status           String      @default("uploaded") // uploaded, processing, completed, failed
+  processingError  String?
+  
+  // Extracted Data
+  extractedText    String?     @db.Text
+  extractedData    Json?       // Structured lab values
+  ocrConfidence    Float?
+  
+  // AI Analysis
+  aiAnalysis       Json?
+  analysisDate     DateTime?
+  
+  uploadedAt       DateTime    @default(now())
+  processedAt      DateTime?
+  
+  @@index([clientId])
+  @@index([status])
+}
+
+model Assessment {
+  id               String      @id @default(cuid())
+  clientId         String
+  client           Client      @relation(fields: [clientId], references: [id])
+  
+  assessmentType   String      @default("comprehensive") // comprehensive, focused, follow-up
+  status           String      @default("in_progress") // in_progress, completed
+  
+  responses        Json        // All 150 question responses
+  symptomBurden    Json?       // Calculated scores by system
+  rootCauses       Json?       // Identified root causes
+  
+  aiAnalysis       Json?
+  recommendations  Json?
+  
+  startedAt        DateTime    @default(now())
+  completedAt      DateTime?
+  
+  protocols        Protocol[]
+  
+  @@index([clientId])
+  @@index([status])
+}
+
+model Protocol {
+  id               String      @id @default(cuid())
+  clientId         String
+  client           Client      @relation(fields: [clientId], references: [id])
+  
+  assessmentId     String?
+  assessment       Assessment? @relation(fields: [assessmentId], references: [id])
+  
+  protocolName     String
+  status           String      @default("active") // active, completed, paused
+  
+  supplements      Json        // Supplement recommendations
+  dietary          Json        // Dietary recommendations
+  lifestyle        Json        // Lifestyle recommendations
+  
+  timeline         Json        // Implementation timeline
+  metrics          Json?       // Success metrics
+  
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  completedAt      DateTime?
+  
+  @@index([clientId])
+  @@index([status])
+}
+
+model Note {
+  id            String    @id @default(cuid())
+  clientId      String
+  client        Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  noteType      NoteType
+  title         String?
+  
+  // Interview Notes structured fields
+  chiefComplaints    String?   @db.Text
+  healthHistory      String?   @db.Text
+  currentMedications String?   @db.Text
+  goals             String?   @db.Text
+  
+  // Coaching Call structured fields
+  protocolAdjustments String?   @db.Text
+  complianceNotes     String?   @db.Text
+  progressMetrics     String?   @db.Text
+  nextSteps          String?   @db.Text
+  
+  // Common fields
+  generalNotes       String?   @db.Text
+  isImportant       Boolean   @default(false)
+  followUpNeeded    Boolean   @default(false)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([clientId, noteType])
+  @@index([createdAt])
+}
+
+enum NoteType {
+  INTERVIEW
+  COACHING
+}
+
+model ClientStatus {
+  id          String         @id @default(cuid())
+  clientId    String
+  client      Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  status      StatusType
+  notes       String?        @db.Text
+  createdAt   DateTime       @default(now())
+  createdBy   String?        // Track who made the status change
+  
+  @@index([clientId, createdAt])
+  @@index([status])
+}
+
+enum StatusType {
+  SIGNED_UP
+  INITIAL_INTERVIEW_COMPLETED
+  ASSESSMENT_COMPLETED
+  DOCS_UPLOADED
+  SCHEDULED
+  ONGOING
+  ARCHIVED
+}
