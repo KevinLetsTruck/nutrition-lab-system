@@ -1,13 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { verifyAuthToken } from "@/lib/auth";
+import { verifyToken } from "@/lib/auth";
+import jwt from "jsonwebtoken";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
-    const user = verifyAuthToken(request);
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "No valid authorization header" },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
+    const user = verifyToken(token);
     const { clientId } = await params;
 
     const client = await prisma.client.findUnique({
@@ -20,12 +30,8 @@ export async function GET(
 
     return NextResponse.json(client);
   } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
-    ) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
+    if (error instanceof jwt.JsonWebTokenError) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
     return NextResponse.json(
@@ -40,7 +46,16 @@ export async function PUT(
   { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
-    const user = verifyAuthToken(request);
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "No valid authorization header" },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
+    const user = verifyToken(token);
     const { clientId } = await params;
     const body = await request.json();
 
@@ -61,15 +76,14 @@ export async function PUT(
 
     return NextResponse.json(client);
   } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
-    ) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
+    if (error instanceof jwt.JsonWebTokenError) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    if (error instanceof Error && error.message.includes("Record to update not found")) {
+    if (
+      error instanceof Error &&
+      error.message.includes("Record to update not found")
+    ) {
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
 
@@ -85,7 +99,16 @@ export async function DELETE(
   { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
-    const user = verifyAuthToken(request);
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "No valid authorization header" },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
+    const user = verifyToken(token);
     const { clientId } = await params;
 
     await prisma.client.delete({
@@ -94,15 +117,14 @@ export async function DELETE(
 
     return NextResponse.json({ message: "Client deleted successfully" });
   } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
-    ) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
+    if (error instanceof jwt.JsonWebTokenError) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    if (error instanceof Error && error.message.includes("Record to delete does not exist")) {
+    if (
+      error instanceof Error &&
+      error.message.includes("Record to delete does not exist")
+    ) {
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
 
