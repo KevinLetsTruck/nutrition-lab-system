@@ -10,6 +10,8 @@ import {
   Eye,
   Edit,
   Trash2,
+  Archive,
+  RotateCcw,
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
@@ -163,12 +165,13 @@ export default function ClientDashboard() {
         client.email.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesFilter =
-        filterStatus === "all" ||
-        (filterStatus === "active" && (client.activeProtocols || 0) > 0) ||
-        (filterStatus === "needsAssessment" && !client.lastAssessment) ||
-        (filterStatus === "highRisk" && (client.symptomBurden || 0) > 60);
+        filterStatus === "all" || client.status === filterStatus;
 
-      return matchesSearch && matchesFilter;
+      // Exclude archived clients from main list unless specifically filtering for them
+      const isNotArchived =
+        client.status !== "ARCHIVED" || filterStatus === "ARCHIVED";
+
+      return matchesSearch && matchesFilter && isNotArchived;
     })
     .sort((a, b) => {
       if (!sortConfig) return 0;
@@ -234,8 +237,12 @@ export default function ClientDashboard() {
     return statusConfig[status] || status.replace(/_/g, " ");
   };
 
-  const handleDelete = async (clientId: string, clientName: string) => {
-    if (!confirm(`Are you sure you want to delete ${clientName}?`)) {
+  const handleArchive = async (clientId: string, clientName: string) => {
+    if (
+      !confirm(
+        `Are you sure you want to archive ${clientName}? They will be moved to the archived clients list.`
+      )
+    ) {
       return;
     }
 
@@ -243,6 +250,99 @@ export default function ClientDashboard() {
       if (typeof window === "undefined") return;
 
       const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please log in again");
+        return;
+      }
+
+      const response = await fetch(`/api/clients/${clientId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: "ARCHIVED" }),
+      });
+
+      if (response.ok) {
+        alert(`${clientName} has been archived successfully`);
+        fetchClients(); // Refresh the list
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to archive client");
+      }
+    } catch (error) {
+      console.error("Error archiving client:", error);
+      alert(
+        `Failed to archive ${clientName}: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  };
+
+  const handleReactivate = async (clientId: string, clientName: string) => {
+    if (
+      !confirm(
+        `Are you sure you want to reactivate ${clientName}? They will be moved back to the active clients list with "ONGOING" status.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      if (typeof window === "undefined") return;
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please log in again");
+        return;
+      }
+
+      const response = await fetch(`/api/clients/${clientId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: "ONGOING" }),
+      });
+
+      if (response.ok) {
+        alert(`${clientName} has been reactivated successfully`);
+        fetchClients(); // Refresh the list
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to reactivate client");
+      }
+    } catch (error) {
+      console.error("Error reactivating client:", error);
+      alert(
+        `Failed to reactivate ${clientName}: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  };
+
+  const handleDelete = async (clientId: string, clientName: string) => {
+    if (
+      !confirm(
+        `Are you sure you want to delete ${clientName}? This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      if (typeof window === "undefined") return;
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please log in again");
+        return;
+      }
+
       const response = await fetch(`/api/clients/${clientId}`, {
         method: "DELETE",
         headers: {
@@ -251,12 +351,19 @@ export default function ClientDashboard() {
       });
 
       if (response.ok) {
+        alert(`${clientName} has been deleted successfully`);
         fetchClients(); // Refresh the list
       } else {
-        throw new Error("Failed to delete client");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete client");
       }
     } catch (error) {
       console.error("Error deleting client:", error);
+      alert(
+        `Failed to delete ${clientName}: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
   };
 
@@ -320,47 +427,108 @@ export default function ClientDashboard() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header Section */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[#f1f5f9] mb-2">
-          Client Management
-        </h1>
-        <p className="text-[#94a3b8]">
-          Manage your truck driver health optimization clients
-        </p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-[#f1f5f9] mb-2">
+            Client Management
+          </h1>
+          <p className="text-[#94a3b8]">
+            Manage your truck driver health optimization clients
+          </p>
+        </div>
+
+        {/* Small New Client Button */}
+        <Link
+          href="/dashboard/clients/new"
+          className="btn-primary flex items-center gap-2 px-4 py-2 text-sm rounded-lg hover:opacity-90 transition-opacity"
+        >
+          <Plus className="w-4 h-4" />
+          New Client
+        </Link>
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="card mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#94a3b8] w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search clients by name or email..."
-              className="input w-full pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        {/* Search Bar */}
+        <div>
+          <div className="card p-4" style={{ background: "var(--bg-card)" }}>
+            <label
+              className="block text-sm font-medium mb-3"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Search Clients
+            </label>
+            <div className="relative">
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5"
+                style={{ color: "var(--text-secondary)" }}
+              />
+              <input
+                type="text"
+                placeholder="Search by name or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="input w-full pl-10 pr-10 py-3 rounded-md"
+                style={{
+                  background: "var(--bg-secondary)",
+                  border: "1px solid var(--border-primary)",
+                  color: "var(--text-primary)",
+                }}
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+            {searchTerm && (
+              <p
+                className="text-sm mt-2"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                {filteredAndSortedClients.length} client
+                {filteredAndSortedClients.length !== 1 ? "s" : ""} found for "
+                {searchTerm}"
+              </p>
+            )}
           </div>
+        </div>
 
-          <select
-            className="input px-4 py-3 min-w-[160px]"
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            <option value="all">All Clients</option>
-            <option value="active">Active Protocols</option>
-            <option value="needsAssessment">Needs Assessment</option>
-            <option value="highRisk">High Risk</option>
-          </select>
-
-          <Link
-            href="/dashboard/clients/new"
-            className="btn-primary flex items-center justify-center gap-2 whitespace-nowrap"
-          >
-            <Plus className="w-5 h-5" />
-            New Client
-          </Link>
+        {/* Status Filter */}
+        <div>
+          <div className="card p-4" style={{ background: "var(--bg-card)" }}>
+            <label
+              className="block text-sm font-medium mb-3"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Filter by Status
+            </label>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="input w-full px-3 py-2 rounded-md cursor-pointer"
+              style={{
+                background: "var(--bg-secondary)",
+                border: "1px solid var(--border-primary)",
+                color: "var(--text-primary)",
+              }}
+            >
+              <option value="all">All Clients</option>
+              <option value="SIGNED_UP">Signed Up</option>
+              <option value="INITIAL_INTERVIEW_COMPLETED">
+                Interview Completed
+              </option>
+              <option value="ASSESSMENT_COMPLETED">Assessment Completed</option>
+              <option value="DOCS_UPLOADED">Docs Uploaded</option>
+              <option value="SCHEDULED">Scheduled</option>
+              <option value="ONGOING">Ongoing</option>
+              <option value="ARCHIVED">Archived</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -528,6 +696,33 @@ export default function ClientDashboard() {
                         >
                           <Edit className="w-4 h-4" />
                         </Link>
+                        {client.status !== "ARCHIVED" ? (
+                          <button
+                            onClick={() =>
+                              handleArchive(
+                                client.id,
+                                `${client.firstName} ${client.lastName}`
+                              )
+                            }
+                            className="text-amber-400 hover:text-amber-300 transition-colors duration-200"
+                            title="Archive Client"
+                          >
+                            <Archive className="w-4 h-4" />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              handleReactivate(
+                                client.id,
+                                `${client.firstName} ${client.lastName}`
+                              )
+                            }
+                            className="text-green-400 hover:text-green-300 transition-colors duration-200"
+                            title="Reactivate Client"
+                          >
+                            <RotateCcw className="w-4 h-4" />
+                          </button>
+                        )}
                         <button
                           onClick={() =>
                             handleDelete(

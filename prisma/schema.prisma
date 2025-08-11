@@ -24,6 +24,7 @@ model Client {
   email            String      @unique
   phone            String?
   dateOfBirth      DateTime?
+  gender           String?     // "male" or "female"
   isTruckDriver    Boolean     @default(true)
   dotNumber        String?
   cdlNumber        String?

@@ -160,3 +160,65 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    // Verify authentication
+    const user = verifyAuthToken(request);
+    console.log("Authenticated user deleting document:", user.email);
+
+    const searchParams = request.nextUrl.searchParams;
+    const documentId = searchParams.get("id");
+
+    if (!documentId) {
+      return NextResponse.json(
+        { error: "Document ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // Find the document first to get file path
+    const document = await prisma.document.findUnique({
+      where: { id: documentId },
+    });
+
+    if (!document) {
+      return NextResponse.json(
+        { error: "Document not found" },
+        { status: 404 }
+      );
+    }
+
+    // Delete the file from disk if it exists
+    if (document.fileUrl) {
+      const filePath = path.join(process.cwd(), "public", document.fileUrl);
+      try {
+        await fs.unlink(filePath);
+        console.log(`✅ File deleted: ${filePath}`);
+      } catch (error) {
+        console.log(`⚠️ Could not delete file: ${filePath}`, error);
+        // Continue with database deletion even if file deletion fails
+      }
+    }
+
+    // Delete the document from database
+    await prisma.document.delete({
+      where: { id: documentId },
+    });
+
+    return NextResponse.json({ message: "Document deleted successfully" });
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message.includes("authorization") ||
+        error.message.includes("token"))
+    ) {
+      return NextResponse.json({ error: error.message }, { status: 401 });
+    }
+
+    return NextResponse.json(
+      { error: "Failed to delete document" },
+      { status: 500 }
+    );
+  }
+}

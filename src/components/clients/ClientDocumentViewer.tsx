@@ -16,6 +16,7 @@ import {
   Search,
   Grid,
   List,
+  Trash2,
 } from "lucide-react";
 import PDFViewerModal from "../pdf/PDFViewerModal";
 
@@ -41,6 +42,8 @@ interface ClientDocumentViewerProps {
   clientId: string;
   documents: ClientDocument[];
   onRefresh?: () => void;
+  onDelete?: (documentId: string) => void;
+  compact?: boolean;
 }
 
 const documentCategories = {
@@ -123,6 +126,8 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
   clientId,
   documents,
   onRefresh,
+  onDelete,
+  compact = false, // Add compact prop
 }) => {
   const [viewerOpen, setViewerOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<{
@@ -142,6 +147,17 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
     "date"
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  // Delete confirmation modal is now handled by parent component
+
+  // Debug component lifecycle
+  React.useEffect(() => {
+    console.log("🏗️ ClientDocumentViewer mounted for client:", clientId);
+    return () => {
+      console.log("💥 ClientDocumentViewer unmounted for client:", clientId);
+    };
+  }, [clientId]);
+
+  // Delete state debugging removed - now handled by parent
 
   // Filter and sort documents
   const filteredAndSortedDocuments = documents
@@ -220,6 +236,23 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
     }
   };
 
+  const handleDeleteClick = (doc: ClientDocument) => {
+    console.log(
+      "🗑️ Delete button clicked for document:",
+      doc.fileName,
+      "ID:",
+      doc.id
+    );
+    if (onDelete) {
+      console.log("📞 Calling parent onDelete handler");
+      onDelete(doc.id);
+    } else {
+      console.error("❌ No onDelete handler provided");
+    }
+  };
+
+  // handleDeleteConfirm is now handled by parent component
+
   const formatFileSize = (bytes: number) => {
     const sizes = ["Bytes", "KB", "MB", "GB"];
     if (bytes === 0) return "0 Bytes";
@@ -246,6 +279,140 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
   };
 
   const documentStats = getDocumentTypeStats();
+
+  // Compact view for client detail page
+  if (compact) {
+    return (
+      <div className="space-y-2">
+        {documents.length === 0 ? (
+          <div className="text-center py-4">
+            <p
+              className="text-xs mb-2"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              No documents uploaded yet
+            </p>
+          </div>
+        ) : (
+          documents.slice(0, 6).map((doc) => {
+            const category =
+              documentCategories[doc.documentType] || documentCategories.other;
+            const Icon = category.icon;
+
+            return (
+              <div
+                key={doc.id}
+                className="flex items-center justify-between p-2 rounded text-xs border hover:border-opacity-75 transition-colors cursor-pointer"
+                style={{
+                  borderColor: "var(--border-primary)",
+                  background: "var(--bg-secondary)",
+                }}
+                onClick={() => handleDocumentClick(doc)}
+              >
+                <div className="flex items-center space-x-2 flex-1 min-w-0">
+                  <Icon
+                    className="w-3 h-3 flex-shrink-0"
+                    style={{ color: "var(--primary-green)" }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="font-medium truncate"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      {doc.fileName}
+                    </p>
+                    <div className="flex items-center space-x-2 mt-0.5">
+                      <span
+                        className="text-xs px-1.5 py-0.5 rounded"
+                        style={{
+                          background: "var(--primary-green-light)",
+                          color: "var(--primary-green)",
+                        }}
+                      >
+                        {category.label}
+                      </span>
+                      <span style={{ color: "var(--text-secondary)" }}>
+                        {formatDate(doc.uploadedAt)}
+                      </span>
+                      <span style={{ color: "var(--text-secondary)" }}>
+                        {formatFileSize(doc.fileSize)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-1 ml-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDocumentClick(doc);
+                    }}
+                    className="p-1 hover:bg-opacity-20 rounded transition-colors"
+                    title="View Document"
+                  >
+                    <Eye
+                      className="w-3 h-3"
+                      style={{ color: "var(--text-secondary)" }}
+                    />
+                  </button>
+                  {(doc.fileUrl || doc.url) && (
+                    <a
+                      href={doc.fileUrl || doc.url}
+                      download={doc.fileName}
+                      onClick={(e) => e.stopPropagation()}
+                      className="p-1 hover:bg-opacity-20 rounded transition-colors"
+                      title="Download"
+                    >
+                      <Download
+                        className="w-3 h-3"
+                        style={{ color: "var(--text-secondary)" }}
+                      />
+                    </a>
+                  )}
+                  {onDelete && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteClick(doc);
+                      }}
+                      className="p-1 hover:bg-red-100 rounded transition-colors"
+                      title="Delete Document"
+                    >
+                      <Trash2 className="w-3 h-3 text-red-600" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
+        {documents.length > 6 && (
+          <div className="text-center py-1">
+            <span
+              className="text-xs"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              +{documents.length - 6} more documents
+            </span>
+          </div>
+        )}
+
+        {/* PDF Viewer Modal for compact view */}
+        {selectedDocument && (
+          <PDFViewerModal
+            document={selectedDocument}
+            onClose={() => {
+              setViewerOpen(false);
+              setSelectedDocument(null);
+            }}
+            allowAnnotations={true}
+            allowDownload={true}
+            allowPrint={true}
+            allowShare={false}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -452,6 +619,18 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                         <Download className="w-4 h-4 text-gray-600" />
                       </a>
                     )}
+                    {onDelete && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteClick(doc);
+                        }}
+                        className="p-1 hover:bg-red-100 rounded"
+                        title="Delete Document"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -565,6 +744,18 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                         <Download className="w-4 h-4 text-gray-600" />
                       </a>
                     )}
+                    {onDelete && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteClick(doc);
+                        }}
+                        className="p-1 hover:bg-red-100 rounded"
+                        title="Delete Document"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -615,6 +806,8 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
           allowShare={false}
         />
       )}
+
+      {/* Delete confirmation modal is now handled by parent component */}
     </div>
   );
 };

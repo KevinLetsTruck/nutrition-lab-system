@@ -6,6 +6,7 @@ export const createClientSchema = z.object({
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
   dateOfBirth: z.string().or(z.date()).optional(),
+  gender: z.enum(['male', 'female']).optional(),
   isTruckDriver: z.boolean().default(true),
   dotNumber: z.string().optional(),
   cdlNumber: z.string().optional(),
