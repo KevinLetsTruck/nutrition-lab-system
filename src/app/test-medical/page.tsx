@@ -1,371 +1,217 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { Trash2, Upload, FileText, Image, AlertCircle, CheckCircle, XCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Upload, CheckCircle, XCircle, AlertCircle, Cloud } from 'lucide-react'
 
-interface FileWithPreview {
-  file: File
-  preview?: string
-  id: string
-}
-
-interface UploadResult {
-  fileName: string
-  status: 'success' | 'error'
-  documentId?: string
-  error?: string
-  details?: any
-}
-
-interface UploadResponse {
-  success: boolean
-  partialSuccess?: boolean
+interface S3Status {
+  s3Connected: boolean
+  bucket?: string
+  region?: string
   message: string
-  summary: {
-    totalFiles: number
-    successful: number
-    failed: number
-  }
-  results: UploadResult[]
-  testMode: boolean
-  timestamp: string
 }
 
-export default function TestMedicalUpload() {
-  const [files, setFiles] = useState<FileWithPreview[]>([])
+export default function TestMedicalPage() {
+  const [s3Status, setS3Status] = useState<S3Status | null>(null)
+  const [files, setFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
-  const [response, setResponse] = useState<UploadResponse | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [clientId, setClientId] = useState<string>('')
-  const [isRadioShow, setIsRadioShow] = useState(false)
+  const [results, setResults] = useState<any>(null)
 
-  // Handle file selection
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || [])
-    
-    const newFiles: FileWithPreview[] = selectedFiles.map((file, index) => {
-      const fileWithPreview: FileWithPreview = {
-        file,
-        id: `file-${Date.now()}-${index}`
-      }
-
-      // Create preview for images
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader()
-        reader.onloadend = () => {
-          setFiles(prev => 
-            prev.map(f => 
-              f.id === fileWithPreview.id 
-                ? { ...f, preview: reader.result as string }
-                : f
-            )
-          )
-        }
-        reader.readAsDataURL(file)
-      }
-
-      return fileWithPreview
-    })
-
-    setFiles(prev => [...prev, ...newFiles].slice(0, 10)) // Max 10 files
-    
-    // Reset input
-    e.target.value = ''
+  // Check S3 status on component mount
+  useEffect(() => {
+    checkS3Status()
   }, [])
 
-  // Remove file from list
-  const removeFile = useCallback((id: string) => {
-    setFiles(prev => prev.filter(f => f.id !== id))
-  }, [])
-
-  // Handle upload
-  const handleUpload = async () => {
-    if (files.length === 0) {
-      setError('Please select at least one file')
-      return
+  const checkS3Status = async () => {
+    try {
+      const response = await fetch('/api/medical/upload')
+      const data = await response.json()
+      setS3Status(data)
+    } catch (error) {
+      setS3Status({
+        s3Connected: false,
+        message: 'Failed to check S3 status'
+      })
     }
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFiles(Array.from(e.target.files))
+    }
+  }
+
+  const handleUpload = async () => {
+    if (!files.length) return
 
     setUploading(true)
-    setError(null)
-    setResponse(null)
-
-    const formData = new FormData()
-    
-    // Add all files
-    files.forEach(({ file }) => {
-      formData.append('files', file)
-    })
-
-    // Add optional fields
-    if (clientId.trim()) {
-      formData.append('clientId', clientId.trim())
-    }
-    formData.append('isRadioShow', isRadioShow.toString())
+    setResults(null)
 
     try {
-      // Add ?test=true to bypass auth
-      const res = await fetch('/api/medical/upload?test=true', {
+      const formData = new FormData()
+      files.forEach(file => formData.append('files', file))
+      formData.append('isRadioShow', 'true')
+      formData.append('source', 'test_page')
+
+      const response = await fetch('/api/medical/upload', {
         method: 'POST',
-        body: formData,
+        body: formData
       })
 
-      const data = await res.json()
-      
-      if (!res.ok) {
-        throw new Error(data.error || `HTTP ${res.status}`)
-      }
-
-      setResponse(data)
-      console.log('Upload successful:', data)
-      
-      // Clear files on complete success
-      if (data.success) {
-        setFiles([])
-      }
-      
-    } catch (err) {
-      console.error('Upload failed:', err)
-      setError(err instanceof Error ? err.message : 'Upload failed')
+      const data = await response.json()
+      setResults(data)
+    } catch (error) {
+      setResults({
+        success: false,
+        error: 'Upload failed',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      })
     } finally {
       setUploading(false)
     }
   }
 
-  // Format file size
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B'
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB'
-    return (bytes / (1024 * 1024)).toFixed(2) + ' MB'
-  }
-
-  // Get file icon
-  const getFileIcon = (type: string) => {
-    if (type.startsWith('image/')) return <Image className="w-5 h-5" />
-    return <FileText className="w-5 h-5" />
-  }
-
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Medical Document Upload Test</h1>
-        
-        {/* Test Mode Warning */}
-        <div className="bg-yellow-900/50 border border-yellow-600 rounded-lg p-4 mb-6">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-yellow-500" />
-            <span className="text-yellow-500 font-semibold">Test Mode Active</span>
-          </div>
-          <p className="text-sm text-yellow-400 mt-1">
-            Authentication is bypassed for testing. Remove ?test=true in production.
-          </p>
+    <div className="min-h-screen bg-[#0f172a] text-white p-8">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-[#4ade80] mb-4">Medical Document System Test</h1>
+          <p className="text-gray-300">Test S3 storage and document upload functionality</p>
         </div>
 
-        {/* Upload Options */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Upload Options</h2>
-          
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="clientId" className="block text-sm font-medium mb-2">
-                Client ID (optional)
-              </label>
-              <input
-                id="clientId"
-                type="text"
-                value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
-                placeholder="Leave empty for standalone upload"
-                className="w-full px-3 py-2 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <input
-                id="radioShow"
-                type="checkbox"
-                checked={isRadioShow}
-                onChange={(e) => setIsRadioShow(e.target.checked)}
-                className="w-4 h-4 rounded"
-              />
-              <label htmlFor="radioShow" className="text-sm">
-                Radio Show Upload (High Priority)
-              </label>
-            </div>
+        {/* S3 Status Card */}
+        <div className="bg-[#1e293b] border border-[#334155] rounded-xl p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Cloud className="w-6 h-6 text-[#4ade80]" />
+            <h2 className="text-xl font-semibold">S3 Storage Status</h2>
+            <button 
+              onClick={checkS3Status}
+              className="ml-auto px-3 py-1 bg-[#4ade80] text-[#0f172a] rounded text-sm font-medium hover:bg-[#22c55e] transition-colors"
+            >
+              Refresh
+            </button>
           </div>
-        </div>
-
-        {/* File Selection */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Select Files</h2>
           
-          <div className="mb-4">
-            <label className="block">
-              <div className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition-colors">
-                <Upload className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                <p className="text-gray-400 mb-2">
-                  Click to select files or drag and drop
-                </p>
-                <p className="text-sm text-gray-500">
-                  PDF, JPG, PNG, TIFF (max 10MB each, up to 10 files)
-                </p>
-                <input
-                  type="file"
-                  multiple
-                  accept=".pdf,.jpg,.jpeg,.png,.tiff,.tif,.heic,.heif"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                  disabled={uploading}
-                />
-              </div>
-            </label>
-          </div>
-
-          {/* Selected Files List */}
-          {files.length > 0 && (
+          {s3Status ? (
             <div className="space-y-2">
-              <h3 className="font-semibold mb-2">
-                Selected Files ({files.length}/10)
-              </h3>
-              {files.map(({ file, preview, id }) => (
-                <div
-                  key={id}
-                  className="flex items-center gap-3 p-3 bg-gray-700 rounded-lg"
-                >
-                  {preview ? (
-                    <img
-                      src={preview}
-                      alt={file.name}
-                      className="w-10 h-10 object-cover rounded"
-                    />
-                  ) : (
-                    getFileIcon(file.type)
-                  )}
-                  
-                  <div className="flex-1">
-                    <p className="text-sm font-medium truncate">{file.name}</p>
-                    <p className="text-xs text-gray-400">
-                      {formatFileSize(file.size)}
-                    </p>
-                  </div>
-                  
-                  <button
-                    onClick={() => removeFile(id)}
-                    className="p-1 hover:bg-gray-600 rounded"
-                    disabled={uploading}
-                  >
-                    <Trash2 className="w-4 h-4 text-red-400" />
-                  </button>
+              <div className="flex items-center gap-2">
+                {s3Status.s3Connected ? (
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                ) : (
+                  <XCircle className="w-5 h-5 text-red-500" />
+                )}
+                <span className={s3Status.s3Connected ? 'text-green-400' : 'text-red-400'}>
+                  {s3Status.message}
+                </span>
+              </div>
+              {s3Status.bucket && (
+                <div className="text-sm text-gray-400">
+                  Bucket: {s3Status.bucket} | Region: {s3Status.region}
                 </div>
-              ))}
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-yellow-500" />
+              <span className="text-yellow-400">Checking S3 status...</span>
             </div>
           )}
         </div>
 
-        {/* Upload Button */}
-        <button
-          onClick={handleUpload}
-          disabled={uploading || files.length === 0}
-          className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
-            uploading || files.length === 0
-              ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
-          }`}
-        >
-          {uploading ? 'Uploading...' : `Upload ${files.length} File${files.length !== 1 ? 's' : ''}`}
-        </button>
-
-        {/* Error Display */}
-        {error && (
-          <div className="mt-6 bg-red-900/50 border border-red-600 rounded-lg p-4">
-            <div className="flex items-center gap-2">
-              <XCircle className="w-5 h-5 text-red-500" />
-              <span className="text-red-500 font-semibold">Error</span>
-            </div>
-            <p className="text-sm text-red-400 mt-1">{error}</p>
+        {/* File Upload Section */}
+        <div className="bg-[#1e293b] border border-[#334155] rounded-xl p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Upload className="w-6 h-6 text-[#4ade80]" />
+            <h2 className="text-xl font-semibold">Document Upload Test</h2>
           </div>
-        )}
 
-        {/* Response Display */}
-        {response && (
-          <div className="mt-6 space-y-4">
-            {/* Summary */}
-            <div className={`border rounded-lg p-4 ${
-              response.success 
-                ? 'bg-green-900/50 border-green-600'
-                : response.partialSuccess
-                ? 'bg-yellow-900/50 border-yellow-600'
-                : 'bg-red-900/50 border-red-600'
-            }`}>
-              <div className="flex items-center gap-2 mb-2">
-                {response.success ? (
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                ) : response.partialSuccess ? (
-                  <AlertCircle className="w-5 h-5 text-yellow-500" />
-                ) : (
-                  <XCircle className="w-5 h-5 text-red-500" />
-                )}
-                <span className="font-semibold">{response.message}</span>
-              </div>
-              <div className="text-sm text-gray-400">
-                {response.summary.successful} succeeded, {response.summary.failed} failed
-              </div>
+          <div className="space-y-4">
+            <div>
+              <input
+                type="file"
+                multiple
+                accept=".pdf,.jpg,.jpeg,.png,.tiff,.heic,.webp"
+                onChange={handleFileSelect}
+                className="block w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#4ade80] file:text-[#0f172a] hover:file:bg-[#22c55e] file:cursor-pointer cursor-pointer"
+              />
+              <p className="text-sm text-gray-400 mt-2">
+                Supports: PDF, JPEG, PNG, TIFF, HEIC, WebP (max 10MB each, up to 10 files)
+              </p>
             </div>
 
-            {/* Individual Results */}
-            <div className="bg-gray-800 rounded-lg p-4">
-              <h3 className="font-semibold mb-3">Upload Results</h3>
+            {files.length > 0 && (
               <div className="space-y-2">
-                {response.results.map((result, index) => (
-                  <div
-                    key={index}
-                    className={`p-3 rounded-lg border ${
-                      result.status === 'success'
-                        ? 'bg-green-900/20 border-green-700'
-                        : 'bg-red-900/20 border-red-700'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {result.status === 'success' ? (
-                          <CheckCircle className="w-4 h-4 text-green-500" />
-                        ) : (
-                          <XCircle className="w-4 h-4 text-red-500" />
-                        )}
-                        <span className="text-sm font-medium">
-                          {result.fileName}
-                        </span>
-                      </div>
-                      {result.documentId && (
-                        <span className="text-xs text-gray-500">
-                          ID: {result.documentId.slice(0, 8)}...
-                        </span>
-                      )}
-                    </div>
-                    
-                    {result.error && (
-                      <p className="text-xs text-red-400 mt-1">{result.error}</p>
-                    )}
-                    
-                    {result.details && (
-                      <div className="text-xs text-gray-400 mt-2">
-                        <p>S3: {result.details.s3Uploaded ? '✓' : '✗'}</p>
-                        <p>Queued: {result.details.queuedForProcessing ? '✓' : '✗'}</p>
-                      </div>
-                    )}
+                <h3 className="font-medium">Selected Files:</h3>
+                {files.map((file, index) => (
+                  <div key={`${file.name}-${Date.now()}-${index}`} className="flex items-center justify-between bg-[#0f172a] p-3 rounded-lg">
+                    <span className="text-sm">{file.name}</span>
+                    <span className="text-xs text-gray-400">{(file.size / 1024 / 1024).toFixed(1)} MB</span>
                   </div>
                 ))}
               </div>
-            </div>
+            )}
 
-            {/* Raw Response (for debugging) */}
-            <details className="bg-gray-800 rounded-lg p-4">
-              <summary className="cursor-pointer font-semibold mb-2">
-                Raw Response (Debug)
-              </summary>
-              <pre className="text-xs overflow-auto bg-gray-900 p-3 rounded">
-                {JSON.stringify(response, null, 2)}
-              </pre>
-            </details>
+            <button
+              onClick={handleUpload}
+              disabled={!files.length || uploading || !s3Status?.s3Connected}
+              className="w-full bg-[#4ade80] text-[#0f172a] py-3 rounded-lg font-semibold hover:bg-[#22c55e] disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+            >
+              {uploading ? 'Uploading...' : 'Upload Documents'}
+            </button>
+          </div>
+        </div>
+
+        {/* Results Section */}
+        {results && (
+          <div className="bg-[#1e293b] border border-[#334155] rounded-xl p-6">
+            <h2 className="text-xl font-semibold mb-4">Upload Results</h2>
+            <div className="space-y-4">
+              {results.success ? (
+                <div className="flex items-center gap-2 text-green-400">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>{results.message}</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-red-400">
+                  <XCircle className="w-5 h-5" />
+                  <span>{results.error}</span>
+                </div>
+              )}
+
+              {results.stats && (
+                <div className="text-sm text-gray-400">
+                  Total Time: {results.stats.totalTime}ms | 
+                  Successful: {results.stats.successful} | 
+                  Failed: {results.stats.failed}
+                </div>
+              )}
+
+              {results.documents && results.documents.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="font-medium text-green-400">Successfully Uploaded:</h3>
+                  {results.documents.map((doc: any, index: number) => (
+                    <div key={doc.id} className="bg-[#0f172a] p-3 rounded-lg text-sm">
+                      <div className="font-medium">{doc.filename}</div>
+                      <div className="text-gray-400">
+                        ID: {doc.id} | Type: {doc.documentType} | 
+                        Size: {(doc.size / 1024).toFixed(1)} KB
+                        {doc.optimized && ' | Optimized'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {results.errors && results.errors.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="font-medium text-red-400">Upload Errors:</h3>
+                  {results.errors.map((error: string, index: number) => (
+                    <div key={index} className="bg-red-900/20 border border-red-500/20 p-3 rounded-lg text-sm text-red-300">
+                      {error}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

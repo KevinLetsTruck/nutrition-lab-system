@@ -1,92 +1,212 @@
-/**
- * Medical Document Storage Service
- * 
- * Handles document storage for medical files
- * Currently stubbed for testing - replace with real S3 implementation
- */
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { v4 as uuidv4 } from 'uuid'
+import sharp from 'sharp'
+
+const s3Client = new S3Client({
+  region: process.env.S3_REGION!,
+  credentials: {
+    accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+  },
+})
 
 export class MedicalDocumentStorage {
-  private isStubMode = true
+  private bucketName: string
+
+  constructor() {
+    // Use dev bucket in development, prod bucket in production
+    const isDev = process.env.NODE_ENV === 'development'
+    this.bucketName = isDev 
+      ? (process.env.S3_MEDICAL_BUCKET_NAME_DEV || process.env.S3_MEDICAL_BUCKET_NAME!)
+      : process.env.S3_MEDICAL_BUCKET_NAME!
+    
+    console.log(`🪣 Using S3 bucket: ${this.bucketName}`)
+  }
 
   async uploadDocument(
     file: Buffer, 
     filename: string, 
     mimeType: string, 
     clientId?: string
-  ): Promise<{ key: string; url: string }> {
-    console.log(`[STORAGE${this.isStubMode ? ' STUB' : ''}] Uploading ${filename} (${mimeType}) for client ${clientId || 'standalone'}`)
-    
-    if (this.isStubMode) {
-      // Return fake S3 response for testing
-      const key = `stub-key-${Date.now()}-${filename.replace(/[^a-zA-Z0-9.-]/g, '_')}`
-      const url = `https://stub-bucket.s3.amazonaws.com/${key}`
+  ): Promise<{ key: string; url: string; size: number; optimized: boolean }> {
+    try {
+      console.log(`📤 Starting upload: ${filename} (${file.length} bytes)`)
       
-      console.log(`[STORAGE STUB] Generated fake key: ${key}`)
-      console.log(`[STORAGE STUB] Generated fake URL: ${url}`)
+      // Optimize images before upload
+      let processedFile = file
+      let optimized = false
       
-      return { key, url }
-    }
+      if (mimeType.startsWith('image/') && mimeType !== 'application/pdf') {
+        console.log(`🖼️ Optimizing image: ${filename}`)
+        processedFile = await this.optimizeImage(file)
+        optimized = true
+        console.log(`✨ Image optimized: ${file.length} → ${processedFile.length} bytes`)
+      }
 
-    // TODO: Implement real S3 upload
-    throw new Error('Real S3 implementation not configured')
+      const folder = clientId ? `clients/${clientId}` : 'standalone'
+      const timestamp = new Date().toISOString().split('T')[0]
+      const sanitizedFilename = this.sanitizeFilename(filename)
+      const key = `medical-docs/${folder}/${timestamp}/${uuidv4()}-${sanitizedFilename}`
+      
+      const command = new PutObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+        Body: processedFile,
+        ContentType: mimeType,
+        ServerSideEncryption: 'AES256',
+        Metadata: {
+          originalName: filename,
+          uploadDate: new Date().toISOString(),
+          clientId: clientId || 'standalone',
+          practitioner: 'kevin-rutherford-fntp',
+          originalSize: file.length.toString(),
+          optimized: optimized.toString()
+        },
+      })
+
+      await s3Client.send(command)
+      
+      const url = `https://${this.bucketName}.s3.${process.env.S3_REGION}.amazonaws.com/${key}`
+      
+      console.log(`✅ Upload successful: ${key}`)
+      
+      return {
+        key,
+        url,
+        size: processedFile.length,
+        optimized
+      }
+    } catch (error) {
+      console.error('❌ S3 Upload Error:', error)
+      
+      // Provide specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes('NoSuchBucket')) {
+          throw new Error(`S3 bucket '${this.bucketName}' does not exist. Please create it first.`)
+        }
+        if (error.message.includes('InvalidAccessKeyId')) {
+          throw new Error('Invalid S3 access key. Please check your credentials.')
+        }
+        if (error.message.includes('SignatureDoesNotMatch')) {
+          throw new Error('Invalid S3 secret key. Please check your credentials.')
+        }
+      }
+      
+      throw new Error(`Failed to upload document: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
   }
 
-  async getSignedDownloadUrl(key: string): Promise<string> {
-    console.log(`[STORAGE${this.isStubMode ? ' STUB' : ''}] Generating signed URL for ${key}`)
-    
-    if (this.isStubMode) {
-      const signedUrl = `https://stub-bucket.s3.amazonaws.com/${key}?X-Amz-Signature=stub-signature&X-Amz-Expires=3600`
-      console.log(`[STORAGE STUB] Generated signed URL: ${signedUrl}`)
-      return signedUrl
+  private async optimizeImage(buffer: Buffer): Promise<Buffer> {
+    try {
+      // First, get image metadata
+      const metadata = await sharp(buffer).metadata()
+      console.log(`📊 Original image: ${metadata.width}x${metadata.height}, ${metadata.format}`)
+      
+      // Optimize based on image characteristics
+      let sharpInstance = sharp(buffer)
+      
+      // Resize if too large (keep aspect ratio)
+      if (metadata.width && metadata.width > 2000) {
+        sharpInstance = sharpInstance.resize(2000, 2000, {
+          fit: 'inside',
+          withoutEnlargement: true
+        })
+      }
+      
+      // Convert to JPEG with appropriate quality
+      if (metadata.format !== 'jpeg') {
+        sharpInstance = sharpInstance.jpeg({
+          quality: 85,
+          progressive: true,
+          mozjpeg: true
+        })
+      }
+      
+      return await sharpInstance.toBuffer()
+    } catch (error) {
+      console.warn('⚠️ Image optimization failed, using original:', error)
+      return buffer
     }
-
-    // TODO: Implement real S3 signed URL generation
-    throw new Error('Real S3 implementation not configured')
   }
 
-  async deleteDocument(key: string): Promise<void> {
-    console.log(`[STORAGE${this.isStubMode ? ' STUB' : ''}] Deleting document ${key}`)
-    
-    if (this.isStubMode) {
-      console.log(`[STORAGE STUB] Would delete ${key} from S3`)
-      return
-    }
+  private sanitizeFilename(filename: string): string {
+    // Remove or replace problematic characters
+    return filename
+      .replace(/[^a-zA-Z0-9.\-_]/g, '_')
+      .replace(/_{2,}/g, '_')
+      .toLowerCase()
+  }
 
-    // TODO: Implement real S3 deletion
-    throw new Error('Real S3 implementation not configured')
+  async getSignedDownloadUrl(key: string, expiresIn = 3600): Promise<string> {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      })
+      
+      return await getSignedUrl(s3Client, command, { expiresIn })
+    } catch (error) {
+      console.error('❌ Failed to generate download URL:', error)
+      throw new Error('Failed to generate download URL')
+    }
   }
 
   async checkDocumentExists(key: string): Promise<boolean> {
-    console.log(`[STORAGE${this.isStubMode ? ' STUB' : ''}] Checking if ${key} exists`)
-    
-    if (this.isStubMode) {
-      // Return true for stub mode
-      console.log(`[STORAGE STUB] Document ${key} exists (stub response)`)
+    try {
+      await s3Client.send(new HeadObjectCommand({
+        Bucket: this.bucketName,
+        Key: key
+      }))
       return true
+    } catch {
+      return false
     }
-
-    // TODO: Implement real S3 existence check
-    throw new Error('Real S3 implementation not configured')
   }
 
-  // Configuration methods
-  enableRealS3Mode(): void {
-    this.isStubMode = false
-    console.log('[STORAGE] Switched to real S3 mode')
+  async deleteDocument(key: string): Promise<void> {
+    try {
+      const command = new DeleteObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      })
+      
+      await s3Client.send(command)
+      console.log(`🗑️ Deleted document: ${key}`)
+    } catch (error) {
+      console.error('❌ Failed to delete document:', error)
+      throw new Error('Failed to delete document')
+    }
   }
 
-  enableStubMode(): void {
-    this.isStubMode = true
-    console.log('[STORAGE] Switched to stub mode')
-  }
-
-  isInStubMode(): boolean {
-    return this.isStubMode
+  // Test S3 connection
+  async testConnection(): Promise<boolean> {
+    try {
+      const testKey = `test/${Date.now()}-connection-test.txt`
+      const testContent = Buffer.from('S3 connection test')
+      
+      // Upload test file
+      await s3Client.send(new PutObjectCommand({
+        Bucket: this.bucketName,
+        Key: testKey,
+        Body: testContent,
+        ContentType: 'text/plain'
+      }))
+      
+      // Delete test file
+      await s3Client.send(new DeleteObjectCommand({
+        Bucket: this.bucketName,
+        Key: testKey
+      }))
+      
+      console.log('✅ S3 connection test successful')
+      return true
+    } catch (error) {
+      console.error('❌ S3 connection test failed:', error)
+      return false
+    }
   }
 }
 
 // Export singleton instance
 export const medicalDocStorage = new MedicalDocumentStorage()
-
-// For testing - allow switching modes
-export { MedicalDocumentStorage }
