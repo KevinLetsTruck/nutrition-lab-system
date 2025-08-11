@@ -54,32 +54,60 @@ model Document {
   clientId         String
   client           Client      @relation(fields: [clientId], references: [id])
   
+  // File Information
   fileName         String
+  originalFileName String?     // Made optional for migration
   fileType         String
   fileSize         Int
   fileUrl          String
+  storageProvider  StorageProvider @default(LOCAL)
+  storageKey       String?     // S3 key or Cloudinary public_id
   
-  documentType     String      // lab_report, assessment, other
-  labType          String?     // nutriq, labcorp, quest, dutch, kbmo
+  // Document Classification
+  documentType     DocumentType @default(UNKNOWN)
+  labType          LabType?
   
   // Processing Status
-  status           String      @default("uploaded") // uploaded, processing, completed, failed
+  status           ProcessingStatus @default(UPLOADED)
   processingError  String?
+  priority         Int         @default(5) // 1-10, higher = more urgent
   
   // Extracted Data
   extractedText    String?     @db.Text
-  extractedData    Json?       // Structured lab values
+  structuredData   Json?       // Parsed structured data
   ocrConfidence    Float?
+  ocrProvider      String?     // Which OCR service was used
   
   // AI Analysis
   aiAnalysis       Json?
+  analysisStatus   AnalysisStatus @default(PENDING)
   analysisDate     DateTime?
   
+  // Security & Compliance
+  isEncrypted      Boolean     @default(true)
+  encryptionKey    String?     // Reference to encryption key
+  containsPHI      Boolean     @default(false)
+  phiTypes         Json?       // Detected PHI types
+  
+  // Timestamps
   uploadedAt       DateTime    @default(now())
   processedAt      DateTime?
+  lastAccessedAt   DateTime?
+  
+  // Metadata
+  metadata         Json?       // Additional document metadata
+  tags             String[]    // Document tags for organization
+  
+  // Relations
+  labValues        LabValue[]
+  documentAnalyses DocumentAnalysis[]
+  processingJobs   ProcessingJob[]
   
   @@index([clientId])
   @@index([status])
+  @@index([documentType])
+  @@index([priority])
+  @@index([uploadedAt])
 }
 
 model Assessment {
@@ -189,4 +217,392 @@ enum StatusType {
   SCHEDULED
   ONGOING
   ARCHIVED
+}
+
+// Medical Document Processing System Models
+
+model LabValue {
+  id               String      @id @default(cuid())
+  documentId       String
+  document         Document    @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  clientId         String
+  
+  // Lab Test Information
+  testName         String
+  testCode         String?
+  category         LabCategory
+  subcategory      String?
+  panel            String?     // Which lab panel this belongs to
+  
+  // Values and Units
+  value            String      // Raw extracted value
+  numericValue     Float?      // Parsed numeric value
+  unit             String?
+  
+  // Reference Ranges
+  referenceRange   Json?       // Complete reference range data
+  conventionalLow  Float?
+  conventionalHigh Float?
+  functionalLow    Float?      // Functional medicine optimal ranges
+  functionalHigh   Float?
+  
+  // Status and Flags
+  flag             String?     // H, L, Critical, Normal, etc.
+  isOutOfRange     Boolean     @default(false)
+  isCritical       Boolean     @default(false)
+  severity         Severity    @default(NORMAL)
+  
+  // Lab Information
+  labName          String?     // Laboratory that performed test
+  labLocation      String?
+  collectionDate   DateTime?
+  reportDate       DateTime?
+  
+  // Processing Information
+  extractionMethod String?     // OCR, Manual, API
+  confidence       Float?      // Extraction confidence
+  verified         Boolean     @default(false)
+  verifiedBy       String?
+  verifiedAt       DateTime?
+  
+  // Timestamps
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  
+  @@index([documentId])
+  @@index([clientId, testName])
+  @@index([category])
+  @@index([isCritical])
+  @@index([collectionDate])
+}
+
+model DocumentAnalysis {
+  id               String         @id @default(cuid())
+  documentId       String
+  document         Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  clientId         String
+  
+  // Analysis Configuration
+  analysisType     AnalysisType
+  provider         String         @default("CLAUDE") // AI provider used
+  modelVersion     String?
+  
+  // Analysis Results
+  patterns         Json?          // Identified health patterns
+  findings         Json?          // Clinical findings
+  criticalValues   Json?          // Values requiring attention
+  recommendations  Json?          // Treatment recommendations
+  insights         Json?          // AI insights and observations
+  
+  // Functional Medicine Analysis
+  systemAssessment Json?          // Assessment by body system
+  rootCauses       Json?          // Potential root causes
+  interactions     Json?          // Drug/nutrient interactions
+  trends           Json?          // Trends vs previous results
+  
+  // Quality and Confidence
+  confidence       Float?         // Overall confidence score (0-1)
+  reliability      String?        // High, Medium, Low
+  limitations      String[]       // Analysis limitations
+  
+  // Processing Information
+  processingTime   Int?           // Time taken in milliseconds
+  tokens           Int?           // AI tokens used
+  cost             Float?         // Processing cost
+  
+  // Status and Validation
+  status           AnalysisStatus @default(PENDING)
+  errorMessage     String?
+  reviewRequired   Boolean        @default(false)
+  
+  // Review and Approval
+  reviewedAt       DateTime?
+  reviewedBy       String?
+  approvedAt       DateTime?
+  approvedBy       String?
+  
+  // Timestamps
+  createdAt        DateTime       @default(now())
+  completedAt      DateTime?
+  updatedAt        DateTime       @updatedAt
+  
+  @@index([documentId])
+  @@index([clientId])
+  @@index([analysisType])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ProcessingJob {
+  id               String         @id @default(cuid())
+  documentId       String
+  document         Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  // Job Configuration
+  jobType          JobType
+  priority         Int            @default(5) // 1-10, higher = more urgent
+  config           Json?          // Job-specific configuration
+  
+  // Queue Information
+  queueName        String         @default("default")
+  jobId            String?        // BullMQ job ID
+  
+  // Processing Status
+  status           JobStatus      @default(PENDING)
+  progress         Int            @default(0) // 0-100
+  currentStep      String?
+  
+  // Retry Logic
+  attempts         Int            @default(0)
+  maxAttempts      Int            @default(3)
+  backoffDelay     Int            @default(5000)
+  
+  // Results and Errors
+  result           Json?          // Job result data
+  error            Json?          // Error information
+  logs             Json[]         // Processing logs
+  
+  // Timing
+  scheduledAt      DateTime       @default(now())
+  startedAt        DateTime?
+  completedAt      DateTime?
+  failedAt         DateTime?
+  
+  // Resource Usage
+  processingNode   String?        // Which worker processed this
+  memoryUsage      Int?           // Peak memory usage in MB
+  cpuTime          Int?           // CPU time in milliseconds
+  
+  @@index([status, priority])
+  @@index([jobType])
+  @@index([scheduledAt])
+  @@index([documentId, status])
+}
+
+model AuditLog {
+  id               String      @id @default(cuid())
+  
+  // Actor Information
+  userId           String?
+  userEmail        String?
+  userRole         String?
+  ipAddress        String?
+  userAgent        String?
+  sessionId        String?
+  
+  // Action Information
+  action           AuditAction
+  resource         AuditResource
+  resourceId       String?
+  clientId         String?     // For HIPAA compliance
+  
+  // Request Information
+  method           String?     // HTTP method
+  endpoint         String?     // API endpoint
+  requestId        String?     // Unique request identifier
+  
+  // Context and Details
+  details          Json?       // Action-specific details
+  changes          Json?       // Before/after for updates
+  metadata         Json?       // Additional context
+  
+  // Compliance
+  hipaaRelevant    Boolean     @default(true)
+  dataAccessed     String[]    // Types of data accessed
+  purpose          String?     // Purpose of access
+  
+  // Result
+  success          Boolean
+  statusCode       Int?
+  errorMessage     String?
+  
+  // Timing
+  timestamp        DateTime    @default(now())
+  duration         Int?        // Request duration in ms
+  
+  @@index([userId, timestamp])
+  @@index([clientId, timestamp])
+  @@index([action, resource])
+  @@index([timestamp])
+  @@index([hipaaRelevant])
+}
+
+model SystemMetrics {
+  id               String      @id @default(cuid())
+  
+  // System Performance
+  cpuUsage         Float?      // CPU usage percentage
+  memoryUsage      Float?      // Memory usage percentage
+  diskUsage        Float?      // Disk usage percentage
+  
+  // Queue Metrics
+  queueLength      Int         @default(0)
+  activeJobs       Int         @default(0)
+  completedJobs    Int         @default(0)
+  failedJobs       Int         @default(0)
+  
+  // Processing Metrics
+  averageProcessingTime Float?
+  throughputPerHour Int        @default(0)
+  errorRate        Float       @default(0)
+  
+  // API Metrics
+  requestCount     Int         @default(0)
+  averageResponseTime Float?
+  
+  // Storage Metrics
+  documentsStored  Int         @default(0)
+  storageUsed      BigInt      @default(0) // Bytes
+  
+  // Timestamp
+  timestamp        DateTime    @default(now())
+  intervalType     String      @default("hourly") // hourly, daily, weekly
+  
+  @@index([timestamp, intervalType])
+}
+
+// Enums for Medical Document Processing
+
+enum StorageProvider {
+  LOCAL
+  S3
+  CLOUDINARY
+}
+
+enum DocumentType {
+  LAB_REPORT
+  IMAGING_REPORT
+  CLINICAL_NOTES
+  PATHOLOGY_REPORT
+  ASSESSMENT_FORM
+  PRESCRIPTION
+  INSURANCE_CARD
+  INTAKE_FORM
+  UNKNOWN
+}
+
+enum LabType {
+  NUTRIQ
+  LABCORP
+  QUEST
+  DUTCH
+  KBMO
+  GENOVA
+  DIAGNOSTIC_SOLUTIONS
+  GREAT_PLAINS
+  VIBRANT_WELLNESS
+  PRECISION_POINT
+  OTHER
+}
+
+enum ProcessingStatus {
+  UPLOADED
+  QUEUED
+  PROCESSING
+  OCR_COMPLETE
+  EXTRACTION_COMPLETE
+  ANALYSIS_COMPLETE
+  COMPLETED
+  FAILED
+  ARCHIVED
+}
+
+enum AnalysisStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  REQUIRES_REVIEW
+  APPROVED
+}
+
+enum LabCategory {
+  BASIC_METABOLIC
+  COMPREHENSIVE_METABOLIC
+  LIPID_PANEL
+  THYROID
+  HORMONE
+  VITAMIN_MINERAL
+  INFLAMMATORY_MARKERS
+  IMMUNE_FUNCTION
+  DIGESTIVE_HEALTH
+  DETOXIFICATION
+  CARDIOVASCULAR
+  NEUROLOGICAL
+  GENETIC
+  MICRONUTRIENT
+  FOOD_SENSITIVITY
+  HEAVY_METALS
+  ORGANIC_ACIDS
+  AMINO_ACIDS
+  FATTY_ACIDS
+  OTHER
+}
+
+enum Severity {
+  CRITICAL
+  HIGH
+  MODERATE
+  LOW
+  NORMAL
+}
+
+enum AnalysisType {
+  FUNCTIONAL_MEDICINE
+  CONVENTIONAL_INTERPRETATION
+  PATTERN_RECOGNITION
+  TREND_ANALYSIS
+  COMPARATIVE_ANALYSIS
+  NUTRIENT_ANALYSIS
+  TOXICITY_ANALYSIS
+  HORMONE_ANALYSIS
+}
+
+enum JobType {
+  OCR_EXTRACTION
+  DATA_PARSING
+  VALUE_EXTRACTION
+  FUNCTIONAL_ANALYSIS
+  PATTERN_ANALYSIS
+  TREND_ANALYSIS
+  REPORT_GENERATION
+  NOTIFICATION
+}
+
+enum JobStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  FAILED
+  DELAYED
+  CANCELLED
+  STUCK
+}
+
+enum AuditAction {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  UPLOAD
+  DOWNLOAD
+  PROCESS
+  ANALYZE
+  EXPORT
+  SHARE
+  LOGIN
+  LOGOUT
+  ACCESS_DENIED
+}
+
+enum AuditResource {
+  USER
+  CLIENT
+  DOCUMENT
+  LAB_VALUE
+  ANALYSIS
+  ASSESSMENT
+  PROTOCOL
+  NOTE
+  SYSTEM
 }
