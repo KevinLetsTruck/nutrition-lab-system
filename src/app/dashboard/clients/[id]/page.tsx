@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import NoteCard from "@/components/notes/NoteCard";
 import NoteModal from "@/components/notes/NoteModal";
+import ClientDocumentViewer from "@/components/clients/ClientDocumentViewer";
 
 interface Client {
   id: string;
@@ -46,6 +47,7 @@ interface Document {
   labType?: string;
   status: string;
   fileSize: number;
+  fileUrl: string;
   uploadedAt: string;
   aiAnalysis?: any;
   client: {
@@ -138,7 +140,14 @@ export default function ClientDetailPage() {
 
         if (documentsResponse.ok) {
           const documentsData = await documentsResponse.json();
+          console.log("📄 Documents fetched:", documentsData);
           setDocuments(documentsData);
+        } else {
+          console.error(
+            "❌ Failed to fetch documents:",
+            documentsResponse.status,
+            documentsResponse.statusText
+          );
         }
 
         // Fetch notes for this client and note counts
@@ -510,203 +519,126 @@ export default function ClientDetailPage() {
         )}
 
         {/* Client Information */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Basic Information */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Basic Information
-            </h2>
-            <div className="space-y-4">
-              <div className="flex items-center">
-                <Mail className="w-5 h-5 text-gray-400 mr-3" />
-                <div>
-                  <p className="text-sm text-gray-500">Email</p>
-                  <p className="text-gray-900">{client.email}</p>
-                </div>
-              </div>
-              {client.phone && (
-                <div className="flex items-center">
-                  <Phone className="w-5 h-5 text-gray-400 mr-3" />
-                  <div>
-                    <p className="text-sm text-gray-500">Phone</p>
-                    <p className="text-gray-900">{client.phone}</p>
-                  </div>
-                </div>
-              )}
-              {client.dateOfBirth && (
-                <div className="flex items-center">
-                  <Calendar className="w-5 h-5 text-gray-400 mr-3" />
-                  <div>
-                    <p className="text-sm text-gray-500">Date of Birth</p>
-                    <p className="text-gray-900">
-                      {new Date(client.dateOfBirth).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Truck Driver Information */}
-          {client.isTruckDriver && (
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                <Truck className="w-5 h-5 mr-2" />
-                Truck Driver Information
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Client Information
               </h2>
               <div className="space-y-4">
-                {client.dotNumber && (
+                <div className="flex items-center">
+                  <Mail className="w-5 h-5 text-gray-400 mr-3" />
                   <div>
-                    <p className="text-sm text-gray-500">DOT Number</p>
-                    <p className="text-gray-900 font-mono">
-                      {client.dotNumber}
-                    </p>
+                    <p className="text-sm text-gray-500">Email</p>
+                    <p className="text-gray-900">{client.email}</p>
                   </div>
-                )}
-                {client.cdlNumber && (
-                  <div>
-                    <p className="text-sm text-gray-500">CDL Number</p>
-                    <p className="text-gray-900 font-mono">
-                      {client.cdlNumber}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Status and Dates */}
-        <div className="mt-6 bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Status & History
-          </h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="flex items-center">
-              <Activity className="w-5 h-5 text-gray-400 mr-3" />
-              <div>
-                <p className="text-sm text-gray-500">Status</p>
-                <span
-                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    client.status === "active"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {client.status}
-                </span>
-              </div>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Created</p>
-              <p className="text-gray-900">
-                {new Date(client.createdAt).toLocaleDateString()}
-              </p>
-            </div>
-            {client.lastVisit && (
-              <div>
-                <p className="text-sm text-gray-500">Last Visit</p>
-                <p className="text-gray-900">
-                  {new Date(client.lastVisit).toLocaleDateString()}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Documents Section */}
-        <div className="mt-6 bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Documents ({documents.length})
-            </h2>
-            <Link
-              href={`/dashboard/documents/upload?clientId=${client.id}`}
-              className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Upload New
-            </Link>
-          </div>
-
-          {documents.length === 0 ? (
-            <div className="text-center py-8">
-              <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <p className="text-gray-500 mb-4">No documents uploaded yet</p>
-              <Link
-                href={`/dashboard/documents/upload?clientId=${client.id}`}
-                className="text-blue-600 hover:text-blue-700"
-              >
-                Upload your first document
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {documents.map((doc) => (
-                <div
-                  key={doc.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <FileText className="h-8 w-8 text-gray-400 mr-3" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {doc.fileName}
-                        </p>
-                        <div className="flex items-center text-xs text-gray-500 mt-1">
-                          <span className="capitalize">
-                            {doc.documentType.replace("_", " ")}
-                          </span>
-                          {doc.labType && (
-                            <>
-                              <span className="mx-2">•</span>
-                              <span>{doc.labType}</span>
-                            </>
-                          )}
-                          <span className="mx-2">•</span>
-                          <span>
-                            {(doc.fileSize / 1024 / 1024).toFixed(1)} MB
-                          </span>
-                          <span className="mx-2">•</span>
-                          <span>
-                            {new Date(doc.uploadedAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span
-                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          doc.status === "completed"
-                            ? "bg-green-100 text-green-800"
-                            : doc.status === "processing"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {doc.status}
-                      </span>
-                      <Link
-                        href={`/dashboard/documents/${doc.id}`}
-                        className="text-blue-600 hover:text-blue-700"
-                        title="View Document"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Link>
+                </div>
+                {client.phone && (
+                  <div className="flex items-center">
+                    <Phone className="w-5 h-5 text-gray-400 mr-3" />
+                    <div>
+                      <p className="text-sm text-gray-500">Phone</p>
+                      <p className="text-gray-900">{client.phone}</p>
                     </div>
                   </div>
-                  {doc.aiAnalysis && (
-                    <div className="mt-3 p-3 bg-green-50 rounded-md">
-                      <p className="text-xs text-green-800">
-                        <strong>AI Analysis:</strong> {doc.aiAnalysis.summary}
+                )}
+                {client.dateOfBirth && (
+                  <div className="flex items-center">
+                    <Calendar className="w-5 h-5 text-gray-400 mr-3" />
+                    <div>
+                      <p className="text-sm text-gray-500">Date of Birth</p>
+                      <p className="text-gray-900">
+                        {new Date(client.dateOfBirth).toLocaleDateString()}
                       </p>
                     </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                )}
+              </div>
             </div>
-          )}
+
+            {/* Status Icon */}
+            <div className="flex flex-col items-center ml-6">
+              <div
+                className={`inline-flex items-center justify-center w-8 h-8 rounded-full mb-2 ${
+                  client.status === "SIGNED_UP"
+                    ? "bg-blue-100"
+                    : client.status === "INITIAL_INTERVIEW_COMPLETED"
+                    ? "bg-green-100"
+                    : client.status === "ASSESSMENT_COMPLETED"
+                    ? "bg-yellow-100"
+                    : client.status === "DOCS_UPLOADED"
+                    ? "bg-purple-100"
+                    : client.status === "SCHEDULED"
+                    ? "bg-indigo-100"
+                    : client.status === "ONGOING"
+                    ? "bg-emerald-100"
+                    : client.status === "ARCHIVED"
+                    ? "bg-gray-100"
+                    : "bg-gray-100"
+                }`}
+              >
+                {client.status === "SIGNED_UP" && (
+                  <span className="text-blue-600 text-sm">📝</span>
+                )}
+                {client.status === "INITIAL_INTERVIEW_COMPLETED" && (
+                  <span className="text-green-600 text-sm">✅</span>
+                )}
+                {client.status === "ASSESSMENT_COMPLETED" && (
+                  <span className="text-yellow-600 text-sm">📋</span>
+                )}
+                {client.status === "DOCS_UPLOADED" && (
+                  <span className="text-purple-600 text-sm">📄</span>
+                )}
+                {client.status === "SCHEDULED" && (
+                  <span className="text-indigo-600 text-sm">📅</span>
+                )}
+                {client.status === "ONGOING" && (
+                  <span className="text-emerald-600 text-sm">🔄</span>
+                )}
+                {client.status === "ARCHIVED" && (
+                  <span className="text-gray-600 text-sm">📦</span>
+                )}
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-gray-500 mb-1">Status</p>
+                <p
+                  className={`text-xs font-medium ${
+                    client.status === "SIGNED_UP"
+                      ? "text-blue-600"
+                      : client.status === "INITIAL_INTERVIEW_COMPLETED"
+                      ? "text-green-600"
+                      : client.status === "ASSESSMENT_COMPLETED"
+                      ? "text-yellow-600"
+                      : client.status === "DOCS_UPLOADED"
+                      ? "text-purple-600"
+                      : client.status === "SCHEDULED"
+                      ? "text-indigo-600"
+                      : client.status === "ONGOING"
+                      ? "text-emerald-600"
+                      : client.status === "ARCHIVED"
+                      ? "text-gray-600"
+                      : "text-gray-600"
+                  }`}
+                >
+                  {client.status === "SIGNED_UP"
+                    ? "Signed Up"
+                    : client.status === "INITIAL_INTERVIEW_COMPLETED"
+                    ? "Interview Done"
+                    : client.status === "ASSESSMENT_COMPLETED"
+                    ? "Assessment Done"
+                    : client.status === "DOCS_UPLOADED"
+                    ? "Docs Uploaded"
+                    : client.status === "SCHEDULED"
+                    ? "Scheduled"
+                    : client.status === "ONGOING"
+                    ? "Ongoing"
+                    : client.status === "ARCHIVED"
+                    ? "Archived"
+                    : client.status}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Notes Section */}
@@ -862,46 +794,15 @@ export default function ClientDetailPage() {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="mt-6 bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Quick Actions
-          </h2>
-          <div className="grid md:grid-cols-3 gap-4">
-            <Link
-              href={`/dashboard/documents/upload?clientId=${client.id}`}
-              className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-            >
-              <FileText className="w-5 h-5 text-blue-600 mr-3" />
-              <div>
-                <p className="font-medium text-gray-900">Upload Documents</p>
-                <p className="text-sm text-gray-500">
-                  Lab reports, assessments
-                </p>
-              </div>
-            </Link>
-            <Link
-              href={`/dashboard/assessments/new?clientId=${client.id}`}
-              className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-            >
-              <Activity className="w-5 h-5 text-green-600 mr-3" />
-              <div>
-                <p className="font-medium text-gray-900">New Assessment</p>
-                <p className="text-sm text-gray-500">Health questionnaire</p>
-              </div>
-            </Link>
-            <Link
-              href={`/dashboard/protocols/new?clientId=${client.id}`}
-              className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-            >
-              <Truck className="w-5 h-5 text-purple-600 mr-3" />
-              <div>
-                <p className="font-medium text-gray-900">Create Protocol</p>
-                <p className="text-sm text-gray-500">Nutrition plan</p>
-              </div>
-            </Link>
-          </div>
-        </div>
+        {/* Documents Section - Enhanced PDF Viewer */}
+        <ClientDocumentViewer
+          clientId={client.id}
+          documents={documents}
+          onRefresh={() => {
+            // Refresh documents
+            fetchClientAndDocuments();
+          }}
+        />
       </div>
 
       {/* Note Modal */}

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import jwt from "jsonwebtoken";
+import { promises as fs } from "fs";
+import path from "path";
 
 // Helper function to verify JWT token
 function verifyAuthToken(request: NextRequest) {
@@ -94,15 +96,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
 
-    // For now, we'll store file info without actual file upload
-    // In production, you'd upload to S3 and store the URL
+    // Save file to public/uploads directory
+    const uploadDir = path.join(process.cwd(), "public", "uploads");
+
+    // Ensure upload directory exists
+    try {
+      await fs.access(uploadDir);
+    } catch {
+      await fs.mkdir(uploadDir, { recursive: true });
+    }
+
+    // Create unique filename to prevent conflicts
+    const timestamp = Date.now();
+    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const uniqueFileName = `${timestamp}_${sanitizedFileName}`;
+    const filePath = path.join(uploadDir, uniqueFileName);
+
+    // Save file to disk
+    const fileBuffer = await file.arrayBuffer();
+    await fs.writeFile(filePath, Buffer.from(fileBuffer));
+
+    console.log(`✅ File saved: ${filePath}`);
+
     const document = await prisma.document.create({
       data: {
         clientId,
         fileName: file.name,
         fileType: file.type,
         fileSize: file.size,
-        fileUrl: `/uploads/${file.name}`, // Placeholder URL
+        fileUrl: `/uploads/${uniqueFileName}`, // Actual file URL
         documentType,
         labType: labType || null,
         status: "uploaded",

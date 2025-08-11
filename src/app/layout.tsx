@@ -14,10 +14,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "FNTP Nutrition System",
-  description: "Comprehensive Nutritional Therapy Practice Management for Truck Drivers",
+  description:
+    "Comprehensive Nutritional Therapy Practice Management for Truck Drivers",
 };
 
-import { AuthProvider } from '@/lib/auth-context';
+import { AuthProvider } from "@/lib/auth-context";
 
 export default function RootLayout({
   children,
@@ -28,10 +29,9 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning={true}
       >
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

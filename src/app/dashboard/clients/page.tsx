@@ -6,12 +6,13 @@ import Link from "next/link";
 import {
   Search,
   Plus,
-  FileText,
   FlaskConical,
-  ClipboardList,
   Eye,
   Edit,
   Trash2,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
 } from "lucide-react";
 
 interface Client {
@@ -44,6 +45,10 @@ export default function ClientDashboard() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [loading, setLoading] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  } | null>(null);
 
   useEffect(() => {
     fetchClients();
@@ -102,36 +107,93 @@ export default function ClientDashboard() {
     }
   };
 
-  const filteredClients = clients.filter((client) => {
-    const matchesSearch =
-      client.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.email.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesFilter =
-      filterStatus === "all" ||
-      (filterStatus === "active" && (client.activeProtocols || 0) > 0) ||
-      (filterStatus === "needsAssessment" && !client.lastAssessment) ||
-      (filterStatus === "highRisk" && (client.symptomBurden || 0) > 60);
-
-    return matchesSearch && matchesFilter;
-  });
-
-  const getHealthStatusColor = (burden: number) => {
-    if (burden < 30) return "text-green-600 bg-green-100";
-    if (burden < 60) return "text-yellow-600 bg-yellow-100";
-    return "text-red-600 bg-red-100";
+  // Sorting function
+  const handleSort = (key: string) => {
+    let direction: "asc" | "desc" = "asc";
+    if (
+      sortConfig &&
+      sortConfig.key === key &&
+      sortConfig.direction === "asc"
+    ) {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
   };
 
-  const getDOTStatusColor = (dotDate: string) => {
-    if (!dotDate) return "";
-    const daysUntil = Math.floor(
-      (new Date(dotDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+  // Get sort icon for column headers
+  const getSortIcon = (columnKey: string) => {
+    if (!sortConfig || sortConfig.key !== columnKey) {
+      return <ChevronsUpDown className="w-4 h-4 text-gray-400" />;
+    }
+    return sortConfig.direction === "asc" ? (
+      <ChevronUp className="w-4 h-4 text-gray-600" />
+    ) : (
+      <ChevronDown className="w-4 h-4 text-gray-600" />
     );
-    if (daysUntil < 30) return "text-red-600";
-    if (daysUntil < 90) return "text-yellow-600";
-    return "text-green-600";
   };
+
+  // Define status priority for sorting
+  const getStatusPriority = (status: string) => {
+    const priorities: { [key: string]: number } = {
+      SIGNED_UP: 1,
+      INITIAL_INTERVIEW_COMPLETED: 2,
+      ASSESSMENT_COMPLETED: 3,
+      DOCS_UPLOADED: 4,
+      SCHEDULED: 5,
+      ONGOING: 6,
+      ARCHIVED: 7,
+    };
+    return priorities[status] || 0;
+  };
+
+  const filteredAndSortedClients = clients
+    .filter((client) => {
+      const matchesSearch =
+        client.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        client.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        client.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesFilter =
+        filterStatus === "all" ||
+        (filterStatus === "active" && (client.activeProtocols || 0) > 0) ||
+        (filterStatus === "needsAssessment" && !client.lastAssessment) ||
+        (filterStatus === "highRisk" && (client.symptomBurden || 0) > 60);
+
+      return matchesSearch && matchesFilter;
+    })
+    .sort((a, b) => {
+      if (!sortConfig) return 0;
+
+      const { key, direction } = sortConfig;
+      let aValue: any;
+      let bValue: any;
+
+      switch (key) {
+        case "status":
+          aValue = getStatusPriority(a.status);
+          bValue = getStatusPriority(b.status);
+          break;
+        case "name":
+          aValue = `${a.firstName} ${a.lastName}`.toLowerCase();
+          bValue = `${b.firstName} ${b.lastName}`.toLowerCase();
+          break;
+        case "email":
+          aValue = a.email.toLowerCase();
+          bValue = b.email.toLowerCase();
+          break;
+        case "lastAssessment":
+          aValue = a.lastAssessment ? new Date(a.lastAssessment).getTime() : 0;
+          bValue = b.lastAssessment ? new Date(b.lastAssessment).getTime() : 0;
+          break;
+
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) return direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
 
   // Status utility functions
   const getStatusVariant = (status: string) => {
@@ -242,89 +304,6 @@ export default function ClientDashboard() {
         </p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total Clients</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {clients.length}
-              </p>
-            </div>
-            <div className="bg-blue-100 p-3 rounded-full">
-              <svg
-                className="w-6 h-6 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Active Protocols</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {clients.filter((c) => (c.activeProtocols || 0) > 0).length}
-              </p>
-            </div>
-            <div className="bg-green-100 p-3 rounded-full">
-              <ClipboardList className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Need Assessment</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {clients.filter((c) => !c.lastAssessment).length}
-              </p>
-            </div>
-            <div className="bg-yellow-100 p-3 rounded-full">
-              <FileText className="w-6 h-6 text-yellow-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">High Risk</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {clients.filter((c) => (c.symptomBurden || 0) > 60).length}
-              </p>
-            </div>
-            <div className="bg-red-100 p-3 rounded-full">
-              <svg
-                className="w-6 h-6 text-red-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Search and Filter Bar */}
       <div className="bg-white rounded-lg shadow p-4 mb-6 border border-gray-200">
         <div className="flex flex-col md:flex-row gap-4">
@@ -365,21 +344,35 @@ export default function ClientDashboard() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Client
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort("name")}
+              >
+                <div className="flex items-center gap-1">
+                  Client
+                  {getSortIcon("name")}
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort("status")}
+              >
+                <div className="flex items-center gap-1">
+                  Status
+                  {getSortIcon("status")}
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Health Status
+
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort("lastAssessment")}
+              >
+                <div className="flex items-center gap-1">
+                  Last Assessment
+                  {getSortIcon("lastAssessment")}
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Last Assessment
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                DOT Medical
-              </th>
+
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Quick Actions
               </th>
@@ -391,18 +384,18 @@ export default function ClientDashboard() {
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
               <tr>
-                <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
                   Loading clients...
                 </td>
               </tr>
-            ) : filteredClients.length === 0 ? (
+            ) : filteredAndSortedClients.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
                   No clients found
                 </td>
               </tr>
             ) : (
-              filteredClients.map((client) => (
+              filteredAndSortedClients.map((client) => (
                 <tr key={client.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
@@ -424,7 +417,9 @@ export default function ClientDashboard() {
                       {updatingStatus === client.id ? (
                         <div className="flex items-center space-x-2">
                           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
-                          <span className="text-xs text-gray-500">Updating...</span>
+                          <span className="text-xs text-gray-500">
+                            Updating...
+                          </span>
                         </div>
                       ) : (
                         <select
@@ -439,7 +434,8 @@ export default function ClientDashboard() {
                               ? "bg-green-100 text-green-800 hover:bg-green-200"
                               : getStatusVariant(client.status) === "outline"
                               ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
-                              : getStatusVariant(client.status) === "destructive"
+                              : getStatusVariant(client.status) ===
+                                "destructive"
                               ? "bg-red-100 text-red-800 hover:bg-red-200"
                               : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                           }`}
@@ -459,21 +455,7 @@ export default function ClientDashboard() {
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {client.symptomBurden ? (
-                      <div className="flex items-center">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getHealthStatusColor(
-                            client.symptomBurden
-                          )}`}
-                        >
-                          {client.symptomBurden}% Burden
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-gray-400 text-sm">No data</span>
-                    )}
-                  </td>
+
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {client.lastAssessment ? (
                       new Date(client.lastAssessment).toLocaleDateString()
@@ -481,35 +463,9 @@ export default function ClientDashboard() {
                       <span className="text-yellow-600">Never assessed</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {client.upcomingDOT ? (
-                      <span
-                        className={`text-sm font-medium ${getDOTStatusColor(
-                          client.upcomingDOT
-                        )}`}
-                      >
-                        {new Date(client.upcomingDOT).toLocaleDateString()}
-                      </span>
-                    ) : (
-                      <span className="text-gray-400 text-sm">Not tracked</span>
-                    )}
-                  </td>
+
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex space-x-2">
-                      <Link
-                        href={`/dashboard/documents/upload?clientId=${client.id}`}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="Upload Lab"
-                      >
-                        <FileText className="w-4 h-4" />
-                      </Link>
-                      <Link
-                        href={`/dashboard/assessments/new?clientId=${client.id}`}
-                        className="text-green-600 hover:text-green-900"
-                        title="Start Assessment"
-                      >
-                        <ClipboardList className="w-4 h-4" />
-                      </Link>
                       <Link
                         href={`/dashboard/protocols/new?clientId=${client.id}`}
                         className="text-purple-600 hover:text-purple-900"
