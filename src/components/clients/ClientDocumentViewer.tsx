@@ -17,7 +17,7 @@ import {
   Grid,
   List,
 } from "lucide-react";
-import SimplePDFViewer from "../pdf/SimplePDFViewer";
+import PDFViewerModal from "../pdf/PDFViewerModal";
 
 interface ClientDocument {
   id: string;
@@ -125,8 +125,15 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
   onRefresh,
 }) => {
   const [viewerOpen, setViewerOpen] = useState(false);
-  const [selectedDocumentUrl, setSelectedDocumentUrl] = useState<string>("");
-  const [selectedDocumentName, setSelectedDocumentName] = useState<string>("");
+  const [selectedDocument, setSelectedDocument] = useState<{
+    id: string;
+    name: string;
+    url: string;
+    type: "lab_report" | "protocol" | "assessment" | "intake" | "other";
+    uploadedDate: Date;
+    pages?: number;
+    clientId: string;
+  } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -191,17 +198,19 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
       // For local development, assume documents are served from /uploads
       documentUrl = `/uploads/${doc.fileName}`;
       console.log("No URL found, using constructed URL:", documentUrl);
-
-      // Show a warning that this is a placeholder
-      alert(
-        `Note: Opening placeholder document URL: ${documentUrl}\n\nIn production, this would be the actual uploaded file. For now, you may see a 404 error if the file doesn't exist.`
-      );
     }
 
     if (documentUrl) {
       console.log("Opening document:", documentUrl);
-      setSelectedDocumentUrl(documentUrl);
-      setSelectedDocumentName(doc.fileName);
+      setSelectedDocument({
+        id: doc.id,
+        name: doc.fileName,
+        url: documentUrl,
+        type: doc.documentType,
+        uploadedDate: new Date(doc.uploadedAt),
+        pages: doc.pages,
+        clientId: clientId,
+      });
       setViewerOpen(true);
     } else {
       console.log("Cannot open document: No URL available");
@@ -592,17 +601,20 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
         </div>
       )}
 
-      {/* Simple PDF Viewer */}
-      <SimplePDFViewer
-        isOpen={viewerOpen}
-        onClose={() => {
-          setViewerOpen(false);
-          setSelectedDocumentUrl("");
-          setSelectedDocumentName("");
-        }}
-        documentUrl={selectedDocumentUrl}
-        documentName={selectedDocumentName}
-      />
+      {/* Robust PDF Viewer */}
+      {selectedDocument && (
+        <PDFViewerModal
+          document={selectedDocument}
+          onClose={() => {
+            setViewerOpen(false);
+            setSelectedDocument(null);
+          }}
+          allowAnnotations={true}
+          allowDownload={true}
+          allowPrint={true}
+          allowShare={false}
+        />
+      )}
     </div>
   );
 };
