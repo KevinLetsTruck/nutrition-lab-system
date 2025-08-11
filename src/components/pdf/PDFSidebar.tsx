@@ -40,15 +40,14 @@ const PDFThumbnail: React.FC<ThumbnailProps> = ({
   isActive,
   onClick,
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const renderTaskRef = useRef<any>(null);
 
   useEffect(() => {
-    const renderThumbnail = async () => {
-      if (!pdf || !canvasRef.current) {
-        console.log(`Thumbnail ${pageNumber}: Missing PDF or canvas ref`);
+    const generateThumbnail = async () => {
+      if (!pdf) {
+        console.log(`Thumbnail ${pageNumber}: No PDF available`);
         return;
       }
 
@@ -56,76 +55,79 @@ const PDFThumbnail: React.FC<ThumbnailProps> = ({
         setIsLoading(true);
         setError(null);
         
-        console.log(`Thumbnail ${pageNumber}: Starting render`);
+        console.log(`Thumbnail ${pageNumber}: Starting thumbnail generation`);
         
-        // Cancel any previous render task
-        if (renderTaskRef.current) {
-          console.log(`Thumbnail ${pageNumber}: Canceling previous render`);
-          renderTaskRef.current.cancel();
-          renderTaskRef.current = null;
-        }
-
         const page = await pdf.getPage(pageNumber);
         console.log(`Thumbnail ${pageNumber}: Got page`);
         
-        const viewport = page.getViewport({ scale: 0.15 }); // Even smaller scale for thumbnails
-        const canvas = canvasRef.current;
-        const context = canvas.getContext("2d");
-
+        const viewport = page.getViewport({ scale: 0.2 });
+        
+        // Create a completely separate canvas for this thumbnail
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        
         if (!context) {
-          console.error(`Thumbnail ${pageNumber}: No canvas context`);
-          return;
+          throw new Error('Could not get canvas context');
         }
 
-        // Set canvas dimensions
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
-        // Clear the canvas before rendering
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        
-        console.log(`Thumbnail ${pageNumber}: Canvas setup complete, starting render`);
+        console.log(`Thumbnail ${pageNumber}: Canvas created, starting render`);
 
         const renderContext = {
           canvasContext: context,
           viewport: viewport,
         };
 
-        // Create and store the render task
-        renderTaskRef.current = page.render(renderContext);
+        // Render the page to our isolated canvas
+        await page.render(renderContext).promise;
+        
+        console.log(`Thumbnail ${pageNumber}: Render complete, converting to blob`);
+        
+        // Convert canvas to blob URL for display
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            setThumbnailUrl(url);
+            setIsLoading(false);
+            console.log(`Thumbnail ${pageNumber}: Blob URL created successfully`);
+          } else {
+            throw new Error('Failed to create blob from canvas');
+          }
+        }, 'image/png');
 
-        await renderTaskRef.current.promise;
-        
-        console.log(`Thumbnail ${pageNumber}: Render complete`);
-        
-        // Clear the render task reference when done
-        renderTaskRef.current = null;
-        setIsLoading(false);
       } catch (error: any) {
-        console.error(`Thumbnail ${pageNumber}: Render error:`, error);
-        if (error.name !== 'RenderingCancelledException') {
-          setError(`Failed to render page ${pageNumber}`);
-        }
+        console.error(`Thumbnail ${pageNumber}: Error:`, error);
+        setError(`Failed to render page ${pageNumber}`);
         setIsLoading(false);
-        renderTaskRef.current = null;
       }
     };
 
     if (pdf) {
-      // Add a small delay to prevent overwhelming the system
+      // Stagger thumbnail generation to prevent overwhelming the system
       const timeoutId = setTimeout(() => {
-        renderThumbnail();
-      }, pageNumber * 50); // Stagger thumbnail rendering
+        generateThumbnail();
+      }, pageNumber * 100); // Increased delay for stability
 
       return () => {
         clearTimeout(timeoutId);
-        if (renderTaskRef.current) {
-          renderTaskRef.current.cancel();
-          renderTaskRef.current = null;
+        // Clean up blob URL when component unmounts
+        if (thumbnailUrl) {
+          URL.revokeObjectURL(thumbnailUrl);
         }
       };
     }
   }, [pdf, pageNumber]);
+
+  // Clean up blob URL when component unmounts
+  useEffect(() => {
+    return () => {
+      if (thumbnailUrl) {
+        URL.revokeObjectURL(thumbnailUrl);
+      }
+    };
+  }, [thumbnailUrl]);
 
   return (
     <div
@@ -147,11 +149,16 @@ const PDFThumbnail: React.FC<ThumbnailProps> = ({
             <div className="text-red-500 text-xs mb-1">Error</div>
             <div className="text-red-400 text-xs text-center">{error}</div>
           </div>
-        ) : (
-          <canvas
-            ref={canvasRef}
+        ) : thumbnailUrl ? (
+          <img
+            src={thumbnailUrl}
+            alt={`Page ${pageNumber}`}
             className="w-full h-auto max-h-32 object-contain"
           />
+        ) : (
+          <div className="w-full h-32 bg-slate-100 flex items-center justify-center">
+            <div className="text-slate-400 text-xs">No thumbnail</div>
+          </div>
         )}
       </div>
       <div className="bg-slate-900 px-2 py-1">
