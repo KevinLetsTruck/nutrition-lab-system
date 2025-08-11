@@ -384,16 +384,16 @@ export default function ClientDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen p-6" style={{ background: 'var(--bg-primary)' }}>
         <div className="max-w-4xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div className="h-8 rounded w-1/4 mb-6" style={{ background: 'var(--bg-hover)' }}></div>
+            <div className="card">
+              <div className="h-6 rounded w-1/3 mb-4" style={{ background: 'var(--bg-hover)' }}></div>
               <div className="space-y-3">
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                <div className="h-4 rounded w-1/2" style={{ background: 'var(--bg-hover)' }}></div>
+                <div className="h-4 rounded w-2/3" style={{ background: 'var(--bg-hover)' }}></div>
+                <div className="h-4 rounded w-1/3" style={{ background: 'var(--bg-hover)' }}></div>
               </div>
             </div>
           </div>
@@ -404,14 +404,15 @@ export default function ClientDetailPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen p-6" style={{ background: 'var(--bg-primary)' }}>
         <div className="max-w-4xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-red-800 mb-2">Error</h2>
-            <p className="text-red-600">{error}</p>
+          <div className="card" style={{ borderColor: 'var(--red-accent)', background: 'rgba(239, 68, 68, 0.1)' }}>
+            <h2 className="text-lg font-semibold mb-2" style={{ color: 'var(--red-accent)' }}>Error</h2>
+            <p style={{ color: 'var(--text-secondary)' }}>{error}</p>
             <Link
               href="/dashboard/clients"
-              className="inline-block mt-4 text-blue-600 hover:text-blue-800"
+              className="inline-block mt-4 hover:underline transition-colors duration-200"
+              style={{ color: 'var(--primary-green)' }}
             >
               ← Back to Clients
             </Link>
@@ -423,18 +424,19 @@ export default function ClientDetailPage() {
 
   if (!client) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen p-6" style={{ background: 'var(--bg-primary)' }}>
         <div className="max-w-4xl mx-auto">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-yellow-800 mb-2">
+          <div className="card" style={{ borderColor: 'var(--orange-accent)', background: 'rgba(251, 146, 60, 0.1)' }}>
+            <h2 className="text-lg font-semibold mb-2" style={{ color: 'var(--orange-accent)' }}>
               Client Not Found
             </h2>
-            <p className="text-yellow-600">
+            <p style={{ color: 'var(--text-secondary)' }}>
               The client you're looking for doesn't exist.
             </p>
             <Link
               href="/dashboard/clients"
-              className="inline-block mt-4 text-blue-600 hover:text-blue-800"
+              className="inline-block mt-4 hover:underline transition-colors duration-200"
+              style={{ color: 'var(--primary-green)' }}
             >
               ← Back to Clients
             </Link>
@@ -445,33 +447,44 @@ export default function ClientDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen p-6" style={{ background: 'var(--bg-primary)' }}>
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
             <Link
               href="/dashboard/clients"
-              className="flex items-center text-gray-600 hover:text-gray-800"
+              className="flex items-center transition-colors duration-200 hover:underline"
+              style={{ color: 'var(--text-secondary)' }}
             >
               <ArrowLeft className="w-5 h-5 mr-2" />
               Back to Clients
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
               {client.firstName} {client.lastName}
             </h1>
           </div>
           <div className="flex space-x-3">
             <Link
               href={`/dashboard/clients/${client.id}/edit`}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              className="btn-primary flex items-center"
             >
               <Edit className="w-4 h-4 mr-2" />
               Edit
             </Link>
             <button
               onClick={handleDelete}
-              className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+              className="flex items-center px-4 py-2 rounded-lg transition-colors duration-200"
+              style={{ 
+                background: 'var(--red-accent)', 
+                color: 'var(--text-primary)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#dc2626';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--red-accent)';
+              }}
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Delete
@@ -481,13 +494,13 @@ export default function ClientDetailPage() {
 
         {/* Token Management Debug Section */}
         {error && error.includes("authentication") && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="mb-6 card" style={{ borderColor: 'var(--red-accent)', background: 'rgba(239, 68, 68, 0.1)' }}>
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-red-800 mb-2">
+                <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--red-accent)' }}>
                   🔐 Authentication Issue Detected
                 </h3>
-                <p className="text-red-700 mb-3">
+                <p className="mb-3" style={{ color: 'var(--text-secondary)' }}>
                   There's an issue with your authentication token. This can
                   happen if the token is corrupted or expired.
                 </p>
@@ -497,7 +510,8 @@ export default function ClientDetailPage() {
                       localStorage.removeItem("token");
                       window.location.href = "/login";
                     }}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+                    className="px-4 py-2 rounded-md transition-colors duration-200"
+                    style={{ background: 'var(--red-accent)', color: 'var(--text-primary)' }}
                   >
                     Clear Token & Log In Again
                   </button>
@@ -507,47 +521,47 @@ export default function ClientDetailPage() {
                       setLoading(true);
                       fetchClientAndDocuments();
                     }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                    className="btn-primary"
                   >
                     Retry
                   </button>
                 </div>
               </div>
-              <div className="text-red-400 text-4xl">🔐</div>
+              <div style={{ color: 'var(--red-accent)' }} className="text-4xl">🔐</div>
             </div>
           </div>
         )}
 
         {/* Client Information */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="card">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
                 Client Information
               </h2>
               <div className="space-y-4">
                 <div className="flex items-center">
-                  <Mail className="w-5 h-5 text-gray-400 mr-3" />
+                  <Mail className="w-5 h-5 mr-3" style={{ color: 'var(--text-secondary)' }} />
                   <div>
-                    <p className="text-sm text-gray-500">Email</p>
-                    <p className="text-gray-900">{client.email}</p>
+                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Email</p>
+                    <p style={{ color: 'var(--text-primary)' }}>{client.email}</p>
                   </div>
                 </div>
                 {client.phone && (
                   <div className="flex items-center">
-                    <Phone className="w-5 h-5 text-gray-400 mr-3" />
+                    <Phone className="w-5 h-5 mr-3" style={{ color: 'var(--text-secondary)' }} />
                     <div>
-                      <p className="text-sm text-gray-500">Phone</p>
-                      <p className="text-gray-900">{client.phone}</p>
+                      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Phone</p>
+                      <p style={{ color: 'var(--text-primary)' }}>{client.phone}</p>
                     </div>
                   </div>
                 )}
                 {client.dateOfBirth && (
                   <div className="flex items-center">
-                    <Calendar className="w-5 h-5 text-gray-400 mr-3" />
+                    <Calendar className="w-5 h-5 mr-3" style={{ color: 'var(--text-secondary)' }} />
                     <div>
-                      <p className="text-sm text-gray-500">Date of Birth</p>
-                      <p className="text-gray-900">
+                      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Date of Birth</p>
+                      <p style={{ color: 'var(--text-primary)' }}>
                         {new Date(client.dateOfBirth).toLocaleDateString()}
                       </p>
                     </div>
@@ -559,66 +573,68 @@ export default function ClientDetailPage() {
             {/* Status Icon */}
             <div className="flex flex-col items-center ml-6">
               <div
-                className={`inline-flex items-center justify-center w-8 h-8 rounded-full mb-2 ${
-                  client.status === "SIGNED_UP"
-                    ? "bg-blue-100"
+                className="inline-flex items-center justify-center w-8 h-8 rounded-full mb-2"
+                style={{
+                  background: client.status === "SIGNED_UP"
+                    ? "rgba(59, 130, 246, 0.2)"
                     : client.status === "INITIAL_INTERVIEW_COMPLETED"
-                    ? "bg-green-100"
+                    ? "rgba(34, 197, 94, 0.2)"
                     : client.status === "ASSESSMENT_COMPLETED"
-                    ? "bg-yellow-100"
+                    ? "rgba(251, 191, 36, 0.2)"
                     : client.status === "DOCS_UPLOADED"
-                    ? "bg-purple-100"
+                    ? "rgba(147, 51, 234, 0.2)"
                     : client.status === "SCHEDULED"
-                    ? "bg-indigo-100"
+                    ? "rgba(99, 102, 241, 0.2)"
                     : client.status === "ONGOING"
-                    ? "bg-emerald-100"
+                    ? "var(--primary-green-light)"
                     : client.status === "ARCHIVED"
-                    ? "bg-gray-100"
-                    : "bg-gray-100"
-                }`}
+                    ? "rgba(107, 114, 128, 0.2)"
+                    : "rgba(107, 114, 128, 0.2)"
+                }}
               >
                 {client.status === "SIGNED_UP" && (
-                  <span className="text-blue-600 text-sm">📝</span>
+                  <span className="text-sm" style={{ color: '#3b82f6' }}>📝</span>
                 )}
                 {client.status === "INITIAL_INTERVIEW_COMPLETED" && (
-                  <span className="text-green-600 text-sm">✅</span>
+                  <span className="text-sm" style={{ color: '#22c55e' }}>✅</span>
                 )}
                 {client.status === "ASSESSMENT_COMPLETED" && (
-                  <span className="text-yellow-600 text-sm">📋</span>
+                  <span className="text-sm" style={{ color: '#fbbf24' }}>📋</span>
                 )}
                 {client.status === "DOCS_UPLOADED" && (
-                  <span className="text-purple-600 text-sm">📄</span>
+                  <span className="text-sm" style={{ color: '#9333ea' }}>📄</span>
                 )}
                 {client.status === "SCHEDULED" && (
-                  <span className="text-indigo-600 text-sm">📅</span>
+                  <span className="text-sm" style={{ color: '#6366f1' }}>📅</span>
                 )}
                 {client.status === "ONGOING" && (
-                  <span className="text-emerald-600 text-sm">🔄</span>
+                  <span className="text-sm" style={{ color: 'var(--primary-green)' }}>🔄</span>
                 )}
                 {client.status === "ARCHIVED" && (
-                  <span className="text-gray-600 text-sm">📦</span>
+                  <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>📦</span>
                 )}
               </div>
               <div className="text-center">
-                <p className="text-xs text-gray-500 mb-1">Status</p>
+                <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>Status</p>
                 <p
-                  className={`text-xs font-medium ${
-                    client.status === "SIGNED_UP"
-                      ? "text-blue-600"
+                  className="text-xs font-medium"
+                  style={{
+                    color: client.status === "SIGNED_UP"
+                      ? "#3b82f6"
                       : client.status === "INITIAL_INTERVIEW_COMPLETED"
-                      ? "text-green-600"
+                      ? "#22c55e"
                       : client.status === "ASSESSMENT_COMPLETED"
-                      ? "text-yellow-600"
+                      ? "#fbbf24"
                       : client.status === "DOCS_UPLOADED"
-                      ? "text-purple-600"
+                      ? "#9333ea"
                       : client.status === "SCHEDULED"
-                      ? "text-indigo-600"
+                      ? "#6366f1"
                       : client.status === "ONGOING"
-                      ? "text-emerald-600"
+                      ? "var(--primary-green)"
                       : client.status === "ARCHIVED"
-                      ? "text-gray-600"
-                      : "text-gray-600"
-                  }`}
+                      ? "var(--text-secondary)"
+                      : "var(--text-secondary)"
+                  }}
                 >
                   {client.status === "SIGNED_UP"
                     ? "Signed Up"
@@ -642,37 +658,39 @@ export default function ClientDetailPage() {
         </div>
 
         {/* Notes Section */}
-        <div className="mt-6 bg-white rounded-lg shadow p-6">
+        <div className="mt-6 card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
               Client Notes
             </h2>
             <button
               onClick={openNewNoteModal}
-              className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
+              className="btn-primary flex items-center text-sm"
             >
               <Plus className="w-4 h-4 mr-2" />
               New Note
             </button>
           </div>
 
-          <div className="flex space-x-1 mb-6 bg-gray-100 rounded-lg p-1">
+          <div className="flex space-x-1 mb-6 rounded-lg p-1" style={{ background: 'var(--bg-secondary)' }}>
             <button
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition ${
-                activeTab === "interview"
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200"
+              style={{
+                background: activeTab === "interview" ? 'var(--bg-card)' : 'transparent',
+                color: activeTab === "interview" ? 'var(--primary-green)' : 'var(--text-secondary)',
+                borderColor: activeTab === "interview" ? 'var(--border-primary)' : 'transparent'
+              }}
               onClick={() => setActiveTab("interview")}
             >
               Interview Notes ({interviewNotesCount})
             </button>
             <button
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition ${
-                activeTab === "coaching"
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200"
+              style={{
+                background: activeTab === "coaching" ? 'var(--bg-card)' : 'transparent',
+                color: activeTab === "coaching" ? 'var(--primary-green)' : 'var(--text-secondary)',
+                borderColor: activeTab === "coaching" ? 'var(--border-primary)' : 'transparent'
+              }}
               onClick={() => setActiveTab("coaching")}
             >
               Coaching Calls ({coachingNotesCount})
@@ -688,7 +706,7 @@ export default function ClientDetailPage() {
                   placeholder="Search notes..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="input text-sm"
                 />
               </div>
               <select
@@ -696,7 +714,7 @@ export default function ClientDetailPage() {
                 onChange={(e) =>
                   setSortBy(e.target.value as "newest" | "oldest" | "updated")
                 }
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                className="input text-sm"
               >
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
@@ -706,28 +724,31 @@ export default function ClientDetailPage() {
 
             <div className="flex gap-2">
               <button
-                className={`px-3 py-1 text-sm rounded-md transition ${
-                  showImportant
-                    ? "bg-yellow-100 text-yellow-800 border border-yellow-300"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
+                className="px-3 py-1 text-sm rounded-md transition-colors duration-200"
+                style={{
+                  background: showImportant ? 'rgba(251, 191, 36, 0.2)' : 'var(--bg-secondary)',
+                  color: showImportant ? '#fbbf24' : 'var(--text-secondary)',
+                  border: showImportant ? '1px solid #fbbf24' : '1px solid var(--border-primary)'
+                }}
                 onClick={() => setShowImportant(!showImportant)}
               >
                 Important Only
               </button>
               <button
-                className={`px-3 py-1 text-sm rounded-md transition ${
-                  showFollowUp
-                    ? "bg-blue-100 text-blue-800 border border-blue-300"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
+                className="px-3 py-1 text-sm rounded-md transition-colors duration-200"
+                style={{
+                  background: showFollowUp ? 'var(--primary-green-light)' : 'var(--bg-secondary)',
+                  color: showFollowUp ? 'var(--primary-green)' : 'var(--text-secondary)',
+                  border: showFollowUp ? '1px solid var(--primary-green)' : '1px solid var(--border-primary)'
+                }}
                 onClick={() => setShowFollowUp(!showFollowUp)}
               >
                 Follow-up Needed
               </button>
               {(searchTerm || showImportant || showFollowUp) && (
                 <button
-                  className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700"
+                  className="px-3 py-1 text-sm transition-colors duration-200 hover:underline"
+                  style={{ color: 'var(--text-secondary)' }}
                   onClick={() => {
                     setSearchTerm("");
                     setShowImportant(false);
@@ -743,8 +764,8 @@ export default function ClientDetailPage() {
           <div className="notes-list">
             {filteredNotes.length === 0 ? (
               <div className="text-center py-8">
-                <MessageSquare className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-gray-500 mb-4">
+                <MessageSquare className="mx-auto h-12 w-12 mb-4" style={{ color: 'var(--text-secondary)' }} />
+                <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
                   {searchTerm || showImportant || showFollowUp
                     ? "No notes match your current filters"
                     : `No ${
@@ -758,14 +779,14 @@ export default function ClientDetailPage() {
                       setShowImportant(false);
                       setShowFollowUp(false);
                     }}
-                    className="text-blue-600 hover:text-blue-700"
+                    className="btn-primary"
                   >
                     Clear filters
                   </button>
                 ) : (
                   <button
                     onClick={openNewNoteModal}
-                    className="text-blue-600 hover:text-blue-700"
+                    className="btn-primary"
                   >
                     Create your first{" "}
                     {activeTab === "interview" ? "interview" : "coaching"} note
