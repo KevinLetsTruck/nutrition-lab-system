@@ -242,8 +242,6 @@ export class LabValueExtractor {
   }
 
   private detectStructurePatterns(text: string): { tableStructure: boolean; referenceRanges: boolean; units: boolean; flags: boolean } {
-    const lowerText = text.toLowerCase()
-    
     return {
       tableStructure: /\|\s*\w+\s*\|\s*[\d.]+\s*\|/.test(text) || 
                      /\b\w+\s+[\d.]+\s+\w+\/\w+\s+[\d.-]+\s*-\s*[\d.-]+/.test(text),

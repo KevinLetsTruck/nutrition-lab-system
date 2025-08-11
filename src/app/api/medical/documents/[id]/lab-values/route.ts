@@ -69,7 +69,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   }
 }
 
-function categorizeLabValues(labValues: any[]) {
+function categorizeLabValues(labValues: unknown[]) {
   const categories = {
     metabolic: [],
     lipids: [],
