@@ -398,7 +398,7 @@ export default function ClientDashboard() {
                   No clients found
                 </td>
               </tr>
-            ) : 
+            ) : (
               filteredAndSortedClients.map((client) => (
                 <tr key={client.id} className="hover:bg-[#334155] transition-colors duration-200">
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -511,7 +511,7 @@ export default function ClientDashboard() {
                   </td>
                 </tr>
               ))
-            }
+            )}
           </tbody>
         </table>
       </div>
