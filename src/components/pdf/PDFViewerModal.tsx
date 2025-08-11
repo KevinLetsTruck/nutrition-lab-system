@@ -286,25 +286,25 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
   }, []);
 
   const toggleFullscreen = useCallback(() => {
-    if (typeof document !== "undefined") {
-      if (!document.fullscreenElement) {
+    if (typeof window !== "undefined" && typeof window.document !== "undefined") {
+      if (!window.document.fullscreenElement) {
         viewerRef.current?.requestFullscreen();
         setState((prev) => ({ ...prev, isFullscreen: true }));
       } else {
-        document.exitFullscreen();
+        window.document.exitFullscreen();
         setState((prev) => ({ ...prev, isFullscreen: false }));
       }
     }
   }, []);
 
   const downloadPDF = useCallback(() => {
-    if (typeof document !== "undefined") {
-      const link = document.createElement("a");
+    if (typeof window !== "undefined" && typeof window.document !== "undefined") {
+      const link = window.document.createElement("a");
       link.href = document.url;
       link.download = document.name;
-      document.body.appendChild(link);
+      window.document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      window.document.body.removeChild(link);
     }
   }, [document.url, document.name]);
 
@@ -414,19 +414,19 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
       setState((prev) => ({
         ...prev,
         isFullscreen:
-          typeof document !== "undefined"
-            ? !!document.fullscreenElement
+          typeof window !== "undefined" && typeof window.document !== "undefined"
+            ? !!window.document.fullscreenElement
             : false,
       }));
     };
 
-    if (typeof document !== "undefined") {
-      document.addEventListener("fullscreenchange", handleFullscreenChange);
+    if (typeof window !== "undefined" && typeof window.document !== "undefined") {
+      window.document.addEventListener("fullscreenchange", handleFullscreenChange);
     }
 
     return () => {
-      if (typeof document !== "undefined") {
-        document.removeEventListener(
+      if (typeof window !== "undefined" && typeof window.document !== "undefined") {
+        window.document.removeEventListener(
           "fullscreenchange",
           handleFullscreenChange
         );
