@@ -17,6 +17,7 @@ export default function TestMedicalPage() {
   const [results, setResults] = useState<any>(null)
   const [ocrStatus, setOcrStatus] = useState<any[]>([])
   const [autoRefresh, setAutoRefresh] = useState(false)
+  const [labValues, setLabValues] = useState<any[]>([])
 
   // Check S3 status on component mount
   useEffect(() => {
@@ -48,6 +49,19 @@ export default function TestMedicalPage() {
     }
   }
 
+  const fetchLabValues = async (documentId: string) => {
+    try {
+      const response = await fetch(`/api/medical/documents/${documentId}/lab-values`)
+      if (response.ok) {
+        const data = await response.json()
+        return data
+      }
+    } catch (error) {
+      console.error('Failed to fetch lab values:', error)
+    }
+    return null
+  }
+
   const checkOCRStatus = async (documentIds: string[]) => {
     try {
       const statusPromises = documentIds.map(id => 
@@ -55,6 +69,14 @@ export default function TestMedicalPage() {
       )
       const statuses = await Promise.all(statusPromises)
       setOcrStatus(statuses)
+
+      // Check for completed documents and fetch their lab values
+      const completedDocs = statuses.filter(status => status.status === 'COMPLETED')
+      if (completedDocs.length > 0) {
+        const labPromises = completedDocs.map(doc => fetchLabValues(doc.id))
+        const labResults = await Promise.all(labPromises)
+        setLabValues(labResults.filter(Boolean))
+      }
     } catch (error) {
       console.error('Failed to check OCR status:', error)
     }
@@ -316,6 +338,66 @@ export default function TestMedicalPage() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Lab Values Display */}
+        {labValues.length > 0 && (
+          <div className="bg-[#1e293b] border border-[#334155] rounded-xl p-6">
+            <h2 className="text-xl font-semibold mb-4">Extracted Lab Values</h2>
+            
+            {labValues.map((labData, index) => (
+              <div key={index} className="mb-6 bg-[#0f172a] p-4 rounded-lg">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-medium text-[#4ade80]">{labData.document.originalFileName}</h3>
+                  <div className="text-sm text-gray-400">
+                    {labData.stats.totalValues} values • {labData.stats.highConfidence} high confidence
+                  </div>
+                </div>
+                
+                {Object.entries(labData.categorized).map(([category, values]) => {
+                  if (!Array.isArray(values) || values.length === 0) return null
+                  
+                  return (
+                    <div key={category} className="mb-4">
+                      <h4 className="text-sm font-medium text-gray-300 mb-2 capitalize">
+                        {category} ({values.length})
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                        {values.map((value: any, idx: number) => (
+                          <div key={idx} className="bg-[#1e293b] p-3 rounded border border-[#334155]">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">{value.testName}</span>
+                              {value.flag && value.flag !== 'normal' && (
+                                <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                  value.flag === 'high' ? 'bg-red-500/20 text-red-400' :
+                                  value.flag === 'low' ? 'bg-yellow-500/20 text-yellow-400' :
+                                  value.flag === 'critical' ? 'bg-red-600/20 text-red-300' :
+                                  'bg-gray-500/20 text-gray-400'
+                                }`}>
+                                  {value.flag.toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-lg font-semibold">
+                              {value.value} {value.unit}
+                            </div>
+                            {value.referenceMin !== null && value.referenceMax !== null && (
+                              <div className="text-xs text-gray-500">
+                                Range: {value.referenceMin}-{value.referenceMax}
+                              </div>
+                            )}
+                            <div className="text-xs text-gray-400 mt-1">
+                              {(value.confidence * 100).toFixed(1)}% confidence
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ))}
           </div>
         )}
       </div>

@@ -5,6 +5,7 @@ import * as pdfParse from 'pdf-parse'
 // import mammoth from 'mammoth' // Reserved for future Word document support
 import { prisma } from '@/lib/db/prisma'
 import { medicalDocStorage } from './storage-service'
+import { labValueExtractor } from './lab-extractor'
 
 interface OCRResult {
   text: string
@@ -113,6 +114,38 @@ export class MedicalOCRService {
 
       const totalTime = Date.now() - startTime
       console.log(`✅ OCR processing complete: ${documentId} (${totalTime}ms)`)
+
+      // Automatically extract lab values from OCR text
+      if (ocrResult.text && ocrResult.text.length > 50) {
+        console.log('🧪 Triggering lab value extraction...')
+        try {
+          const labResult = await labValueExtractor.extractLabValues(documentId, ocrResult.text)
+          console.log(`🎯 Lab extraction complete: ${labResult.totalFound} values extracted`)
+          
+          // Update document metadata with lab extraction results
+          await prisma.medicalDocument.update({
+            where: { id: documentId },
+            data: {
+              metadata: {
+                ...document.metadata,
+                ocrMethod: ocrResult.method,
+                processingTime: ocrResult.processingTime,
+                wordCount: ocrResult.wordCount,
+                pageCount: ocrResult.pageCount,
+                labSource,
+                classificationConfidence: extractedData?.confidence || 0,
+                labExtractionComplete: true,
+                labValuesFound: labResult.totalFound,
+                highConfidenceLabValues: labResult.highConfidenceCount,
+                labExtractionTime: labResult.processingTime
+              }
+            }
+          })
+        } catch (labError) {
+          console.error('⚠️ Lab extraction failed:', labError)
+          // Don't fail the OCR process if lab extraction fails
+        }
+      }
 
       return {
         ocrResult,
