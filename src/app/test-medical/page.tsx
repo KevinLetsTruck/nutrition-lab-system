@@ -19,6 +19,7 @@ export default function TestMedicalPage() {
   const [autoRefresh, setAutoRefresh] = useState(false)
   const [labValues, setLabValues] = useState<any[]>([])
   const [functionalAnalysis, setFunctionalAnalysis] = useState<any[]>([])
+  const [fntpProtocols, setFntpProtocols] = useState<any[]>([])
 
   // Check S3 status on component mount
   useEffect(() => {
@@ -76,6 +77,19 @@ export default function TestMedicalPage() {
     return null
   }
 
+  const fetchFNTPProtocol = async (documentId: string) => {
+    try {
+      const response = await fetch(`/api/medical/documents/${documentId}/protocol`)
+      if (response.ok) {
+        const data = await response.json()
+        return data
+      }
+    } catch (error) {
+      console.error('Failed to fetch FNTP protocol:', error)
+    }
+    return null
+  }
+
   const checkOCRStatus = async (documentIds: string[]) => {
     try {
       const statusPromises = documentIds.map(id => 
@@ -95,6 +109,11 @@ export default function TestMedicalPage() {
         const analysisPromises = completedDocs.map(doc => fetchFunctionalAnalysis(doc.id))
         const analysisResults = await Promise.all(analysisPromises)
         setFunctionalAnalysis(analysisResults.filter(Boolean))
+
+        // Fetch FNTP protocols for completed documents
+        const protocolPromises = completedDocs.map(doc => fetchFNTPProtocol(doc.id))
+        const protocolResults = await Promise.all(protocolPromises)
+        setFntpProtocols(protocolResults.filter(Boolean))
       }
     } catch (error) {
       console.error('Failed to check OCR status:', error)
@@ -490,6 +509,183 @@ export default function TestMedicalPage() {
                     Refresh Analysis
                   </button>
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* FNTP Protocol Recommendations Display */}
+        {fntpProtocols.length > 0 && (
+          <div className="bg-[#1e293b] border border-[#334155] rounded-xl p-6">
+            <h2 className="text-xl font-semibold mb-4">FNTP Protocol Recommendations</h2>
+            
+            {fntpProtocols.map((protocolData, index) => (
+              <div key={index} className="mb-6 bg-[#0f172a] p-4 rounded-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-medium text-[#4ade80]">
+                    Protocol for {protocolData.document?.client?.name || 'Driver'}
+                  </h3>
+                  <span className="text-sm text-gray-400">
+                    Generated: {protocolData.generatedAt ? new Date(protocolData.generatedAt).toLocaleDateString() : 'Now'}
+                  </span>
+                </div>
+
+                {protocolData.protocol && (
+                  <>
+                    {/* Executive Summary */}
+                    <div className="mb-4 p-3 bg-[#1e293b] rounded border border-[#334155]">
+                      <h4 className="font-medium text-blue-400 mb-2">Executive Summary</h4>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <strong>Key Findings:</strong>
+                          <ul className="ml-4 mt-1">
+                            {protocolData.protocol.executiveSummary.keyFindings.map((finding: string, idx: number) => (
+                              <li key={idx} className="text-gray-300">• {finding}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <strong>Expected Outcomes:</strong> {protocolData.protocol.executiveSummary.timeframe}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Immediate Supplements */}
+                    {protocolData.protocol.supplements?.immediate.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="font-medium text-green-400 mb-2">
+                          Immediate Supplements (Priority 1)
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {protocolData.protocol.supplements.immediate.map((supp: any, idx: number) => (
+                            <div key={idx} className="bg-[#1e293b] p-3 rounded border border-[#334155]">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-medium text-white">{supp.name}</span>
+                                {supp.source === 'letstruck' && (
+                                  <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
+                                    LetsTruck
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-sm text-gray-300 space-y-1">
+                                <div><strong>Dosage:</strong> {supp.dosage}</div>
+                                <div><strong>Timing:</strong> {supp.timing}</div>
+                                <div><strong>Purpose:</strong> {supp.purpose}</div>
+                                <div className="text-xs text-orange-400">
+                                  <strong>Road Instructions:</strong> {supp.roadInstructions}
+                                </div>
+                              </div>
+                              {supp.productUrl && (
+                                <a 
+                                  href={supp.productUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-blue-400 hover:text-blue-300 mt-2 inline-block"
+                                >
+                                  View Product →
+                                </a>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Nutrition Plan */}
+                    {protocolData.protocol.nutrition && (
+                      <div className="mb-4">
+                        <h4 className="font-medium text-yellow-400 mb-2">
+                          Nutrition Plan: {protocolData.protocol.nutrition.phase}
+                        </h4>
+                        <div className="bg-[#1e293b] p-3 rounded border border-[#334155]">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <h5 className="text-sm font-medium text-gray-300 mb-2">Guidelines:</h5>
+                              <ul className="text-sm text-gray-400 space-y-1">
+                                {protocolData.protocol.nutrition.guidelines.slice(0, 4).map((guideline: string, idx: number) => (
+                                  <li key={idx}>• {guideline}</li>
+                                ))}
+                              </ul>
+                            </div>
+                            <div>
+                              <h5 className="text-sm font-medium text-gray-300 mb-2">Truck Stop Options:</h5>
+                              <div className="text-sm text-gray-400 space-y-1">
+                                {protocolData.protocol.nutrition.truckStopOptions.slice(0, 2).map((option: any, idx: number) => (
+                                  <div key={idx}>
+                                    <strong>{option.chain}:</strong> {option.recommendations[0]}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Lifestyle Protocols */}
+                    {protocolData.protocol.lifestyle && (
+                      <div className="mb-4">
+                        <h4 className="font-medium text-purple-400 mb-2">Lifestyle Recommendations</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {protocolData.protocol.lifestyle.slice(0, 2).map((category: any, idx: number) => (
+                            <div key={idx} className="bg-[#1e293b] p-3 rounded border border-[#334155]">
+                              <h5 className="font-medium text-white capitalize mb-2">{category.category}</h5>
+                              <div className="text-sm text-gray-300">
+                                <div><strong>Action:</strong> {category.recommendations[0].instruction}</div>
+                                <div><strong>Frequency:</strong> {category.recommendations[0].frequency}</div>
+                                <div className="text-xs text-orange-400 mt-1">
+                                  <strong>Trucker Tip:</strong> {category.recommendations[0].truckerModification}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Monitoring */}
+                    {protocolData.protocol.monitoring && (
+                      <div className="mb-4">
+                        <h4 className="font-medium text-red-400 mb-2">Monitoring & Follow-up</h4>
+                        <div className="bg-[#1e293b] p-3 rounded border border-[#334155] text-sm">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <strong>Next Labs ({protocolData.protocol.monitoring.timeline}):</strong>
+                              <ul className="text-gray-400 mt-1">
+                                {protocolData.protocol.monitoring.labsToReorder.slice(0, 3).map((lab: string, idx: number) => (
+                                  <li key={idx}>• {lab}</li>
+                                ))}
+                              </ul>
+                            </div>
+                            <div>
+                              <strong>Success Metrics:</strong>
+                              <ul className="text-gray-400 mt-1">
+                                {protocolData.protocol.monitoring.successMetrics.slice(0, 2).map((metric: string, idx: number) => (
+                                  <li key={idx}>• {metric}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Protocol Generation Button */}
+                {!protocolData.protocol && (
+                  <div className="text-center">
+                    <div className="text-gray-400 mb-3">
+                      Protocol ready to generate for this document
+                    </div>
+                    <button
+                      onClick={() => fetchFNTPProtocol(protocolData.document.id)}
+                      className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-sm font-medium transition-colors"
+                    >
+                      Generate FNTP Protocol
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
