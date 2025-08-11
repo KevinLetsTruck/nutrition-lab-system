@@ -40,66 +40,91 @@ const PDFThumbnail: React.FC<ThumbnailProps> = ({
   isActive,
   onClick,
 }) => {
-  const canvasRef = useRef<ExtendedHTMLCanvasElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const renderTaskRef = useRef<any>(null);
 
   useEffect(() => {
     const renderThumbnail = async () => {
-      if (!pdf || !canvasRef.current) return;
+      if (!pdf || !canvasRef.current) {
+        console.log(`Thumbnail ${pageNumber}: Missing PDF or canvas ref`);
+        return;
+      }
 
       try {
         setIsLoading(true);
+        setError(null);
+        
+        console.log(`Thumbnail ${pageNumber}: Starting render`);
         
         // Cancel any previous render task
-        if (canvasRef.current._renderTask) {
-          canvasRef.current._renderTask.cancel();
+        if (renderTaskRef.current) {
+          console.log(`Thumbnail ${pageNumber}: Canceling previous render`);
+          renderTaskRef.current.cancel();
+          renderTaskRef.current = null;
         }
 
         const page = await pdf.getPage(pageNumber);
-        const viewport = page.getViewport({ scale: 0.2 }); // Small scale for thumbnails
+        console.log(`Thumbnail ${pageNumber}: Got page`);
+        
+        const viewport = page.getViewport({ scale: 0.15 }); // Even smaller scale for thumbnails
         const canvas = canvasRef.current;
         const context = canvas.getContext("2d");
 
-        if (!context) return;
+        if (!context) {
+          console.error(`Thumbnail ${pageNumber}: No canvas context`);
+          return;
+        }
+
+        // Set canvas dimensions
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
 
         // Clear the canvas before rendering
         context.clearRect(0, 0, canvas.width, canvas.height);
         
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
+        console.log(`Thumbnail ${pageNumber}: Canvas setup complete, starting render`);
 
         const renderContext = {
           canvasContext: context,
           viewport: viewport,
         };
 
-        // Store the render task so we can cancel it if needed
-        const renderTask = page.render(renderContext);
-        canvas._renderTask = renderTask;
+        // Create and store the render task
+        renderTaskRef.current = page.render(renderContext);
 
-        await renderTask.promise;
+        await renderTaskRef.current.promise;
+        
+        console.log(`Thumbnail ${pageNumber}: Render complete`);
         
         // Clear the render task reference when done
-        canvas._renderTask = null;
+        renderTaskRef.current = null;
         setIsLoading(false);
-      } catch (error) {
+      } catch (error: any) {
+        console.error(`Thumbnail ${pageNumber}: Render error:`, error);
         if (error.name !== 'RenderingCancelledException') {
-          console.error("Error rendering thumbnail:", error);
+          setError(`Failed to render page ${pageNumber}`);
         }
         setIsLoading(false);
+        renderTaskRef.current = null;
       }
     };
 
     if (pdf) {
-      renderThumbnail();
+      // Add a small delay to prevent overwhelming the system
+      const timeoutId = setTimeout(() => {
+        renderThumbnail();
+      }, pageNumber * 50); // Stagger thumbnail rendering
+
+      return () => {
+        clearTimeout(timeoutId);
+        if (renderTaskRef.current) {
+          renderTaskRef.current.cancel();
+          renderTaskRef.current = null;
+        }
+      };
     }
-    
-    // Cleanup function to cancel render operations
-    return () => {
-      if (canvasRef.current && canvasRef.current._renderTask) {
-        canvasRef.current._renderTask.cancel();
-      }
-    };
   }, [pdf, pageNumber]);
 
   return (
@@ -113,8 +138,14 @@ const PDFThumbnail: React.FC<ThumbnailProps> = ({
     >
       <div className="bg-white p-2 relative">
         {isLoading ? (
-          <div className="w-full h-32 bg-slate-200 animate-pulse flex items-center justify-center">
-            <div className="text-slate-400 text-xs">Loading...</div>
+          <div className="w-full h-32 bg-slate-200 animate-pulse flex flex-col items-center justify-center">
+            <div className="text-slate-400 text-xs mb-1">Loading...</div>
+            <div className="text-slate-500 text-xs">Page {pageNumber}</div>
+          </div>
+        ) : error ? (
+          <div className="w-full h-32 bg-red-100 flex flex-col items-center justify-center">
+            <div className="text-red-500 text-xs mb-1">Error</div>
+            <div className="text-red-400 text-xs text-center">{error}</div>
           </div>
         ) : (
           <canvas
@@ -228,16 +259,24 @@ export const PDFSidebar: React.FC<PDFSidebarProps> = ({
         {/* Thumbnails Tab */}
         {activeTab === "thumbnails" && (
           <div className="h-full overflow-y-auto space-y-3">
-            {pdf && Array.from({ length: totalPages }, (_, index) => (
-              <PDFThumbnail
-                key={index + 1}
-                pdf={pdf}
-                pageNumber={index + 1}
-                isActive={currentPage === index + 1}
-                onClick={() => onGoToPage(index + 1)}
-              />
-            ))}
-            {!pdf && (
+            {pdf ? (
+              <>
+                <div className="text-center py-2">
+                  <div className="text-slate-400 text-xs">
+                    {totalPages} pages • Click to navigate
+                  </div>
+                </div>
+                {Array.from({ length: totalPages }, (_, index) => (
+                  <PDFThumbnail
+                    key={`thumbnail-${index + 1}`}
+                    pdf={pdf}
+                    pageNumber={index + 1}
+                    isActive={currentPage === index + 1}
+                    onClick={() => onGoToPage(index + 1)}
+                  />
+                ))}
+              </>
+            ) : (
               <div className="text-center py-8">
                 <div className="text-slate-400 text-sm">Loading document...</div>
               </div>
