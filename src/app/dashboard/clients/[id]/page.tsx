@@ -461,33 +461,64 @@ export default function ClientDetailPage() {
   return (
     <div className="min-h-screen p-4" style={{ background: 'var(--bg-primary)' }}>
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
+        {/* Compact Header */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center space-x-3">
             <Link
               href="/dashboard/clients"
-              className="flex items-center text-gray-600 hover:text-gray-800"
+              className="flex items-center text-sm transition-colors duration-200 hover:underline"
+              style={{ color: 'var(--text-secondary)' }}
             >
-              <ArrowLeft className="w-5 h-5 mr-2" />
-              Back to Clients
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Back
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
               {client.firstName} {client.lastName}
             </h1>
+            {/* Status badge in header */}
+            <div
+              className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+              style={{
+                background: client.status === "SIGNED_UP" ? "rgba(59, 130, 246, 0.2)" :
+                           client.status === "INITIAL_INTERVIEW_COMPLETED" ? "rgba(34, 197, 94, 0.2)" :
+                           client.status === "ASSESSMENT_COMPLETED" ? "rgba(251, 191, 36, 0.2)" :
+                           client.status === "DOCS_UPLOADED" ? "rgba(147, 51, 234, 0.2)" :
+                           client.status === "SCHEDULED" ? "rgba(99, 102, 241, 0.2)" :
+                           client.status === "ONGOING" ? "var(--primary-green-light)" : "rgba(107, 114, 128, 0.2)",
+                color: client.status === "SIGNED_UP" ? "#3b82f6" :
+                       client.status === "INITIAL_INTERVIEW_COMPLETED" ? "#22c55e" :
+                       client.status === "ASSESSMENT_COMPLETED" ? "#fbbf24" :
+                       client.status === "DOCS_UPLOADED" ? "#9333ea" :
+                       client.status === "SCHEDULED" ? "#6366f1" :
+                       client.status === "ONGOING" ? "var(--primary-green)" : "var(--text-secondary)"
+              }}
+            >
+              {client.status === "SIGNED_UP" ? "📝 Signed Up" :
+               client.status === "INITIAL_INTERVIEW_COMPLETED" ? "✅ Interview Done" :
+               client.status === "ASSESSMENT_COMPLETED" ? "📋 Assessment Done" :
+               client.status === "DOCS_UPLOADED" ? "📄 Docs Uploaded" :
+               client.status === "SCHEDULED" ? "📅 Scheduled" :
+               client.status === "ONGOING" ? "🔄 Ongoing" :
+               client.status === "ARCHIVED" ? "📦 Archived" : client.status}
+            </div>
           </div>
-          <div className="flex space-x-3">
+          <div className="flex space-x-2">
             <Link
               href={`/dashboard/clients/${client.id}/edit`}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              className="btn-primary flex items-center text-sm px-3 py-2"
             >
-              <Edit className="w-4 h-4 mr-2" />
+              <Edit className="w-4 h-4 mr-1" />
               Edit
             </Link>
             <button
               onClick={handleDelete}
-              className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+              className="flex items-center px-3 py-2 rounded-lg transition-colors duration-200 text-sm"
+              style={{ 
+                background: 'var(--red-accent)', 
+                color: 'var(--text-primary)',
+              }}
             >
-              <Trash2 className="w-4 h-4 mr-2" />
+              <Trash2 className="w-4 h-4 mr-1" />
               Delete
             </button>
           </div>
@@ -532,313 +563,184 @@ export default function ClientDetailPage() {
           </div>
         )}
 
-        {/* Client Information - Streamlined */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-          {/* Client Info Card */}
-          <div className="card p-4">
-            <h3 className="text-sm font-semibold mb-3 flex items-center" style={{ color: 'var(--text-primary)' }}>
-              <Activity className="w-4 h-4 mr-2" style={{ color: 'var(--primary-green)' }} />
-              Client Information
-            </h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between">
+        {/* Ultra-Compact Client Overview */}
+        <div className="card p-3 mb-3">
+          <div className="flex items-start justify-between">
+            {/* Left: Client Details */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1 text-xs flex-1">
+              <div>
                 <span style={{ color: 'var(--text-secondary)' }}>Email:</span>
-                <span style={{ color: 'var(--text-primary)' }} className="font-medium">{client.email}</span>
+                <div style={{ color: 'var(--text-primary)' }} className="font-medium">{client.email}</div>
               </div>
               {client.phone && (
-                <div className="flex items-center justify-between">
+                <div>
                   <span style={{ color: 'var(--text-secondary)' }}>Phone:</span>
-                  <span style={{ color: 'var(--text-primary)' }} className="font-medium">{client.phone}</span>
+                  <div style={{ color: 'var(--text-primary)' }} className="font-medium">{client.phone}</div>
                 </div>
               )}
               {client.dateOfBirth && (
-                <>
-                  <div className="flex items-center justify-between">
-                    <span style={{ color: 'var(--text-secondary)' }}>Age:</span>
-                    <span style={{ color: 'var(--text-primary)' }} className="font-medium">
-                      {calculateAge(client.dateOfBirth)} years old
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span style={{ color: 'var(--text-secondary)' }}>DOB:</span>
-                    <span style={{ color: 'var(--text-primary)' }} className="font-medium">
-                      {new Date(client.dateOfBirth).toLocaleDateString()}
-                    </span>
-                  </div>
-                </>
-              )}
-              {client.isTruckDriver && (
-                <div className="flex items-center justify-between">
-                  <span style={{ color: 'var(--text-secondary)' }}>Driver:</span>
-                  <span className="badge">🚛 OTR Driver</span>
+                <div>
+                  <span style={{ color: 'var(--text-secondary)' }}>Age:</span>
+                  <div style={{ color: 'var(--text-primary)' }} className="font-medium">{calculateAge(client.dateOfBirth)} years</div>
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* Quick Stats Card */}
-          <div className="card p-4">
-            <h3 className="text-sm font-semibold mb-3 flex items-center" style={{ color: 'var(--text-primary)' }}>
-              <FileText className="w-4 h-4 mr-2" style={{ color: 'var(--primary-green)' }} />
-              Quick Stats
-            </h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span style={{ color: 'var(--text-secondary)' }}>Interview Notes:</span>
-                <span style={{ color: 'var(--text-primary)' }} className="font-medium">{noteCounts.interview}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span style={{ color: 'var(--text-secondary)' }}>Coaching Notes:</span>
-                <span style={{ color: 'var(--text-primary)' }} className="font-medium">{noteCounts.coaching}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span style={{ color: 'var(--text-secondary)' }}>Documents:</span>
-                <span style={{ color: 'var(--text-primary)' }} className="font-medium">{documents.length}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span style={{ color: 'var(--text-secondary)' }}>Created:</span>
-                <span style={{ color: 'var(--text-primary)' }} className="font-medium">
-                  {new Date(client.createdAt).toLocaleDateString()}
-                </span>
+              <div>
+                <span style={{ color: 'var(--text-secondary)' }}>Notes:</span>
+                <div style={{ color: 'var(--text-primary)' }} className="font-medium">{noteCounts.interview + noteCounts.coaching}</div>
               </div>
             </div>
-          </div>
-
-          {/* Actions & Status Card */}
-          <div className="card p-4">
-            <h3 className="text-sm font-semibold mb-3 flex items-center" style={{ color: 'var(--text-primary)' }}>
-              <Star className="w-4 h-4 mr-2" style={{ color: 'var(--primary-green)' }} />
-              Status & Actions
-            </h3>
-            <div className="space-y-3">
-              {/* Current Status */}
-              <div className="flex items-center justify-between">
-                <span style={{ color: 'var(--text-secondary)' }}>Status:</span>
-                <div
-                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-                  style={{
-                    background: client.status === "SIGNED_UP"
-                      ? "rgba(59, 130, 246, 0.2)"
-                      : client.status === "INITIAL_INTERVIEW_COMPLETED"
-                      ? "rgba(34, 197, 94, 0.2)"
-                      : client.status === "ASSESSMENT_COMPLETED"
-                      ? "rgba(251, 191, 36, 0.2)"
-                      : client.status === "DOCS_UPLOADED"
-                      ? "rgba(147, 51, 234, 0.2)"
-                      : client.status === "SCHEDULED"
-                      ? "rgba(99, 102, 241, 0.2)"
-                      : client.status === "ONGOING"
-                      ? "var(--primary-green-light)"
-                      : "rgba(107, 114, 128, 0.2)",
-                    color: client.status === "SIGNED_UP"
-                      ? "#3b82f6"
-                      : client.status === "INITIAL_INTERVIEW_COMPLETED"
-                      ? "#22c55e"
-                      : client.status === "ASSESSMENT_COMPLETED"
-                      ? "#fbbf24"
-                      : client.status === "DOCS_UPLOADED"
-                      ? "#9333ea"
-                      : client.status === "SCHEDULED"
-                      ? "#6366f1"
-                      : client.status === "ONGOING"
-                      ? "var(--primary-green)"
-                      : "var(--text-secondary)"
-                  }}
-                >
-                  {client.status === "SIGNED_UP"
-                    ? "📝 Signed Up"
-                    : client.status === "INITIAL_INTERVIEW_COMPLETED"
-                    ? "✅ Interview Done"
-                    : client.status === "ASSESSMENT_COMPLETED"
-                    ? "📋 Assessment Done"
-                    : client.status === "DOCS_UPLOADED"
-                    ? "📄 Docs Uploaded"
-                    : client.status === "SCHEDULED"
-                    ? "📅 Scheduled"
-                    : client.status === "ONGOING"
-                    ? "🔄 Ongoing"
-                    : client.status === "ARCHIVED"
-                    ? "📦 Archived"
-                    : client.status}
-                </div>
+            
+            {/* Right: Status & Actions */}
+            <div className="flex items-center space-x-2 ml-4">
+              <div
+                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                style={{
+                  background: client.status === "SIGNED_UP" ? "rgba(59, 130, 246, 0.2)" :
+                             client.status === "INITIAL_INTERVIEW_COMPLETED" ? "rgba(34, 197, 94, 0.2)" :
+                             client.status === "ASSESSMENT_COMPLETED" ? "rgba(251, 191, 36, 0.2)" :
+                             client.status === "DOCS_UPLOADED" ? "rgba(147, 51, 234, 0.2)" :
+                             client.status === "SCHEDULED" ? "rgba(99, 102, 241, 0.2)" :
+                             client.status === "ONGOING" ? "var(--primary-green-light)" : "rgba(107, 114, 128, 0.2)",
+                  color: client.status === "SIGNED_UP" ? "#3b82f6" :
+                         client.status === "INITIAL_INTERVIEW_COMPLETED" ? "#22c55e" :
+                         client.status === "ASSESSMENT_COMPLETED" ? "#fbbf24" :
+                         client.status === "DOCS_UPLOADED" ? "#9333ea" :
+                         client.status === "SCHEDULED" ? "#6366f1" :
+                         client.status === "ONGOING" ? "var(--primary-green)" : "var(--text-secondary)"
+                }}
+              >
+                {client.status === "SIGNED_UP" ? "📝 Signed Up" :
+                 client.status === "INITIAL_INTERVIEW_COMPLETED" ? "✅ Interview Done" :
+                 client.status === "ASSESSMENT_COMPLETED" ? "📋 Assessment Done" :
+                 client.status === "DOCS_UPLOADED" ? "📄 Docs Uploaded" :
+                 client.status === "SCHEDULED" ? "📅 Scheduled" :
+                 client.status === "ONGOING" ? "🔄 Ongoing" :
+                 client.status === "ARCHIVED" ? "📦 Archived" : client.status}
               </div>
-              
-              {/* Quick Actions */}
-              <div className="space-y-2">
-                <button
-                  onClick={openNewNoteModal}
-                  className="btn-primary w-full text-sm py-2 flex items-center justify-center"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add Note
-                </button>
-              </div>
+              <button
+                onClick={openNewNoteModal}
+                className="btn-primary text-xs px-3 py-1 flex items-center"
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Note
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Notes Section */}
-        <div className="mt-6 bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Client Notes
-            </h2>
-            <button
-              onClick={openNewNoteModal}
-              className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              New Note
-            </button>
-          </div>
-
-          <div className="flex space-x-1 mb-6 bg-gray-100 rounded-lg p-1">
-            <button
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition ${
-                activeTab === "interview"
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-              onClick={() => setActiveTab("interview")}
-            >
-              Interview Notes ({interviewNotesCount})
-            </button>
-            <button
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition ${
-                activeTab === "coaching"
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-              onClick={() => setActiveTab("coaching")}
-            >
-              Coaching Calls ({coachingNotesCount})
-            </button>
-          </div>
-
-          {/* Search and Filter Controls */}
-          <div className="notes-filter mb-6 space-y-4">
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <input
-                  type="text"
-                  placeholder="Search notes..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                />
-              </div>
-              <select
-                value={sortBy}
-                onChange={(e) =>
-                  setSortBy(e.target.value as "newest" | "oldest" | "updated")
-                }
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+        {/* Compact 2-Column Layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+          {/* Notes Section */}
+          <div className="card p-3">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium flex items-center" style={{ color: 'var(--text-primary)' }}>
+                <MessageSquare className="w-4 h-4 mr-2" style={{ color: 'var(--primary-green)' }} />
+                Notes ({noteCounts.interview + noteCounts.coaching})
+              </h3>
+              <button
+                onClick={openNewNoteModal}
+                className="btn-primary text-xs px-2 py-1 flex items-center"
               >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="updated">Recently Updated</option>
-              </select>
+                <Plus className="w-3 h-3 mr-1" />
+                Add
+              </button>
             </div>
 
-            <div className="flex gap-2">
+            {/* Compact Tab Bar */}
+            <div className="flex mb-3 rounded text-xs" style={{ background: 'var(--bg-secondary)' }}>
               <button
-                className={`px-3 py-1 text-sm rounded-md transition ${
-                  showImportant
-                    ? "bg-yellow-100 text-yellow-800 border border-yellow-300"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-                onClick={() => setShowImportant(!showImportant)}
+                className="flex-1 px-2 py-1 rounded-l transition-colors"
+                style={{
+                  background: activeTab === "interview" ? 'var(--primary-green)' : 'transparent',
+                  color: activeTab === "interview" ? 'var(--bg-primary)' : 'var(--text-secondary)'
+                }}
+                onClick={() => setActiveTab("interview")}
               >
-                Important Only
+                Interview ({interviewNotesCount})
               </button>
               <button
-                className={`px-3 py-1 text-sm rounded-md transition ${
-                  showFollowUp
-                    ? "bg-blue-100 text-blue-800 border border-blue-300"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-                onClick={() => setShowFollowUp(!showFollowUp)}
+                className="flex-1 px-2 py-1 rounded-r transition-colors"
+                style={{
+                  background: activeTab === "coaching" ? 'var(--primary-green)' : 'transparent',
+                  color: activeTab === "coaching" ? 'var(--bg-primary)' : 'var(--text-secondary)'
+                }}
+                onClick={() => setActiveTab("coaching")}
               >
-                Follow-up Needed
+                Coaching ({coachingNotesCount})
               </button>
-              {(searchTerm || showImportant || showFollowUp) && (
-                <button
-                  className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700"
-                  onClick={() => {
-                    setSearchTerm("");
-                    setShowImportant(false);
-                    setShowFollowUp(false);
-                  }}
-                >
-                  Clear Filters
-                </button>
-              )}
             </div>
-          </div>
 
-          <div className="notes-list">
-            {filteredNotes.length === 0 ? (
-              <div className="text-center py-8">
-                <MessageSquare className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-gray-500 mb-4">
-                  {searchTerm || showImportant || showFollowUp
-                    ? "No notes match your current filters"
-                    : `No ${
-                        activeTab === "interview" ? "interview" : "coaching"
-                      } notes yet`}
-                </p>
-                {searchTerm || showImportant || showFollowUp ? (
-                  <button
-                    onClick={() => {
-                      setSearchTerm("");
-                      setShowImportant(false);
-                      setShowFollowUp(false);
-                    }}
-                    className="text-blue-600 hover:text-blue-700"
-                  >
-                    Clear filters
-                  </button>
-                ) : (
+            {/* Compact Notes List */}
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {filteredNotes.length === 0 ? (
+                <div className="text-center py-6">
+                  <p className="text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>
+                    No {activeTab} notes yet
+                  </p>
                   <button
                     onClick={openNewNoteModal}
-                    className="text-blue-600 hover:text-blue-700"
+                    className="btn-primary text-xs px-3 py-1"
                   >
-                    Create your first{" "}
-                    {activeTab === "interview" ? "interview" : "coaching"} note
+                    Create First Note
                   </button>
-                )}
-              </div>
-            ) : (
-              <>
-                {(searchTerm || showImportant || showFollowUp) && (
-                  <div className="mb-4 text-sm text-gray-500">
-                    Showing {filteredNotes.length} notes
-                  </div>
-                )}
-                <div className="space-y-4">
-                  {filteredNotes.map((note) => (
-                    <NoteCard
-                      key={note.id}
-                      note={note}
-                      onEdit={handleEditNote}
-                      onDelete={handleDeleteNote}
-                    />
-                  ))}
                 </div>
-              </>
-            )}
+              ) : (
+                filteredNotes.slice(0, 8).map((note) => (
+                  <div key={note.id} className="p-2 rounded text-xs border hover:border-opacity-75 transition-colors cursor-pointer" style={{ 
+                    borderColor: 'var(--border-primary)', 
+                    background: 'var(--bg-secondary)' 
+                  }}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium truncate flex-1" style={{ color: 'var(--text-primary)' }}>
+                        {note.title || `${note.noteType} Note`}
+                      </span>
+                      <div className="flex items-center space-x-1 ml-2">
+                        {note.isImportant && <Star className="w-3 h-3" style={{ color: '#fbbf24' }} />}
+                        {note.followUpNeeded && <AlertCircle className="w-3 h-3" style={{ color: 'var(--primary-green)' }} />}
+                        <span style={{ color: 'var(--text-secondary)' }} className="text-xs">
+                          {new Date(note.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="line-clamp-2 leading-tight" style={{ color: 'var(--text-secondary)' }}>
+                      {formatNoteContent(note).substring(0, 120)}...
+                    </p>
+                  </div>
+                ))
+              )}
+              {filteredNotes.length > 8 && (
+                <div className="text-center py-1">
+                  <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                    +{filteredNotes.length - 8} more notes
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Documents Section - Compact */}
+          <div className="card p-3">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium flex items-center" style={{ color: 'var(--text-primary)' }}>
+                <FileText className="w-4 h-4 mr-2" style={{ color: 'var(--primary-green)' }} />
+                Documents ({documents.length})
+              </h3>
+              <button className="btn-primary text-xs px-2 py-1 flex items-center">
+                <Plus className="w-3 h-3 mr-1" />
+                Upload
+              </button>
+            </div>
+            <div className="max-h-80 overflow-y-auto">
+              <ClientDocumentViewer
+                clientId={client.id}
+                documents={documents}
+                onRefresh={() => {
+                  fetchClientAndDocuments();
+                }}
+              />
+            </div>
           </div>
         </div>
-
-        {/* Documents Section - Enhanced PDF Viewer */}
-        <ClientDocumentViewer
-          clientId={client.id}
-          documents={documents}
-          onRefresh={() => {
-            // Refresh documents
-            fetchClientAndDocuments();
-          }}
-        />
       </div>
 
       {/* Note Modal */}
