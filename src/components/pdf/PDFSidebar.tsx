@@ -29,13 +29,18 @@ interface ThumbnailProps {
   onClick: () => void;
 }
 
+// Extend HTMLCanvasElement to include our custom _renderTask property
+interface ExtendedHTMLCanvasElement extends HTMLCanvasElement {
+  _renderTask?: any;
+}
+
 const PDFThumbnail: React.FC<ThumbnailProps> = ({
   pdf,
   pageNumber,
   isActive,
   onClick,
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<ExtendedHTMLCanvasElement>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -44,6 +49,12 @@ const PDFThumbnail: React.FC<ThumbnailProps> = ({
 
       try {
         setIsLoading(true);
+        
+        // Cancel any previous render task
+        if (canvasRef.current._renderTask) {
+          canvasRef.current._renderTask.cancel();
+        }
+
         const page = await pdf.getPage(pageNumber);
         const viewport = page.getViewport({ scale: 0.2 }); // Small scale for thumbnails
         const canvas = canvasRef.current;
@@ -51,6 +62,9 @@ const PDFThumbnail: React.FC<ThumbnailProps> = ({
 
         if (!context) return;
 
+        // Clear the canvas before rendering
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
@@ -59,15 +73,33 @@ const PDFThumbnail: React.FC<ThumbnailProps> = ({
           viewport: viewport,
         };
 
-        await page.render(renderContext).promise;
+        // Store the render task so we can cancel it if needed
+        const renderTask = page.render(renderContext);
+        canvas._renderTask = renderTask;
+
+        await renderTask.promise;
+        
+        // Clear the render task reference when done
+        canvas._renderTask = null;
         setIsLoading(false);
       } catch (error) {
-        console.error("Error rendering thumbnail:", error);
+        if (error.name !== 'RenderingCancelledException') {
+          console.error("Error rendering thumbnail:", error);
+        }
         setIsLoading(false);
       }
     };
 
-    renderThumbnail();
+    if (pdf) {
+      renderThumbnail();
+    }
+    
+    // Cleanup function to cancel render operations
+    return () => {
+      if (canvasRef.current && canvasRef.current._renderTask) {
+        canvasRef.current._renderTask.cancel();
+      }
+    };
   }, [pdf, pageNumber]);
 
   return (
@@ -196,7 +228,7 @@ export const PDFSidebar: React.FC<PDFSidebarProps> = ({
         {/* Thumbnails Tab */}
         {activeTab === "thumbnails" && (
           <div className="h-full overflow-y-auto space-y-3">
-            {Array.from({ length: totalPages }, (_, index) => (
+            {pdf && Array.from({ length: totalPages }, (_, index) => (
               <PDFThumbnail
                 key={index + 1}
                 pdf={pdf}
@@ -205,6 +237,11 @@ export const PDFSidebar: React.FC<PDFSidebarProps> = ({
                 onClick={() => onGoToPage(index + 1)}
               />
             ))}
+            {!pdf && (
+              <div className="text-center py-8">
+                <div className="text-slate-400 text-sm">Loading document...</div>
+              </div>
+            )}
           </div>
         )}
 
