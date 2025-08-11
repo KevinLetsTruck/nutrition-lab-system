@@ -64,7 +64,7 @@ export default function ClientDashboard() {
   const fetchClients = async () => {
     try {
       if (typeof window === "undefined") return;
-
+      
       const token = localStorage.getItem("token");
       if (!token) {
         router.push("/login");
@@ -240,8 +240,6 @@ export default function ClientDashboard() {
     }
 
     try {
-      if (typeof window === "undefined") return;
-
       const token = localStorage.getItem("token");
       const response = await fetch(`/api/clients/${clientId}`, {
         method: "DELETE",
@@ -262,8 +260,6 @@ export default function ClientDashboard() {
 
   const handleStatusUpdate = async (clientId: string, newStatus: string) => {
     try {
-      if (typeof window === "undefined") return;
-
       setUpdatingStatus(clientId);
       const token = localStorage.getItem("token");
       if (!token) {
@@ -307,14 +303,7 @@ export default function ClientDashboard() {
 
   // Prevent SSR issues
   if (!mounted) {
-    return (
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="flex items-center justify-center space-x-2 text-[#f1f5f9]">
-          <div className="spinner w-6 h-6"></div>
-          <span>Loading Client Dashboard...</span>
-        </div>
-      </div>
-    );
+    return <div className="p-6 text-white">Loading...</div>;
   }
 
   return (
@@ -368,186 +357,177 @@ export default function ClientDashboard() {
       <div className="card p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full table-dark">
-            <thead>
+          <thead>
+            <tr>
+              <th
+                className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider cursor-pointer hover:bg-[#334155] select-none transition-colors duration-200"
+                onClick={() => handleSort("name")}
+              >
+                <div className="flex items-center gap-1">
+                  Client
+                  {getSortIcon("name")}
+                </div>
+              </th>
+              <th
+                className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider cursor-pointer hover:bg-[#334155] select-none transition-colors duration-200"
+                onClick={() => handleSort("status")}
+              >
+                <div className="flex items-center gap-1">
+                  Status
+                  {getSortIcon("status")}
+                </div>
+              </th>
+
+              <th
+                className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider cursor-pointer hover:bg-[#334155] select-none transition-colors duration-200"
+                onClick={() => handleSort("lastAssessment")}
+              >
+                <div className="flex items-center gap-1">
+                  Last Assessment
+                  {getSortIcon("lastAssessment")}
+                </div>
+              </th>
+
+              <th className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
+                Quick Actions
+              </th>
+              <th className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
               <tr>
-                <th
-                  className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider cursor-pointer hover:bg-[#334155] select-none transition-colors duration-200"
-                  onClick={() => handleSort("name")}
-                >
-                  <div className="flex items-center gap-1">
-                    Client
-                    {getSortIcon("name")}
+                <td colSpan={5} className="px-6 py-8 text-center text-[#94a3b8]">
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="spinner w-5 h-5"></div>
+                    <span>Loading clients...</span>
                   </div>
-                </th>
-                <th
-                  className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider cursor-pointer hover:bg-[#334155] select-none transition-colors duration-200"
-                  onClick={() => handleSort("status")}
-                >
-                  <div className="flex items-center gap-1">
-                    Status
-                    {getSortIcon("status")}
-                  </div>
-                </th>
-
-                <th
-                  className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider cursor-pointer hover:bg-[#334155] select-none transition-colors duration-200"
-                  onClick={() => handleSort("lastAssessment")}
-                >
-                  <div className="flex items-center gap-1">
-                    Last Assessment
-                    {getSortIcon("lastAssessment")}
-                  </div>
-                </th>
-
-                <th className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
-                  Quick Actions
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
-                  Actions
-                </th>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="px-6 py-8 text-center text-[#94a3b8]"
-                  >
-                    <div className="flex items-center justify-center space-x-2">
-                      <div className="spinner w-5 h-5"></div>
-                      <span>Loading clients...</span>
+            ) : filteredAndSortedClients.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-8 text-center text-[#94a3b8]">
+                  No clients found
+                </td>
+              </tr>
+            ) : (
+              filteredAndSortedClients.map((client) => (
+                <tr key={client.id} className="hover:bg-[#334155] transition-colors duration-200">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div>
+                      <div className="text-sm font-medium text-[#f1f5f9]">
+                        {client.firstName} {client.lastName}
+                      </div>
+                      <div className="text-sm text-[#94a3b8]">
+                        {client.email}
+                      </div>
+                      {client.isTruckDriver && (
+                        <span className="badge mt-1">
+                          🚛 OTR Driver
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="status-display">
+                      {updatingStatus === client.id ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="spinner w-3 h-3"></div>
+                          <span className="text-xs text-[#94a3b8]">
+                            Updating...
+                          </span>
+                        </div>
+                      ) : (
+                        <select
+                          value={client.status || ""}
+                          onChange={(e) =>
+                            handleStatusUpdate(client.id, e.target.value)
+                          }
+                          className={`input px-2 py-1 text-xs rounded-lg cursor-pointer min-w-[140px] ${
+                            getStatusVariant(client.status) === "default"
+                              ? "text-blue-400"
+                              : getStatusVariant(client.status) === "secondary"
+                              ? "text-green-400"
+                              : getStatusVariant(client.status) === "outline"
+                              ? "text-yellow-400"
+                              : getStatusVariant(client.status) ===
+                                "destructive"
+                              ? "text-red-400"
+                              : "text-[#94a3b8]"
+                          }`}
+                        >
+                          <option value="SIGNED_UP">Signed Up</option>
+                          <option value="INITIAL_INTERVIEW_COMPLETED">
+                            Interview Completed
+                          </option>
+                          <option value="ASSESSMENT_COMPLETED">
+                            Assessment Completed
+                          </option>
+                          <option value="DOCS_UPLOADED">Docs Uploaded</option>
+                          <option value="SCHEDULED">Scheduled</option>
+                          <option value="ONGOING">Ongoing</option>
+                          <option value="ARCHIVED">Archived</option>
+                        </select>
+                      )}
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-[#94a3b8]">
+                    {client.lastAssessment ? (
+                      new Date(client.lastAssessment).toLocaleDateString()
+                    ) : (
+                      <span className="text-yellow-400">Never assessed</span>
+                    )}
+                  </td>
+
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex space-x-2">
+                      <Link
+                        href={`/dashboard/protocols/new?clientId=${client.id}`}
+                        className="text-[#4ade80] hover:text-[#22c55e] transition-colors duration-200"
+                        title="Create Protocol"
+                      >
+                        <FlaskConical className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex space-x-3">
+                      <Link
+                        href={`/dashboard/clients/${client.id}`}
+                        className="text-[#94a3b8] hover:text-[#f1f5f9] transition-colors duration-200"
+                        title="View Client"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Link>
+                      <Link
+                        href={`/dashboard/clients/${client.id}/edit`}
+                        className="text-[#94a3b8] hover:text-[#f1f5f9] transition-colors duration-200"
+                        title="Edit Client"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Link>
+                      <button
+                        onClick={() =>
+                          handleDelete(
+                            client.id,
+                            `${client.firstName} ${client.lastName}`
+                          )
+                        }
+                        className="text-red-400 hover:text-red-300 transition-colors duration-200"
+                        title="Delete Client"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </td>
                 </tr>
-              ) : filteredAndSortedClients.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="px-6 py-8 text-center text-[#94a3b8]"
-                  >
-                    No clients found
-                  </td>
-                </tr>
-              ) : (
-                filteredAndSortedClients.map((client) => (
-                  <tr
-                    key={client.id}
-                    className="hover:bg-[#334155] transition-colors duration-200"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-[#f1f5f9]">
-                          {client.firstName} {client.lastName}
-                        </div>
-                        <div className="text-sm text-[#94a3b8]">
-                          {client.email}
-                        </div>
-                        {client.isTruckDriver && (
-                          <span className="badge mt-1">🚛 OTR Driver</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="status-display">
-                        {updatingStatus === client.id ? (
-                          <div className="flex items-center space-x-2">
-                            <div className="spinner w-3 h-3"></div>
-                            <span className="text-xs text-[#94a3b8]">
-                              Updating...
-                            </span>
-                          </div>
-                        ) : (
-                          <select
-                            value={client.status || ""}
-                            onChange={(e) =>
-                              handleStatusUpdate(client.id, e.target.value)
-                            }
-                            className={`input px-2 py-1 text-xs rounded-lg cursor-pointer min-w-[140px] ${
-                              getStatusVariant(client.status) === "default"
-                                ? "text-blue-400"
-                                : getStatusVariant(client.status) ===
-                                  "secondary"
-                                ? "text-green-400"
-                                : getStatusVariant(client.status) === "outline"
-                                ? "text-yellow-400"
-                                : getStatusVariant(client.status) ===
-                                  "destructive"
-                                ? "text-red-400"
-                                : "text-[#94a3b8]"
-                            }`}
-                          >
-                            <option value="SIGNED_UP">Signed Up</option>
-                            <option value="INITIAL_INTERVIEW_COMPLETED">
-                              Interview Completed
-                            </option>
-                            <option value="ASSESSMENT_COMPLETED">
-                              Assessment Completed
-                            </option>
-                            <option value="DOCS_UPLOADED">Docs Uploaded</option>
-                            <option value="SCHEDULED">Scheduled</option>
-                            <option value="ONGOING">Ongoing</option>
-                            <option value="ARCHIVED">Archived</option>
-                          </select>
-                        )}
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#94a3b8]">
-                      {client.lastAssessment ? (
-                        new Date(client.lastAssessment).toLocaleDateString()
-                      ) : (
-                        <span className="text-yellow-400">Never assessed</span>
-                      )}
-                    </td>
-
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex space-x-2">
-                        <Link
-                          href={`/dashboard/protocols/new?clientId=${client.id}`}
-                          className="text-[#4ade80] hover:text-[#22c55e] transition-colors duration-200"
-                          title="Create Protocol"
-                        >
-                          <FlaskConical className="w-4 h-4" />
-                        </Link>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex space-x-3">
-                        <Link
-                          href={`/dashboard/clients/${client.id}`}
-                          className="text-[#94a3b8] hover:text-[#f1f5f9] transition-colors duration-200"
-                          title="View Client"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Link>
-                        <Link
-                          href={`/dashboard/clients/${client.id}/edit`}
-                          className="text-[#94a3b8] hover:text-[#f1f5f9] transition-colors duration-200"
-                          title="Edit Client"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Link>
-                        <button
-                          onClick={() =>
-                            handleDelete(
-                              client.id,
-                              `${client.firstName} ${client.lastName}`
-                            )
-                          }
-                          className="text-red-400 hover:text-red-300 transition-colors duration-200"
-                          title="Delete Client"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
