@@ -2,7 +2,7 @@ import Tesseract from 'tesseract.js'
 import { createWorker } from 'tesseract.js'
 import pdf2pic from 'pdf2pic'
 import * as pdfParse from 'pdf-parse'
-import mammoth from 'mammoth'
+// import mammoth from 'mammoth' // Reserved for future Word document support
 import { prisma } from '@/lib/db/prisma'
 import { medicalDocStorage } from './storage-service'
 
