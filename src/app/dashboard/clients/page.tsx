@@ -383,7 +383,7 @@ export default function ClientDashboard() {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
+            {loading && (
               <tr>
                 <td colSpan={5} className="px-6 py-8 text-center text-[#94a3b8]">
                   <div className="flex items-center justify-center space-x-2">
@@ -392,14 +392,15 @@ export default function ClientDashboard() {
                   </div>
                 </td>
               </tr>
-            ) : filteredAndSortedClients.length === 0 ? (
+            )}
+            {!loading && filteredAndSortedClients.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-6 py-8 text-center text-[#94a3b8]">
                   No clients found
                 </td>
               </tr>
-            ) : (
-              filteredAndSortedClients.map((client) => (
+            )}
+            {!loading && filteredAndSortedClients.length > 0 && filteredAndSortedClients.map((client) => (
                 <tr key={client.id} className="hover:bg-[#334155] transition-colors duration-200">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
@@ -511,7 +512,7 @@ export default function ClientDashboard() {
                   </td>
                 </tr>
               ))
-            )}
+            }
           </tbody>
         </table>
       </div>
