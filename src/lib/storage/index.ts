@@ -1,7 +1,8 @@
 // Unified Storage Service for Medical Documents
 import { getStorageConfig, StorageProvider } from "./config";
 import { S3StorageService } from "./s3-service";
-import { CloudinaryStorageService } from "./cloudinary-service";
+import { CloudinaryService } from "./cloudinary-service";
+import { cloudinaryService } from "./cloudinary-service";
 import { promises as fs } from "fs";
 import path from "path";
 
@@ -23,14 +24,14 @@ export interface StorageDownloadResult {
 export class UnifiedStorageService {
   private config = getStorageConfig();
   private s3Service?: S3StorageService;
-  private cloudinaryService?: CloudinaryStorageService;
+  private cloudinaryService?: CloudinaryService;
 
   constructor() {
     // Initialize services based on configuration
     if (this.config.provider === "S3") {
       this.s3Service = new S3StorageService();
     } else if (this.config.provider === "CLOUDINARY") {
-      this.cloudinaryService = new CloudinaryStorageService();
+      this.cloudinaryService = new CloudinaryService();
     }
   }
 
@@ -484,6 +485,10 @@ export class UnifiedStorageService {
 // Export singleton instance
 export const storageService = new UnifiedStorageService();
 
-// Export types
-export type { StorageUploadResult, StorageDownloadResult };
-export { StorageProvider } from "./config";
+// Export types and functions
+export type {
+  StorageUploadResult,
+  StorageDownloadResult,
+  StorageProvider,
+} from "./config";
+export { getStorageConfig } from "./config";

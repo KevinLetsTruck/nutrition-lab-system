@@ -233,7 +233,8 @@ export async function GET(request: NextRequest) {
         clientId: true,
         client: {
           select: {
-            name: true,
+            firstName: true,
+            lastName: true,
             email: true,
           },
         },

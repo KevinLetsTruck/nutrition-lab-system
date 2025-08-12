@@ -1,0 +1,8 @@
+LIPID PANEL RESULTS
+Patient: Jane Smith
+Collection Date: 08/10/2024
+
+Total Cholesterol: 220 mg/dL (Reference: <200)
+HDL Cholesterol: 45 mg/dL (Reference: >40)
+LDL Cholesterol: 145 mg/dL (Reference: <100)
+Triglycerides: 180 mg/dL (Reference: <150)
