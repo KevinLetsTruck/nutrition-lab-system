@@ -116,7 +116,14 @@ export class MedicalOCRService {
       throw new Error(`Unsupported file type: ${mimeType}`);
     }
 
-    // Update document with OCR results
+    // Classify document type and detect lab source
+    const classification = this.classifyDocument(ocrResult.text);
+
+    console.log(
+      `📋 Document type detected: ${classification.type} (was: ${document.documentType})`
+    );
+
+    // Update document with OCR results and detected type
     await prisma.medicalDocument.update({
       where: { id: documentId },
       data: {
@@ -124,21 +131,24 @@ export class MedicalOCRService {
         processedAt: new Date(),
         ocrText: ocrResult.text,
         ocrConfidence: ocrResult.confidence,
+        documentType: classification.type,
         metadata: {
           ...document.metadata,
           ocrMethod: ocrResult.method,
           processingTime: ocrResult.processingTime,
           pageCount: ocrResult.pageCount,
           wordCount: ocrResult.wordCount,
+          originalDocumentType: document.documentType,
+          labSource: classification.labSource,
         },
       },
     });
 
     // Extract lab values if this is a lab report or assessment
     if (
-      document.documentType === "lab_report" ||
-      document.documentType === "nutriq_assessment" ||
-      document.documentType === "symptom_assessment"
+      classification.type === "lab_report" ||
+      classification.type === "nutriq_assessment" ||
+      classification.type === "symptom_assessment"
     ) {
       console.log("🧪 Extracting values from OCR text...");
       try {
@@ -149,12 +159,7 @@ export class MedicalOCRService {
       }
     }
 
-    // Classify document type and detect lab source
-    const classification = this.classifyDocument(ocrResult.text);
-
-    console.log(
-      `🎉 Document processing completed in ${Date.now() - Date.now()}ms`
-    );
+    console.log(`🎉 Document processing completed successfully`);
 
     return {
       ocrResult,
@@ -265,6 +270,56 @@ export class MedicalOCRService {
     extractedData?: any;
   } {
     const normalizedText = text.toLowerCase();
+
+    // Check for Symptom Burden Report first (most specific)
+    if (
+      normalizedText.includes("symptom burden report") ||
+      (normalizedText.includes("potential nutritional deficiencies") &&
+        normalizedText.includes("potential conditions"))
+    ) {
+      return { type: "symptom_assessment" };
+    }
+
+    // Check for Symptom Burden Bar Graph
+    if (
+      normalizedText.includes("symptom burden") &&
+      (normalizedText.includes("bar graph") ||
+        normalizedText.includes("priority") ||
+        (normalizedText.includes("upper gi") &&
+          normalizedText.includes("liver")))
+    ) {
+      return { type: "symptom_assessment" };
+    }
+
+    // Check for Nutri-Q Severity Report
+    if (
+      normalizedText.includes("severity report") ||
+      (normalizedText.includes("nutri-q") &&
+        normalizedText.includes("severe") &&
+        normalizedText.includes("moderate"))
+    ) {
+      return { type: "symptom_assessment" };
+    }
+
+    // Check for NAQ assessment
+    if (
+      normalizedText.includes("naq questions") ||
+      normalizedText.includes("nutritional assessment questionnaire") ||
+      normalizedText.includes("nutri-q") ||
+      (normalizedText.includes("naq") &&
+        normalizedText.includes("questions/answers"))
+    ) {
+      return { type: "nutriq_assessment" };
+    }
+
+    // Check for food sensitivity
+    if (
+      normalizedText.includes("food sensitivity") ||
+      normalizedText.includes("kbmo") ||
+      normalizedText.includes("fit 176")
+    ) {
+      return { type: "food_sensitivity" };
+    }
 
     // Lab report patterns
     const labPatterns = [

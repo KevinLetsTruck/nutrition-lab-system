@@ -13,6 +13,72 @@ interface SymptomBurdenData {
 
 export class SymptomBurdenExtractor {
   /**
+   * Extract data from Nutri-Q Severity Reports
+   */
+  extractSeverityReport(text: string): SymptomBurdenData {
+    const results: ExtractedLabValue[] = [];
+    const lines = text.split("\n");
+
+    let currentSeverity = "";
+    let totalBurden = 0;
+    const clientMatch = text.match(/Client:\s*([^\n]+)/);
+    const clientName = clientMatch ? clientMatch[1].trim() : "";
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+
+      // Detect severity sections
+      if (line === "Severe" || line === "Moderate" || line === "Minor") {
+        currentSeverity = line;
+        continue;
+      }
+
+      // Extract total burden if present
+      const burdenMatch = line.match(/Total Symptom Burden:\s*(\d+)/);
+      if (burdenMatch) {
+        totalBurden = parseInt(burdenMatch[1]);
+      }
+
+      // Match lines with pattern: "number. description  category  score out of total"
+      // Using more flexible regex to handle variable spacing
+      const itemMatch = line.match(
+        /^(\d+)\.\s+(.+?)\s{2,}(\w+(?:\s+\w+)*)\s{2,}(\d+)\s+out of\s+(\d+)$/
+      );
+      if (itemMatch) {
+        const [_, questionNum, description, category, score, maxScore] =
+          itemMatch;
+
+        results.push({
+          testName: description.trim(),
+          value: parseInt(score),
+          unit: "",
+          referenceRange: `0-${maxScore}`,
+          flag: currentSeverity.toUpperCase(),
+          confidence: 1.0,
+          standardName: "severity_item",
+          category: category.trim(),
+          valueText: `${score} out of ${maxScore}`,
+          metadata: {
+            severity: currentSeverity,
+            questionNumber: parseInt(questionNum),
+            maxScore: parseInt(maxScore),
+            percentage: Math.round(
+              (parseInt(score) / parseInt(maxScore)) * 100
+            ),
+            assessmentSection: "severity_report",
+          },
+        });
+      }
+    }
+
+    return {
+      totalBurden,
+      deficiencies: [], // Severity reports don't have deficiencies
+      conditions: results, // All items are conditions/factors
+    };
+  }
+
+  /**
    * Extract data from Symptom Burden Report format
    */
   extractSymptomBurdenReport(text: string): SymptomBurdenData {

@@ -470,12 +470,31 @@ export class LabValueExtractor {
         values.push(...this.extractNAQValues(text));
         break;
       case "SYMPTOM_BURDEN":
-        // Check if this is a report format or bar graph
-        if (
+        // Check format type
+        if (text.includes("Severity Report")) {
+          // This is a Nutri-Q Severity Report
+          const severityData =
+            symptomBurdenExtractor.extractSeverityReport(text);
+          values.push(...severityData.conditions);
+
+          // Add total burden if found
+          if (severityData.totalBurden) {
+            values.push({
+              testName: "Total Symptom Burden",
+              standardName: "total_symptom_burden",
+              value: severityData.totalBurden,
+              valueText: severityData.totalBurden.toString(),
+              documentType: "SYMPTOM_BURDEN",
+              flag: severityData.totalBurden > 500 ? "high" : "normal",
+              confidence: 0.95,
+              rawText: `Total Symptom Burden: ${severityData.totalBurden}`,
+            });
+          }
+        } else if (
           text.includes("Potential Nutritional Deficiencies") ||
           text.includes("Potential Conditions")
         ) {
-          // This is a report format
+          // This is a standard report format
           const reportData =
             symptomBurdenExtractor.extractSymptomBurdenReport(text);
           values.push(...reportData.deficiencies);
@@ -525,15 +544,19 @@ export class LabValueExtractor {
     | "TRADITIONAL_LAB" {
     const lowerText = text.toLowerCase();
 
-    // Symptom Burden Bar Graph detection
+    // Symptom Burden detection (reports, graphs, severity)
     if (
       lowerText.includes("symptom burden") ||
+      lowerText.includes("severity report") ||
       (lowerText.includes("low priority") &&
         lowerText.includes("medium priority")) ||
       (lowerText.includes("upper gi") && lowerText.includes("liver & gb")) ||
       /(?:low|medium|high)\s+priority.*?(?:upper gi|adrenal|minerals)/i.test(
         text
-      )
+      ) ||
+      (lowerText.includes("severe") &&
+        lowerText.includes("moderate") &&
+        lowerText.includes("minor"))
     ) {
       return "SYMPTOM_BURDEN";
     }

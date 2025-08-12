@@ -18,6 +18,7 @@ import {
   List,
   Trash2,
   FileEdit,
+  RefreshCw,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 
@@ -164,6 +165,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [reclassifyingId, setReclassifyingId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"date" | "name" | "type" | "size">(
     "date"
   );
@@ -254,6 +256,36 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
       alert(
         "Document file not available. Please check if the file was uploaded correctly."
       );
+    }
+  };
+
+  const handleReclassify = async (documentId: string) => {
+    setReclassifyingId(documentId);
+
+    try {
+      const response = await fetch(
+        `/api/medical/documents/${documentId}/reclassify`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Reclassification result:", result);
+
+        // Refresh the documents list
+        if (onRefresh) {
+          onRefresh();
+        }
+      } else {
+        console.error("Failed to reclassify document");
+      }
+    } catch (error) {
+      console.error("Error reclassifying document:", error);
+    } finally {
+      setReclassifyingId(null);
     }
   };
 
@@ -390,6 +422,29 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                         className="w-3 h-3"
                         style={{ color: "var(--text-secondary)" }}
                       />
+                    </button>
+                  )}
+                  {doc.status === "completed" && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleReclassify(doc.id);
+                      }}
+                      className="p-1 hover:bg-opacity-20 rounded transition-colors"
+                      title="Reclassify Document"
+                      disabled={reclassifyingId === doc.id}
+                    >
+                      {reclassifyingId === doc.id ? (
+                        <RefreshCw
+                          className="w-3 h-3 animate-spin"
+                          style={{ color: "var(--text-secondary)" }}
+                        />
+                      ) : (
+                        <RefreshCw
+                          className="w-3 h-3"
+                          style={{ color: "var(--text-secondary)" }}
+                        />
+                      )}
                     </button>
                   )}
                   {(doc.fileUrl || doc.url) && (

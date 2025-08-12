@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { labValueExtractor } from "@/lib/medical/lab-extractor";
 
 interface Params {
   params: {
@@ -11,22 +12,34 @@ export async function GET(req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
 
-    // Get lab values for this document
     const labValues = await prisma.medicalLabValue.findMany({
       where: { documentId: id },
       orderBy: [{ confidence: "desc" }, { testName: "asc" }],
     });
 
-    // Get document info for context
+    return NextResponse.json({
+      documentId: id,
+      labValues,
+      count: labValues.length,
+    });
+  } catch (error) {
+    console.error("Error fetching lab values:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch lab values" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: NextRequest, { params }: Params) {
+  try {
+    const { id: documentId } = await params;
+    const body = await req.json();
+    const { forceReExtract = false } = body;
+
+    // Get document
     const document = await prisma.medicalDocument.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        originalFileName: true,
-        documentType: true,
-        ocrConfidence: true,
-        metadata: true,
-      },
+      where: { id: documentId },
     });
 
     if (!document) {
@@ -36,90 +49,69 @@ export async function GET(req: NextRequest, { params }: Params) {
       );
     }
 
-    // Group lab values by category for better organization
-    const categorized = categorizeLabValues(labValues);
+    if (!document.ocrText) {
+      return NextResponse.json(
+        { error: "Document has no OCR text. Process the document first." },
+        { status: 400 }
+      );
+    }
 
-    // Calculate summary statistics
-    const stats = {
-      totalValues: labValues.length,
-      highConfidence: labValues.filter((v) => v.confidence >= 0.8).length,
-      mediumConfidence: labValues.filter(
-        (v) => v.confidence >= 0.6 && v.confidence < 0.8
-      ).length,
-      lowConfidence: labValues.filter((v) => v.confidence < 0.6).length,
-      flaggedAbnormal: labValues.filter((v) =>
-        ["high", "low", "critical"].includes(v.flag || "")
-      ).length,
-      withReferenceRanges: labValues.filter(
-        (v) => v.referenceMin !== null && v.referenceMax !== null
-      ).length,
-    };
+    // Check if already has lab values
+    if (!forceReExtract) {
+      const existingCount = await prisma.medicalLabValue.count({
+        where: { documentId },
+      });
 
-    return NextResponse.json({
-      document,
-      labValues,
-      categorized,
-      stats,
-      message: `Found ${labValues.length} lab values with ${stats.highConfidence} high confidence matches`,
-    });
-  } catch (error) {
-    console.error("Lab values API error:", error);
-    return NextResponse.json(
-      { error: "Failed to retrieve lab values" },
-      { status: 500 }
-    );
-  }
-}
-
-function categorizeLabValues(labValues: unknown[]) {
-  const categories = {
-    metabolic: [],
-    lipids: [],
-    cbc: [],
-    thyroid: [],
-    vitamins: [],
-    inflammatory: [],
-    other: [],
-  };
-
-  const categoryPatterns = {
-    metabolic: [
-      "glucose",
-      "bun",
-      "creatinine",
-      "sodium",
-      "potassium",
-      "chloride",
-      "co2",
-    ],
-    lipids: ["cholesterol", "hdl", "ldl", "triglycerides"],
-    cbc: ["wbc", "rbc", "hemoglobin", "hematocrit", "platelets"],
-    thyroid: ["tsh", "freeT4", "freeT3"],
-    vitamins: ["vitaminD", "vitaminB12", "folate", "iron", "ferritin"],
-    inflammatory: ["crp", "esr"],
-  };
-
-  labValues.forEach((value) => {
-    let categorized = false;
-
-    for (const [category, patterns] of Object.entries(categoryPatterns)) {
-      if (
-        patterns.some(
-          (pattern) =>
-            value.standardName?.includes(pattern) ||
-            value.testName.toLowerCase().includes(pattern)
-        )
-      ) {
-        categories[category as keyof typeof categories].push(value);
-        categorized = true;
-        break;
+      if (existingCount > 0) {
+        return NextResponse.json({
+          message: "Lab values already extracted",
+          count: existingCount,
+          extracted: false,
+        });
       }
     }
 
-    if (!categorized) {
-      categories.other.push(value);
+    // Clear existing values if force re-extract
+    if (forceReExtract) {
+      await prisma.medicalLabValue.deleteMany({
+        where: { documentId },
+      });
     }
-  });
 
-  return categories;
+    // Extract lab values
+    const result = await labValueExtractor.extractLabValues(
+      documentId,
+      document.ocrText
+    );
+
+    // Update document metadata
+    await prisma.medicalDocument.update({
+      where: { id: documentId },
+      data: {
+        metadata: {
+          ...document.metadata,
+          labExtractionComplete: true,
+          labValuesFound: result.totalFound,
+          highConfidenceLabValues: result.highConfidenceCount,
+          labExtractionTime: result.processingTime,
+          lastExtractedAt: new Date().toISOString(),
+        },
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      documentId,
+      totalExtracted: result.totalFound,
+      highConfidence: result.highConfidenceCount,
+      processingTime: result.processingTime,
+      extracted: true,
+    });
+  } catch (error) {
+    console.error("Error extracting lab values:", error);
+    return NextResponse.json(
+      { error: "Failed to extract lab values" },
+      { status: 500 }
+    );
+  }
 }
