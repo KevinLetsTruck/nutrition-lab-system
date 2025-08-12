@@ -1,18 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: [
-      "@google-cloud/vision",
-      "google-gax",
-      "end-of-stream",
-      "once",
-      "duplexify",
-    ],
-  },
+  serverExternalPackages: [
+    "@google-cloud/vision",
+    "google-gax",
+    "end-of-stream",
+    "once",
+    "duplexify",
+    "canvas",
+    "pdfjs-dist",
+  ],
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      // Exclude Google Cloud packages from client bundle
+      // Exclude server-only packages from client bundle
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
@@ -24,6 +24,7 @@ const nextConfig: NextConfig = {
         zlib: false,
         http: false,
         https: false,
+        canvas: false,
         "google-gax": false,
         "@google-cloud/vision": false,
       };

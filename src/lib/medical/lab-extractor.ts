@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { functionalAnalyzer } from "./functional-analysis";
+import { assessmentExtractor } from "./assessment-extractor";
+import { symptomBurdenExtractor } from "./symptom-burden-extractor";
 
 export interface ExtractedLabValue {
   testName: string;
@@ -16,6 +18,7 @@ export interface ExtractedLabValue {
   // Functional medicine specific fields
   documentType?:
     | "NAQ"
+    | "SYMPTOM_BURDEN"
     | "KBMO_FOOD_SENSITIVITY"
     | "DUTCH_HORMONE"
     | "TRADITIONAL_LAB";
@@ -24,6 +27,7 @@ export interface ExtractedLabValue {
   severity?: number;
   assessmentSection?: string;
   priorityLevel?: string;
+  priority?: string;
   questionNumber?: number;
   symptomText?: string;
   selectedValue?: number;
@@ -231,13 +235,14 @@ export class LabValueExtractor {
       // Match section headers: "Upper Gastrointestinal System"
       sectionHeader: /^([A-Z][a-z\s&]+?System|[A-Z][a-z\s&]+?Need)\s*$/gm,
       // Avoid document headers and titles
-      excludeHeaders: /^(NAQ|Questions|Answers|Client|Date|Provider|Page|Assessment)/i,
+      excludeHeaders:
+        /^(NAQ|Questions|Answers|Client|Date|Provider|Page|Assessment)/i,
       // Match symptom totals: "Upper GI Total: 15"
       sectionTotal: /([A-Za-z\s&]+?)(?:Total|Score):\s*(\d+)/gi,
       scales: [0, 1, 2, 3],
       categories: [
         "Upper Gastrointestinal System",
-        "Lower Gastrointestinal System", 
+        "Lower Gastrointestinal System",
         "Liver & Gallbladder System",
         "Kidney System",
         "Adrenal System",
@@ -251,65 +256,115 @@ export class LabValueExtractor {
         "Vitamin Need",
         "Fatty Acid Need",
         "Sugar Handling Need",
-        "Hydrochloric Acid Need"
-      ]
+        "Hydrochloric Acid Need",
+      ],
     },
-    
+
     kbmo: {
       // Match food items with reaction levels in visual charts
-      foodReaction: /([A-Za-z\s,'-]+?)[\s]*([0-4]\+|Negative|Low|Moderate|High|Severe)(?:\s*Reaction)?/gi,
+      foodReaction:
+        /([A-Za-z\s,'-]+?)[\s]*([0-4]\+|Negative|Low|Moderate|High|Severe)(?:\s*Reaction)?/gi,
       // Match category headers
-      categoryHeader: /^(Dairy|Grains|Fruits|Vegetables|Spices|Fish|Meats|Nuts|Seeds|Legumes|Beverages)$/gm,
+      categoryHeader:
+        /^(Dairy|Grains|Fruits|Vegetables|Spices|Fish|Meats|Nuts|Seeds|Legumes|Beverages)$/gm,
       // Avoid headers
-      excludeHeaders: /^(KBMO|Diagnostics|IgG|Client|Date|Provider|Food Sensitivity|Test)/i,
+      excludeHeaders:
+        /^(KBMO|Diagnostics|IgG|Client|Date|Provider|Food Sensitivity|Test)/i,
       // Food categories
       foodCategories: [
-        "Dairy", "Grains", "Fruits", "Vegetables", "Spices", 
-        "Fish", "Meats", "Nuts", "Seeds", "Legumes", "Beverages"
+        "Dairy",
+        "Grains",
+        "Fruits",
+        "Vegetables",
+        "Spices",
+        "Fish",
+        "Meats",
+        "Nuts",
+        "Seeds",
+        "Legumes",
+        "Beverages",
       ],
-      reactionLevels: ["0", "1+", "2+", "3+", "4+", "Negative", "Low", "Moderate", "High", "Severe"],
+      reactionLevels: [
+        "0",
+        "1+",
+        "2+",
+        "3+",
+        "4+",
+        "Negative",
+        "Low",
+        "Moderate",
+        "High",
+        "Severe",
+      ],
       severityMap: {
-        "4+": 4, "Severe": 4,
-        "3+": 3, "High": 3,
-        "2+": 2, "Moderate": 2,
-        "1+": 1, "Low": 1,
-        "0": 0, "Negative": 0
-      }
+        "4+": 4,
+        Severe: 4,
+        "3+": 3,
+        High: 3,
+        "2+": 2,
+        Moderate: 2,
+        "1+": 1,
+        Low: 1,
+        "0": 0,
+        Negative: 0,
+      },
     },
-    
+
     dutch: {
       // Match: "Cortisol A - Waking Low end of range 12.0 ng/mg 10 - 50"
-      hormone: /([A-Za-z\s\-()0-9]+?)\s+(Above range|Below range|Within range|High end of range|Low end of range|Above normal|Below normal)\s+([\d.]+)\s+([a-zA-Z\/]+)\s+([\d\.\s\-]+)/gi,
+      hormone:
+        /([A-Za-z\s\-()0-9]+?)\s+(Above range|Below range|Within range|High end of range|Low end of range|Above normal|Below normal)\s+([\d.]+)\s+([a-zA-Z\/]+)\s+([\d\.\s\-]+)/gi,
       // Match simpler format: "TestName Value Unit"
-      simpleHormone: /^([A-Za-z\s\-()0-9]+?)\s{3,}([\d.]+)\s+(ng\/mg|ug\/mg|mg\/dl|pmol\/l|nmol\/l)\b/gm,
+      simpleHormone:
+        /^([A-Za-z\s\-()0-9]+?)\s{3,}([\d.]+)\s+(ng\/mg|ug\/mg|mg\/dl|pmol\/l|nmol\/l)\b/gm,
       // Avoid section headers
-      excludeHeaders: /^(DUTCH|Precision|Analytical|Sex Hormones|Metabolites|Organic Acids|Client|Date|Provider)/i,
+      excludeHeaders:
+        /^(DUTCH|Precision|Analytical|Sex Hormones|Metabolites|Organic Acids|Client|Date|Provider)/i,
       // Status mapping
       statusFlags: {
         "Above range": "high",
-        "High end of range": "high", 
+        "High end of range": "high",
         "Above normal": "high",
         "Below range": "low",
         "Low end of range": "low",
         "Below normal": "low",
-        "Within range": "normal"
+        "Within range": "normal",
       },
-      units: ["ng/mg", "ug/mg", "mg/dl", "pmol/l", "nmol/l", "pg/ml", "ng/ml"]
+      units: ["ng/mg", "ug/mg", "mg/dl", "pmol/l", "nmol/l", "pg/ml", "ng/ml"],
     },
-    
+
     traditional: {
       // Match: "Glucose: 110 mg/dL (70-99) HIGH"
-      labValue: /([A-Za-z\s\-()]+?):\s*([\d.]+)\s*([a-zA-Z\/]+)\s*(?:\(([\d\.\s\-]+)\))?\s*([A-Z]*)/gi,
+      labValue:
+        /([A-Za-z\s\-()]+?):\s*([\d.]+)\s*([a-zA-Z\/]+)\s*(?:\(([\d\.\s\-]+)\))?\s*([A-Z]*)/gi,
       // Match spaced format: "Test Name    Value Unit    Range"
-      spacedValue: /^([A-Za-z\s\-()]+?)\s{3,}([\d.]+)\s+([a-zA-Z\/]+)\s+(?:([\d\.\s\-]+))?\s*([A-Z]*)?$/gm,
+      spacedValue:
+        /^([A-Za-z\s\-()]+?)\s{3,}([\d.]+)\s+([a-zA-Z\/]+)\s+(?:([\d\.\s\-]+))?\s*([A-Z]*)?$/gm,
       // Avoid headers
-      excludeHeaders: /^(Lab|Laboratory|Results|Basic|Comprehensive|Metabolic|Panel|Lipid|CBC|Client|Date|Provider)/i,
+      excludeHeaders:
+        /^(Lab|Laboratory|Results|Basic|Comprehensive|Metabolic|Panel|Lipid|CBC|Client|Date|Provider)/i,
       units: [
-        "mg/dL", "mg/dl", "μiu/ml", "mIU/mL", "ng/dL", "ng/dl", 
-        "pg/mL", "pg/ml", "mmol/L", "mmol/l", "g/dL", "g/dl", 
-        "%", "U/L", "u/l", "K/uL", "k/ul", "M/uL", "m/ul"
-      ]
-    }
+        "mg/dL",
+        "mg/dl",
+        "μiu/ml",
+        "mIU/mL",
+        "ng/dL",
+        "ng/dl",
+        "pg/mL",
+        "pg/ml",
+        "mmol/L",
+        "mmol/l",
+        "g/dL",
+        "g/dl",
+        "%",
+        "U/L",
+        "u/l",
+        "K/uL",
+        "k/ul",
+        "M/uL",
+        "m/ul",
+      ],
+    },
   };
 
   async extractLabValues(
@@ -323,7 +378,7 @@ export class LabValueExtractor {
     try {
       // Clean and prepare text for processing
       const cleanedText = this.preprocessText(ocrText);
-      
+
       // Detect document type first
       const documentType = this.detectDocumentType(cleanedText);
       console.log(`📋 Detected document type: ${documentType}`);
@@ -344,21 +399,28 @@ export class LabValueExtractor {
       extractedValues.push(...patternValues);
 
       // Extract functional medicine values
-      const functionalValues =
-        this.extractFunctionalMedicineValues(cleanedText, documentType);
+      const functionalValues = this.extractFunctionalMedicineValues(
+        cleanedText,
+        documentType
+      );
       extractedValues.push(...functionalValues);
 
       // Remove duplicates and merge similar values
       const mergedValues = this.removeDuplicatesAndMerge(extractedValues);
 
       // Validate and flag values
-      const validatedValues = this.validateAndFlagValues(mergedValues, documentType);
+      const validatedValues = this.validateAndFlagValues(
+        mergedValues,
+        documentType
+      );
 
       // Save to database (unless in test mode)
       if (!testMode) {
-      await this.saveLabValues(documentId, validatedValues);
+        await this.saveLabValues(documentId, validatedValues);
       } else {
-        console.log(`💾 Test mode: Skipping database save for ${validatedValues.length} lab values`);
+        console.log(
+          `💾 Test mode: Skipping database save for ${validatedValues.length} lab values`
+        );
       }
 
       const result: LabExtractionResult = {
@@ -397,12 +459,47 @@ export class LabValueExtractor {
     }
   }
 
-  private extractFunctionalMedicineValues(text: string, documentType: string): ExtractedLabValue[] {
+  private extractFunctionalMedicineValues(
+    text: string,
+    documentType: string
+  ): ExtractedLabValue[] {
     const values: ExtractedLabValue[] = [];
 
     switch (documentType) {
       case "NAQ":
         values.push(...this.extractNAQValues(text));
+        break;
+      case "SYMPTOM_BURDEN":
+        // Check if this is a report format or bar graph
+        if (
+          text.includes("Potential Nutritional Deficiencies") ||
+          text.includes("Potential Conditions")
+        ) {
+          // This is a report format
+          const reportData =
+            symptomBurdenExtractor.extractSymptomBurdenReport(text);
+          values.push(...reportData.deficiencies);
+          values.push(...reportData.conditions);
+
+          // Add total burden if found
+          if (reportData.totalBurden) {
+            values.push({
+              testName: "Total Symptom Burden",
+              standardName: "total_symptom_burden",
+              value: reportData.totalBurden,
+              valueText: reportData.totalBurden.toString(),
+              documentType: "SYMPTOM_BURDEN",
+              flag: reportData.totalBurden > 500 ? "high" : "normal",
+              confidence: 0.95,
+              rawText: `Total Symptom Burden: ${reportData.totalBurden}`,
+            });
+          }
+        } else {
+          // This is likely a bar graph
+          values.push(
+            ...symptomBurdenExtractor.extractSymptomBurdenBarGraph(text)
+          );
+        }
         break;
       case "KBMO_FOOD_SENSITIVITY":
         values.push(...this.extractKBMOValues(text));
@@ -420,168 +517,125 @@ export class LabValueExtractor {
 
   private detectDocumentType(
     text: string
-  ): "NAQ" | "KBMO_FOOD_SENSITIVITY" | "DUTCH_HORMONE" | "TRADITIONAL_LAB" {
+  ):
+    | "NAQ"
+    | "SYMPTOM_BURDEN"
+    | "KBMO_FOOD_SENSITIVITY"
+    | "DUTCH_HORMONE"
+    | "TRADITIONAL_LAB" {
     const lowerText = text.toLowerCase();
+
+    // Symptom Burden Bar Graph detection
+    if (
+      lowerText.includes("symptom burden") ||
+      (lowerText.includes("low priority") &&
+        lowerText.includes("medium priority")) ||
+      (lowerText.includes("upper gi") && lowerText.includes("liver & gb")) ||
+      /(?:low|medium|high)\s+priority.*?(?:upper gi|adrenal|minerals)/i.test(
+        text
+      )
+    ) {
+      return "SYMPTOM_BURDEN";
+    }
 
     // NAQ Assessment detection - Strong indicators first
     if (
-      lowerText.includes('naq questions/answers') || 
-      lowerText.includes('nutri-q') ||
-      (lowerText.includes('naq') && /\d+\.\s+0\s+1\s+2\s+3/i.test(text)) ||
+      lowerText.includes("naq questions/answers") ||
+      lowerText.includes("nutri-q") ||
+      (lowerText.includes("naq") && /\d+\.\s+0\s+1\s+2\s+3/i.test(text)) ||
       /upper gastrointestinal system/i.test(text) ||
-      (lowerText.includes('questionnaire') && /\d+\.\s+0\s+1\s+2\s+3.*?(belching|gas|nausea|heartburn)/i.test(text))
+      (lowerText.includes("questionnaire") &&
+        /\d+\.\s+0\s+1\s+2\s+3.*?(belching|gas|nausea|heartburn)/i.test(text))
     ) {
-      return 'NAQ';
+      return "NAQ";
     }
-    
+
     // KBMO Food Sensitivity detection
     if (
-      lowerText.includes('kbmo diagnostics') || 
-      lowerText.includes('igg1-4 and c3d') ||
-      lowerText.includes('fit 176') ||
-      (lowerText.includes('food sensitivity') && /\b(dairy|wheat|gluten|egg|soy).*?[2-4]\+/i.test(text)) ||
+      lowerText.includes("kbmo diagnostics") ||
+      lowerText.includes("igg1-4 and c3d") ||
+      lowerText.includes("fit 176") ||
+      (lowerText.includes("food sensitivity") &&
+        /\b(dairy|wheat|gluten|egg|soy).*?[2-4]\+/i.test(text)) ||
       /\b(wheat, gliadin|egg white|egg yolk).*?[2-4]\+/i.test(text)
     ) {
-      return 'KBMO_FOOD_SENSITIVITY';
+      return "KBMO_FOOD_SENSITIVITY";
     }
-    
+
     // Dutch Hormone Test detection
     if (
-      lowerText.includes('dutch') || 
-      lowerText.includes('precision analytical') ||
-      /\b\w+.*?(above range|below range|within range|high end of range|low end of range).*?\d+\.?\d*\s*(ng\/mg|ug\/mg)\b/gi.test(text) ||
+      lowerText.includes("dutch") ||
+      lowerText.includes("precision analytical") ||
+      /\b\w+.*?(above range|below range|within range|high end of range|low end of range).*?\d+\.?\d*\s*(ng\/mg|ug\/mg)\b/gi.test(
+        text
+      ) ||
       /cortisol.*?(waking|bedtime|awakening)/i.test(text) ||
       /estradiol.*?(e2|luteal)/i.test(text)
     ) {
-      return 'DUTCH_HORMONE';
+      return "DUTCH_HORMONE";
     }
-    
+
     // Traditional Lab detection (default if we found standard lab patterns)
     const traditionalLabCount = (
       text.match(
         /\b\w+.*?\d+\.?\d*\s*(mg\/dl|μiu\/ml|ng\/dl|pg\/ml|mmol\/l|g\/dl|%|u\/l|ug\/dl|mcg\/dl|miu\/ml)\b/gi
       ) || []
     ).length;
-    
+
     if (traditionalLabCount > 3) {
-      return 'TRADITIONAL_LAB';
+      return "TRADITIONAL_LAB";
     }
-    
+
     // Default to traditional lab format if no specific pattern detected
-    return 'TRADITIONAL_LAB';
+    return "TRADITIONAL_LAB";
   }
 
   private extractNAQValues(text: string): ExtractedLabValue[] {
-    const values: ExtractedLabValue[] = [];
-    const patterns = this.EXTRACTION_PATTERNS.naq;
-    
-    // Track current section for context
-    let currentSection = "";
-    const lines = text.split('\n');
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-      
-      // Check if this is a section header
-      const sectionMatch = line.match(patterns.sectionHeader);
-      if (sectionMatch && !patterns.excludeHeaders.test(line)) {
-        currentSection = sectionMatch[1].trim();
-        continue;
-      }
-      
-      // Extract individual questions: "52. 0 1 2 3 Belching or gas within one hour after eating"
-      const questionMatch = line.match(patterns.question);
-      if (questionMatch) {
-        const questionNumber = parseInt(questionMatch[1]);
-        const symptomText = questionMatch[2].trim();
-        
-        // Skip if this looks like a header or invalid
-        if (patterns.excludeHeaders.test(symptomText) || symptomText.length > 150) {
-          continue;
-        }
-        
-        const extractedValue: ExtractedLabValue = {
-          testName: `NAQ Question ${questionNumber}`,
-          standardName: "naq_question",
-          valueText: symptomText,
-          documentType: "NAQ",
-          questionNumber,
-          symptomText,
-          category: currentSection || "General",
-          assessmentSection: currentSection,
-          flag: "normal", // Will be determined when score is selected
-          confidence: 0.9,
-          rawText: line,
-          position: i,
-        };
-        
-        if (this.isValidLabValue(extractedValue, "NAQ")) {
-          values.push(extractedValue);
-        }
-      }
-      
-      // Extract section totals: "Upper GI Total: 15"
-      const totalMatch = line.match(patterns.sectionTotal);
-      if (totalMatch) {
-        const sectionName = totalMatch[1].trim();
-        const score = parseInt(totalMatch[2]);
-
-          values.push({
-          testName: `NAQ Section Total: ${sectionName}`,
-          standardName: "naq_section_total",
-          value: score,
-          valueText: score.toString(),
-          documentType: "NAQ",
-          assessmentSection: sectionName,
-          flag: score > 15 ? "high" : score > 8 ? "normal" : "low",
-          confidence: 0.95,
-          rawText: line,
-        });
-      }
-    }
-    
-    return values;
+    // Use the new assessment extractor for better NAQ handling
+    return assessmentExtractor.extractNAQValues(text);
   }
 
   private extractKBMOValues(text: string): ExtractedLabValue[] {
     const values: ExtractedLabValue[] = [];
     const patterns = this.EXTRACTION_PATTERNS.kbmo;
-    
+
     let currentCategory = "";
-    const lines = text.split('\n');
-    
+    const lines = text.split("\n");
+
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
-      
+
       // Check for category headers
       const categoryMatch = line.match(patterns.categoryHeader);
       if (categoryMatch) {
         currentCategory = categoryMatch[1];
         continue;
       }
-      
+
       // Extract food reactions using the enhanced pattern
       const reactionMatch = line.match(patterns.foodReaction);
       if (reactionMatch) {
         const foodItem = reactionMatch[1].trim();
         const reactionLevel = reactionMatch[2].trim();
-        
+
         // Skip if this looks like a header
-        if (patterns.excludeHeaders.test(foodItem) || patterns.foodCategories.includes(foodItem)) {
+        if (
+          patterns.excludeHeaders.test(foodItem) ||
+          patterns.foodCategories.includes(foodItem)
+        ) {
           continue;
         }
-        
+
         const severity = patterns.severityMap[reactionLevel] || 0;
-        
+
         const extractedValue: ExtractedLabValue = {
-            testName: `Food Sensitivity: ${foodItem}`,
-            standardName: "food_sensitivity",
-            valueText: reactionLevel,
-            severity,
-            foodItem,
-            reactionLevel,
+          testName: `Food Sensitivity: ${foodItem}`,
+          standardName: "food_sensitivity",
+          valueText: reactionLevel,
+          severity,
+          foodItem,
+          reactionLevel,
           category: currentCategory || "Unknown",
           documentType: "KBMO_FOOD_SENSITIVITY",
           flag: severity >= 3 ? "high" : severity >= 2 ? "normal" : "low",
@@ -589,7 +643,7 @@ export class LabValueExtractor {
           rawText: line,
           position: i,
         };
-        
+
         if (this.isValidLabValue(extractedValue, "KBMO_FOOD_SENSITIVITY")) {
           values.push(extractedValue);
         }
@@ -602,7 +656,7 @@ export class LabValueExtractor {
   private extractDutchValues(text: string): ExtractedLabValue[] {
     const values: ExtractedLabValue[] = [];
     const patterns = this.EXTRACTION_PATTERNS.dutch;
-    
+
     // Extract complex hormone patterns with status
     let match;
     while ((match = patterns.hormone.exec(text)) !== null) {
@@ -611,17 +665,17 @@ export class LabValueExtractor {
       const valueStr = match[3];
       const unit = match[4];
       const referenceRange = match[5].trim();
-      
+
       // Skip headers
       if (patterns.excludeHeaders.test(testName)) {
         continue;
       }
-      
+
       const value = parseFloat(valueStr);
       if (isNaN(value)) continue;
-      
+
       const flag = patterns.statusFlags[statusDescription] || "normal";
-      
+
       const extractedValue: ExtractedLabValue = {
         testName: testName,
         standardName: "dutch_hormone",
@@ -635,30 +689,30 @@ export class LabValueExtractor {
         rawText: match[0],
         position: match.index,
       };
-      
+
       if (this.isValidLabValue(extractedValue, "DUTCH_HORMONE")) {
         values.push(extractedValue);
       }
     }
-    
+
     // Extract simpler hormone patterns
     while ((match = patterns.simpleHormone.exec(text)) !== null) {
       const testName = match[1].trim();
       const valueStr = match[2];
       const unit = match[3];
-      
+
       if (patterns.excludeHeaders.test(testName)) {
         continue;
       }
-      
+
       const value = parseFloat(valueStr);
       if (isNaN(value)) continue;
-      
+
       // Skip if already extracted
-      if (values.some(v => v.testName === testName && v.value === value)) {
+      if (values.some((v) => v.testName === testName && v.value === value)) {
         continue;
       }
-      
+
       const extractedValue: ExtractedLabValue = {
         testName: testName,
         standardName: "dutch_hormone_simple",
@@ -667,10 +721,10 @@ export class LabValueExtractor {
         documentType: "DUTCH_HORMONE",
         flag: "normal",
         confidence: 0.8,
-          rawText: match[0],
-          position: match.index,
+        rawText: match[0],
+        position: match.index,
       };
-      
+
       if (this.isValidLabValue(extractedValue, "DUTCH_HORMONE")) {
         values.push(extractedValue);
       }
@@ -682,23 +736,23 @@ export class LabValueExtractor {
   private extractTraditionalValues(text: string): ExtractedLabValue[] {
     const values: ExtractedLabValue[] = [];
     const patterns = this.EXTRACTION_PATTERNS.traditional;
-    
+
     // Extract colon format: "Glucose: 110 mg/dL (70-99) HIGH"
-      let match;
+    let match;
     while ((match = patterns.labValue.exec(text)) !== null) {
       const testName = match[1].trim();
       const valueStr = match[2];
       const unit = match[3];
       const referenceRange = match[4];
       const flag = match[5];
-      
+
       if (patterns.excludeHeaders.test(testName)) {
         continue;
       }
-      
+
       const value = parseFloat(valueStr);
       if (isNaN(value)) continue;
-      
+
       const extractedValue: ExtractedLabValue = {
         testName: testName,
         standardName: this.getStandardTestName(testName),
@@ -709,15 +763,15 @@ export class LabValueExtractor {
         flag: this.standardizeFlag(flag),
         documentType: "TRADITIONAL_LAB",
         confidence: 0.9,
-          rawText: match[0],
-          position: match.index,
+        rawText: match[0],
+        position: match.index,
       };
-      
+
       if (this.isValidLabValue(extractedValue, "TRADITIONAL_LAB")) {
         values.push(extractedValue);
       }
     }
-    
+
     // Extract spaced format: "Test Name    Value Unit    Range"
     while ((match = patterns.spacedValue.exec(text)) !== null) {
       const testName = match[1].trim();
@@ -725,19 +779,19 @@ export class LabValueExtractor {
       const unit = match[3];
       const referenceRange = match[4];
       const flag = match[5];
-      
+
       if (patterns.excludeHeaders.test(testName)) {
         continue;
       }
-      
+
       const value = parseFloat(valueStr);
       if (isNaN(value)) continue;
-      
+
       // Skip if already extracted
-      if (values.some(v => v.testName === testName && v.value === value)) {
+      if (values.some((v) => v.testName === testName && v.value === value)) {
         continue;
       }
-      
+
       const extractedValue: ExtractedLabValue = {
         testName: testName,
         standardName: this.getStandardTestName(testName),
@@ -751,7 +805,7 @@ export class LabValueExtractor {
         rawText: match[0],
         position: match.index,
       };
-      
+
       if (this.isValidLabValue(extractedValue, "TRADITIONAL_LAB")) {
         values.push(extractedValue);
       }
@@ -760,47 +814,49 @@ export class LabValueExtractor {
     return values;
   }
 
-  private parseReferenceRange(rangeStr?: string): {min: number, max: number} | undefined {
+  private parseReferenceRange(
+    rangeStr?: string
+  ): { min: number; max: number } | undefined {
     if (!rangeStr) return undefined;
-    
+
     const match = rangeStr.match(/([\d.]+)\s*-\s*([\d.]+)/);
     if (match) {
       return {
         min: parseFloat(match[1]),
-        max: parseFloat(match[2])
+        max: parseFloat(match[2]),
       };
     }
-    
+
     return undefined;
   }
 
   private getStandardTestName(testName: string): string | undefined {
     const lowerName = testName.toLowerCase();
-    
+
     // Map common test names to standard names
     for (const [standardName, config] of Object.entries(this.LAB_PATTERNS)) {
-      if (config.names.some(name => lowerName.includes(name.toLowerCase()))) {
+      if (config.names.some((name) => lowerName.includes(name.toLowerCase()))) {
         return standardName;
       }
     }
-    
+
     return undefined;
   }
 
-  private standardizeFlag(flag?: string): "normal" | "high" | "low" | "critical" | undefined {
+  private standardizeFlag(
+    flag?: string
+  ): "normal" | "high" | "low" | "critical" | undefined {
     if (!flag) return undefined;
-    
+
     const lowerFlag = flag.toLowerCase().trim();
-    
-    if (['high', 'h', 'elevated'].includes(lowerFlag)) return 'high';
-    if (['low', 'l', 'decreased'].includes(lowerFlag)) return 'low';
-    if (['critical', 'c', 'panic'].includes(lowerFlag)) return 'critical';
-    if (['normal', 'n', 'nl'].includes(lowerFlag)) return 'normal';
-    
+
+    if (["high", "h", "elevated"].includes(lowerFlag)) return "high";
+    if (["low", "l", "decreased"].includes(lowerFlag)) return "low";
+    if (["critical", "c", "panic"].includes(lowerFlag)) return "critical";
+    if (["normal", "n", "nl"].includes(lowerFlag)) return "normal";
+
     return undefined;
   }
-
-
 
   private preprocessText(text: string): string {
     return (
@@ -1180,9 +1236,10 @@ export class LabValueExtractor {
       /^(thyroid|vitamin|mineral|hormone)\s*(panel|screen|test)?$/i,
       /^(lab|laboratory|results?|findings?)$/i,
       /^(reference|normal|abnormal|critical)$/i,
-      // NAQ specific headers
-      /^(naq|questions|answers|nutri-q|assessment|symptom)/i,
-      // KBMO specific headers  
+      // NAQ specific headers (but not NAQ Q1, NAQ Q2, etc.)
+      /^(naq|nutri-q)\s+(questions|answers|assessment)$/i,
+      /^(questions|answers|assessment|symptom)$/i,
+      // KBMO specific headers
       /^(kbmo|diagnostics|igg|food sensitivity|fit 176)/i,
       // Dutch specific headers
       /^(dutch|precision analytical|sex hormones|metabolites|organic acids)/i,
@@ -1193,30 +1250,29 @@ export class LabValueExtractor {
     return headerPatterns.some((pattern) => pattern.test(text));
   }
 
-  private isValidLabValue(
-    extractedData: any,
-    documentType: string
-  ): boolean {
+  private isValidLabValue(extractedData: any, documentType: string): boolean {
     // Reject if it looks like a document header
     if (
-      extractedData.testName.includes('Client:') || 
-      extractedData.testName.includes('Date:') ||
-      extractedData.testName.includes('Provider:') ||
-      extractedData.testName.includes('Page:') ||
+      extractedData.testName.includes("Client:") ||
+      extractedData.testName.includes("Date:") ||
+      extractedData.testName.includes("Provider:") ||
+      extractedData.testName.includes("Page:") ||
       this.isDocumentHeader(extractedData.testName)
     ) {
       return false;
     }
-    
+
     // Document-type specific validation
     switch (documentType) {
-      case 'NAQ':
+      case "NAQ":
         return this.isValidNAQValue(extractedData);
-      case 'KBMO_FOOD_SENSITIVITY':
+      case "SYMPTOM_BURDEN":
+        return this.isValidSymptomBurdenValue(extractedData);
+      case "KBMO_FOOD_SENSITIVITY":
         return this.isValidKBMOValue(extractedData);
-      case 'DUTCH_HORMONE':
+      case "DUTCH_HORMONE":
         return this.isValidDutchValue(extractedData);
-      case 'TRADITIONAL_LAB':
+      case "TRADITIONAL_LAB":
         return this.isValidTraditionalValue(extractedData);
       default:
         return true;
@@ -1224,26 +1280,67 @@ export class LabValueExtractor {
   }
 
   private isValidNAQValue(data: any): boolean {
+    // Must have a test name
+    if (!data.testName) {
+      return false;
+    }
+
     // Must have a question number or valid symptom text
     if (!data.questionNumber && !data.symptomText) {
       return false;
     }
-    
-    // Question number should be reasonable (1-300)
-    if (data.questionNumber && (data.questionNumber < 1 || data.questionNumber > 300)) {
+
+    // Question number should be reasonable (1-400)
+    if (
+      data.questionNumber &&
+      (data.questionNumber < 0 || data.questionNumber > 400)
+    ) {
       return false;
     }
-    
+
     // Symptom text should be reasonable length (not a paragraph)
-    if (data.symptomText && data.symptomText.length > 150) {
+    if (data.symptomText && data.symptomText.length > 200) {
       return false;
     }
-    
-    // Should not be a section header
-    if (data.symptomText && this.EXTRACTION_PATTERNS.naq.categories.includes(data.symptomText)) {
+
+    // Check for section totals which are valid
+    if (data.standardName === "naq_section_total") {
+      return true;
+    }
+
+    // For regular questions, ensure we have symptom text
+    if (
+      data.standardName === "naq_question" ||
+      data.standardName === "naq_question_binary"
+    ) {
+      // The symptom text might include the scale, that's OK
+      return data.symptomText && data.symptomText.length >= 5;
+    }
+
+    return true;
+  }
+
+  private isValidSymptomBurdenValue(data: any): boolean {
+    // Must have a test name
+    if (!data.testName) {
       return false;
     }
-    
+
+    // Must have a value
+    if (data.value === null || data.value === undefined) {
+      return false;
+    }
+
+    // Value should be reasonable (0-20 typically)
+    if (data.value < 0 || data.value > 50) {
+      return false;
+    }
+
+    // Should have an assessment section
+    if (!data.assessmentSection) {
+      return false;
+    }
+
     return true;
   }
 
@@ -1252,23 +1349,23 @@ export class LabValueExtractor {
     if (!data.foodItem || !data.reactionLevel) {
       return false;
     }
-    
+
     // Food item should be reasonable length
     if (data.foodItem.length < 2 || data.foodItem.length > 50) {
       return false;
     }
-    
+
     // Reaction level should be valid
     const validReactions = this.EXTRACTION_PATTERNS.kbmo.reactionLevels;
     if (!validReactions.includes(data.reactionLevel)) {
       return false;
     }
-    
+
     // Should not be a category header
     if (this.EXTRACTION_PATTERNS.kbmo.foodCategories.includes(data.foodItem)) {
       return false;
     }
-    
+
     return true;
   }
 
@@ -1277,17 +1374,24 @@ export class LabValueExtractor {
     if (!data.value || isNaN(parseFloat(data.value))) {
       return false;
     }
-    
+
     // Test name should be reasonable length
-    if (!data.testName || data.testName.length < 3 || data.testName.length > 100) {
+    if (
+      !data.testName ||
+      data.testName.length < 3 ||
+      data.testName.length > 100
+    ) {
       return false;
     }
-    
+
     // Should have valid units for Dutch tests
-    if (data.unit && !this.EXTRACTION_PATTERNS.dutch.units.includes(data.unit)) {
+    if (
+      data.unit &&
+      !this.EXTRACTION_PATTERNS.dutch.units.includes(data.unit)
+    ) {
       return false;
     }
-    
+
     return true;
   }
 
@@ -1296,17 +1400,24 @@ export class LabValueExtractor {
     if (!data.value || isNaN(parseFloat(data.value))) {
       return false;
     }
-    
+
     // Test name should be reasonable length
-    if (!data.testName || data.testName.length < 3 || data.testName.length > 100) {
+    if (
+      !data.testName ||
+      data.testName.length < 3 ||
+      data.testName.length > 100
+    ) {
       return false;
     }
-    
+
     // Should have valid units for traditional tests
-    if (data.unit && !this.EXTRACTION_PATTERNS.traditional.units.includes(data.unit)) {
+    if (
+      data.unit &&
+      !this.EXTRACTION_PATTERNS.traditional.units.includes(data.unit)
+    ) {
       return false;
     }
-    
+
     return true;
   }
 
@@ -1394,11 +1505,11 @@ export class LabValueExtractor {
       .filter((value) => this.isValidLabValue(value, documentType))
       .map((value) => {
         // Ensure confidence doesn't exceed 1.0
-      return {
-        ...value,
-        confidence: Math.min(value.confidence, 1.0),
-      };
-    });
+        return {
+          ...value,
+          confidence: Math.min(value.confidence, 1.0),
+        };
+      });
   }
 
   private async saveLabValues(
@@ -1422,8 +1533,8 @@ export class LabValueExtractor {
             standardName: value.standardName,
             value: value.value,
             valueText:
-              value.valueText || 
-              value.reactionLevel || 
+              value.valueText ||
+              value.reactionLevel ||
               value.priorityLevel ||
               value.symptomText ||
               (value.severity ? value.severity.toString() : undefined),

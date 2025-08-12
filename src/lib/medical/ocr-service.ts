@@ -134,14 +134,18 @@ export class MedicalOCRService {
       },
     });
 
-    // Extract lab values if this is a lab report
-    if (document.documentType === "lab_report") {
-      console.log("🧪 Extracting lab values from OCR text...");
+    // Extract lab values if this is a lab report or assessment
+    if (
+      document.documentType === "lab_report" ||
+      document.documentType === "nutriq_assessment" ||
+      document.documentType === "symptom_assessment"
+    ) {
+      console.log("🧪 Extracting values from OCR text...");
       try {
         await labValueExtractor.extractLabValues(documentId, ocrResult.text);
-        console.log("✅ Lab values extracted successfully");
+        console.log("✅ Values extracted successfully");
       } catch (labError: any) {
-        console.warn("⚠️ Lab value extraction failed:", labError.message);
+        console.warn("⚠️ Value extraction failed:", labError.message);
       }
     }
 

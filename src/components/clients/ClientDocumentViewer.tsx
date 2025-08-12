@@ -17,8 +17,29 @@ import {
   Grid,
   List,
   Trash2,
+  FileEdit,
 } from "lucide-react";
-import PDFViewerModal from "../pdf/PDFViewerModal";
+import dynamic from "next/dynamic";
+
+// Dynamically import PDFViewerModal with SSR disabled to prevent canvas module issues
+const PDFViewerModal = dynamic(() => import("../pdf/PDFViewerModal"), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center">
+      <div className="bg-slate-900 border border-slate-700 rounded-xl p-8 max-w-md w-full mx-4">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400"></div>
+          <div className="text-center">
+            <h3 className="text-slate-100 text-lg font-semibold mb-1">
+              Loading PDF Viewer
+            </h3>
+            <p className="text-slate-400 text-sm">Please wait...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  ),
+});
 
 interface ClientDocument {
   id: string;
@@ -354,6 +375,23 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                       style={{ color: "var(--text-secondary)" }}
                     />
                   </button>
+                  {(doc.documentType === "assessment" ||
+                    doc.fileName?.toLowerCase().includes("naq") ||
+                    doc.fileName?.toLowerCase().includes("symptom")) && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.location.href = `/dashboard/assessment-entry/${doc.id}`;
+                      }}
+                      className="p-1 hover:bg-opacity-20 rounded transition-colors"
+                      title="Manual Data Entry"
+                    >
+                      <FileEdit
+                        className="w-3 h-3"
+                        style={{ color: "var(--text-secondary)" }}
+                      />
+                    </button>
+                  )}
                   {(doc.fileUrl || doc.url) && (
                     <a
                       href={doc.fileUrl || doc.url}
@@ -608,6 +646,20 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                     >
                       <Eye className="w-4 h-4 text-gray-600" />
                     </button>
+                    {(doc.documentType === "assessment" ||
+                      doc.fileName?.toLowerCase().includes("naq") ||
+                      doc.fileName?.toLowerCase().includes("symptom")) && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.location.href = `/dashboard/assessment-entry/${doc.id}`;
+                        }}
+                        className="p-1 hover:bg-white/20 rounded"
+                        title="Manual Data Entry"
+                      >
+                        <FileEdit className="w-4 h-4 text-gray-600" />
+                      </button>
+                    )}
                     {(doc.fileUrl || doc.url) && (
                       <a
                         href={doc.fileUrl || doc.url}
@@ -733,6 +785,20 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                     >
                       <Eye className="w-4 h-4 text-gray-600" />
                     </button>
+                    {(doc.documentType === "assessment" ||
+                      doc.fileName?.toLowerCase().includes("naq") ||
+                      doc.fileName?.toLowerCase().includes("symptom")) && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.location.href = `/dashboard/assessment-entry/${doc.id}`;
+                        }}
+                        className="p-1 hover:bg-gray-200 rounded"
+                        title="Manual Data Entry"
+                      >
+                        <FileEdit className="w-4 h-4 text-gray-600" />
+                      </button>
+                    )}
                     {(doc.fileUrl || doc.url) && (
                       <a
                         href={doc.fileUrl || doc.url}

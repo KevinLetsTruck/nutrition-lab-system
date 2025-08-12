@@ -11,8 +11,38 @@ import {
   Download,
   Share2,
 } from "lucide-react";
-import PDFViewerModal from "./PDFViewerModal";
-import { Document } from "./PDFViewerModal";
+import dynamic from "next/dynamic";
+
+// Define the Document interface locally to avoid import issues
+export interface Document {
+  id: string;
+  name: string;
+  url: string;
+  type: "lab_report" | "protocol" | "assessment" | "intake" | "other";
+  uploadedDate: Date;
+  pages?: number;
+  clientId: string;
+}
+
+// Dynamically import PDFViewerModal with SSR disabled to prevent canvas module issues
+const PDFViewerModal = dynamic(() => import("./PDFViewerModal"), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center">
+      <div className="bg-slate-900 border border-slate-700 rounded-xl p-8 max-w-md w-full mx-4">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400"></div>
+          <div className="text-center">
+            <h3 className="text-slate-100 text-lg font-semibold mb-1">
+              Loading PDF Viewer
+            </h3>
+            <p className="text-slate-400 text-sm">Please wait...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  ),
+});
 
 interface MobilePDFViewerProps {
   document: Document;
