@@ -78,9 +78,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@typescript-eslint/eslint-plugin": "^8.39.1",
+    "@typescript-eslint/parser": "^8.39.1",
     "dotenv-cli": "^10.0.0",
     "eslint": "^9",
-    "eslint-config-next": "15.4.6",
+    "eslint-config-next": "^15.4.6",
     "tailwindcss": "^4",
     "tsx": "^4.20.3",
     "typescript": "^5"

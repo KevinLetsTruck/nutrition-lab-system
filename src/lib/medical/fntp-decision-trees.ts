@@ -693,14 +693,16 @@ export class DecisionTreeProcessor {
     }
 
     // Check for cardiovascular risk
-    const hasCardiovascularRisk = labValues.some((lab: any) => {
-      const name = lab.testName?.toLowerCase() || "";
-      return (
-        (name.includes("blood pressure") && lab.value > 120) ||
-        (name.includes("cholesterol") && lab.flag === "high") ||
-        (name.includes("triglycerides") && lab.value > 100)
-      );
-    });
+    const hasCardiovascularRisk =
+      labValues &&
+      labValues.some((lab: any) => {
+        const name = lab.testName?.toLowerCase() || "";
+        return (
+          (name.includes("blood pressure") && lab.value > 120) ||
+          (name.includes("cholesterol") && lab.flag === "high") ||
+          (name.includes("triglycerides") && lab.value > 100)
+        );
+      });
 
     if (hasCardiovascularRisk) {
       recommendations.cardiovascular = this.processCardiovascularRisk(

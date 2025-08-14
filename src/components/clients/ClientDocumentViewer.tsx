@@ -19,28 +19,10 @@ import {
   Trash2,
   FileEdit,
   RefreshCw,
+  Play,
 } from "lucide-react";
-import dynamic from "next/dynamic";
-
-// Dynamically import PDFViewerModal with SSR disabled to prevent canvas module issues
-const PDFViewerModal = dynamic(() => import("../pdf/PDFViewerModal"), {
-  ssr: false,
-  loading: () => (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center">
-      <div className="bg-slate-900 border border-slate-700 rounded-xl p-8 max-w-md w-full mx-4">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400"></div>
-          <div className="text-center">
-            <h3 className="text-slate-100 text-lg font-semibold mb-1">
-              Loading PDF Viewer
-            </h3>
-            <p className="text-slate-400 text-sm">Please wait...</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  ),
-});
+// Use SimplePDFViewer to avoid canvas/PDF.js issues
+import SimplePDFViewer from "../pdf/SimplePDFViewer";
 
 interface ClientDocument {
   id: string;
@@ -289,6 +271,43 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
     }
   };
 
+  const handleProcess = async (documentId: string) => {
+    try {
+      const token = localStorage.getItem("auth_token");
+
+      const response = await fetch("/api/medical/process", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          documentId,
+          forceReprocess: false,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to process document");
+      }
+
+      const result = await response.json();
+      console.log("Processing started:", result);
+      alert("Document processing started. This may take a few minutes.");
+
+      // Refresh the documents list
+      if (onRefresh) {
+        setTimeout(onRefresh, 2000); // Refresh after 2 seconds
+      }
+    } catch (error) {
+      console.error("Processing error:", error);
+      alert(
+        error instanceof Error ? error.message : "Failed to process document"
+      );
+    }
+  };
+
   const handleDeleteClick = (doc: ClientDocument) => {
     console.log(
       "🗑️ Delete button clicked for document:",
@@ -407,6 +426,21 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                       style={{ color: "var(--text-secondary)" }}
                     />
                   </button>
+                  {(doc.status === "uploaded" || doc.status === "pending") && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleProcess(doc.id);
+                      }}
+                      className="p-1 hover:bg-opacity-20 rounded transition-colors"
+                      title="Process Document"
+                    >
+                      <Play
+                        className="w-3 h-3"
+                        style={{ color: "var(--text-secondary)" }}
+                      />
+                    </button>
+                  )}
                   {(doc.documentType === "assessment" ||
                     doc.fileName?.toLowerCase().includes("naq") ||
                     doc.fileName?.toLowerCase().includes("symptom")) && (
@@ -491,16 +525,13 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
 
         {/* PDF Viewer Modal for compact view */}
         {selectedDocument && (
-          <PDFViewerModal
+          <SimplePDFViewer
             document={selectedDocument}
             onClose={() => {
               setViewerOpen(false);
               setSelectedDocument(null);
             }}
-            allowAnnotations={true}
             allowDownload={true}
-            allowPrint={true}
-            allowShare={false}
           />
         )}
       </div>
@@ -701,6 +732,19 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                     >
                       <Eye className="w-4 h-4 text-gray-600" />
                     </button>
+                    {(doc.status === "uploaded" ||
+                      doc.status === "pending") && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleProcess(doc.id);
+                        }}
+                        className="p-1 hover:bg-white/20 rounded"
+                        title="Process Document"
+                      >
+                        <Play className="w-4 h-4 text-gray-600" />
+                      </button>
+                    )}
                     {(doc.documentType === "assessment" ||
                       doc.fileName?.toLowerCase().includes("naq") ||
                       doc.fileName?.toLowerCase().includes("symptom")) && (
@@ -840,6 +884,19 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                     >
                       <Eye className="w-4 h-4 text-gray-600" />
                     </button>
+                    {(doc.status === "uploaded" ||
+                      doc.status === "pending") && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleProcess(doc.id);
+                        }}
+                        className="p-1 hover:bg-gray-200 rounded"
+                        title="Process Document"
+                      >
+                        <Play className="w-4 h-4 text-gray-600" />
+                      </button>
+                    )}
                     {(doc.documentType === "assessment" ||
                       doc.fileName?.toLowerCase().includes("naq") ||
                       doc.fileName?.toLowerCase().includes("symptom")) && (
@@ -915,16 +972,13 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
 
       {/* Robust PDF Viewer */}
       {selectedDocument && (
-        <PDFViewerModal
+        <SimplePDFViewer
           document={selectedDocument}
           onClose={() => {
             setViewerOpen(false);
             setSelectedDocument(null);
           }}
-          allowAnnotations={true}
           allowDownload={true}
-          allowPrint={true}
-          allowShare={false}
         />
       )}
 

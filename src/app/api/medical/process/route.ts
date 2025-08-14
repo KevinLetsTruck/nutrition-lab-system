@@ -34,7 +34,10 @@ export async function POST(request: NextRequest) {
 
   try {
     user = await verifyAuthToken(request);
-    console.log("Authenticated user triggering medical document processing:", user.email);
+    console.log(
+      "Authenticated user triggering medical document processing:",
+      user.email
+    );
 
     const body = await request.json();
     documentId = body.documentId;
@@ -52,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get document details
-    const document = await prisma.medicalDocument.findUnique({
+    const document = await prisma.document.findUnique({
       where: { id: documentId },
       include: {
         client: {
@@ -104,7 +107,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "Medical document is already processed. Use forceReprocess=true to reprocess.",
+          error:
+            "Medical document is already processed. Use forceReprocess=true to reprocess.",
           details: {
             currentStatus: document.status,
             processedAt: document.processedAt,
@@ -115,22 +119,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Update document status
-    await prisma.medicalDocument.update({
+    await prisma.document.update({
       where: { id: documentId },
       data: {
         status: "PROCESSING",
-        errorMessage: null, // Clear previous errors
+        processingError: null, // Clear previous errors
       },
     });
 
     const jobs = [];
 
     // Add OCR job if needed
-    if (
-      !document.ocrText ||
-      document.status === "FAILED" ||
-      forceReprocess
-    ) {
+    if (!document.ocrText || document.status === "FAILED" || forceReprocess) {
       const ocrJob = await prisma.medicalProcessingQueue.create({
         data: {
           documentId,
@@ -182,7 +182,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Log processing initiation
-    console.log(`User ${user.email} initiated medical processing for document ${documentId}: ${jobs.length} jobs created`);
+    console.log(
+      `User ${user.email} initiated medical processing for document ${documentId}: ${jobs.length} jobs created`
+    );
 
     return NextResponse.json(
       {
@@ -202,7 +204,11 @@ export async function POST(request: NextRequest) {
 
     // Log error
     if (user) {
-      console.error(`Medical document processing failed for user ${user.email}: ${error instanceof Error ? error.message : "Unknown error"}`);
+      console.error(
+        `Medical document processing failed for user ${user.email}: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
 
     if (error instanceof Error && error.message.includes("Authentication")) {
@@ -248,12 +254,12 @@ export async function GET(request: NextRequest) {
 
     // If clientId is provided, filter by documents belonging to that client
     if (clientId) {
-      const clientDocuments = await prisma.medicalDocument.findMany({
+      const clientDocuments = await prisma.document.findMany({
         where: { clientId },
         select: { id: true },
       });
       where.documentId = {
-        in: clientDocuments.map(doc => doc.id),
+        in: clientDocuments.map((doc) => doc.id),
       };
     }
 
@@ -267,12 +273,16 @@ export async function GET(request: NextRequest) {
     const queueSummary = {
       total: processingJobs.length,
       pending: processingJobs.filter((job) => job.status === "QUEUED").length,
-      active: processingJobs.filter((job) => job.status === "PROCESSING").length,
-      completed: processingJobs.filter((job) => job.status === "COMPLETED").length,
+      active: processingJobs.filter((job) => job.status === "PROCESSING")
+        .length,
+      completed: processingJobs.filter((job) => job.status === "COMPLETED")
+        .length,
       failed: processingJobs.filter((job) => job.status === "FAILED").length,
     };
 
-    console.log(`User ${user.email} accessed medical processing queue: ${processingJobs.length} jobs`);
+    console.log(
+      `User ${user.email} accessed medical processing queue: ${processingJobs.length} jobs`
+    );
 
     return NextResponse.json({
       success: true,

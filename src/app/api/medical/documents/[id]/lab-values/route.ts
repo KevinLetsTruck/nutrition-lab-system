@@ -12,15 +12,49 @@ export async function GET(req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
 
-    const labValues = await prisma.medicalLabValue.findMany({
-      where: { documentId: id },
-      orderBy: [{ confidence: "desc" }, { testName: "asc" }],
-    });
+    const [labValues, document] = await Promise.all([
+      prisma.labValue.findMany({
+        where: { documentId: id },
+        orderBy: [{ confidence: "desc" }, { testName: "asc" }],
+      }),
+      prisma.document.findUnique({
+        where: { id },
+        select: { originalFileName: true, fileName: true },
+      }),
+    ]);
+
+    // Categorize lab values by category
+    const categorized = labValues.reduce((acc, value) => {
+      const category = value.category || "OTHER";
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(value);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    // Calculate stats
+    const highConfidenceCount = labValues.filter(
+      (v) => (v.confidence || 0) >= 0.8
+    ).length;
 
     return NextResponse.json({
       documentId: id,
       labValues,
       count: labValues.length,
+      categorized,
+      stats: {
+        totalValues: labValues.length,
+        highConfidence: highConfidenceCount,
+        categories: Object.keys(categorized).length,
+      },
+      document: {
+        id,
+        originalFileName:
+          document?.originalFileName ||
+          document?.fileName ||
+          "Unknown Document",
+      },
     });
   } catch (error) {
     console.error("Error fetching lab values:", error);
@@ -38,7 +72,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     const { forceReExtract = false } = body;
 
     // Get document
-    const document = await prisma.medicalDocument.findUnique({
+    const document = await prisma.document.findUnique({
       where: { id: documentId },
     });
 
@@ -49,7 +83,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       );
     }
 
-    if (!document.ocrText) {
+    if (!document.extractedText) {
       return NextResponse.json(
         { error: "Document has no OCR text. Process the document first." },
         { status: 400 }
@@ -58,7 +92,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 
     // Check if already has lab values
     if (!forceReExtract) {
-      const existingCount = await prisma.medicalLabValue.count({
+      const existingCount = await prisma.labValue.count({
         where: { documentId },
       });
 
@@ -73,7 +107,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 
     // Clear existing values if force re-extract
     if (forceReExtract) {
-      await prisma.medicalLabValue.deleteMany({
+      await prisma.labValue.deleteMany({
         where: { documentId },
       });
     }
@@ -81,11 +115,11 @@ export async function POST(req: NextRequest, { params }: Params) {
     // Extract lab values
     const result = await labValueExtractor.extractLabValues(
       documentId,
-      document.ocrText
+      document.extractedText
     );
 
     // Update document metadata
-    await prisma.medicalDocument.update({
+    await prisma.document.update({
       where: { id: documentId },
       data: {
         metadata: {

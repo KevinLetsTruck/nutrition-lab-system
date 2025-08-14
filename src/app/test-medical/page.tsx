@@ -298,8 +298,9 @@ export default function TestMedicalPage() {
 
               {results.stats && (
                 <div className="text-sm text-gray-400">
-                  Total Time: {results.stats.totalTime}ms | Successful:{" "}
-                  {results.stats.successful} | Failed: {results.stats.failed}
+                  Total Time: {results.stats?.totalTime || 0}ms | Successful:{" "}
+                  {results.stats?.successful || 0} | Failed:{" "}
+                  {results.stats?.failed || 0}
                 </div>
               )}
 
@@ -363,7 +364,9 @@ export default function TestMedicalPage() {
                 <div key={status.id} className="bg-[#0f172a] p-4 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-medium">
-                      {status.originalFileName}
+                      {status.originalFileName ||
+                        status.fileName ||
+                        "Unknown Document"}
                     </span>
                     <span
                       className={`px-2 py-1 rounded text-xs font-medium ${
@@ -437,25 +440,28 @@ export default function TestMedicalPage() {
 
             {labValues.map((labData, index) => (
               <div
-                key={`lab-${labData.document.id}-${index}`}
+                key={`lab-${labData.document?.id || index}-${index}`}
                 className="mb-6 bg-[#0f172a] p-4 rounded-lg"
               >
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-medium text-[#4ade80]">
-                    {labData.document.originalFileName}
+                    {labData.document?.originalFileName ||
+                      labData.document?.fileName ||
+                      "Unknown Document"}
                   </h3>
                   <div className="text-sm text-gray-400">
-                    {labData.stats.totalValues} values •{" "}
-                    {labData.stats.highConfidence} high confidence
+                    {labData.stats?.totalValues || 0} values •{" "}
+                    {labData.stats?.highConfidence || 0} high confidence
                   </div>
                 </div>
 
-                {Object.entries(labData.categorized).map(
-                  ([category, values]) => {
-                    if (!Array.isArray(values) || values.length === 0)
-                      return null;
-
-                    return (
+                {labData.categorized &&
+                  Object.entries(labData.categorized)
+                    .filter(
+                      ([_, values]) =>
+                        Array.isArray(values) && values.length > 0
+                    )
+                    .map(([category, values]) => (
                       <div key={category} className="mb-4">
                         <h4 className="text-sm font-medium text-gray-300 mb-2 capitalize">
                           {category} ({values.length})
@@ -504,9 +510,7 @@ export default function TestMedicalPage() {
                           ))}
                         </div>
                       </div>
-                    );
-                  }
-                )}
+                    ))}
               </div>
             ))}
           </div>
@@ -521,38 +525,40 @@ export default function TestMedicalPage() {
 
             {functionalAnalysis.map((analysis, index) => (
               <div
-                key={`analysis-${analysis.document.id}-${index}`}
+                key={`analysis-${analysis.document?.id || index}-${index}`}
                 className="mb-6 bg-[#0f172a] p-4 rounded-lg"
               >
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-medium text-[#4ade80]">
-                    {analysis.document.originalFileName}
+                    {analysis.document?.originalFileName ||
+                      analysis.document?.fileName ||
+                      "Unknown Document"}
                   </h3>
                   <div className="flex items-center gap-3">
                     <span
                       className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                        analysis.analysis.overallHealth.grade === "A"
+                        analysis.analysis?.overallHealth?.grade === "A"
                           ? "bg-green-500/20 text-green-400"
-                          : analysis.analysis.overallHealth.grade === "B"
+                          : analysis.analysis?.overallHealth?.grade === "B"
                           ? "bg-blue-500/20 text-blue-400"
-                          : analysis.analysis.overallHealth.grade === "C"
+                          : analysis.analysis?.overallHealth?.grade === "C"
                           ? "bg-yellow-500/20 text-yellow-400"
-                          : analysis.analysis.overallHealth.grade === "D"
+                          : analysis.analysis?.overallHealth?.grade === "D"
                           ? "bg-orange-500/20 text-orange-400"
                           : "bg-red-500/20 text-red-400"
                       }`}
                     >
-                      Grade {analysis.analysis.overallHealth?.grade || "N/A"}
+                      Grade {analysis.analysis?.overallHealth?.grade || "N/A"}
                     </span>
                     <span className="text-sm text-gray-400">
-                      Score: {analysis.analysis.overallHealth?.score || 0}/100
+                      Score: {analysis.analysis?.overallHealth?.score || 0}/100
                     </span>
                   </div>
                 </div>
 
                 <div className="mb-4">
                   <p className="text-gray-300">
-                    {analysis.analysis.overallHealth?.summary ||
+                    {analysis.analysis?.overallHealth?.summary ||
                       "Analysis in progress..."}
                   </p>
                 </div>
@@ -561,7 +567,7 @@ export default function TestMedicalPage() {
                   <div className="bg-[#1e293b] p-3 rounded border border-[#334155]">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-blue-400">
-                        {analysis.analysis.patternsDetected || 0}
+                        {analysis.analysis?.patternsDetected || 0}
                       </div>
                       <div className="text-xs text-gray-400">
                         Health Patterns
@@ -572,7 +578,7 @@ export default function TestMedicalPage() {
                   <div className="bg-[#1e293b] p-3 rounded border border-[#334155]">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-red-400">
-                        {analysis.analysis.criticalFindings || 0}
+                        {analysis.analysis?.criticalFindings || 0}
                       </div>
                       <div className="text-xs text-gray-400">
                         Critical Findings
@@ -584,14 +590,15 @@ export default function TestMedicalPage() {
                     <div className="text-center">
                       <div
                         className={`text-2xl font-bold ${
-                          analysis.analysis.dotRiskLevel === "high"
+                          analysis.analysis?.dotRiskLevel === "high"
                             ? "text-red-400"
-                            : analysis.analysis.dotRiskLevel === "medium"
+                            : analysis.analysis?.dotRiskLevel === "medium"
                             ? "text-yellow-400"
                             : "text-green-400"
                         }`}
                       >
-                        {analysis.analysis.dotRiskLevel?.toUpperCase() || "LOW"}
+                        {analysis.analysis?.dotRiskLevel?.toUpperCase() ||
+                          "LOW"}
                       </div>
                       <div className="text-xs text-gray-400">
                         DOT Risk Level
@@ -624,7 +631,7 @@ export default function TestMedicalPage() {
 
             {fntpProtocols.map((protocolData, index) => (
               <div
-                key={`protocol-${protocolData.document.id}-${index}`}
+                key={`protocol-${protocolData.document?.id || index}-${index}`}
                 className="mb-6 bg-[#0f172a] p-4 rounded-lg"
               >
                 <div className="flex items-center justify-between mb-4">
@@ -641,7 +648,11 @@ export default function TestMedicalPage() {
                 </div>
 
                 {protocolData.protocol && (
-                  <>
+                  <div
+                    key={`protocol-content-${
+                      protocolData.document?.id || index
+                    }`}
+                  >
                     {/* Executive Summary */}
                     <div className="mb-4 p-3 bg-[#1e293b] rounded border border-[#334155]">
                       <h4 className="font-medium text-blue-400 mb-2">
@@ -651,7 +662,7 @@ export default function TestMedicalPage() {
                         <div>
                           <strong>Key Findings:</strong>
                           <ul className="ml-4 mt-1">
-                            {protocolData.protocol.executiveSummary.keyFindings.map(
+                            {protocolData.protocol?.executiveSummary?.keyFindings?.map(
                               (finding: string, idx: number) => (
                                 <li
                                   key={`finding-${idx}-${finding.slice(0, 20)}`}
@@ -665,20 +676,20 @@ export default function TestMedicalPage() {
                         </div>
                         <div>
                           <strong>Expected Outcomes:</strong>{" "}
-                          {protocolData.protocol.executiveSummary.timeframe}
+                          {protocolData.protocol?.executiveSummary?.timeframe}
                         </div>
                       </div>
                     </div>
 
                     {/* Immediate Supplements */}
-                    {protocolData.protocol.supplements?.immediate.length >
+                    {protocolData.protocol?.supplements?.immediate?.length >
                       0 && (
                       <div className="mb-4">
                         <h4 className="font-medium text-green-400 mb-2">
                           Immediate Supplements (Priority 1)
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {protocolData.protocol.supplements.immediate.map(
+                          {protocolData.protocol?.supplements?.immediate?.map(
                             (supp: any, idx: number) => (
                               <div
                                 key={`supp-${supp.name}-${idx}`}
@@ -727,11 +738,11 @@ export default function TestMedicalPage() {
                     )}
 
                     {/* Nutrition Plan */}
-                    {protocolData.protocol.nutrition && (
+                    {protocolData.protocol?.nutrition && (
                       <div className="mb-4">
                         <h4 className="font-medium text-yellow-400 mb-2">
                           Nutrition Plan:{" "}
-                          {protocolData.protocol.nutrition.phase}
+                          {protocolData.protocol?.nutrition?.phase}
                         </h4>
                         <div className="bg-[#1e293b] p-3 rounded border border-[#334155]">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -740,10 +751,17 @@ export default function TestMedicalPage() {
                                 Guidelines:
                               </h5>
                               <ul className="text-sm text-gray-400 space-y-1">
-                                {protocolData.protocol.nutrition.guidelines
-                                  .slice(0, 4)
-                                  .map((guideline: string, idx: number) => (
-                                    <li key={idx}>• {guideline}</li>
+                                {protocolData.protocol?.nutrition?.guidelines
+                                  ?.slice(0, 4)
+                                  ?.map((guideline: string, idx: number) => (
+                                    <li
+                                      key={`guideline-${idx}-${guideline.slice(
+                                        0,
+                                        20
+                                      )}`}
+                                    >
+                                      • {guideline}
+                                    </li>
                                   ))}
                               </ul>
                             </div>
@@ -752,10 +770,12 @@ export default function TestMedicalPage() {
                                 Truck Stop Options:
                               </h5>
                               <div className="text-sm text-gray-400 space-y-1">
-                                {protocolData.protocol.nutrition.truckStopOptions
-                                  .slice(0, 2)
-                                  .map((option: any, idx: number) => (
-                                    <div key={idx}>
+                                {protocolData.protocol?.nutrition?.truckStopOptions
+                                  ?.slice(0, 2)
+                                  ?.map((option: any, idx: number) => (
+                                    <div
+                                      key={`truck-option-${idx}-${option.chain}`}
+                                    >
                                       <strong>{option.chain}:</strong>{" "}
                                       {option.recommendations[0]}
                                     </div>
@@ -768,17 +788,17 @@ export default function TestMedicalPage() {
                     )}
 
                     {/* Lifestyle Protocols */}
-                    {protocolData.protocol.lifestyle && (
+                    {protocolData.protocol?.lifestyle && (
                       <div className="mb-4">
                         <h4 className="font-medium text-purple-400 mb-2">
                           Lifestyle Recommendations
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {protocolData.protocol.lifestyle
-                            .slice(0, 2)
-                            .map((category: any, idx: number) => (
+                          {protocolData.protocol?.lifestyle
+                            ?.slice(0, 2)
+                            ?.map((category: any, idx: number) => (
                               <div
-                                key={idx}
+                                key={`lifestyle-${idx}-${category.category}`}
                                 className="bg-[#1e293b] p-3 rounded border border-[#334155]"
                               >
                                 <h5 className="font-medium text-white capitalize mb-2">
@@ -808,7 +828,7 @@ export default function TestMedicalPage() {
                     )}
 
                     {/* Monitoring */}
-                    {protocolData.protocol.monitoring && (
+                    {protocolData.protocol?.monitoring && (
                       <div className="mb-4">
                         <h4 className="font-medium text-red-400 mb-2">
                           Monitoring & Follow-up
@@ -818,23 +838,37 @@ export default function TestMedicalPage() {
                             <div>
                               <strong>
                                 Next Labs (
-                                {protocolData.protocol.monitoring.timeline}):
+                                {protocolData.protocol?.monitoring?.timeline}):
                               </strong>
                               <ul className="text-gray-400 mt-1">
-                                {protocolData.protocol.monitoring.labsToReorder
-                                  .slice(0, 3)
-                                  .map((lab: string, idx: number) => (
-                                    <li key={idx}>• {lab}</li>
+                                {protocolData.protocol?.monitoring?.labsToReorder
+                                  ?.slice(0, 3)
+                                  ?.map((lab: string, idx: number) => (
+                                    <li
+                                      key={`monitor-lab-${idx}-${lab.slice(
+                                        0,
+                                        20
+                                      )}`}
+                                    >
+                                      • {lab}
+                                    </li>
                                   ))}
                               </ul>
                             </div>
                             <div>
                               <strong>Success Metrics:</strong>
                               <ul className="text-gray-400 mt-1">
-                                {protocolData.protocol.monitoring.successMetrics
-                                  .slice(0, 2)
-                                  .map((metric: string, idx: number) => (
-                                    <li key={idx}>• {metric}</li>
+                                {protocolData.protocol?.monitoring?.successMetrics
+                                  ?.slice(0, 2)
+                                  ?.map((metric: string, idx: number) => (
+                                    <li
+                                      key={`monitor-metric-${idx}-${metric.slice(
+                                        0,
+                                        20
+                                      )}`}
+                                    >
+                                      • {metric}
+                                    </li>
                                   ))}
                               </ul>
                             </div>
@@ -842,7 +876,7 @@ export default function TestMedicalPage() {
                         </div>
                       </div>
                     )}
-                  </>
+                  </div>
                 )}
 
                 {/* Protocol Generation Button */}

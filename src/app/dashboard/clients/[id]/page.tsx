@@ -109,6 +109,8 @@ export default function ClientDetailPage() {
   const [isNoteViewerOpen, setIsNoteViewerOpen] = useState(false);
   const [viewingNote, setViewingNote] = useState<Note | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResults, setAnalysisResults] = useState<any[]>([]);
 
   // Document delete modal state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -370,9 +372,55 @@ export default function ClientDetailPage() {
   }, [documentToDelete, setDocuments, setError]);
 
   // Memoized refresh handler to prevent unnecessary component remounting
-  const handleRefresh = useCallback(() => {
-    fetchClientAndDocuments();
-  }, []);
+  const handleRefresh = useCallback(async () => {
+    try {
+      console.log("Refreshing client data for ID:", params.id);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        router.push("/login");
+        return;
+      }
+
+      // Fetch client data
+      const clientResponse = await fetch(`/api/clients/${params.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!clientResponse.ok) {
+        throw new Error("Failed to fetch client");
+      }
+
+      const clientData = await clientResponse.json();
+      setClient(clientData);
+
+      // Fetch documents for this client
+      const documentsResponse = await fetch(
+        `/api/documents?clientId=${params.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (documentsResponse.ok) {
+        const documentsData = await documentsResponse.json();
+        console.log("📄 Documents refreshed:", documentsData);
+        setDocuments(documentsData);
+      } else {
+        console.error(
+          "❌ Failed to refresh documents:",
+          documentsResponse.status,
+          documentsResponse.statusText
+        );
+      }
+    } catch (err) {
+      console.error("Error refreshing data:", err);
+      setError(err instanceof Error ? err.message : "Failed to refresh data");
+    }
+  }, [params.id, router]);
 
   const handleDocumentUpload = async (files: File[]) => {
     const token = localStorage.getItem("token");
@@ -410,6 +458,143 @@ export default function ClientDetailPage() {
       throw err; // Re-throw to let modal handle the error state
     }
   };
+
+  // Document analysis handler with robust error handling
+  const handleAnalyzeDocuments = useCallback(async () => {
+    // Safety checks
+    if (!client || !documents || documents.length === 0) {
+      console.warn("⚠️ No client or documents available for analysis");
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setError(null);
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setError("Authentication required");
+      setIsAnalyzing(false);
+      return;
+    }
+
+    const results: any[] = [];
+
+    try {
+      console.log(`🔬 Starting analysis for ${documents.length} documents`);
+
+      for (const document of documents) {
+        if (!document?.id || !document?.fileName) {
+          console.warn("⚠️ Skipping invalid document:", document);
+          continue;
+        }
+
+        try {
+          console.log(`📄 Analyzing document: ${document.fileName}`);
+
+          // First, ensure the document is processed (OCR completed)
+          const processResponse = await fetch(`/api/medical/process`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              documentId: document.id,
+              forceReprocess: false,
+            }),
+          });
+
+          if (!processResponse.ok) {
+            console.warn(`⚠️ Processing failed for ${document.fileName}`);
+          }
+
+          // Then run FNTP complete analysis
+          const analysisResponse = await fetch(
+            `/api/medical/documents/${document.id}/fntp-complete-analysis`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                generateComplete: true,
+                includeMonitoring: true,
+              }),
+            }
+          );
+
+          if (analysisResponse.ok) {
+            const analysisResult = await analysisResponse.json();
+            results.push({
+              documentId: document.id,
+              fileName: document.fileName,
+              status: "success",
+              analysis: analysisResult,
+            });
+            console.log(`✅ Analysis completed for ${document.fileName}`);
+          } else {
+            const errorData = await analysisResponse
+              .json()
+              .catch(() => ({ error: "Unknown API error" }));
+            results.push({
+              documentId: document.id,
+              fileName: document.fileName,
+              status: "error",
+              error: errorData.error || "Analysis failed",
+            });
+            console.warn(
+              `❌ Analysis failed for ${document.fileName}: ${errorData.error}`
+            );
+          }
+        } catch (docError) {
+          results.push({
+            documentId: document.id,
+            fileName: document.fileName,
+            status: "error",
+            error:
+              docError instanceof Error ? docError.message : "Unknown error",
+          });
+          console.error(`💥 Error analyzing ${document.fileName}:`, docError);
+        }
+      }
+
+      setAnalysisResults(results);
+
+      // Refresh documents to get updated analysis status
+      try {
+        await handleRefresh();
+      } catch (refreshError) {
+        console.warn("⚠️ Failed to refresh documents:", refreshError);
+      }
+
+      // Show summary
+      const successCount = results.filter((r) => r.status === "success").length;
+      const errorCount = results.filter((r) => r.status === "error").length;
+
+      if (successCount > 0) {
+        alert(
+          `✅ Analysis completed!\n${successCount} documents analyzed successfully${
+            errorCount > 0 ? `\n${errorCount} documents had errors` : ""
+          }`
+        );
+      } else if (results.length > 0) {
+        alert(
+          `❌ Analysis failed for all documents. Check the console for details.`
+        );
+      } else {
+        alert("⚠️ No valid documents found to analyze.");
+      }
+    } catch (error) {
+      console.error("💥 Analysis error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Analysis failed";
+      setError(errorMessage);
+      alert(`Error during analysis: ${errorMessage}`);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, [client, documents, handleRefresh]);
 
   const fetchNoteCounts = async () => {
     try {
@@ -1065,13 +1250,38 @@ export default function ClientDetailPage() {
               <FileText className="w-5 h-5 mr-3" style={{ color: "#8b5cf6" }} />
               Documents ({documents.length})
             </h3>
-            <button
-              onClick={() => setIsUploadModalOpen(true)}
-              className="btn-primary text-xs px-2 py-1 flex items-center"
-            >
-              <Plus className="w-3 h-3 mr-1" />
-              Upload
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => {
+                  try {
+                    handleAnalyzeDocuments();
+                  } catch (error) {
+                    console.error(
+                      "Error calling handleAnalyzeDocuments:",
+                      error
+                    );
+                    alert(
+                      "Analysis function not available. Please refresh the page."
+                    );
+                  }
+                }}
+                disabled={
+                  !client || !documents || documents.length === 0 || isAnalyzing
+                }
+                className="btn-secondary text-xs px-2 py-1 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Run FNTP analysis on all documents"
+              >
+                <Activity className="w-3 h-3 mr-1" />
+                {isAnalyzing ? "Analyzing..." : "Analyze"}
+              </button>
+              <button
+                onClick={() => setIsUploadModalOpen(true)}
+                className="btn-primary text-xs px-2 py-1 flex items-center"
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Upload
+              </button>
+            </div>
           </div>
           <div className="max-h-48 overflow-y-auto">
             <ClientDocumentViewer
@@ -1082,6 +1292,63 @@ export default function ClientDetailPage() {
               compact={true}
             />
           </div>
+
+          {/* Analysis Results Section */}
+          {analysisResults.length > 0 && (
+            <div
+              className="mt-4 p-3 rounded-lg border"
+              style={{
+                background: "var(--bg-secondary)",
+                borderColor: "var(--border-primary)",
+              }}
+            >
+              <h4
+                className="text-sm font-semibold mb-2 flex items-center"
+                style={{ color: "var(--text-primary)" }}
+              >
+                <Activity
+                  className="w-4 h-4 mr-2"
+                  style={{ color: "#10b981" }}
+                />
+                Analysis Results
+              </h4>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {analysisResults.map((result, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between text-xs p-2 rounded"
+                    style={{
+                      background:
+                        result.status === "success"
+                          ? "rgba(16, 185, 129, 0.1)"
+                          : "rgba(239, 68, 68, 0.1)",
+                      border: `1px solid ${
+                        result.status === "success" ? "#10b981" : "#ef4444"
+                      }20`,
+                    }}
+                  >
+                    <span
+                      className="truncate flex-1"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      {result.fileName}
+                    </span>
+                    <span
+                      className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
+                        result.status === "success"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {result.status === "success"
+                        ? "✅ Analyzed"
+                        : "❌ Failed"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

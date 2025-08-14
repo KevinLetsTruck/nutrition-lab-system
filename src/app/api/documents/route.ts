@@ -76,9 +76,26 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const clientId = formData.get("clientId") as string;
-    const documentType = formData.get("documentType") as string;
+    let documentType = formData.get("documentType") as string;
     const labType = formData.get("labType") as string;
     const file = formData.get("file") as File;
+
+    // Map frontend document types to valid enum values
+    const documentTypeMap: Record<string, string> = {
+      lab_report: "LAB_REPORT",
+      imaging_report: "IMAGING_REPORT",
+      clinical_notes: "CLINICAL_NOTES",
+      pathology_report: "PATHOLOGY_REPORT",
+      assessment_form: "ASSESSMENT_FORM",
+      prescription: "PRESCRIPTION",
+      insurance_card: "INSURANCE_CARD",
+      intake_form: "INTAKE_FORM",
+      other: "UNKNOWN",
+      unknown: "UNKNOWN",
+    };
+
+    // Convert to valid enum value or default to UNKNOWN
+    documentType = documentTypeMap[documentType?.toLowerCase()] || "UNKNOWN";
 
     if (!clientId || !documentType || !file) {
       return NextResponse.json(
@@ -127,10 +144,8 @@ export async function POST(request: NextRequest) {
         fileUrl: `/uploads/${uniqueFileName}`, // Actual file URL
         documentType,
         labType: labType || null,
-        status: "uploaded",
-        extractedText: null,
-        extractedData: null,
-        aiAnalysis: null,
+        analysisStatus: "PENDING", // Using the correct enum value
+        tags: [], // Empty array for now, can be populated later
       },
       include: {
         client: {
@@ -146,6 +161,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(document, { status: 201 });
   } catch (error) {
+    console.error("❌ Document creation error:", error);
+
     if (
       error instanceof Error &&
       (error.message.includes("authorization") ||
@@ -155,7 +172,10 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: "Failed to create document" },
+      {
+        error:
+          error instanceof Error ? error.message : "Failed to create document",
+      },
       { status: 500 }
     );
   }

@@ -443,7 +443,9 @@ export class FNTPMasterProtocolGenerator {
       rootCause,
       analysisData
     );
-    supplements.push(...rootCauseSupplements.slice(0, 2)); // Ensure max 4 total
+    if (rootCauseSupplements && Array.isArray(rootCauseSupplements)) {
+      supplements.push(...rootCauseSupplements.slice(0, 2)); // Ensure max 4 total
+    }
 
     return {
       phase: 1,
@@ -707,7 +709,7 @@ export class FNTPMasterProtocolGenerator {
   // [Continue with generatePhase2, generatePhase3, and other methods]
 
   private async getAnalysisData(documentId: string) {
-    const document = await prisma.medicalDocument.findUnique({
+    const document = await prisma.document.findUnique({
       where: { id: documentId },
       include: {
         client: {
@@ -722,8 +724,8 @@ export class FNTPMasterProtocolGenerator {
             allergies: true,
           },
         },
-        labValues: true,
-        analysis: true,
+        LabValue: true,
+        DocumentAnalysis: true,
       },
     });
 
@@ -734,8 +736,8 @@ export class FNTPMasterProtocolGenerator {
     return {
       document,
       client: document.client,
-      labValues: document.labValues,
-      analysis: document.analysis,
+      labValues: document.LabValue || [],
+      analysis: document.DocumentAnalysis,
       symptoms: document.metadata ? (document.metadata as any).symptoms : [],
     };
   }
@@ -745,12 +747,12 @@ export class FNTPMasterProtocolGenerator {
     protocol: any
   ): Promise<void> {
     try {
-      await prisma.medicalDocument.update({
+      await prisma.document.update({
         where: { id: documentId },
         data: {
           metadata: {
             ...(
-              await prisma.medicalDocument.findUnique({
+              await prisma.document.findUnique({
                 where: { id: documentId },
                 select: { metadata: true },
               })

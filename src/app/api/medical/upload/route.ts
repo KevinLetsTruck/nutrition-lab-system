@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { medicalDocStorage } from "@/lib/medical/s3-storage";
 import { documentProcessingWorker } from "@/lib/medical/processing-worker";
+import { DocumentType, ProcessingStatus } from "@prisma/client";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_FILES_PER_UPLOAD = 10;
@@ -17,13 +18,13 @@ const ALLOWED_TYPES = [
 ];
 
 const DOCUMENT_TYPE_MAPPING = {
-  pdf: "lab_report",
-  jpeg: "scan",
-  jpg: "scan",
-  png: "scan",
-  tiff: "scan",
-  heic: "photo",
-  webp: "scan",
+  pdf: "LAB_REPORT",
+  jpeg: "IMAGING_REPORT",
+  jpg: "IMAGING_REPORT",
+  png: "IMAGING_REPORT",
+  tiff: "IMAGING_REPORT",
+  heic: "IMAGING_REPORT",
+  webp: "IMAGING_REPORT",
 };
 
 export async function POST(req: NextRequest) {
@@ -118,17 +119,22 @@ export async function POST(req: NextRequest) {
         const documentType =
           DOCUMENT_TYPE_MAPPING[
             extension as keyof typeof DOCUMENT_TYPE_MAPPING
-          ] || "unknown";
+          ] || "UNKNOWN";
 
         // Create database record
-        const document = await prisma.medicalDocument.create({
+        const document = await prisma.document.create({
           data: {
-            clientId,
-            documentType,
+            clientId: clientId || "standalone",
+            fileName: file.name,
             originalFileName: file.name,
-            s3Key: key,
-            s3Url: url,
-            status: "PENDING",
+            fileType: file.type,
+            fileSize: size || file.size,
+            fileUrl: url,
+            storageKey: key,
+            documentType: documentType as DocumentType,
+            extractedText: "",
+            ocrConfidence: 0,
+            status: ProcessingStatus.UPLOADED,
             metadata: {
               mimeType: file.type,
               originalSize: file.size,
@@ -138,6 +144,9 @@ export async function POST(req: NextRequest) {
               isRadioShow,
               uploadSource,
               uploadedBy: "kevin-rutherford-fntp",
+              s3Key: key,
+              s3Url: url,
+              s3Bucket: process.env.S3_MEDICAL_BUCKET_NAME || "",
             },
           },
           include: {

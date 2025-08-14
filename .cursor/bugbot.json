@@ -1,0 +1,84 @@
+{
+  "enabled": true,
+  "severity": {
+    "critical": true,
+    "high": true,
+    "medium": true,
+    "low": false
+  },
+  "rules": {
+    "typescript": {
+      "strictNullChecks": true,
+      "noImplicitAny": true,
+      "noImplicitReturns": true,
+      "noUnusedLocals": false,
+      "noUnusedParameters": false
+    },
+    "database": {
+      "prismaSchemaValidation": true,
+      "modelRelationshipChecks": true,
+      "fieldNameConsistency": true
+    },
+    "api": {
+      "errorHandling": true,
+      "authenticationChecks": true,
+      "responseValidation": true
+    },
+    "react": {
+      "hookDependencies": true,
+      "stateManagement": true,
+      "componentLifecycle": true
+    },
+    "medical": {
+      "dataValidation": true,
+      "hipaaCompliance": true,
+      "criticalValueHandling": true
+    }
+  },
+  "patterns": {
+    "ignore": [
+      "console.log",
+      "TODO:",
+      "FIXME:"
+    ],
+    "critical": [
+      "prisma.*\\.find.*\\(",
+      "labValues\\.find\\(",
+      "document\\.labValues",
+      "medicalDocument\\.",
+      "\\.find\\(.*undefined",
+      "Cannot read properties of undefined"
+    ],
+    "medical_specific": [
+      "lab.*value.*undefined",
+      "patient.*data.*null",
+      "supplement.*dosage.*invalid",
+      "protocol.*generation.*failed"
+    ]
+  },
+  "files": {
+    "include": [
+      "src/**/*.ts",
+      "src/**/*.tsx",
+      "prisma/**/*.prisma"
+    ],
+    "exclude": [
+      "node_modules/**",
+      ".next/**",
+      "dist/**",
+      "**/*.test.ts",
+      "**/*.spec.ts"
+    ]
+  },
+  "integrations": {
+    "prisma": {
+      "enabled": true,
+      "schemaPath": "prisma/schema.prisma"
+    },
+    "nextjs": {
+      "enabled": true,
+      "apiRoutes": true
+    }
+  }
+}
+

@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { X } from "lucide-react";
-import * as pdfjsLib from "pdfjs-dist";
 import PDFToolbar from "./PDFToolbar";
 import PDFSidebar from "./PDFSidebar";
 import { Annotation } from "./PDFViewer";
@@ -156,7 +155,7 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
 
         // Clear the canvas before rendering
         context.clearRect(0, 0, canvas.width, canvas.height);
-        
+
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
@@ -170,11 +169,11 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
         canvas._renderTask = renderTask;
 
         await renderTask.promise;
-        
+
         // Clear the render task reference when done
         canvas._renderTask = null;
       } catch (error) {
-        if (error.name !== 'RenderingCancelledException') {
+        if (error.name !== "RenderingCancelledException") {
           console.error("Error rendering page:", error);
         }
       }
@@ -308,7 +307,10 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
   }, []);
 
   const toggleFullscreen = useCallback(() => {
-    if (typeof window !== "undefined" && typeof window.document !== "undefined") {
+    if (
+      typeof window !== "undefined" &&
+      typeof window.document !== "undefined"
+    ) {
       if (!window.document.fullscreenElement) {
         viewerRef.current?.requestFullscreen();
         setState((prev) => ({ ...prev, isFullscreen: true }));
@@ -320,7 +322,10 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
   }, []);
 
   const downloadPDF = useCallback(() => {
-    if (typeof window !== "undefined" && typeof window.document !== "undefined") {
+    if (
+      typeof window !== "undefined" &&
+      typeof window.document !== "undefined"
+    ) {
       const link = window.document.createElement("a");
       link.href = document.url;
       link.download = document.name;
@@ -436,18 +441,28 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
       setState((prev) => ({
         ...prev,
         isFullscreen:
-          typeof window !== "undefined" && typeof window.document !== "undefined"
+          typeof window !== "undefined" &&
+          typeof window.document !== "undefined"
             ? !!window.document.fullscreenElement
             : false,
       }));
     };
 
-    if (typeof window !== "undefined" && typeof window.document !== "undefined") {
-      window.document.addEventListener("fullscreenchange", handleFullscreenChange);
+    if (
+      typeof window !== "undefined" &&
+      typeof window.document !== "undefined"
+    ) {
+      window.document.addEventListener(
+        "fullscreenchange",
+        handleFullscreenChange
+      );
     }
 
     return () => {
-      if (typeof window !== "undefined" && typeof window.document !== "undefined") {
+      if (
+        typeof window !== "undefined" &&
+        typeof window.document !== "undefined"
+      ) {
         window.document.removeEventListener(
           "fullscreenchange",
           handleFullscreenChange

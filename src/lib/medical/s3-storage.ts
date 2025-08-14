@@ -8,22 +8,22 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
 
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION!,
+  region: process.env.S3_REGION!,
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
   },
 });
 
 export class MedicalDocumentStorage {
-  private bucketName = process.env.AWS_S3_BUCKET_NAME!;
+  private bucketName = process.env.S3_MEDICAL_BUCKET_NAME!;
 
   async uploadDocument(
     file: Buffer,
     filename: string,
     mimeType: string,
     clientId?: string
-  ): Promise<{ key: string; url: string }> {
+  ): Promise<{ key: string; url: string; size: number; optimized: boolean }> {
     try {
       const folder = clientId ? `clients/${clientId}` : "standalone";
       const timestamp = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
@@ -39,7 +39,7 @@ export class MedicalDocumentStorage {
         Body: file,
         ContentType: mimeType,
         Metadata: {
-          originalName: filename,
+          originalName: this.sanitizeMetadataValue(filename),
           uploadDate: new Date().toISOString(),
           clientId: clientId || "standalone",
         },
@@ -47,11 +47,11 @@ export class MedicalDocumentStorage {
 
       await s3Client.send(command);
 
-      const url = `${process.env.AWS_S3_PUBLIC_URL}/${key}`;
+      const url = `https://${this.bucketName}.s3.${process.env.S3_REGION}.amazonaws.com/${key}`;
 
       console.log(`✅ Upload successful: ${url}`);
 
-      return { key, url };
+      return { key, url, size: file.length, optimized: false };
     } catch (error) {
       console.error("❌ S3 Upload Error:", error);
       throw new Error(
@@ -125,6 +125,15 @@ export class MedicalDocumentStorage {
         }`
       );
     }
+  }
+
+  // Sanitize metadata values for S3 (remove invalid characters)
+  private sanitizeMetadataValue(value: string): string {
+    return value
+      .replace(/[^\x00-\x7F]/g, "") // Remove non-ASCII characters
+      .replace(/[^\w\s\-\.]/g, "_") // Replace special chars with underscore
+      .replace(/\s+/g, "_") // Replace spaces with underscores
+      .substring(0, 255); // Limit length
   }
 
   // Test connection

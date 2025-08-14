@@ -175,6 +175,10 @@ export class FNTPProtocolGenerator {
   private detectPatternsFromLabValues(labValues: any[]): any[] {
     const patterns = [];
 
+    if (!labValues || !Array.isArray(labValues)) {
+      return patterns;
+    }
+
     // Check for insulin resistance pattern
     const glucose = labValues.find((lab) =>
       lab.testName.toLowerCase().includes("glucose")

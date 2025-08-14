@@ -2,6 +2,7 @@ import { googleVisionHTTPService, VisionOCRResult } from "./google-vision-http";
 import { prisma } from "@/lib/db/prisma";
 import { medicalDocStorage } from "./s3-storage";
 import { labValueExtractor } from "./lab-extractor";
+import { DocumentType, ProcessingStatus } from "@prisma/client";
 
 interface OCRResult {
   text: string;
@@ -22,6 +23,25 @@ interface DocumentProcessingResult {
 export class MedicalOCRService {
   private maxRetries = 3;
   private retryDelay = 2000;
+
+  /**
+   * Map classification type to DocumentType enum
+   */
+  private mapToDocumentType(type: string): DocumentType {
+    const typeMap: Record<string, DocumentType> = {
+      lab_report: DocumentType.LAB_REPORT,
+      nutriq_assessment: DocumentType.ASSESSMENT_FORM,
+      symptom_assessment: DocumentType.ASSESSMENT_FORM,
+      food_sensitivity: DocumentType.LAB_REPORT,
+      imaging: DocumentType.IMAGING_REPORT,
+      clinical_notes: DocumentType.CLINICAL_NOTES,
+      pathology: DocumentType.PATHOLOGY_REPORT,
+      prescription: DocumentType.PRESCRIPTION,
+      insurance: DocumentType.INSURANCE_CARD,
+      intake: DocumentType.INTAKE_FORM,
+    };
+    return typeMap[type] || DocumentType.UNKNOWN;
+  }
 
   /**
    * Initialize Google Vision API (no initialization needed - using singleton)
@@ -58,12 +78,12 @@ export class MedicalOCRService {
 
       // Update document status to failed
       try {
-        await prisma.medicalDocument.update({
+        await prisma.document.update({
           where: { id: documentId },
           data: {
-            status: "FAILED",
+            status: ProcessingStatus.FAILED,
             processedAt: new Date(),
-            ocrText: `Processing failed: ${error.message}`,
+            extractedText: `Processing failed: ${error.message}`,
             ocrConfidence: 0,
           },
         });
@@ -79,7 +99,7 @@ export class MedicalOCRService {
     documentId: string
   ): Promise<DocumentProcessingResult> {
     // Get document details
-    const document = await prisma.medicalDocument.findUnique({
+    const document = await prisma.document.findUnique({
       where: { id: documentId },
       include: {
         client: {
@@ -93,13 +113,15 @@ export class MedicalOCRService {
     }
 
     console.log(
-      `📄 Processing: ${document.originalFileName} (${document.documentType})`
+      `📄 Processing: ${document.originalFileName || document.fileName} (${
+        document.documentType
+      })`
     );
 
     // Update status to processing
-    await prisma.medicalDocument.update({
+    await prisma.document.update({
       where: { id: documentId },
-      data: { status: "PROCESSING" },
+      data: { status: ProcessingStatus.PROCESSING },
     });
 
     // Process based on file type
@@ -108,10 +130,14 @@ export class MedicalOCRService {
 
     if (mimeType === "application/pdf") {
       console.log("📑 Processing PDF document with Google Vision API...");
-      ocrResult = await this.processPDFWithGoogleVision(document.s3Key!);
+      ocrResult = await this.processPDFWithGoogleVision(
+        document.storageKey || (document.metadata?.s3Key as string)
+      );
     } else if (mimeType?.startsWith("image/")) {
       console.log("🖼️ Processing image document with Google Vision API...");
-      ocrResult = await this.processImageWithGoogleVision(document.s3Key!);
+      ocrResult = await this.processImageWithGoogleVision(
+        document.storageKey || (document.metadata?.s3Key as string)
+      );
     } else {
       throw new Error(`Unsupported file type: ${mimeType}`);
     }
@@ -124,14 +150,15 @@ export class MedicalOCRService {
     );
 
     // Update document with OCR results and detected type
-    await prisma.medicalDocument.update({
+    await prisma.document.update({
       where: { id: documentId },
       data: {
-        status: "COMPLETED",
+        status: ProcessingStatus.COMPLETED,
         processedAt: new Date(),
-        ocrText: ocrResult.text,
+        extractedText: ocrResult.text,
         ocrConfidence: ocrResult.confidence,
-        documentType: classification.type,
+        documentType: this.mapToDocumentType(classification.type),
+
         metadata: {
           ...document.metadata,
           ocrMethod: ocrResult.method,
