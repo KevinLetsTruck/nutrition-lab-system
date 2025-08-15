@@ -31,6 +31,10 @@ import {
   Code,
   Download,
   ShieldAlert,
+  Upload,
+  Image as ImageIcon,
+  X,
+  Expand,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -63,6 +67,7 @@ interface Issue {
   stackTrace?: string;
   blocksTesting?: boolean;
   quickFix?: string;
+  screenshots?: string[]; // Array of base64 image strings
   createdAt: Date;
   updatedAt: Date;
 }
@@ -234,6 +239,12 @@ export default function AssessmentIssuesPage() {
         if (issue.errorMessage) markdown += `- **Error**: ${issue.errorMessage}\n`;
         if (issue.quickFix) markdown += `- **Quick Fix**: ${issue.quickFix}\n`;
         if (issue.proposedFix) markdown += `- **Proposed Fix**: ${issue.proposedFix}\n`;
+        if (issue.screenshots && issue.screenshots.length > 0) {
+          markdown += `- **Screenshots**: ${issue.screenshots.length} attached\n`;
+          issue.screenshots.forEach((screenshot, i) => {
+            markdown += `  - ![Screenshot ${i + 1}](screenshot-${issue.id}-${i + 1}.png)\n`;
+          });
+        }
         markdown += `\n`;
       });
     }
@@ -250,6 +261,12 @@ export default function AssessmentIssuesPage() {
           markdown += `- **Status**: ${issue.status}\n`;
           markdown += `- **Description**: ${issue.description}\n`;
           if (issue.proposedFix) markdown += `- **Proposed Fix**: ${issue.proposedFix}\n`;
+          if (issue.screenshots && issue.screenshots.length > 0) {
+            markdown += `- **Screenshots**: ${issue.screenshots.length} attached\n`;
+            issue.screenshots.forEach((screenshot, i) => {
+              markdown += `  - ![Screenshot ${i + 1}](screenshot-${issue.id}-${i + 1}.png)\n`;
+            });
+          }
           markdown += `\n`;
         });
       }
@@ -266,7 +283,9 @@ export default function AssessmentIssuesPage() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    toast.success('Issues exported as markdown');
+    // Also copy to clipboard
+    navigator.clipboard.writeText(markdown);
+    toast.success('Issues exported and copied to clipboard!');
   }, [issues]);
 
   const addIssue = (issue: Omit<Issue, "id" | "createdAt" | "updatedAt">) => {
@@ -379,7 +398,7 @@ export default function AssessmentIssuesPage() {
             disabled={issues.length === 0}
           >
             <Download className="mr-2 h-4 w-4" />
-            Export Report
+            Export for Claude
           </Button>
         </div>
         <div className="text-sm text-gray-500">
@@ -543,6 +562,35 @@ export default function AssessmentIssuesPage() {
                         <strong>Fix:</strong> {issue.proposedFix}
                       </div>
                     )}
+                    
+                    {/* Screenshot thumbnails */}
+                    {issue.screenshots && issue.screenshots.length > 0 && (
+                      <div className="mt-3 flex items-center gap-2">
+                        <ImageIcon className="h-4 w-4 text-gray-500" />
+                        <div className="flex gap-2">
+                          {issue.screenshots.slice(0, 3).map((screenshot, i) => (
+                            <img
+                              key={i}
+                              src={screenshot}
+                              alt={`Screenshot ${i + 1}`}
+                              className="h-12 w-12 object-cover rounded border cursor-pointer hover:scale-110 transition-transform"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const win = window.open();
+                                if (win) {
+                                  win.document.write(`<img src="${screenshot}" style="max-width:100%;"/>`);
+                                }
+                              }}
+                            />
+                          ))}
+                          {issue.screenshots.length > 3 && (
+                            <div className="h-12 w-12 rounded border bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-600">
+                              +{issue.screenshots.length - 3}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="flex gap-2 ml-4">
                     {issue.status === "OPEN" && (
@@ -623,7 +671,70 @@ function QuickIssueForm({
     stackTrace: "",
     blocksTesting: false,
     quickFix: "",
+    screenshots: [] as string[],
   });
+  const [uploading, setUploading] = useState(false);
+
+  // Handle image upload
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    setUploading(true);
+    const newScreenshots = [...formData.screenshots];
+
+    Array.from(files).forEach(file => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (e.target?.result) {
+            newScreenshots.push(e.target.result as string);
+            setFormData(prev => ({ ...prev, screenshots: newScreenshots }));
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+    
+    setUploading(false);
+  };
+
+  // Handle paste for screenshots
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const blob = items[i].getAsFile();
+          if (blob) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              if (event.target?.result) {
+                setFormData(prev => ({
+                  ...prev,
+                  screenshots: [...prev.screenshots, event.target.result as string]
+                }));
+                toast.success('Screenshot pasted!');
+              }
+            };
+            reader.readAsDataURL(blob);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('paste', handlePaste);
+    return () => window.removeEventListener('paste', handlePaste);
+  }, [formData.screenshots]);
+
+  const removeScreenshot = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      screenshots: prev.screenshots.filter((_, i) => i !== index)
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -853,6 +964,81 @@ function QuickIssueForm({
           placeholder="How should this be fixed?"
           rows={2}
         />
+      </div>
+
+      {/* Screenshot Upload Section */}
+      <div>
+        <label className="block text-sm font-medium mb-1">Screenshots</label>
+        <div className="space-y-2">
+          {/* Upload Area */}
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
+            <input
+              type="file"
+              id="screenshot-upload"
+              multiple
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+            <label 
+              htmlFor="screenshot-upload" 
+              className="cursor-pointer"
+            >
+              <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+              <p className="text-sm text-gray-600">
+                Click to upload or paste screenshot
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Ctrl+V to paste from clipboard
+              </p>
+            </label>
+          </div>
+
+          {/* Screenshot Preview Grid */}
+          {formData.screenshots.length > 0 && (
+            <div className="grid grid-cols-3 gap-2">
+              {formData.screenshots.map((screenshot, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={screenshot}
+                    alt={`Screenshot ${index + 1}`}
+                    className="w-full h-24 object-cover rounded border cursor-pointer hover:opacity-90"
+                    onClick={() => {
+                      // Open in modal or new tab
+                      const win = window.open();
+                      if (win) {
+                        win.document.write(`<img src="${screenshot}" style="max-width:100%;"/>`);
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeScreenshot(index)}
+                    className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const win = window.open();
+                      if (win) {
+                        win.document.write(`<img src="${screenshot}" style="max-width:100%;"/>`);
+                      }
+                    }}
+                    className="absolute bottom-1 right-1 p-1 bg-blue-600 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Expand className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <p className="text-xs text-gray-500">
+            Tip: Use Windows Snipping Tool (Win+Shift+S) or Mac Screenshot (Cmd+Shift+4) then paste
+          </p>
+        </div>
       </div>
 
       <div className="flex justify-end gap-2">

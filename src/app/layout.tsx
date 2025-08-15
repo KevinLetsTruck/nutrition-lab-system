@@ -23,6 +23,7 @@ import { Toaster } from 'react-hot-toast';
 import { Toaster as Sonner } from 'sonner';
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DevToolbar } from "@/components/DevToolbar";
+import { QuickScreenshot } from "@/components/QuickScreenshot";
 
 export default function RootLayout({
   children,
@@ -43,6 +44,7 @@ export default function RootLayout({
           <ErrorBoundary>
             {children}
             <DevToolbar />
+            <QuickScreenshot />
           </ErrorBoundary>
           <Toaster
             position="top-right"
