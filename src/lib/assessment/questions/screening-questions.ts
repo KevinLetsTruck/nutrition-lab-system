@@ -201,7 +201,7 @@ export const screeningQuestions: AssessmentQuestion[] = [
     module: FunctionalModule.SCREENING,
     category: QuestionCategory.SEED_OIL,
     text: "Have you been on a low-fat diet using vegetable oils instead of saturated fats?",
-    type: QuestionType.DURATION,
+    type: QuestionType.MULTIPLE_CHOICE,
     options: [
       { value: 0, label: "Never", score: 0 },
       { value: 1, label: "Less than 1 year", score: 3 },

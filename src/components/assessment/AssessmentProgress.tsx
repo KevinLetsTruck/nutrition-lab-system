@@ -60,35 +60,15 @@ export function AssessmentProgress({
         </div>
       </div>
 
-      {/* Overall Stats */}
-      <div className="grid grid-cols-2 gap-4 pt-2 border-t">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-gray-900">
-            {totalQuestionsAsked}
-          </div>
-          <div className="text-xs text-gray-600">
-            Questions Asked
-          </div>
+      {/* Overall Stats - Simplified */}
+      <div className="text-center pt-2 border-t">
+        <div className="text-2xl font-bold text-gray-900">
+          {totalQuestionsAsked}
         </div>
-        
-        <div className="text-center">
-          <div className="text-2xl font-bold text-green-600">
-            {questionsSaved}
-          </div>
-          <div className="text-xs text-gray-600">
-            Questions Saved by AI
-          </div>
+        <div className="text-xs text-gray-600">
+          Total Questions Completed
         </div>
       </div>
-
-      {/* Efficiency Indicator */}
-      {questionsSaved > 0 && (
-        <div className="text-center py-2 bg-green-50 rounded-lg">
-          <span className="text-sm text-green-700">
-            ✨ AI saved you {efficiencyRate}% of questions
-          </span>
-        </div>
-      )}
 
       {/* Module List Preview */}
       <div className="pt-2 border-t">
