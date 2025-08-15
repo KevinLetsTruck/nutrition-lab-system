@@ -186,8 +186,12 @@ Respond with a JSON object:
     if (!selectedQuestion) {
       // Fallback to first available question if Claude's selection not found
       console.error('Claude selected invalid question ID:', aiResponse.selectedQuestionId);
+      const fallbackQuestion = {
+        ...availableQuestions[0],
+        type: availableQuestions[0].type as string
+      };
       return {
-        nextQuestion: availableQuestions[0],
+        nextQuestion: fallbackQuestion,
         nextModule: isNewModule ? module : undefined,
         questionsInModule: getQuestionsForModule(module).length,
         questionsSaved: 0,
@@ -195,8 +199,14 @@ Respond with a JSON object:
       };
     }
 
+    // Ensure question type is properly serialized as string
+    const formattedQuestion = {
+      ...selectedQuestion,
+      type: selectedQuestion.type as string
+    };
+
     return {
-      nextQuestion: selectedQuestion,
+      nextQuestion: formattedQuestion,
       nextModule: isNewModule ? module : undefined,
       questionsInModule: getQuestionsForModule(module).length,
       questionsSaved: aiResponse.estimatedQuestionsSaved || 0,
@@ -242,8 +252,14 @@ function fallbackQuestionSelection(
     reasoning = `Skipping ${skipCount} basic questions due to high severity symptoms`;
   }
 
+  // Ensure question type is properly serialized
+  const formattedQuestion = {
+    ...nextQuestion,
+    type: nextQuestion.type as string
+  };
+
   return {
-    nextQuestion,
+    nextQuestion: formattedQuestion,
     nextModule: isNewModule ? module : undefined,
     questionsInModule: getQuestionsForModule(module).length,
     questionsSaved,
