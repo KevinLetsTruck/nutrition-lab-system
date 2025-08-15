@@ -76,12 +76,12 @@ export function Frequency({
           <div className="flex justify-between items-center">
             <div>
               <div className={cn(
-                "font-medium",
+                "font-medium text-gray-900",
                 value === freq.value && "text-blue-900"
               )}>
                 {freq.label}
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-gray-600">
                 {freq.description}
               </div>
             </div>

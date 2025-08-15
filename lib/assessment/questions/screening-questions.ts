@@ -84,7 +84,7 @@ export const screeningQuestions: AssessmentQuestion[] = [
       { value: "grapeseed", label: "Grapeseed oil", score: 3 },
     ],
     scoringWeight: 2.0,
-    clinicalRelevance: ["lipid_peroxidation", "cell_membrane_health"]
+    clinicalRelevance: ["lipid_peroxidation", "cell_membrane_health"],
   },
 
   {

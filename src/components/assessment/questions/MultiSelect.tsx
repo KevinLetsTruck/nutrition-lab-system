@@ -72,8 +72,8 @@ export function MultiSelect({
                 )}
               </div>
               <span className={cn(
-                "flex-grow",
-                isSelected && "font-semibold"
+                "flex-grow text-gray-900",
+                isSelected && "font-semibold text-blue-900"
               )}>
                 {option.label}
               </span>
