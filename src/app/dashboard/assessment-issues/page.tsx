@@ -322,6 +322,47 @@ export default function AssessmentIssuesPage() {
         </p>
       </div>
 
+      {/* Decision Flow Card */}
+      <Card className="mb-6 border-2 border-purple-500">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5" />
+            Issue Routing Guide
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-bold text-red-600 mb-2">🔴 Bring to Claude IMMEDIATELY:</h3>
+              <ul className="text-sm space-y-1">
+                <li>• "Failed to fetch" errors</li>
+                <li>• Build/compile errors</li>
+                <li>• App crashes</li>
+                <li>• Can't proceed with testing</li>
+                <li>• Auth/API failures</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold text-green-600 mb-2">📝 Log & Continue Testing:</h3>
+              <ul className="text-sm space-y-1">
+                <li>• Wrong calculations</li>
+                <li>• UI/design issues</li>
+                <li>• Confusing wording</li>
+                <li>• Missing features</li>
+                <li>• Seed oil question problems</li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-4 p-3 bg-purple-50 rounded-lg">
+            <p className="text-sm">
+              <strong>Quick Rule:</strong> Can you continue testing? 
+              <span className="text-green-600 font-bold"> YES → Log it</span>, 
+              <span className="text-red-600 font-bold"> NO → Claude NOW</span>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Quick Add Button */}
       <div className="mb-6 flex items-center justify-between">
         <div className="flex gap-3">
@@ -643,6 +684,59 @@ function QuickIssueForm({
         </div>
       </div>
 
+      {/* Add Routing Indicator */}
+      {formData.category === 'TECHNICAL' && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertTriangle className="h-5 w-5 text-red-600" />
+            <strong className="text-red-900">BRING TO CLAUDE IMMEDIATELY</strong>
+          </div>
+          <p className="text-sm text-red-700">
+            Technical blockers need immediate fixing. Copy this error and bring to Claude:
+            1. Copy full error message
+            2. Note what you were doing
+            3. Get fix from Claude
+            4. Apply in Cursor
+          </p>
+        </div>
+      )}
+
+      {formData.category === 'BIAS' && (
+        <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertCircle className="h-5 w-5 text-orange-600" />
+            <strong className="text-orange-900">LOG NOW, FIX URGENTLY</strong>
+          </div>
+          <p className="text-sm text-orange-700">
+            Content bias affects assessment validity. Log it here, then bring batch to Claude after testing session.
+          </p>
+        </div>
+      )}
+
+      {(formData.category === 'WORDING' || formData.category === 'SEED_OIL') && (
+        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-yellow-600" />
+            <strong className="text-yellow-900">LOG FOR BATCH FIXING</strong>
+          </div>
+          <p className="text-sm text-yellow-700">
+            Continue testing. Bring these to Claude in batches after session.
+          </p>
+        </div>
+      )}
+
+      {(formData.category === 'UX' || formData.category === 'DESIGN') && (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-blue-600" />
+            <strong className="text-blue-900">LOG FOR WEEKLY BATCH</strong>
+          </div>
+          <p className="text-sm text-blue-700">
+            Lower priority. Fix in weekly batch or when convenient.
+          </p>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">Question ID</label>
@@ -679,6 +773,34 @@ function QuickIssueForm({
           rows={3}
         />
       </div>
+
+      {/* Blocks Testing Checkbox */}
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="blocksTesting"
+          checked={formData.blocksTesting}
+          onChange={(e) => setFormData({...formData, blocksTesting: e.target.checked})}
+          className="h-4 w-4"
+        />
+        <label htmlFor="blocksTesting" className="text-sm font-medium">
+          This issue blocks testing (needs immediate fix)
+        </label>
+      </div>
+
+      {formData.blocksTesting && (
+        <div className="p-3 bg-red-100 border-2 border-red-500 rounded-lg animate-pulse">
+          <strong className="text-red-900">⚠️ BLOCKING ISSUE - GET HELP NOW</strong>
+          <p className="text-sm text-red-700 mt-1">
+            Since this blocks testing:
+            1. Copy error details
+            2. Go to Claude immediately
+            3. Say: "I have a blocking technical issue in the assessment system"
+            4. Paste the error
+            5. Apply fix in Cursor before continuing
+          </p>
+        </div>
+      )}
 
       {/* Technical Issue Fields */}
       {formData.category === "TECHNICAL" && (
@@ -717,21 +839,6 @@ function QuickIssueForm({
               placeholder="Immediate steps to resolve or work around this issue"
               rows={2}
             />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="blocksTesting"
-              checked={formData.blocksTesting}
-              onChange={(e) =>
-                setFormData({ ...formData, blocksTesting: e.target.checked })
-              }
-              className="h-4 w-4 text-red-600"
-            />
-            <label htmlFor="blocksTesting" className="text-sm font-medium text-red-600">
-              This issue blocks testing
-            </label>
           </div>
         </>
       )}
