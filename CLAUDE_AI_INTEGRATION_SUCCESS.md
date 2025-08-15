@@ -10,8 +10,8 @@ The assessment system is now using Claude AI for intelligent question selection!
 ✅ Claude Response:
 {
   "selectedQuestionId": "screening_20",
-  "reasoning": "Given the high fatigue severity (8/10) combined with daily fried food consumption, 
-               checking for post-meal energy crashes is crucial as it could indicate blood sugar 
+  "reasoning": "Given the high fatigue severity (8/10) combined with daily fried food consumption,
+               checking for post-meal energy crashes is crucial as it could indicate blood sugar
                dysregulation or metabolic issues.",
   "questionsToSkip": ["screening_15"],
   "estimatedQuestionsSaved": 1
@@ -23,11 +23,13 @@ The assessment system is now using Claude AI for intelligent question selection!
 ### What This Means:
 
 1. **Smart Question Selection**
+
    - Claude identified the fatigue + fried foods pattern
    - Selected "Do you crash after meals?" as most diagnostic
    - Skipped redundant chronic fatigue question
 
 2. **Clinical Reasoning**
+
    - Recognized potential metabolic dysfunction
    - Connected dietary habits to energy issues
    - Prioritized questions that reveal root causes
@@ -47,6 +49,7 @@ The assessment system is now using Claude AI for intelligent question selection!
 ### What Users Experience:
 
 Instead of answering 400+ questions sequentially, users now get:
+
 - Personalized question paths based on their responses
 - Skip redundant questions automatically
 - Complete assessment in 60-90 minutes vs 2-3 hours
@@ -55,6 +58,7 @@ Instead of answering 400+ questions sequentially, users now get:
 ### Next Steps:
 
 The system is fully operational. As users complete assessments:
+
 - Monitor questions saved metrics
 - Track completion rates
 - Gather user feedback on experience

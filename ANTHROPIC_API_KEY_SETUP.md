@@ -11,6 +11,7 @@ ANTHROPIC_API_KEY="sk-ant-api03-your-actual-key-here"
 ## 🔑 To Complete Setup:
 
 1. **Get your actual API key from Anthropic:**
+
    - Go to [console.anthropic.com](https://console.anthropic.com)
    - Sign in or create an account
    - Navigate to API Keys
@@ -18,6 +19,7 @@ ANTHROPIC_API_KEY="sk-ant-api03-your-actual-key-here"
    - Copy the key (it will look like: `sk-ant-api03-xxxxxxxxxxxxx`)
 
 2. **Replace the placeholder:**
+
    - Open `.env.local`
    - Replace `sk-ant-api03-your-actual-key-here` with your actual key
    - Save the file
@@ -28,12 +30,15 @@ ANTHROPIC_API_KEY="sk-ant-api03-your-actual-key-here"
    ```
 
 ## 📝 Note:
+
 - The key has been added to both `ANTHROPIC_API_KEY` and `CLAUDE_API_KEY` variables
 - Your `.env.local` has been backed up before changes
 - Never commit your actual API key to version control
 
 ## 🧪 Testing Without API Key:
+
 If you want to see how the system works without an API key:
+
 ```bash
 npm run test:claude-mock
 ```
