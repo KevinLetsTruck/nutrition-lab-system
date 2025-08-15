@@ -1,6 +1,6 @@
 import { Anthropic } from '@anthropic-ai/sdk';
-import { AssessmentQuestion, ClientResponse, ModuleType } from '@/lib/assessment/types';
-import { getScreeningQuestions } from '@/lib/assessment/questions/screening-questions';
+import { AssessmentQuestion, ClientResponse, ModuleType, FunctionalModule } from '@/lib/assessment/types';
+import { getQuestionsByModule } from '@/lib/assessment/questions';
 // Import other modules when they are implemented
 // import { getAssimilationQuestions } from '@/lib/assessment/questions/assimilation-questions';
 // import { getDefenseRepairQuestions } from '@/lib/assessment/questions/defense-repair-questions';
@@ -43,21 +43,9 @@ const MODULE_SEQUENCE: ModuleType[] = [
 ];
 
 function getQuestionsForModule(module: ModuleType): AssessmentQuestion[] {
-  switch (module) {
-    case 'SCREENING': 
-      return getScreeningQuestions();
-    // Uncomment as modules are implemented
-    // case 'ASSIMILATION': return getAssimilationQuestions();
-    // case 'DEFENSE_REPAIR': return getDefenseRepairQuestions();
-    // case 'ENERGY': return getEnergyQuestions();
-    // case 'BIOTRANSFORMATION': return getBiotransformationQuestions();
-    // case 'TRANSPORT': return getTransportQuestions();
-    // case 'COMMUNICATION': return getCommunicationQuestions();
-    // case 'STRUCTURAL': return getStructuralQuestions();
-    default: 
-      // For now, return screening questions as placeholder
-      return getScreeningQuestions();
-  }
+  // Convert Prisma ModuleType to FunctionalModule enum
+  const functionalModule = module as unknown as FunctionalModule;
+  return getQuestionsByModule(functionalModule);
 }
 
 export async function getNextQuestionWithAI(context: AssessmentContext): Promise<AIDecision> {
@@ -266,10 +254,9 @@ function fallbackQuestionSelection(
 // Keep the original assessment AI class and methods below for other functionality
 
 import {
-  FunctionalModule,
   SeedOilAssessment,
 } from "@/lib/assessment/types";
-import { prisma } from "@/src/lib/db";
+import { prisma } from "@/lib/db";
 
 export class AssessmentAIService {
   private readonly MODEL = "claude-3-opus-20240229";

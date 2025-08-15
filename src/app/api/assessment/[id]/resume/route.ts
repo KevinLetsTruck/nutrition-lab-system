@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/src/lib/db';
-import { auth } from '@/src/lib/auth';
-import { getScreeningQuestions } from '@/lib/assessment/questions/screening-questions';
+import { prisma } from '@/lib/db';
+import { auth } from '@/lib/auth';
+import { getQuestionsByModule } from '@/lib/assessment/questions';
+import { FunctionalModule } from '@/lib/assessment/types';
 // Import other modules as they are created
 // import { getAssimilationQuestions } from '@/lib/assessment/questions/assimilation-questions';
 // import { getDefenseRepairQuestions } from '@/lib/assessment/questions/defense-repair-questions';
@@ -13,29 +14,9 @@ import { getScreeningQuestions } from '@/lib/assessment/questions/screening-ques
 import { ModuleType } from '@prisma/client';
 
 const getQuestionsForModule = (module: ModuleType) => {
-  switch (module) {
-    case 'SCREENING':
-      return getScreeningQuestions();
-    // Uncomment as modules are implemented
-    // case 'ASSIMILATION':
-    //   return getAssimilationQuestions();
-    // case 'DEFENSE_REPAIR':
-    //   return getDefenseRepairQuestions();
-    // case 'ENERGY':
-    //   return getEnergyQuestions();
-    // case 'BIOTRANSFORMATION':
-    //   return getBiotransformationQuestions();
-    // case 'TRANSPORT':
-    //   return getTransportQuestions();
-    // case 'COMMUNICATION':
-    //   return getCommunicationQuestions();
-    // case 'STRUCTURAL':
-    //   return getStructuralQuestions();
-    default:
-      // For now, return screening questions as placeholder
-      // TODO: Implement proper error handling when all modules are ready
-      return getScreeningQuestions();
-  }
+  // Convert Prisma ModuleType to FunctionalModule enum
+  const functionalModule = module as unknown as FunctionalModule;
+  return getQuestionsByModule(functionalModule);
 };
 
 export async function POST(

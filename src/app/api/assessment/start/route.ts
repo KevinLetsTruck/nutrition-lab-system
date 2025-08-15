@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/src/lib/db';
-import { auth } from '@/src/lib/auth';
-import { getScreeningQuestions } from '@/lib/assessment/questions/screening-questions';
+import { prisma } from '@/lib/db';
+import { auth } from '@/lib/auth';
+import { getQuestionsByModule } from '@/lib/assessment/questions';
+import { FunctionalModule } from '@/lib/assessment/types';
 import { AssessmentStatus } from '@prisma/client';
 
 export async function POST(req: NextRequest) {
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
       });
 
       const lastResponse = responses[0];
-      const questions = getScreeningQuestions();
+      const questions = getQuestionsByModule(FunctionalModule.SCREENING);
       
       // Find next question after last answered
       let nextQuestionIndex = 0;
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest) {
 
     // If no template exists, create the default one
     if (!assessmentTemplate) {
-      const allQuestions = getScreeningQuestions();
+      const allQuestions = getQuestionsByModule(FunctionalModule.SCREENING);
       
       assessmentTemplate = await prisma.assessmentTemplate.create({
         data: {
@@ -96,7 +97,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Get first question from screening module
-    const questions = getScreeningQuestions();
+    const questions = getQuestionsByModule(FunctionalModule.SCREENING);
     const firstQuestion = questions[0];
 
     // Log assessment start

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/src/lib/db';
-import { auth } from '@/src/lib/auth';
+import { prisma } from '@/lib/db';
+import { auth } from '@/lib/auth';
 import { getNextQuestionWithAI } from '@/lib/ai/assessment-ai';
-import { getScreeningQuestions } from '@/lib/assessment/questions/screening-questions';
+import { getQuestionsByModule } from '@/lib/assessment/questions';
+import { FunctionalModule } from '@/lib/assessment/types';
 
 export async function POST(
   req: NextRequest,
@@ -44,7 +45,7 @@ export async function POST(
     }
 
     // Get the current question to determine response type
-    const questions = getScreeningQuestions();
+    const questions = getQuestionsByModule(FunctionalModule.SCREENING);
     const currentQuestion = questions.find(q => q.id === questionId);
     
     if (!currentQuestion) {
