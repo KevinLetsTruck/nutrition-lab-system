@@ -12,6 +12,7 @@ import {
   Archive,
   Monitor,
   Bug,
+  TestTube,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -82,6 +83,16 @@ export default function DashboardLayout({
             {/* Bottom Row - Navigation Links */}
             <div className="hidden sm:flex sm:space-x-8 pb-4">
               <Link
+                href="/dashboard/testing"
+                className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
+                  isActive("/dashboard/testing") ? "active" : ""
+                }`}
+              >
+                <TestTube className="h-5 w-5 mr-3" />
+                Testing Hub
+                <span className="ml-2 px-1.5 py-0.5 text-xs bg-green-500 text-white rounded">NEW</span>
+              </Link>
+              <Link
                 href="/dashboard/clients"
                 className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
                   isActive("/dashboard/clients") &&
@@ -135,6 +146,16 @@ export default function DashboardLayout({
           {/* Mobile Navigation */}
           <div className="sm:hidden border-t border-[#334155]">
             <div className="px-4 py-3 space-y-2">
+              <Link
+                href="/dashboard/testing"
+                className={`nav-link-large block px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
+                  isActive("/dashboard/testing") ? "active" : ""
+                }`}
+              >
+                <TestTube className="h-5 w-5 mr-3 inline" />
+                Testing Hub
+                <span className="ml-2 px-1.5 py-0.5 text-xs bg-green-500 text-white rounded">NEW</span>
+              </Link>
               <Link
                 href="/dashboard/clients"
                 className={`nav-link-large block px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
