@@ -1,82 +1,168 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
+import { prisma } from '@/src/lib/db';
+import { auth } from '@/src/lib/auth';
+import { getScreeningQuestions } from '@/lib/assessment/questions/screening-questions';
+// Import other modules as they are created
+// import { getAssimilationQuestions } from '@/lib/assessment/questions/assimilation-questions';
+// import { getDefenseRepairQuestions } from '@/lib/assessment/questions/defense-repair-questions';
+// import { getEnergyQuestions } from '@/lib/assessment/questions/energy-questions';
+// import { getBiotransformationQuestions } from '@/lib/assessment/questions/biotransformation-questions';
+// import { getTransportQuestions } from '@/lib/assessment/questions/transport-questions';
+// import { getCommunicationQuestions } from '@/lib/assessment/questions/communication-questions';
+// import { getStructuralQuestions } from '@/lib/assessment/questions/structural-questions';
+import { ModuleType } from '@prisma/client';
 
-interface APIResponse<T = any> {
-  success: boolean;
-  data?: T;
-  error?: {
-    code: string;
-    message: string;
-  };
-}
+const getQuestionsForModule = (module: ModuleType) => {
+  switch (module) {
+    case 'SCREENING':
+      return getScreeningQuestions();
+    // Uncomment as modules are implemented
+    // case 'ASSIMILATION':
+    //   return getAssimilationQuestions();
+    // case 'DEFENSE_REPAIR':
+    //   return getDefenseRepairQuestions();
+    // case 'ENERGY':
+    //   return getEnergyQuestions();
+    // case 'BIOTRANSFORMATION':
+    //   return getBiotransformationQuestions();
+    // case 'TRANSPORT':
+    //   return getTransportQuestions();
+    // case 'COMMUNICATION':
+    //   return getCommunicationQuestions();
+    // case 'STRUCTURAL':
+    //   return getStructuralQuestions();
+    default:
+      // For now, return screening questions as placeholder
+      // TODO: Implement proper error handling when all modules are ready
+      return getScreeningQuestions();
+  }
+};
 
 export async function POST(
-  request: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    // Get the authenticated user
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const assessmentId = params.id;
 
-    const assessment = await prisma.clientAssessment.findUnique({
-      where: { id: assessmentId },
+    // Get assessment with responses
+    const assessment = await prisma.clientAssessment.findFirst({
+      where: {
+        id: assessmentId,
+        clientId: session.user.id,
+        status: { in: ['PAUSED', 'IN_PROGRESS'] }
+      },
       include: {
         responses: {
-          select: {
-            id: true,
-            questionId: true
-          }
+          orderBy: { answeredAt: 'desc' }
         }
       }
     });
 
     if (!assessment) {
-      return NextResponse.json<APIResponse>({
-        success: false,
-        error: {
-          code: 'ASSESSMENT_NOT_FOUND',
-          message: 'Assessment not found'
-        }
-      }, { status: 404 });
+      return NextResponse.json(
+        { success: false, error: 'Assessment not found or cannot be resumed' },
+        { status: 404 }
+      );
     }
 
-    if (assessment.status !== 'PAUSED') {
-      return NextResponse.json<APIResponse>({
-        success: false,
-        error: {
-          code: 'CANNOT_RESUME',
-          message: 'Only paused assessments can be resumed'
-        }
-      }, { status: 400 });
-    }
-
-    // Resume the assessment
-    const updated = await prisma.clientAssessment.update({
+    // Update assessment status to IN_PROGRESS
+    await prisma.clientAssessment.update({
       where: { id: assessmentId },
       data: {
         status: 'IN_PROGRESS',
-        lastActiveAt: new Date()
+        lastActiveAt: new Date(),
+        aiContext: {
+          ...(assessment.aiContext as any || {}),
+          resumedAt: new Date(),
+          resumeCount: ((assessment.aiContext as any)?.resumeCount || 0) + 1
+        }
       }
     });
 
-    return NextResponse.json<APIResponse>({
-      success: true,
-      data: {
-        status: updated.status,
-        currentModule: updated.currentModule,
-        questionsAnswered: assessment.responses.length,
-        completionRate: updated.completionRate,
-        aiContext: updated.aiContext // Restore AI context for continuity
+    // Get questions for current module
+    const moduleQuestions = getQuestionsForModule(assessment.currentModule);
+    
+    // Find the last answered question and determine next
+    let currentQuestion = null;
+    let questionsAnsweredInModule = 0;
+
+    if (assessment.responses.length > 0) {
+      // Count questions answered in current module
+      questionsAnsweredInModule = assessment.responses.filter(
+        r => r.questionModule === assessment.currentModule
+      ).length;
+
+      // Get the last response
+      const lastResponse = assessment.responses[0];
+      
+      // Find the index of the last answered question
+      const lastQuestionIndex = moduleQuestions.findIndex(
+        q => q.id === lastResponse.questionId
+      );
+
+      // Get the next question
+      if (lastQuestionIndex >= 0 && lastQuestionIndex < moduleQuestions.length - 1) {
+        currentQuestion = moduleQuestions[lastQuestionIndex + 1];
+      } else if (lastQuestionIndex === moduleQuestions.length - 1) {
+        // Module complete, need to move to next module
+        // This will be handled by the next response submission
+        currentQuestion = null;
+      } else {
+        // Couldn't find last question, start from beginning of module
+        currentQuestion = moduleQuestions[0];
       }
+    } else {
+      // No responses yet, start from the beginning
+      currentQuestion = moduleQuestions[0];
+    }
+
+    // Prepare resume data
+    const resumeData = {
+      assessmentId,
+      currentQuestion,
+      currentModule: assessment.currentModule,
+      responses: assessment.responses.map(r => ({
+        id: r.id,
+        questionId: r.questionId,
+        questionText: r.questionText,
+        questionModule: r.questionModule,
+        responseType: r.responseType,
+        responseValue: r.responseValue,
+        answeredAt: r.answeredAt
+      })),
+      questionsAsked: assessment.questionsAsked,
+      questionsSaved: assessment.questionsSaved || 0,
+      questionsAnsweredInModule,
+      questionsInCurrentModule: moduleQuestions.length,
+      progressPercentage: Math.round((assessment.questionsAsked / 400) * 100)
+    };
+
+    console.log(`Assessment ${assessmentId} resumed by user ${session.user.id}`);
+
+    return NextResponse.json({
+      success: true,
+      data: resumeData
     });
 
   } catch (error) {
     console.error('Error resuming assessment:', error);
-    return NextResponse.json<APIResponse>({
-      success: false,
-      error: {
-        code: 'RESUME_ERROR',
-        message: 'Failed to resume assessment'
-      }
-    }, { status: 500 });
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'Failed to resume assessment',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
   }
 }

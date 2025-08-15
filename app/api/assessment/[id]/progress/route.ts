@@ -1,79 +1,164 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
+import { prisma } from '@/src/lib/db';
+import { auth } from '@/src/lib/auth';
 
-interface APIResponse<T = any> {
-  success: boolean;
-  data?: T;
-  error?: {
-    code: string;
-    message: string;
-  };
-}
+const MODULE_TOTALS = {
+  SCREENING: 75,
+  ASSIMILATION: 65,
+  DEFENSE_REPAIR: 60,
+  ENERGY: 70,
+  BIOTRANSFORMATION: 55,
+  TRANSPORT: 50,
+  COMMUNICATION: 75,
+  STRUCTURAL: 45
+};
 
 export async function GET(
-  request: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    // Get the authenticated user
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const assessmentId = params.id;
 
-    const assessment = await prisma.clientAssessment.findUnique({
-      where: { id: assessmentId },
+    // Get assessment with responses
+    const assessment = await prisma.clientAssessment.findFirst({
+      where: {
+        id: assessmentId,
+        clientId: session.user.id
+      },
       include: {
         responses: {
           select: {
-            questionModule: true
-          }
+            id: true,
+            questionModule: true,
+            responseType: true,
+            answeredAt: true
+          },
+          orderBy: { answeredAt: 'asc' }
         },
-        template: true
+        assessmentTemplate: {
+          select: {
+            name: true,
+            description: true
+          }
+        }
       }
     });
 
     if (!assessment) {
-      return NextResponse.json<APIResponse>({
-        success: false,
-        error: {
-          code: 'ASSESSMENT_NOT_FOUND',
-          message: 'Assessment not found'
-        }
-      }, { status: 404 });
+      return NextResponse.json(
+        { success: false, error: 'Assessment not found' },
+        { status: 404 }
+      );
     }
 
-    // Calculate module progress
-    const moduleProgress = assessment.responses.reduce((acc, r) => {
-      acc[r.questionModule] = (acc[r.questionModule] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    // Calculate module-specific progress
+    const moduleProgress: Record<string, {
+      answered: number;
+      total: number;
+      percentage: number;
+    }> = {};
 
-    // Estimate time remaining (2 minutes per question average)
-    const estimatedQuestionsRemaining = Math.max(0, 150 - assessment.questionsAsked);
-    const estimatedMinutesRemaining = estimatedQuestionsRemaining * 2;
+    // Initialize all modules
+    Object.entries(MODULE_TOTALS).forEach(([module, total]) => {
+      moduleProgress[module] = {
+        answered: 0,
+        total,
+        percentage: 0
+      };
+    });
 
-    return NextResponse.json<APIResponse>({
-      success: true,
-      data: {
-        status: assessment.status,
-        currentModule: assessment.currentModule,
-        questionsAsked: assessment.questionsAsked,
-        questionsSaved: assessment.questionsSaved,
-        completionRate: assessment.completionRate,
-        moduleProgress,
-        estimatedMinutesRemaining,
-        startedAt: assessment.startedAt,
-        lastActiveAt: assessment.lastActiveAt,
-        pausedAt: assessment.pausedAt,
-        completedAt: assessment.completedAt
+    // Count responses per module
+    assessment.responses.forEach(response => {
+      if (moduleProgress[response.questionModule]) {
+        moduleProgress[response.questionModule].answered++;
       }
     });
 
+    // Calculate percentages
+    Object.keys(moduleProgress).forEach(module => {
+      const { answered, total } = moduleProgress[module];
+      moduleProgress[module].percentage = Math.round((answered / total) * 100);
+    });
+
+    // Calculate overall progress
+    const totalQuestions = Object.values(MODULE_TOTALS).reduce((sum, count) => sum + count, 0);
+    const overallPercentage = Math.round((assessment.questionsAsked / totalQuestions) * 100);
+
+    // Determine estimated time remaining
+    const averageTimePerQuestion = 30; // seconds
+    const remainingQuestions = totalQuestions - assessment.questionsAsked;
+    const estimatedMinutesRemaining = Math.ceil((remainingQuestions * averageTimePerQuestion) / 60);
+
+    // Calculate AI efficiency
+    const potentialQuestions = assessment.questionsAsked + (assessment.questionsSaved || 0);
+    const efficiencyRate = potentialQuestions > 0 
+      ? Math.round(((assessment.questionsSaved || 0) / potentialQuestions) * 100)
+      : 0;
+
+    const progressData = {
+      assessmentId,
+      assessmentName: assessment.assessmentTemplate?.name || 'Health Assessment',
+      status: assessment.status,
+      startedAt: assessment.startedAt,
+      lastActiveAt: assessment.lastActiveAt,
+      completedAt: assessment.completedAt,
+      
+      // Current state
+      currentModule: assessment.currentModule,
+      currentModuleProgress: moduleProgress[assessment.currentModule],
+      
+      // Overall progress
+      questionsAsked: assessment.questionsAsked,
+      questionsSaved: assessment.questionsSaved || 0,
+      totalQuestions,
+      overallPercentage,
+      
+      // Module breakdown
+      moduleProgress,
+      
+      // Time estimates
+      estimatedMinutesRemaining,
+      sessionDuration: assessment.startedAt 
+        ? Math.round((new Date().getTime() - new Date(assessment.startedAt).getTime()) / 1000 / 60)
+        : 0,
+      
+      // AI efficiency
+      efficiencyRate,
+      efficiencyMessage: efficiencyRate > 0 
+        ? `AI has saved you ${assessment.questionsSaved} questions (${efficiencyRate}% reduction)`
+        : 'AI is analyzing your responses to optimize the assessment',
+      
+      // Response history
+      totalResponses: assessment.responses.length,
+      lastResponseAt: assessment.responses.length > 0 
+        ? assessment.responses[assessment.responses.length - 1].answeredAt
+        : null
+    };
+
+    return NextResponse.json({
+      success: true,
+      data: progressData
+    });
+
   } catch (error) {
-    console.error('Error getting progress:', error);
-    return NextResponse.json<APIResponse>({
-      success: false,
-      error: {
-        code: 'PROGRESS_ERROR',
-        message: 'Failed to get assessment progress'
-      }
-    }, { status: 500 });
+    console.error('Error fetching assessment progress:', error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'Failed to fetch assessment progress',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
   }
 }
