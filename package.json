@@ -36,6 +36,7 @@
     "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-tabs": "^1.1.12",
     "@radix-ui/react-toast": "^1.2.14",
+    "@sentry/nextjs": "^10.5.0",
     "aws-sdk": "^2.1692.0",
     "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",
@@ -91,6 +92,7 @@
     "dotenv-cli": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "^15.4.6",
+    "https-proxy-agent": "^7.0.6",
     "tailwindcss": "^4",
     "tsx": "^4.20.3",
     "typescript": "^5"
