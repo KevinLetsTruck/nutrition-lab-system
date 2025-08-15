@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,6 +29,8 @@ import {
   Brain,
   Zap,
   Code,
+  Download,
+  ShieldAlert,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -40,7 +42,8 @@ type IssueCategory =
   | "LOGIC"
   | "AI"
   | "BUG"
-  | "DESIGN";
+  | "DESIGN"
+  | "TECHNICAL";
 type IssuePriority = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 type IssueStatus = "OPEN" | "IN_PROGRESS" | "FIXED" | "VERIFIED";
 
@@ -56,6 +59,10 @@ interface Issue {
   reproSteps?: string;
   proposedFix?: string;
   location?: string;
+  errorMessage?: string;
+  stackTrace?: string;
+  blocksTesting?: boolean;
+  quickFix?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -93,13 +100,52 @@ const CATEGORY_CONFIG = {
   },
   BUG: { label: "Bug", icon: Bug, color: "text-red-600 bg-red-50" },
   DESIGN: { label: "Design", icon: Layout, color: "text-pink-600 bg-pink-50" },
+  TECHNICAL: {
+    label: "Technical Error",
+    icon: ShieldAlert,
+    color: "text-red-700 bg-red-100 border-red-300",
+  },
 };
 
 const PRIORITY_CONFIG = {
-  CRITICAL: { label: "Critical", color: "bg-red-600" },
-  HIGH: { label: "High", color: "bg-orange-600" },
-  MEDIUM: { label: "Medium", color: "bg-yellow-600" },
-  LOW: { label: "Low", color: "bg-gray-600" },
+  CRITICAL: { 
+    label: "Critical", 
+    color: "bg-orange-600",
+    borderColor: "border-orange-600",
+    textColor: "text-orange-600" 
+  },
+  HIGH: { 
+    label: "High", 
+    color: "bg-yellow-600",
+    borderColor: "border-yellow-600",
+    textColor: "text-yellow-600" 
+  },
+  MEDIUM: { 
+    label: "Medium", 
+    color: "bg-blue-600",
+    borderColor: "border-blue-600",
+    textColor: "text-blue-600" 
+  },
+  LOW: { 
+    label: "Low", 
+    color: "bg-green-600",
+    borderColor: "border-green-600",
+    textColor: "text-green-600" 
+  },
+};
+
+// Special color for blockers
+const getIssueCardColor = (issue: Issue) => {
+  if (issue.blocksTesting) {
+    return "border-red-600 bg-red-50";
+  }
+  if (issue.priority === "CRITICAL") {
+    return "border-orange-200 bg-orange-50";
+  }
+  if (issue.priority === "HIGH") {
+    return "border-yellow-200 bg-yellow-50";
+  }
+  return "";
 };
 
 export default function AssessmentIssuesPage() {
@@ -145,6 +191,84 @@ export default function AssessmentIssuesPage() {
     localStorage.setItem("assessment-issues", JSON.stringify(issues));
   }, [issues]);
 
+  // Keyboard shortcut for quick issue logging
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === "I") {
+        e.preventDefault();
+        setShowAddForm(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, []);
+
+  // Export function to generate markdown report
+  const exportIssuesAsMarkdown = useCallback(() => {
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    
+    let markdown = `# Assessment Issues Report\n`;
+    markdown += `Generated: ${now.toLocaleString()}\n\n`;
+    
+    // Summary stats
+    markdown += `## Summary\n`;
+    markdown += `- Total Issues: ${issues.length}\n`;
+    markdown += `- Blocking Issues: ${issues.filter(i => i.blocksTesting).length}\n`;
+    markdown += `- Critical: ${issues.filter(i => i.priority === 'CRITICAL').length}\n`;
+    markdown += `- Open: ${issues.filter(i => i.status === 'OPEN').length}\n`;
+    markdown += `- In Progress: ${issues.filter(i => i.status === 'IN_PROGRESS').length}\n\n`;
+    
+    // Blocking issues first
+    const blockingIssues = issues.filter(i => i.blocksTesting);
+    if (blockingIssues.length > 0) {
+      markdown += `## 🚨 BLOCKING ISSUES\n\n`;
+      blockingIssues.forEach(issue => {
+        markdown += `### ${issue.title}\n`;
+        markdown += `- **ID**: ${issue.id}\n`;
+        markdown += `- **Category**: ${issue.category}\n`;
+        markdown += `- **Priority**: ${issue.priority}\n`;
+        markdown += `- **Status**: ${issue.status}\n`;
+        markdown += `- **Description**: ${issue.description}\n`;
+        if (issue.errorMessage) markdown += `- **Error**: ${issue.errorMessage}\n`;
+        if (issue.quickFix) markdown += `- **Quick Fix**: ${issue.quickFix}\n`;
+        if (issue.proposedFix) markdown += `- **Proposed Fix**: ${issue.proposedFix}\n`;
+        markdown += `\n`;
+      });
+    }
+    
+    // Other issues by priority
+    const nonBlockingIssues = issues.filter(i => !i.blocksTesting);
+    ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].forEach(priority => {
+      const priorityIssues = nonBlockingIssues.filter(i => i.priority === priority);
+      if (priorityIssues.length > 0) {
+        markdown += `## ${priority} Priority Issues\n\n`;
+        priorityIssues.forEach(issue => {
+          markdown += `### ${issue.title}\n`;
+          markdown += `- **Category**: ${issue.category}\n`;
+          markdown += `- **Status**: ${issue.status}\n`;
+          markdown += `- **Description**: ${issue.description}\n`;
+          if (issue.proposedFix) markdown += `- **Proposed Fix**: ${issue.proposedFix}\n`;
+          markdown += `\n`;
+        });
+      }
+    });
+    
+    // Download the file
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `assessment-issues-${dateStr}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast.success('Issues exported as markdown');
+  }, [issues]);
+
   const addIssue = (issue: Omit<Issue, "id" | "createdAt" | "updatedAt">) => {
     const newIssue: Issue = {
       ...issue,
@@ -178,12 +302,14 @@ export default function AssessmentIssuesPage() {
   // Stats
   const stats = {
     total: issues.length,
+    blocking: issues.filter((i) => i.blocksTesting).length,
     critical: issues.filter((i) => i.priority === "CRITICAL").length,
     open: issues.filter((i) => i.status === "OPEN").length,
     inProgress: issues.filter((i) => i.status === "IN_PROGRESS").length,
     fixed: issues.filter((i) => i.status === "FIXED").length,
     biasIssues: issues.filter((i) => i.category === "BIAS").length,
     seedOilIssues: issues.filter((i) => i.category === "SEED_OIL").length,
+    technicalIssues: issues.filter((i) => i.category === "TECHNICAL").length,
   };
 
   return (
@@ -197,30 +323,53 @@ export default function AssessmentIssuesPage() {
       </div>
 
       {/* Quick Add Button */}
-      <div className="mb-6">
-        <Button
-          onClick={() => setShowAddForm(true)}
-          className="bg-red-600 hover:bg-red-700"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Log New Issue
-        </Button>
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex gap-3">
+          <Button
+            onClick={() => setShowAddForm(true)}
+            className="bg-red-600 hover:bg-red-700"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Log New Issue
+          </Button>
+          <Button
+            onClick={exportIssuesAsMarkdown}
+            variant="outline"
+            disabled={issues.length === 0}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export Report
+          </Button>
+        </div>
+        <div className="text-sm text-gray-500">
+          Press <kbd className="px-2 py-1 bg-gray-100 rounded">Ctrl+Shift+I</kbd> to quickly log issues
+        </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-8">
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold">{stats.total}</div>
             <p className="text-xs text-gray-600">Total Issues</p>
           </CardContent>
         </Card>
-        <Card className="border-red-200 bg-red-50">
+        {stats.blocking > 0 && (
+          <Card className="border-2 border-red-600 bg-red-100">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-red-700">
+                {stats.blocking}
+              </div>
+              <p className="text-xs text-red-700 font-semibold">🚨 BLOCKING</p>
+            </CardContent>
+          </Card>
+        )}
+        <Card className="border-orange-200 bg-orange-50">
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold text-orange-600">
               {stats.critical}
             </div>
-            <p className="text-xs text-red-600">Critical</p>
+            <p className="text-xs text-orange-600">Critical</p>
           </CardContent>
         </Card>
         <Card>
@@ -307,13 +456,18 @@ export default function AssessmentIssuesPage() {
           return (
             <Card
               key={issue.id}
-              className="cursor-pointer hover:shadow-md transition-shadow"
+              className={`cursor-pointer hover:shadow-md transition-shadow ${getIssueCardColor(issue)}`}
               onClick={() => setSelectedIssue(issue)}
             >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
+                      {issue.blocksTesting && (
+                        <Badge className="bg-red-600 text-white">
+                          🚨 BLOCKS TESTING
+                        </Badge>
+                      )}
                       <div className={`p-1 rounded ${categoryConfig.color}`}>
                         <Icon className="h-4 w-4" />
                       </div>
@@ -331,6 +485,18 @@ export default function AssessmentIssuesPage() {
                     <p className="text-sm text-gray-600 line-clamp-2">
                       {issue.description}
                     </p>
+                    {issue.errorMessage && (
+                      <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm">
+                        <strong className="text-red-700">Error:</strong> 
+                        <code className="text-red-600 ml-1">{issue.errorMessage}</code>
+                      </div>
+                    )}
+                    {issue.quickFix && (
+                      <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm">
+                        <strong className="text-blue-700">Quick Fix:</strong> 
+                        <span className="text-blue-600 ml-1">{issue.quickFix}</span>
+                      </div>
+                    )}
                     {issue.proposedFix && (
                       <div className="mt-2 p-2 bg-green-50 rounded text-sm">
                         <strong>Fix:</strong> {issue.proposedFix}
@@ -412,6 +578,10 @@ function QuickIssueForm({
     reproSteps: "",
     proposedFix: "",
     location: "",
+    errorMessage: "",
+    stackTrace: "",
+    blocksTesting: false,
+    quickFix: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -509,6 +679,62 @@ function QuickIssueForm({
           rows={3}
         />
       </div>
+
+      {/* Technical Issue Fields */}
+      {formData.category === "TECHNICAL" && (
+        <>
+          <div>
+            <label className="block text-sm font-medium mb-1">Error Message</label>
+            <Input
+              value={formData.errorMessage}
+              onChange={(e) =>
+                setFormData({ ...formData, errorMessage: e.target.value })
+              }
+              placeholder="e.g., Failed to fetch"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Stack Trace</label>
+            <Textarea
+              value={formData.stackTrace}
+              onChange={(e) =>
+                setFormData({ ...formData, stackTrace: e.target.value })
+              }
+              placeholder="Paste the stack trace here"
+              rows={3}
+              className="font-mono text-xs"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Quick Fix</label>
+            <Textarea
+              value={formData.quickFix}
+              onChange={(e) =>
+                setFormData({ ...formData, quickFix: e.target.value })
+              }
+              placeholder="Immediate steps to resolve or work around this issue"
+              rows={2}
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="blocksTesting"
+              checked={formData.blocksTesting}
+              onChange={(e) =>
+                setFormData({ ...formData, blocksTesting: e.target.checked })
+              }
+              className="h-4 w-4 text-red-600"
+            />
+            <label htmlFor="blocksTesting" className="text-sm font-medium text-red-600">
+              This issue blocks testing
+            </label>
+          </div>
+        </>
+      )}
 
       <div>
         <label className="block text-sm font-medium mb-1">Proposed Fix</label>

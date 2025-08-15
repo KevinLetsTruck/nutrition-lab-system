@@ -20,6 +20,9 @@ export const metadata: Metadata = {
 
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from 'react-hot-toast';
+import { Toaster as Sonner } from 'sonner';
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { DevToolbar } from "@/components/DevToolbar";
 
 export default function RootLayout({
   children,
@@ -37,7 +40,10 @@ export default function RootLayout({
         }}
       >
         <AuthProvider>
-          {children}
+          <ErrorBoundary>
+            {children}
+            <DevToolbar />
+          </ErrorBoundary>
           <Toaster
             position="top-right"
             toastOptions={{
@@ -60,6 +66,16 @@ export default function RootLayout({
                   color: '#fef2f2',
                   border: '1px solid #dc2626'
                 },
+              },
+            }}
+          />
+          <Sonner 
+            position="bottom-left"
+            toastOptions={{
+              classNames: {
+                toast: 'bg-gray-800 text-white border-gray-700',
+                success: 'bg-green-800 text-white border-green-700',
+                error: 'bg-red-800 text-white border-red-700',
               },
             }}
           />
