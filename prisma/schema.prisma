@@ -42,6 +42,7 @@ model Client {
   notes            Note[]
   protocols        Protocol[]
   medicalDocuments MedicalDocument[]
+  clientAssessments ClientAssessment[]
 }
 
 model Document {
@@ -598,4 +599,111 @@ enum MedicalJobStatus {
   COMPLETED
   FAILED
   RETRY
+}
+
+// ====== FUNCTIONAL MEDICINE ASSESSMENT SYSTEM ======
+// Comprehensive assessment with seed oil integration
+
+model AssessmentTemplate {
+  id                String   @id @default(cuid())
+  name             String   @default("Functional Medicine Assessment v1.0")
+  version          String   @default("1.0.0")
+  questionBank     Json     // Stores all 400+ questions including seed oil
+  modules          Json     // Module structure and dependencies
+  scoringRules     Json     // AI scoring configuration
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  clientAssessments ClientAssessment[]
+}
+
+model ClientAssessment {
+  id              String   @id @default(cuid())
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id])
+  templateId      String
+  template        AssessmentTemplate @relation(fields: [templateId], references: [id])
+  
+  // Progress tracking
+  currentModule   String   @default("SCREENING")
+  questionsAsked  Int      @default(0)
+  questionsSaved  Int      @default(0)
+  completionRate  Float    @default(0)
+  
+  // AI Context
+  aiContext       Json?    // Stores Claude's understanding
+  symptomProfile  Json?    // AI-generated symptom clustering
+  seedOilRisk     Json?    // Seed oil exposure and damage assessment
+  
+  // Status
+  status          AssessmentStatus @default(NOT_STARTED)
+  startedAt       DateTime?
+  lastActiveAt    DateTime?
+  completedAt     DateTime?
+  pausedAt        DateTime?
+  
+  responses       ClientResponse[]
+  analysis        AssessmentAnalysis?
+  
+  @@index([clientId])
+  @@index([status])
+}
+
+model ClientResponse {
+  id                String   @id @default(cuid())
+  assessmentId      String
+  assessment        ClientAssessment @relation(fields: [assessmentId], references: [id])
+  
+  questionId        String
+  questionText      String   @db.Text
+  questionModule    String
+  
+  responseType      String
+  responseValue     Json
+  responseText      String?  @db.Text
+  
+  // AI Metadata
+  aiReasoning       String?  @db.Text
+  confidenceScore   Float?
+  clinicalFlags     Json?    // Any red flags or concerns
+  
+  answeredAt        DateTime @default(now())
+  
+  @@index([assessmentId])
+  @@index([questionId])
+}
+
+model AssessmentAnalysis {
+  id                String   @id @default(cuid())
+  assessmentId      String   @unique
+  assessment        ClientAssessment @relation(fields: [assessmentId], references: [id])
+  
+  // Comprehensive Scores
+  overallScore      Float
+  nodeScores        Json     // Score for each functional node
+  seedOilScore      Json     // Specific seed oil damage assessment
+  
+  // AI Analysis
+  aiSummary         String   @db.Text
+  keyFindings       Json
+  riskFactors       Json
+  strengths         Json
+  
+  // Recommendations
+  primaryConcerns   Json
+  suggestedLabs     Json
+  labPredictions    Json
+  protocolPriority  Json
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+enum AssessmentStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  PAUSED
+  COMPLETED
+  ABANDONED
 }
