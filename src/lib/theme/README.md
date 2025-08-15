@@ -1,18 +1,21 @@
 # Theme System Usage Guide
 
 ## Overview
+
 The theme system provides a centralized way to manage colors across the application, ensuring consistency and making theme changes easier.
 
 ## Basic Usage
 
 ### Import the theme
+
 ```typescript
-import { theme } from '@/lib/theme/colors';
+import { theme } from "@/lib/theme/colors";
 ```
 
 ### Using theme colors in components
 
 #### Backgrounds
+
 ```tsx
 // Primary background (darkest)
 <div className={theme.bg.primary}>
@@ -28,6 +31,7 @@ import { theme } from '@/lib/theme/colors';
 ```
 
 #### Text Colors
+
 ```tsx
 // Primary text (brightest)
 <h1 className={theme.text.primary}>
@@ -40,6 +44,7 @@ import { theme } from '@/lib/theme/colors';
 ```
 
 #### Borders
+
 ```tsx
 // Standard border
 <div className={`border ${theme.border.primary}`}>
@@ -49,6 +54,7 @@ import { theme } from '@/lib/theme/colors';
 ```
 
 #### Status Messages
+
 ```tsx
 // Success message
 <div className={theme.status.success}>
@@ -62,6 +68,7 @@ import { theme } from '@/lib/theme/colors';
 ```
 
 #### Form Elements
+
 ```tsx
 // Input field
 <input className={`${theme.input.base} ${theme.input.focus}`} />
@@ -80,22 +87,24 @@ import { theme } from '@/lib/theme/colors';
 ## Complete Component Example
 
 ```tsx
-import { theme } from '@/lib/theme/colors';
+import { theme } from "@/lib/theme/colors";
 
 export function ExampleCard() {
   return (
-    <div className={`${theme.bg.card} ${theme.border.primary} border rounded-lg p-6`}>
+    <div
+      className={`${theme.bg.card} ${theme.border.primary} border rounded-lg p-6`}
+    >
       <h2 className={`${theme.text.primary} text-xl font-bold mb-2`}>
         Card Title
       </h2>
       <p className={`${theme.text.secondary} mb-4`}>
         This is a description using secondary text color.
       </p>
-      
+
       <div className={`${theme.status.info} p-3 rounded mb-4`}>
         Info message with proper dark mode styling
       </div>
-      
+
       <div className="flex gap-2">
         <button className={`${theme.button.primary} px-4 py-2 rounded`}>
           Primary Action
@@ -136,10 +145,10 @@ The theme system is designed to support multiple themes. To add a light theme:
 // In colors.ts
 export const lightTheme = {
   bg: {
-    primary: 'bg-white',
-    secondary: 'bg-gray-50',
+    primary: "bg-white",
+    secondary: "bg-gray-50",
     // ... etc
-  }
+  },
 };
 
 // Switch themes based on user preference
