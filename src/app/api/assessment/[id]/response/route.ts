@@ -7,7 +7,7 @@ import { FunctionalModule } from '@/lib/assessment/types';
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get the authenticated user
@@ -19,7 +19,7 @@ export async function POST(
       );
     }
 
-    const assessmentId = params.id;
+    const { id: assessmentId } = await params;
     const body = await req.json();
     const { questionId, value, module } = body;
 
@@ -218,7 +218,7 @@ export async function POST(
 // GET endpoint to retrieve assessment progress
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth(req);
@@ -229,9 +229,10 @@ export async function GET(
       );
     }
 
+    const { id: assessmentId } = await params;
     const assessment = await prisma.clientAssessment.findFirst({
       where: {
-        id: params.id,
+        id: assessmentId,
         clientId: session.user.id
       },
       include: {

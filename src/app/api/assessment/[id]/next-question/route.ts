@@ -14,10 +14,10 @@ interface APIResponse<T = any> {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const assessmentId = params.id;
+    const { id: assessmentId } = await params;
 
     // Verify assessment exists and is active
     const assessment = await prisma.clientAssessment.findUnique({

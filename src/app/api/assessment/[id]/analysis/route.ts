@@ -5,7 +5,7 @@ import { generateAssessmentAnalysis } from '@/lib/ai/assessment-analysis';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get the authenticated user
@@ -17,7 +17,7 @@ export async function GET(
       );
     }
 
-    const assessmentId = params.id;
+    const { id: assessmentId } = await params;
 
     // Get completed assessment with all responses
     const assessment = await prisma.clientAssessment.findFirst({

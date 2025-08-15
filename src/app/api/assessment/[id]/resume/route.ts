@@ -21,7 +21,7 @@ const getQuestionsForModule = (module: ModuleType) => {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get the authenticated user
@@ -33,7 +33,7 @@ export async function POST(
       );
     }
 
-    const assessmentId = params.id;
+    const { id: assessmentId } = await params;
 
     // Get assessment with responses
     const assessment = await prisma.clientAssessment.findFirst({
