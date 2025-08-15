@@ -16,6 +16,9 @@ export interface AssessmentQuestion {
   // Scale properties for LIKERT_SCALE questions
   scaleMin?: string;
   scaleMax?: string;
+  // Text input properties
+  maxLength?: number;
+  placeholder?: string;
   scale?: {
     min: number;
     max: number;
