@@ -146,7 +146,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
         } else {
           // Assessment complete
           setCurrentQuestion(null);
-          toast.success('Assessment completed!');
+          toast.success('Assessment completed! Generating your analysis...');
           router.push(`/assessment/${assessmentId}/results`);
         }
         

@@ -1,114 +1,111 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
-import { assessmentAI } from '@/lib/ai/assessment-ai';
-
-interface APIResponse<T = any> {
-  success: boolean;
-  data?: T;
-  error?: {
-    code: string;
-    message: string;
-  };
-}
+import { prisma } from '@/src/lib/db';
+import { auth } from '@/src/lib/auth';
+import { generateAssessmentAnalysis } from '@/lib/ai/assessment-analysis';
 
 export async function GET(
-  request: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    // Get the authenticated user
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const assessmentId = params.id;
 
-    // Get assessment with analysis
-    const assessment = await prisma.clientAssessment.findUnique({
-      where: { id: assessmentId },
+    // Get completed assessment with all responses
+    const assessment = await prisma.clientAssessment.findFirst({
+      where: {
+        id: assessmentId,
+        clientId: session.user.id,
+        status: 'COMPLETED'
+      },
       include: {
-        analysis: true,
         responses: {
-          select: {
-            questionId: true,
-            questionModule: true,
-            responseValue: true
-          }
-        }
+          orderBy: { answeredAt: 'asc' }
+        },
+        analysis: true
       }
     });
 
     if (!assessment) {
-      return NextResponse.json<APIResponse>({
-        success: false,
-        error: {
-          code: 'ASSESSMENT_NOT_FOUND',
-          message: 'Assessment not found'
-        }
-      }, { status: 404 });
+      return NextResponse.json(
+        { success: false, error: 'Completed assessment not found' },
+        { status: 404 }
+      );
     }
 
-    // If no analysis exists yet, generate it
-    if (!assessment.analysis && assessment.status === 'COMPLETED') {
-      const analysis = await assessmentAI.scoreAssessment(assessmentId);
-      const labs = await assessmentAI.recommendLabs(assessmentId);
-      
-      // Get the updated analysis
-      const updatedAnalysis = await prisma.assessmentAnalysis.findUnique({
-        where: { assessmentId }
-      });
-
-      return NextResponse.json<APIResponse>({
+    // Check if analysis already exists
+    if (assessment.analysis) {
+      return NextResponse.json({
         success: true,
         data: {
           assessment: {
             id: assessment.id,
-            status: assessment.status,
             completedAt: assessment.completedAt,
-            questionsAsked: assessment.questionsAsked
+            questionsAsked: assessment.questionsAsked,
+            questionsSaved: assessment.questionsSaved
           },
-          analysis: updatedAnalysis,
-          recommendations: labs
+          analysis: assessment.analysis,
+          responses: assessment.responses
         }
       });
     }
 
-    if (!assessment.analysis) {
-      return NextResponse.json<APIResponse>({
-        success: false,
-        error: {
-          code: 'ANALYSIS_NOT_AVAILABLE',
-          message: 'Assessment must be completed before analysis is available'
-        }
-      }, { status: 400 });
-    }
+    // Generate analysis if it doesn't exist
+    const analysisResult = await generateAssessmentAnalysis({
+      assessmentId,
+      responses: assessment.responses,
+      symptomProfile: assessment.symptomProfile as any,
+      aiContext: assessment.aiContext as any
+    });
 
-    // Get lab recommendations
-    const labs = await assessmentAI.recommendLabs(assessmentId);
+    // Save the analysis
+    const savedAnalysis = await prisma.assessmentAnalysis.create({
+      data: {
+        assessmentId,
+        overallScore: analysisResult.overallScore,
+        nodeScores: analysisResult.nodeScores,
+        aiSummary: analysisResult.summary,
+        keyFindings: analysisResult.keyFindings,
+        riskFactors: analysisResult.riskFactors,
+        strengths: analysisResult.strengths,
+        primaryConcerns: analysisResult.primaryConcerns,
+        suggestedLabs: analysisResult.suggestedLabs,
+        labPredictions: analysisResult.labPredictions,
+        seedOilScore: analysisResult.seedOilAssessment
+      }
+    });
 
-    return NextResponse.json<APIResponse>({
+    return NextResponse.json({
       success: true,
       data: {
         assessment: {
           id: assessment.id,
-          status: assessment.status,
           completedAt: assessment.completedAt,
           questionsAsked: assessment.questionsAsked,
-          seedOilRisk: assessment.seedOilRisk
+          questionsSaved: assessment.questionsSaved
         },
-        analysis: assessment.analysis,
-        recommendations: labs,
-        responsesByModule: assessment.responses.reduce((acc, r) => {
-          if (!acc[r.questionModule]) acc[r.questionModule] = [];
-          acc[r.questionModule].push(r);
-          return acc;
-        }, {} as Record<string, any[]>)
+        analysis: savedAnalysis,
+        responses: assessment.responses
       }
     });
 
   } catch (error) {
-    console.error('Error getting analysis:', error);
-    return NextResponse.json<APIResponse>({
-      success: false,
-      error: {
-        code: 'ANALYSIS_ERROR',
-        message: 'Failed to get assessment analysis'
-      }
-    }, { status: 500 });
+    console.error('Error fetching assessment results:', error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'Failed to fetch assessment results',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
   }
 }
