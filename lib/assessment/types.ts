@@ -13,6 +13,21 @@ export interface AssessmentQuestion {
   validationRules?: ValidationRule[];
   helpText?: string;
   required?: boolean;
+  // Scale properties for LIKERT_SCALE questions
+  scaleMin?: string;
+  scaleMax?: string;
+  scale?: {
+    min: number;
+    max: number;
+    labels?: Record<number, string>;
+  };
+  // Additional properties for other question types
+  seedOilRelevant?: boolean;
+  frequencyOptions?: FrequencyOption[];
+  durationOptions?: DurationOption[];
+  textOptions?: TextOptions;
+  numberOptions?: NumberOptions;
+  multiSelectOptions?: MultiSelectOptions;
 }
 
 export enum FunctionalModule {
@@ -53,6 +68,48 @@ export interface QuestionOption {
   label: string;
   score?: number;
   triggers?: string[]; // Question IDs to trigger
+  description?: string;
+  seedOilRisk?: 'low' | 'medium' | 'high';
+}
+
+export interface FrequencyOption {
+  value: string;
+  label: string;
+  description?: string;
+}
+
+export interface DurationOption {
+  value: string;
+  label: string;
+}
+
+export interface TextOptions {
+  maxLength?: number;
+  minLength?: number;
+  placeholder?: string;
+  rows?: number;
+  suggestions?: string[];
+}
+
+export interface NumberOptions {
+  min?: number;
+  max?: number;
+  step?: number;
+  unit?: string;
+  prefix?: string;
+  suffix?: string;
+  thresholds?: Array<{
+    min: number;
+    max: number;
+    label: string;
+    message: string;
+    severity: 'low' | 'medium' | 'high';
+  }>;
+}
+
+export interface MultiSelectOptions {
+  maxSelections?: number;
+  minSelections?: number;
 }
 
 export interface TriggerCondition {

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { AssessmentQuestion } from '@/lib/assessment/types';
+import { cn } from '@/lib/utils';
 
 interface LikertScaleProps {
   question: AssessmentQuestion;
@@ -16,69 +17,63 @@ export function LikertScale({
   onChange,
   disabled = false
 }: LikertScaleProps) {
-  const scale = question.scale || {
-    min: 0,
-    max: 10,
-    labels: {
-      0: 'Never',
-      5: 'Sometimes',
-      10: 'Always'
-    }
-  };
+  // 0-10 scale for better granularity in symptom tracking
+  const scale = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  
+  // Keyboard navigation
+  React.useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (disabled) return;
+      const key = parseInt(e.key);
+      if (!isNaN(key) && key >= 0 && key <= 10) {
+        onChange(key === 10 ? 10 : key);
+      }
+    };
 
-  const renderOption = (num: number) => {
-    const label = scale.labels?.[num];
-    const isSelected = value === num;
-    
-    return (
-      <button
-        key={num}
-        onClick={() => onChange(num)}
-        disabled={disabled}
-        className={`
-          relative flex flex-col items-center p-3 rounded-lg transition-all
-          ${isSelected 
-            ? 'bg-blue-100 border-2 border-blue-500' 
-            : 'bg-gray-50 border-2 border-gray-200 hover:bg-gray-100'
-          }
-          ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
-          ${question.seedOilRelevant && isSelected && num >= 7 
-            ? 'ring-2 ring-orange-400 ring-offset-2' 
-            : ''
-          }
-        `}
-      >
-        <span className={`text-2xl font-bold ${isSelected ? 'text-blue-700' : 'text-gray-700'}`}>
-          {num}
-        </span>
-        {label && (
-          <span className={`text-xs mt-1 ${isSelected ? 'text-blue-600' : 'text-gray-600'}`}>
-            {label}
-          </span>
-        )}
-      </button>
-    );
-  };
-
-  const options = [];
-  for (let i = scale.min; i <= scale.max; i++) {
-    options.push(i);
-  }
+    window.addEventListener('keypress', handleKeyPress);
+    return () => window.removeEventListener('keypress', handleKeyPress);
+  }, [onChange, disabled]);
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-11 gap-2">
-        {options.map(renderOption)}
+      <div className="flex justify-between text-sm text-gray-600 mb-2">
+        <span>{question.scaleMin || 'None'}</span>
+        <span>{question.scaleMax || 'Severe'}</span>
       </div>
       
-      {question.seedOilRelevant && value !== null && value >= 7 && (
-        <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-          <p className="text-sm text-orange-800">
-            <strong>Note:</strong> This response indicates potential high seed oil exposure. 
-            Additional questions will help assess the impact.
-          </p>
+      <div className="grid grid-cols-11 gap-2">
+        {scale.map((num) => (
+          <button
+            key={num}
+            onClick={() => onChange(num)}
+            disabled={disabled}
+            className={cn(
+              "aspect-square rounded-lg border-2 font-semibold transition-all",
+              "hover:scale-110 hover:shadow-md",
+              "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
+              value === num
+                ? "bg-blue-600 border-blue-600 text-white"
+                : "bg-white border-gray-300 text-gray-700 hover:border-blue-400"
+            )}
+          >
+            {num}
+          </button>
+        ))}
+      </div>
+      
+      {value !== null && (
+        <div className="text-center text-sm text-gray-600">
+          Selected: <span className="font-semibold">{value}</span>
+          {value <= 3 && " - Mild"}
+          {value >= 4 && value <= 6 && " - Moderate"}
+          {value >= 7 && " - Severe"}
         </div>
       )}
+      
+      <p className="text-xs text-gray-500 text-center">
+        Tip: Press number keys 0-9 for quick selection
+      </p>
     </div>
   );
 }
