@@ -1,0 +1,73 @@
+'use client';
+
+import React from 'react';
+import { LikertScaleDemo } from '@/components/assessment/questions/LikertScaleDemo';
+import { MultipleChoiceDemo } from '@/components/assessment/questions/MultipleChoiceDemo';
+
+export default function AssessmentDemoPage() {
+  const [activeDemo, setActiveDemo] = React.useState<'likert' | 'multiple'>('multiple');
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Assessment Components Demo
+          </h1>
+          <p className="text-lg text-gray-600 mb-6">
+            Interactive demonstration of question components with keyboard shortcuts
+          </p>
+          
+          <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1">
+            <button
+              onClick={() => setActiveDemo('likert')}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                activeDemo === 'likert'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-700 hover:text-gray-900'
+              }`}
+            >
+              Likert Scale (0-10)
+            </button>
+            <button
+              onClick={() => setActiveDemo('multiple')}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                activeDemo === 'multiple'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-700 hover:text-gray-900'
+              }`}
+            >
+              Multiple Choice (A-E)
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-8">
+          {activeDemo === 'likert' ? <LikertScaleDemo /> : <MultipleChoiceDemo />}
+        </div>
+
+        <div className="mt-12 bg-white rounded-lg shadow-sm p-6">
+          <h2 className="text-xl font-semibold mb-4">Keyboard Shortcuts</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="font-medium text-gray-900 mb-2">Likert Scale</h3>
+              <ul className="space-y-1 text-sm text-gray-600">
+                <li>• Press <kbd className="px-2 py-1 bg-gray-100 rounded">0</kbd> - <kbd className="px-2 py-1 bg-gray-100 rounded">9</kbd> to select values</li>
+                <li>• <kbd className="px-2 py-1 bg-gray-100 rounded">Tab</kbd> to navigate between scales</li>
+                <li>• Visual feedback for severity levels</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-900 mb-2">Multiple Choice</h3>
+              <ul className="space-y-1 text-sm text-gray-600">
+                <li>• Press <kbd className="px-2 py-1 bg-gray-100 rounded">A</kbd> - <kbd className="px-2 py-1 bg-gray-100 rounded">E</kbd> for quick selection</li>
+                <li>• Auto-advances to next question</li>
+                <li>• Visual confirmation before advancing</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

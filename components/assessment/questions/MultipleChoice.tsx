@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { AssessmentQuestion } from '@/lib/assessment/types';
+import { cn } from '@/lib/utils';
 
 interface MultipleChoiceProps {
   question: AssessmentQuestion;
@@ -17,68 +18,70 @@ export function MultipleChoice({
   disabled = false
 }: MultipleChoiceProps) {
   const options = question.options || [];
+  
+  // Auto-advance after selection
+  const handleSelect = (optionValue: string) => {
+    onChange(optionValue);
+    // Parent component will handle auto-advance
+  };
+
+  // Keyboard navigation with letters a-z
+  React.useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (disabled) return;
+      const key = e.key.toLowerCase();
+      const index = key.charCodeAt(0) - 97; // a=0, b=1, etc.
+      if (index >= 0 && index < options.length) {
+        handleSelect(options[index].value.toString());
+      }
+    };
+
+    window.addEventListener('keypress', handleKeyPress);
+    return () => window.removeEventListener('keypress', handleKeyPress);
+  }, [options, disabled]);
 
   return (
     <div className="space-y-3">
-      {options.map((option) => {
-        const isSelected = value === option.value;
-        const isHighRisk = question.seedOilRelevant && option.seedOilRisk === 'high';
-        
+      {options.map((option, index) => {
+        const letter = String.fromCharCode(97 + index).toUpperCase();
         return (
           <button
             key={option.value}
-            onClick={() => onChange(option.value)}
+            onClick={() => handleSelect(option.value.toString())}
             disabled={disabled}
-            className={`
-              w-full text-left p-4 rounded-lg transition-all
-              ${isSelected 
-                ? 'bg-blue-100 border-2 border-blue-500' 
-                : 'bg-gray-50 border-2 border-gray-200 hover:bg-gray-100'
-              }
-              ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
-              ${isHighRisk && isSelected ? 'ring-2 ring-orange-400 ring-offset-2' : ''}
-            `}
+            className={cn(
+              "w-full text-left px-4 py-3 rounded-lg border-2 transition-all",
+              "hover:shadow-md hover:scale-[1.02]",
+              "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
+              value === option.value.toString()
+                ? "bg-blue-50 border-blue-600"
+                : "bg-white border-gray-200 hover:border-blue-400"
+            )}
           >
-            <div className="flex items-start space-x-3">
-              <div className={`
-                w-5 h-5 rounded-full border-2 mt-0.5 flex-shrink-0
-                ${isSelected ? 'border-blue-500 bg-blue-500' : 'border-gray-300'}
-              `}>
-                {isSelected && (
-                  <svg className="w-3 h-3 text-white m-auto" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                )}
-              </div>
-              
-              <div className="flex-1">
-                <p className={`font-medium ${isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
-                  {option.label}
-                </p>
-                {option.description && (
-                  <p className={`text-sm mt-1 ${isSelected ? 'text-blue-700' : 'text-gray-600'}`}>
-                    {option.description}
-                  </p>
-                )}
-                {isHighRisk && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 mt-2">
-                    High Seed Oil Risk
-                  </span>
-                )}
-              </div>
+            <div className="flex items-center">
+              <span className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold mr-3">
+                {letter}
+              </span>
+              <span className={cn(
+                "flex-grow",
+                value === option.value.toString() && "font-semibold"
+              )}>
+                {option.label}
+              </span>
+              {value === option.value.toString() && (
+                <svg className="w-5 h-5 text-blue-600 flex-shrink-0 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              )}
             </div>
           </button>
         );
       })}
       
-      {question.seedOilRelevant && value && options.find(o => o.value === value && o.seedOilRisk === 'high') && (
-        <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-          <p className="text-sm text-orange-800">
-            <strong>Important:</strong> This choice suggests high seed oil exposure. 
-            We'll explore this further to understand the impact on your health.
-          </p>
-        </div>
-      )}
+      <p className="text-xs text-gray-500 text-center mt-4">
+        Tip: Press A-{String.fromCharCode(97 + options.length - 1).toUpperCase()} for quick selection
+      </p>
     </div>
   );
 }

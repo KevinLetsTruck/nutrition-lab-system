@@ -26,6 +26,19 @@ export function QuestionRenderer({
   onSubmit,
   disabled = false
 }: QuestionRendererProps) {
+  // Auto-advance for certain question types
+  const handleChange = React.useCallback((newValue: any) => {
+    onChange(newValue);
+    
+    // Auto-advance for multiple choice and yes/no questions
+    if (question.type === 'MULTIPLE_CHOICE' || question.type === 'YES_NO') {
+      // Small delay to show selection before advancing
+      setTimeout(() => {
+        onSubmit();
+      }, 300);
+    }
+  }, [onChange, onSubmit, question.type]);
+
   const renderQuestion = () => {
     switch (question.type) {
       case 'LIKERT_SCALE':
@@ -43,7 +56,7 @@ export function QuestionRenderer({
           <MultipleChoice
             question={question}
             value={value}
-            onChange={onChange}
+            onChange={handleChange}
             disabled={disabled}
           />
         );
@@ -53,7 +66,7 @@ export function QuestionRenderer({
           <YesNo
             question={question}
             value={value}
-            onChange={onChange}
+            onChange={handleChange}
             disabled={disabled}
           />
         );
