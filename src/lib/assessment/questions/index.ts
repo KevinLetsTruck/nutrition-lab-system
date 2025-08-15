@@ -77,6 +77,9 @@ export const getTriggeredQuestions = (questionId: string, responseValue: any): s
   return [...new Set(triggeredQuestions)]; // Remove duplicates
 };
 
+// Export alias for backward compatibility
+export const getModuleQuestions = getQuestionsByModule;
+
 export const calculateSeedOilExposureScore = (responses: Map<string, any>): number => {
   const seedOilQuestions = getSeedOilQuestions();
   let totalScore = 0;
