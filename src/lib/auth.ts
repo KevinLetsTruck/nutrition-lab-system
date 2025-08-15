@@ -66,16 +66,28 @@ export async function login({ email, password }: LoginCredentials): Promise<Auth
     throw new Error('Invalid credentials');
   }
 
+  // Find associated client record if user is a CLIENT
+  let clientId = user.id; // Default to user ID
+  if (user.role === 'CLIENT') {
+    const client = await prisma.client.findUnique({
+      where: { email: user.email }
+    });
+    if (client) {
+      clientId = client.id;
+    }
+  }
+
   const token = generateToken({
     userId: user.id,
     email: user.email,
     role: user.role,
+    clientId: clientId, // Include client ID in token
   });
 
   const { password: _, ...safeUser } = user;
 
   return {
-    user: safeUser,
+    user: { ...safeUser, clientId },
     token,
   };
 }

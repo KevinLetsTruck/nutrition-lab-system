@@ -36,13 +36,13 @@ export async function auth(request?: NextRequest): Promise<AuthSession | null> {
 
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as any;
     
-    return {
-      user: {
-        id: payload.userId,
-        email: payload.email,
-        role: payload.role,
-      }
-    };
+      return {
+    user: {
+      id: payload.clientId || payload.userId, // Use clientId if available, otherwise userId
+      email: payload.email,
+      role: payload.role,
+    }
+  };
   } catch (error) {
     console.error("Auth verification failed:", error);
     return null;

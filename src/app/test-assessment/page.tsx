@@ -33,9 +33,11 @@ export default function TestAssessmentPage() {
       if (response.ok && data.token) {
         localStorage.setItem("token", data.token);
         setIsLoggedIn(true);
-        setMessage("Login successful! You can now start an assessment.");
+        setMessage(`Login successful! You can now start an assessment. ClientId: ${data.user?.clientId || 'N/A'}`);
+        console.log("Login response:", data);
       } else {
         setMessage(`Login failed: ${data.error || "Unknown error"}`);
+        console.error("Login error:", data);
       }
     } catch (error) {
       setMessage(
@@ -58,6 +60,31 @@ export default function TestAssessmentPage() {
     router.push("/assessment/new");
   };
 
+  const runTestSetup = async () => {
+    setLoading(true);
+    setMessage("");
+    
+    try {
+      const response = await fetch("/api/auth/test-setup");
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        setMessage(`Test setup complete! Token: ${data.data.token.substring(0, 20)}...`);
+        console.log("Test setup data:", data.data);
+        // Automatically set the token
+        localStorage.setItem("token", data.data.token);
+        setIsLoggedIn(true);
+      } else {
+        setMessage(`Setup failed: ${data.error} - ${data.details || ''}`);
+        console.error("Setup error:", data);
+      }
+    } catch (error) {
+      setMessage(`Setup error: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
@@ -72,6 +99,22 @@ export default function TestAssessmentPage() {
 
         {!isLoggedIn ? (
           <div className="space-y-6">
+            <button
+              onClick={runTestSetup}
+              disabled={loading}
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+            >
+              {loading ? "Setting up..." : "🔧 Run Test Setup (Create User & Client)"}
+            </button>
+            
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or login manually</span>
+              </div>
+            </div>
             <div>
               <label
                 htmlFor="email"

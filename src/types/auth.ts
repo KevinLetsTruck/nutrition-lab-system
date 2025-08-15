@@ -17,6 +17,7 @@ export interface JWTPayload {
   userId: string;
   email: string;
   role: string;
+  clientId?: string;
 }
 
 export interface AuthResponse {
