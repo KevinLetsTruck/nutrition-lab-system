@@ -142,7 +142,7 @@ export function QuestionRenderer({
   }, [question]);
 
   return (
-    <div className="space-y-6">
+    <div className="assessment-question space-y-6">
       <div className="space-y-2">
         <h3 className="text-xl font-semibold text-gray-900 leading-tight">
           {question.text}

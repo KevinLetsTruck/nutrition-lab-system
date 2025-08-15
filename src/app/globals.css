@@ -51,6 +51,16 @@
     color: #111827 !important;
     background-color: white !important;
   }
+  
+  /* Ensure text contrast in assessment components */
+  .assessment-question,
+  .assessment-question * {
+    color: #111827;
+  }
+  
+  .assessment-question button span {
+    color: inherit;
+  }
 }
 
 @layer components {
