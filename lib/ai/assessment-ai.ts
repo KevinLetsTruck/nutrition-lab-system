@@ -4,7 +4,7 @@ import {
   FunctionalModule,
   SeedOilAssessment,
 } from "@/lib/assessment/types";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/src/lib/db";
 
 // Initialize Anthropic client
 const anthropic = new Anthropic({
@@ -491,3 +491,102 @@ Return as JSON:
 
 // Export singleton instance
 export const assessmentAI = new AssessmentAIService();
+
+// Helper function for API routes
+export async function getNextQuestionWithAI(params: {
+  currentModule: string;
+  responses: any[];
+  symptomProfile: any;
+  questionsAsked: number;
+  assessmentContext: any;
+}): Promise<{
+  nextQuestion?: AssessmentQuestion;
+  nextModule?: FunctionalModule;
+  questionsInModule?: number;
+  questionsSaved?: number;
+  reasoning?: string;
+}> {
+  // Import the question modules
+  const { getScreeningQuestions } = await import('@/lib/assessment/questions/screening-questions');
+  const { getModuleQuestions } = await import('@/lib/assessment/questions');
+  
+  // Get current module questions
+  const currentQuestions = params.currentModule === 'SCREENING' 
+    ? getScreeningQuestions()
+    : getModuleQuestions(params.currentModule as FunctionalModule);
+  
+  // Find answered question IDs
+  const answeredQuestionIds = new Set(params.responses.map(r => r.questionId));
+  
+  // Get remaining questions in current module
+  const remainingQuestions = currentQuestions.filter(q => !answeredQuestionIds.has(q.id));
+  
+  // If no remaining questions in current module, move to next module
+  if (remainingQuestions.length === 0) {
+    // Determine next module based on AI analysis
+    const moduleOrder: FunctionalModule[] = [
+      'SCREENING',
+      'ASSIMILATION',
+      'DEFENSE_REPAIR',
+      'ENERGY',
+      'BIOTRANSFORMATION',
+      'TRANSPORT',
+      'COMMUNICATION',
+      'STRUCTURAL'
+    ];
+    
+    const currentIndex = moduleOrder.indexOf(params.currentModule as FunctionalModule);
+    
+    // Check if assessment is complete
+    if (currentIndex === moduleOrder.length - 1) {
+      return {
+        nextQuestion: undefined,
+        reasoning: 'Assessment complete - all modules finished'
+      };
+    }
+    
+    // Move to next module
+    const nextModule = moduleOrder[currentIndex + 1];
+    const nextModuleQuestions = getModuleQuestions(nextModule);
+    
+    return {
+      nextQuestion: nextModuleQuestions[0],
+      nextModule,
+      questionsInModule: nextModuleQuestions.length,
+      reasoning: `Completed ${params.currentModule} module, moving to ${nextModule}`
+    };
+  }
+  
+  // Use AI to select most relevant question from remaining
+  // For now, we'll use a simple algorithm based on symptom severity
+  
+  // Check for high severity symptoms that might skip questions
+  const highSeveritySymptoms = params.assessmentContext?.highSeveritySymptoms || [];
+  let questionsSaved = 0;
+  
+  // If we have high severity symptoms in this module, we can skip some questions
+  if (highSeveritySymptoms.length > 0) {
+    // Skip questions that would be redundant given high severity
+    const skipCategories = ['mild_symptoms', 'lifestyle_basic'];
+    const filteredQuestions = remainingQuestions.filter(
+      q => !skipCategories.includes(q.category || '')
+    );
+    
+    questionsSaved = remainingQuestions.length - filteredQuestions.length;
+    
+    if (filteredQuestions.length > 0) {
+      return {
+        nextQuestion: filteredQuestions[0],
+        questionsSaved,
+        reasoning: `Skipping ${questionsSaved} questions due to high severity symptoms`
+      };
+    }
+  }
+  
+  // Default: return next question in sequence
+  return {
+    nextQuestion: remainingQuestions[0],
+    questionsSaved: 0,
+    reasoning: 'Proceeding with standard question sequence'
+  };
+}

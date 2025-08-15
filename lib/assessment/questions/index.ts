@@ -37,6 +37,9 @@ export const getQuestionsByModule = (
   return questionBank.filter((q) => q.module === module);
 };
 
+// Alias for getQuestionsByModule for backward compatibility
+export const getModuleQuestions = getQuestionsByModule;
+
 export const getSeedOilQuestions = (): AssessmentQuestion[] => {
   return questionBank.filter((q) => q.category === QuestionCategory.SEED_OIL);
 };
