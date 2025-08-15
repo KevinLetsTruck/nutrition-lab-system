@@ -122,29 +122,40 @@ export function QuestionRenderer({
         );
       
       default:
+        // Default to text input for unknown types
+        console.warn('Unknown question type:', question.type);
         return (
-          <div className="text-red-500">
-            Unknown question type: {question.type}
-          </div>
+          <TextInput
+            question={question}
+            value={value}
+            onChange={onChange}
+            disabled={disabled}
+          />
         );
     }
   };
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('QuestionRenderer - question type:', question.type);
+    console.log('QuestionRenderer - question:', question);
+  }, [question]);
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-xl font-semibold text-gray-900 leading-tight">
           {question.text}
         </h3>
         
         {question.helpText && (
-          <p className="text-sm text-gray-600">
+          <p className="text-base text-gray-700 mt-2">
             {question.helpText}
           </p>
         )}
         
         {question.category === 'SEED_OIL' && (
-          <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+          <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
             Seed Oil Assessment
           </div>
         )}

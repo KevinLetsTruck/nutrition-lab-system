@@ -189,6 +189,10 @@ export async function POST(
       });
     }
 
+    // Log for debugging
+    console.log('Next question type:', aiDecision.nextQuestion?.type);
+    console.log('Next question:', JSON.stringify(aiDecision.nextQuestion, null, 2));
+
     // Return next question
     return NextResponse.json({
       success: true,
