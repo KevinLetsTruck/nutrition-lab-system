@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { AssessmentQuestion } from '@/lib/assessment/types';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { AssessmentQuestion } from "@/lib/assessment/types";
+import { cn } from "@/lib/utils";
 
 interface LikertScaleProps {
   question: AssessmentQuestion;
@@ -15,11 +15,11 @@ export function LikertScale({
   question,
   value,
   onChange,
-  disabled = false
+  disabled = false,
 }: LikertScaleProps) {
   // 0-10 scale for better granularity in symptom tracking
   const scale = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-  
+
   // Keyboard navigation
   React.useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -30,17 +30,17 @@ export function LikertScale({
       }
     };
 
-    window.addEventListener('keypress', handleKeyPress);
-    return () => window.removeEventListener('keypress', handleKeyPress);
+    window.addEventListener("keypress", handleKeyPress);
+    return () => window.removeEventListener("keypress", handleKeyPress);
   }, [onChange, disabled]);
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between text-sm text-gray-400 mb-2">
-        <span>{question.scaleMin || 'None'}</span>
-        <span>{question.scaleMax || 'Severe'}</span>
+        <span>{question.scaleMin || "None"}</span>
+        <span>{question.scaleMax || "Severe"}</span>
       </div>
-      
+
       <div className="grid grid-cols-11 gap-2">
         {scale.map((num) => (
           <button
@@ -61,7 +61,7 @@ export function LikertScale({
           </button>
         ))}
       </div>
-      
+
       {value !== null && (
         <div className="text-center text-sm text-gray-400">
           Selected: <span className="font-semibold">{value}</span>
@@ -70,7 +70,7 @@ export function LikertScale({
           {value >= 7 && " - Severe"}
         </div>
       )}
-      
+
       <p className="text-xs text-gray-400 text-center">
         Tip: Press number keys 0-9 for quick selection
       </p>
