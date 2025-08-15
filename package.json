@@ -17,7 +17,8 @@
     "postinstall": "prisma generate",
     "test:medical": "node test-medical-system.js",
     "test:medical:verbose": "node test-medical-system.js --verbose",
-    "test:medical:basic": "node test-medical-system.js --basic"
+    "test:medical:basic": "node test-medical-system.js --basic",
+    "test:assessment-ai": "tsx scripts/test-claude-assessment.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.59.0",
