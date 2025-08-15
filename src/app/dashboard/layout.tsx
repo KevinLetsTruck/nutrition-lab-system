@@ -4,7 +4,15 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { usePathname } from "next/navigation";
-import { Users, LogOut, Leaf, Calendar, Archive, Monitor } from "lucide-react";
+import {
+  Users,
+  LogOut,
+  Leaf,
+  Calendar,
+  Archive,
+  Monitor,
+  Bug,
+} from "lucide-react";
 
 export default function DashboardLayout({
   children,
@@ -75,7 +83,7 @@ export default function DashboardLayout({
             <div className="hidden sm:flex sm:space-x-8 pb-4">
               <Link
                 href="/dashboard/clients"
-                className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium ${
+                className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
                   isActive("/dashboard/clients") &&
                   !isActive("/dashboard/clients/archived")
                     ? "active"
@@ -87,7 +95,7 @@ export default function DashboardLayout({
               </Link>
               <Link
                 href="/dashboard/scheduled"
-                className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium ${
+                className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
                   isActive("/dashboard/scheduled") ? "active" : ""
                 }`}
               >
@@ -96,7 +104,7 @@ export default function DashboardLayout({
               </Link>
               <Link
                 href="/dashboard/clients/archived"
-                className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium ${
+                className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
                   isActive("/dashboard/clients/archived") ? "active" : ""
                 }`}
               >
@@ -105,12 +113,21 @@ export default function DashboardLayout({
               </Link>
               <Link
                 href="/dashboard/pipeline-monitor"
-                className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium ${
+                className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
                   isActive("/dashboard/pipeline-monitor") ? "active" : ""
                 }`}
               >
                 <Monitor className="h-5 w-5 mr-3" />
                 AI Pipeline Monitor
+              </Link>
+              <Link
+                href="/dashboard/assessment-issues"
+                className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
+                  isActive("/dashboard/assessment-issues") ? "active" : ""
+                }`}
+              >
+                <Bug className="h-5 w-5 mr-3" />
+                Assessment Issues
               </Link>
             </div>
           </div>
@@ -120,7 +137,7 @@ export default function DashboardLayout({
             <div className="px-4 py-3 space-y-2">
               <Link
                 href="/dashboard/clients"
-                className={`nav-link-large block px-4 py-3 text-base font-medium ${
+                className={`nav-link-large block px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
                   isActive("/dashboard/clients") &&
                   !isActive("/dashboard/clients/archived")
                     ? "active"
@@ -132,7 +149,7 @@ export default function DashboardLayout({
               </Link>
               <Link
                 href="/dashboard/scheduled"
-                className={`nav-link-large block px-4 py-3 text-base font-medium ${
+                className={`nav-link-large block px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
                   isActive("/dashboard/scheduled") ? "active" : ""
                 }`}
               >
@@ -141,7 +158,7 @@ export default function DashboardLayout({
               </Link>
               <Link
                 href="/dashboard/clients/archived"
-                className={`nav-link-large block px-4 py-3 text-base font-medium ${
+                className={`nav-link-large block px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
                   isActive("/dashboard/clients/archived") ? "active" : ""
                 }`}
               >
@@ -150,12 +167,21 @@ export default function DashboardLayout({
               </Link>
               <Link
                 href="/dashboard/pipeline-monitor"
-                className={`nav-link-large block px-4 py-3 text-base font-medium ${
+                className={`nav-link-large block px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
                   isActive("/dashboard/pipeline-monitor") ? "active" : ""
                 }`}
               >
                 <Monitor className="h-5 w-5 mr-3 inline" />
                 AI Pipeline Monitor
+              </Link>
+              <Link
+                href="/dashboard/assessment-issues"
+                className={`nav-link-large block px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
+                  isActive("/dashboard/assessment-issues") ? "active" : ""
+                }`}
+              >
+                <Bug className="h-5 w-5 mr-3 inline" />
+                Assessment Issues
               </Link>
             </div>
           </div>
