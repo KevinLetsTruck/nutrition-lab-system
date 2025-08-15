@@ -84,9 +84,7 @@ export const screeningQuestions: AssessmentQuestion[] = [
       { value: "grapeseed", label: "Grapeseed oil", score: 3 },
     ],
     scoringWeight: 2.0,
-    clinicalRelevance: ["lipid_peroxidation", "cell_membrane_health"],
-    helpText:
-      "Industrial seed oils can contribute to inflammation and oxidative stress",
+    clinicalRelevance: ["lipid_peroxidation", "cell_membrane_health"]
   },
 
   {
