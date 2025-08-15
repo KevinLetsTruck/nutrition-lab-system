@@ -1,107 +1,126 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { assessmentService } from '@/lib/assessment/assessment-service';
-import { prisma } from '@/lib/db/prisma';
-// import { getServerSession } from 'next-auth';
-// import { authOptions } from '@/lib/auth';
+import { prisma } from '@/src/lib/db';
+import { auth } from '@/src/lib/auth';
+import { getScreeningQuestions } from '@/lib/assessment/questions/screening-questions';
+import { AssessmentStatus } from '@prisma/client';
 
-interface APIResponse<T = any> {
-  success: boolean;
-  data?: T;
-  error?: {
-    code: string;
-    message: string;
-    details?: any;
-  };
-  metadata?: {
-    timestamp: string;
-    version: string;
-  };
-}
-
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    // Get session - adjust based on your auth setup
-    // const session = await getServerSession(authOptions);
-    // if (!session) {
-    //   return NextResponse.json<APIResponse>({
-    //     success: false,
-    //     error: {
-    //       code: 'UNAUTHORIZED',
-    //       message: 'You must be logged in to start an assessment'
-    //     }
-    //   }, { status: 401 });
-    // }
-
-    const body = await request.json();
-    const { clientId } = body;
-
-    if (!clientId) {
-      return NextResponse.json<APIResponse>({
-        success: false,
-        error: {
-          code: 'MISSING_CLIENT_ID',
-          message: 'Client ID is required to start an assessment'
-        }
-      }, { status: 400 });
+    // Get the authenticated user
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
 
-    // Verify client exists
-    const client = await prisma.client.findUnique({
-      where: { id: clientId }
-    });
-
-    if (!client) {
-      return NextResponse.json<APIResponse>({
-        success: false,
-        error: {
-          code: 'CLIENT_NOT_FOUND',
-          message: 'Client not found'
-        }
-      }, { status: 404 });
-    }
-
-    // Start or resume assessment
-    const assessmentId = await assessmentService.startAssessment(clientId);
-
-    // Get initial assessment data
-    const assessment = await prisma.clientAssessment.findUnique({
-      where: { id: assessmentId },
-      include: {
-        responses: {
-          select: {
-            id: true,
-            questionId: true,
-            responseValue: true
-          }
-        }
+    // Check if user already has an active assessment
+    const existingAssessment = await prisma.clientAssessment.findFirst({
+      where: {
+        clientId: session.user.id,
+        status: 'IN_PROGRESS'
       }
     });
 
-    return NextResponse.json<APIResponse>({
+    if (existingAssessment) {
+      // Return existing assessment to resume
+      const responses = await prisma.clientResponse.findMany({
+        where: { assessmentId: existingAssessment.id },
+        orderBy: { answeredAt: 'desc' },
+        take: 1
+      });
+
+      const lastResponse = responses[0];
+      const questions = getScreeningQuestions();
+      
+      // Find next question after last answered
+      let nextQuestionIndex = 0;
+      if (lastResponse) {
+        const lastQuestionIndex = questions.findIndex(q => q.id === lastResponse.questionId);
+        nextQuestionIndex = lastQuestionIndex + 1;
+      }
+
+      if (nextQuestionIndex < questions.length) {
+        return NextResponse.json({
+          success: true,
+          data: {
+            assessmentId: existingAssessment.id,
+            firstQuestion: questions[nextQuestionIndex],
+            module: existingAssessment.currentModule,
+            isResuming: true
+          }
+        });
+      }
+    }
+
+    // Get the default assessment template
+    let assessmentTemplate = await prisma.assessmentTemplate.findFirst({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // If no template exists, create the default one
+    if (!assessmentTemplate) {
+      const allQuestions = getScreeningQuestions();
+      
+      assessmentTemplate = await prisma.assessmentTemplate.create({
+        data: {
+          name: 'Comprehensive Functional Medicine Assessment',
+          description: '400+ question adaptive assessment across 7 functional medicine nodes',
+          version: '1.0',
+          baseQuestions: allQuestions,
+          isActive: true
+        }
+      });
+    }
+
+    // Create new assessment for the client
+    const newAssessment = await prisma.clientAssessment.create({
+      data: {
+        clientId: session.user.id,
+        assessmentTemplateId: assessmentTemplate.id,
+        currentModule: 'SCREENING',
+        questionsAsked: 1,
+        questionsSaved: 0,
+        status: 'IN_PROGRESS',
+        startedAt: new Date(),
+        lastActiveAt: new Date(),
+        aiContext: {
+          modules: ['SCREENING'],
+          primaryConcerns: [],
+          riskFactors: []
+        },
+        symptomProfile: {}
+      }
+    });
+
+    // Get first question from screening module
+    const questions = getScreeningQuestions();
+    const firstQuestion = questions[0];
+
+    // Log assessment start
+    console.log(`Assessment ${newAssessment.id} started for client ${session.user.id}`);
+
+    return NextResponse.json({
       success: true,
       data: {
-        assessmentId,
-        status: assessment?.status,
-        currentModule: assessment?.currentModule,
-        questionsAsked: assessment?.questionsAsked || 0,
-        completionRate: assessment?.completionRate || 0,
-        resuming: assessment?.responses && assessment.responses.length > 0
-      },
-      metadata: {
-        timestamp: new Date().toISOString(),
-        version: '1.0.0'
+        assessmentId: newAssessment.id,
+        firstQuestion,
+        module: 'SCREENING',
+        questionsInModule: questions.length
       }
     });
 
   } catch (error) {
     console.error('Error starting assessment:', error);
-    return NextResponse.json<APIResponse>({
-      success: false,
-      error: {
-        code: 'ASSESSMENT_START_ERROR',
-        message: 'Failed to start assessment',
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'Failed to start assessment',
         details: error instanceof Error ? error.message : 'Unknown error'
-      }
-    }, { status: 500 });
+      },
+      { status: 500 }
+    );
   }
 }
