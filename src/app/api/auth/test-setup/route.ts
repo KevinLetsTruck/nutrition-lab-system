@@ -49,6 +49,7 @@ export async function GET() {
       userId: client.id, // Use client ID for assessment system
       email: user.email,
       role: user.role,
+      clientId: client.id, // Also include clientId explicitly
     });
 
     return NextResponse.json({

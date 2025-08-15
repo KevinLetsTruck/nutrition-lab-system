@@ -1,0 +1,740 @@
+import { Anthropic } from '@anthropic-ai/sdk';
+import { AssessmentQuestion, ClientResponse, ModuleType, FunctionalModule } from '@/lib/assessment/types';
+import { getQuestionsByModule } from '@/lib/assessment/questions';
+// Import other modules when they are implemented
+// import { getAssimilationQuestions } from '@/lib/assessment/questions/assimilation-questions';
+// import { getDefenseRepairQuestions } from '@/lib/assessment/questions/defense-repair-questions';
+// import { getEnergyQuestions } from '@/lib/assessment/questions/energy-questions';
+// import { getBiotransformationQuestions } from '@/lib/assessment/questions/biotransformation-questions';
+// import { getTransportQuestions } from '@/lib/assessment/questions/transport-questions';
+// import { getCommunicationQuestions } from '@/lib/assessment/questions/communication-questions';
+// import { getStructuralQuestions } from '@/lib/assessment/questions/structural-questions';
+
+// Initialize Claude client
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY!,
+});
+
+interface AssessmentContext {
+  currentModule: ModuleType;
+  responses: ClientResponse[];
+  symptomProfile: any;
+  questionsAsked: number;
+  assessmentContext: any;
+}
+
+interface AIDecision {
+  nextQuestion?: AssessmentQuestion;
+  nextModule?: ModuleType;
+  questionsInModule?: number;
+  questionsSaved?: number;
+  reasoning: string;
+}
+
+const MODULE_SEQUENCE: ModuleType[] = [
+  'SCREENING',
+  'ASSIMILATION',
+  'DEFENSE_REPAIR',
+  'ENERGY',
+  'BIOTRANSFORMATION',
+  'TRANSPORT',
+  'COMMUNICATION',
+  'STRUCTURAL'
+];
+
+function getQuestionsForModule(module: ModuleType): AssessmentQuestion[] {
+  // Convert Prisma ModuleType to FunctionalModule enum
+  const functionalModule = module as unknown as FunctionalModule;
+  return getQuestionsByModule(functionalModule);
+}
+
+export async function getNextQuestionWithAI(context: AssessmentContext): Promise<AIDecision> {
+  const { currentModule, responses, symptomProfile, questionsAsked } = context;
+  
+  // Get available questions for current module
+  const moduleQuestions = getQuestionsForModule(currentModule);
+  
+  // Get already answered question IDs
+  const answeredQuestionIds = responses.map(r => r.questionId);
+  
+  // Filter to get remaining unanswered questions
+  const remainingQuestions = moduleQuestions.filter(
+    q => !answeredQuestionIds.includes(q.id)
+  );
+
+  // If no questions remain in current module, move to next
+  if (remainingQuestions.length === 0) {
+    const currentModuleIndex = MODULE_SEQUENCE.indexOf(currentModule);
+    if (currentModuleIndex < MODULE_SEQUENCE.length - 1) {
+      const nextModule = MODULE_SEQUENCE[currentModuleIndex + 1];
+      const nextModuleQuestions = getQuestionsForModule(nextModule);
+      
+      // Use Claude to select first question of new module
+      return selectQuestionWithClaude(
+        nextModuleQuestions,
+        responses,
+        symptomProfile,
+        nextModule,
+        true // isNewModule
+      );
+    } else {
+      // Assessment complete
+      return {
+        nextQuestion: undefined,
+        reasoning: 'All modules completed',
+        questionsSaved: 0
+      };
+    }
+  }
+
+  // Use Claude to intelligently select next question
+  return selectQuestionWithClaude(
+    remainingQuestions,
+    responses,
+    symptomProfile,
+    currentModule,
+    false
+  );
+}
+
+async function selectQuestionWithClaude(
+  availableQuestions: AssessmentQuestion[],
+  responses: ClientResponse[],
+  symptomProfile: any,
+  module: ModuleType,
+  isNewModule: boolean
+): Promise<AIDecision> {
+  try {
+    // Prepare context for Claude
+    const recentResponses = responses.slice(-10).map(r => ({
+      question: r.questionText,
+      answer: r.responseValue,
+      type: r.responseType
+    }));
+
+    const highSeveritySymptoms = responses.filter(r => {
+      return r.responseType === 'LIKERT_SCALE' && 
+             typeof r.responseValue === 'number' && 
+             r.responseValue >= 7;
+    }).map(r => ({
+      symptom: r.questionText,
+      severity: r.responseValue
+    }));
+
+    const prompt = `You are an expert functional medicine practitioner conducting an adaptive health assessment. Your goal is to gather the most clinically relevant information while minimizing the number of questions asked.
+
+Current Assessment Context:
+- Module: ${module} ${isNewModule ? '(just started)' : ''}
+- Questions asked so far: ${responses.length}
+- Recent responses: ${JSON.stringify(recentResponses, null, 2)}
+- High severity symptoms (≥7/10): ${JSON.stringify(highSeveritySymptoms, null, 2)}
+
+Available questions in current module:
+${availableQuestions.slice(0, 20).map((q, i) => `${i + 1}. [${q.id}] ${q.text} (Type: ${q.type})`).join('\n')}
+${availableQuestions.length > 20 ? `... and ${availableQuestions.length - 20} more questions` : ''}
+
+Based on the patterns in the responses, select the NEXT MOST VALUABLE question that will:
+1. Provide maximum diagnostic value
+2. Avoid redundancy with already-gathered information
+3. Follow logical clinical reasoning
+4. Prioritize questions related to high-severity symptoms
+5. Skip basic questions if severe symptoms already indicate advanced issues
+
+Consider these clinical patterns:
+- If digestive issues are severe (≥7), skip mild symptom questions and focus on root causes
+- If energy/fatigue is severe, prioritize mitochondrial and thyroid-related questions
+- If multiple systems show dysfunction, look for connecting patterns
+- For seed oil exposure questions, prioritize if inflammation markers are high
+
+Respond with a JSON object:
+{
+  "selectedQuestionId": "the_question_id",
+  "reasoning": "Brief explanation of why this question is most valuable now",
+  "questionsToSkip": ["id1", "id2"],
+  "skipReason": "Why these questions can be skipped",
+  "estimatedQuestionsSaved": <number>
+}`;
+
+    const response = await anthropic.messages.create({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 500,
+      temperature: 0.3, // Lower temperature for more consistent clinical decisions
+      messages: [
+        {
+          role: 'user',
+          content: prompt
+        }
+      ]
+    });
+
+    // Parse Claude's response
+    const content = response.content[0].type === 'text' ? response.content[0].text : '';
+    
+    // Extract JSON from response (Claude might include explanation text)
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('Could not parse Claude response');
+    }
+
+    const aiResponse = JSON.parse(jsonMatch[0]);
+    
+    // Find the selected question
+    const selectedQuestion = availableQuestions.find(
+      q => q.id === aiResponse.selectedQuestionId
+    );
+
+    if (!selectedQuestion) {
+      // Fallback to first available question if Claude's selection not found
+      console.error('Claude selected invalid question ID:', aiResponse.selectedQuestionId);
+      return {
+        nextQuestion: availableQuestions[0],
+        nextModule: isNewModule ? module : undefined,
+        questionsInModule: getQuestionsForModule(module).length,
+        questionsSaved: 0,
+        reasoning: 'Fallback to sequential selection'
+      };
+    }
+
+    return {
+      nextQuestion: selectedQuestion,
+      nextModule: isNewModule ? module : undefined,
+      questionsInModule: getQuestionsForModule(module).length,
+      questionsSaved: aiResponse.estimatedQuestionsSaved || 0,
+      reasoning: aiResponse.reasoning
+    };
+
+  } catch (error) {
+    console.error('Error calling Claude API:', error);
+    
+    // Fallback to simple algorithm if Claude fails
+    return fallbackQuestionSelection(
+      availableQuestions,
+      responses,
+      module,
+      isNewModule
+    );
+  }
+}
+
+// Fallback algorithm if Claude API fails
+function fallbackQuestionSelection(
+  availableQuestions: AssessmentQuestion[],
+  responses: ClientResponse[],
+  module: ModuleType,
+  isNewModule: boolean
+): AIDecision {
+  // Check for high severity symptoms
+  const hasHighSeverity = responses.some(r => 
+    r.responseType === 'LIKERT_SCALE' && 
+    typeof r.responseValue === 'number' && 
+    r.responseValue >= 7
+  );
+
+  let questionsSaved = 0;
+  let nextQuestion = availableQuestions[0];
+  let reasoning = 'Sequential selection (fallback mode)';
+
+  if (hasHighSeverity && availableQuestions.length > 5) {
+    // Skip some basic questions if high severity exists
+    const skipCount = Math.min(3, Math.floor(availableQuestions.length * 0.2));
+    nextQuestion = availableQuestions[skipCount];
+    questionsSaved = skipCount;
+    reasoning = `Skipping ${skipCount} basic questions due to high severity symptoms`;
+  }
+
+  return {
+    nextQuestion,
+    nextModule: isNewModule ? module : undefined,
+    questionsInModule: getQuestionsForModule(module).length,
+    questionsSaved,
+    reasoning
+  };
+}
+
+// Keep the original assessment AI class and methods below for other functionality
+
+import {
+  SeedOilAssessment,
+} from "@/lib/assessment/types";
+import { prisma } from "@/lib/db";
+
+export class AssessmentAIService {
+  private readonly MODEL = "claude-3-opus-20240229";
+  private readonly MAX_TOKENS = 4000;
+
+  /**
+   * Analyzes responses and selects the next most relevant question
+   */
+  async selectNextQuestion(
+    assessmentId: string,
+    availableQuestions: AssessmentQuestion[],
+    completedResponses: any[]
+  ): Promise<{
+    questionId: string;
+    reasoning: string;
+    expectedValue: number;
+    priority: "high" | "medium" | "low";
+  }> {
+    try {
+      // Get assessment context
+      const assessment = await prisma.clientAssessment.findUnique({
+        where: { id: assessmentId },
+        include: { responses: true },
+      });
+
+      if (!assessment) {
+        throw new Error("Assessment not found");
+      }
+
+      // Build context for Claude
+      const context = this.buildAssessmentContext(
+        assessment,
+        completedResponses
+      );
+
+      const prompt = `
+You are analyzing a functional medicine assessment for a client.
+
+Current Assessment Context:
+${JSON.stringify(context, null, 2)}
+
+Available Questions:
+${JSON.stringify(availableQuestions.slice(0, 20), null, 2)}
+
+Based on the patterns you see in the responses, select the next most clinically relevant question.
+
+Selection Criteria:
+1. Maximum diagnostic value - choose questions that will reveal the most about the client's health
+2. Avoid redundancy - don't ask questions that have already been answered or implied
+3. Follow clinical logic - ask follow-up questions that make sense given previous answers
+4. Prioritize seed oil exposure if inflammatory patterns are emerging
+5. Consider symptom clustering - identify related symptoms that point to specific conditions
+
+Analyze the responses for:
+- Seed oil exposure patterns (frequency of fried foods, types of oils used)
+- Energy/fatigue patterns that suggest mitochondrial dysfunction
+- Digestive symptoms that indicate gut dysbiosis
+- Inflammatory markers across multiple systems
+- Red flags that need immediate deeper investigation
+
+Return your selection as JSON:
+{
+  "questionId": "string",
+  "reasoning": "detailed clinical reasoning for selection",
+  "expectedValue": "0-10 predicted importance of this question",
+  "priority": "high|medium|low based on clinical urgency"
+}
+`;
+
+      const response = await anthropic.messages.create({
+        model: this.MODEL,
+        max_tokens: this.MAX_TOKENS,
+        temperature: 0.3, // Lower temperature for more consistent clinical decisions
+        messages: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+      });
+
+      // Parse Claude's response
+      const content =
+        response.content[0].type === "text" ? response.content[0].text : "";
+
+      const result = this.parseJSONResponse(content);
+
+      // Store AI reasoning for audit
+      await this.storeAIReasoning(assessmentId, "question_selection", result);
+
+      return result;
+    } catch (error) {
+      console.error("Error selecting next question:", error);
+      // Fallback to first available question
+      return {
+        questionId: availableQuestions[0]?.id || "",
+        reasoning: "Fallback selection due to AI error",
+        expectedValue: 5,
+        priority: "medium",
+      };
+    }
+  }
+
+  /**
+   * Analyzes symptom patterns and identifies which modules to activate
+   */
+  async analyzeModuleActivation(assessmentId: string): Promise<{
+    activateModules: FunctionalModule[];
+    skipModules: FunctionalModule[];
+    reasoning: Record<FunctionalModule, string>;
+  }> {
+    const assessment = await prisma.clientAssessment.findUnique({
+      where: { id: assessmentId },
+      include: { responses: true },
+    });
+
+    if (!assessment) {
+      throw new Error("Assessment not found");
+    }
+
+    const prompt = `
+Analyze these screening responses to determine which functional medicine modules should be activated.
+
+Client Responses:
+${JSON.stringify(assessment.responses, null, 2)}
+
+Functional Modules Available:
+1. ASSIMILATION - Digestive system and gut health
+2. DEFENSE_REPAIR - Immune system and inflammation
+3. ENERGY - Mitochondrial and metabolic function
+4. BIOTRANSFORMATION - Detoxification pathways
+5. TRANSPORT - Cardiovascular and lymphatic
+6. COMMUNICATION - Hormonal and neurological
+7. STRUCTURAL - Musculoskeletal system
+
+Activation Criteria:
+- Look for symptom clusters that indicate dysfunction in specific systems
+- Prioritize modules where multiple symptoms converge
+- Consider seed oil exposure (high exposure should activate ENERGY and DEFENSE_REPAIR)
+- Identify red flags that require immediate investigation
+- Skip modules with no relevant symptoms to reduce assessment burden
+
+Analyze for:
+- Digestive symptoms (bloating, irregular bowels, food sensitivities)
+- Energy/fatigue patterns (crashes, exercise intolerance, brain fog)
+- Inflammatory symptoms (joint pain, skin issues, autoimmune signs)
+- Hormonal imbalances (mood, sleep, weight changes)
+- Toxic burden (chemical sensitivities, poor detox signs)
+
+Return as JSON:
+{
+  "activateModules": ["MODULE_NAMES"],
+  "skipModules": ["MODULE_NAMES"],
+  "reasoning": {
+    "MODULE_NAME": "specific reasoning for activation or skipping"
+  }
+}
+`;
+
+    const response = await anthropic.messages.create({
+      model: this.MODEL,
+      max_tokens: this.MAX_TOKENS,
+      temperature: 0.3,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
+
+    const content =
+      response.content[0].type === "text" ? response.content[0].text : "";
+
+    const result = this.parseJSONResponse(content);
+
+    // Update assessment with AI context
+    await prisma.clientAssessment.update({
+      where: { id: assessmentId },
+      data: {
+        aiContext: {
+          moduleActivation: result,
+          timestamp: new Date(),
+        },
+      },
+    });
+
+    return result;
+  }
+
+  /**
+   * Performs comprehensive scoring of the assessment
+   */
+  async scoreAssessment(assessmentId: string): Promise<{
+    overallScore: number;
+    nodeScores: Record<string, number>;
+    seedOilAssessment: SeedOilAssessment;
+    riskLevel: "LOW" | "MODERATE" | "HIGH" | "CRITICAL";
+    primaryConcerns: string[];
+    strengths: string[];
+    hiddenPatterns: string[];
+  }> {
+    const assessment = await prisma.clientAssessment.findUnique({
+      where: { id: assessmentId },
+      include: {
+        responses: true,
+        client: {
+          include: {
+            medicalDocuments: {
+              include: {
+                labValues: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!assessment) {
+      throw new Error("Assessment not found");
+    }
+
+    // Extract lab values if available
+    const labValues = assessment.client.medicalDocuments
+      .flatMap((doc) => doc.labValues)
+      .filter(Boolean);
+
+    const prompt = `
+Perform a comprehensive functional medicine analysis of this assessment.
+
+Assessment Responses:
+${JSON.stringify(assessment.responses, null, 2)}
+
+Lab Values (if available):
+${JSON.stringify(labValues, null, 2)}
+
+Generate a complete health analysis including:
+
+1. Overall Health Score (0-100)
+   - Weight energy/fatigue heavily (25%)
+   - Digestive function (20%)
+   - Inflammation/immune (20%)
+   - Hormonal balance (15%)
+   - Detox capacity (10%)
+   - Structural integrity (10%)
+
+2. Individual Node Scores (0-100 each)
+   - ASSIMILATION (digestive health)
+   - DEFENSE_REPAIR (immune/inflammation)
+   - ENERGY (mitochondrial function)
+   - BIOTRANSFORMATION (detox capacity)
+   - TRANSPORT (cardiovascular/lymphatic)
+   - COMMUNICATION (hormonal/neurological)
+   - STRUCTURAL (musculoskeletal)
+
+3. Seed Oil Assessment
+   - Exposure level (0-10): Based on frequency of fried foods, types of oils used
+   - Damage indicators (0-10): Inflammatory symptoms, energy crashes, digestive issues
+   - Recovery potential (0-10): Higher if younger, shorter exposure, fewer symptoms
+   - Priority level: LOW/MODERATE/HIGH/CRITICAL
+
+4. Risk Stratification
+   - Consider all red flags
+   - Weight multiple system involvement heavily
+   - Account for symptom severity and duration
+
+5. Primary Concerns (Top 3-5)
+   - Most impactful issues affecting quality of life
+   - Root causes that affect multiple systems
+   - Seed oil damage if exposure is high
+
+6. Hidden Patterns
+   - Subclinical issues not immediately obvious
+   - System interconnections
+   - Early warning signs
+
+Return as JSON:
+{
+  "overallScore": number,
+  "nodeScores": {
+    "ASSIMILATION": number,
+    "DEFENSE_REPAIR": number,
+    "ENERGY": number,
+    "BIOTRANSFORMATION": number,
+    "TRANSPORT": number,
+    "COMMUNICATION": number,
+    "STRUCTURAL": number
+  },
+  "seedOilAssessment": {
+    "exposureLevel": number,
+    "damageIndicators": number,
+    "recoveryPotential": number,
+    "priorityLevel": "LOW|MODERATE|HIGH|CRITICAL",
+    "recommendedInterventions": ["specific interventions"]
+  },
+  "riskLevel": "LOW|MODERATE|HIGH|CRITICAL",
+  "primaryConcerns": ["top concerns"],
+  "strengths": ["positive findings"],
+  "hiddenPatterns": ["subtle patterns identified"]
+}
+`;
+
+    const response = await anthropic.messages.create({
+      model: this.MODEL,
+      max_tokens: this.MAX_TOKENS,
+      temperature: 0.3,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
+
+    const content =
+      response.content[0].type === "text" ? response.content[0].text : "";
+
+    const result = this.parseJSONResponse(content);
+
+    // Store the analysis
+    await this.storeAssessmentAnalysis(assessmentId, result);
+
+    return result;
+  }
+
+  /**
+   * Generates personalized lab recommendations based on assessment
+   */
+  async recommendLabs(assessmentId: string): Promise<{
+    essential: string[];
+    recommended: string[];
+    optional: string[];
+    reasoning: Record<string, string>;
+    expectedFindings: Record<string, string>;
+  }> {
+    const analysis = await prisma.assessmentAnalysis.findUnique({
+      where: { assessmentId },
+    });
+
+    if (!analysis) {
+      throw new Error("Assessment analysis not found");
+    }
+
+    const prompt = `
+Based on this functional medicine assessment analysis, recommend appropriate lab tests.
+
+Assessment Analysis:
+${JSON.stringify(analysis, null, 2)}
+
+Consider:
+1. Seed oil damage markers if exposure is high:
+   - F2-isoprostanes (gold standard for lipid peroxidation)
+   - 4-HNE (oxidative damage marker)
+   - Omega-6:Omega-3 ratio
+   - Oxidized LDL
+
+2. Functional medicine labs based on node scores:
+   - GI-MAP for digestive issues
+   - DUTCH for hormonal imbalances
+   - Organic Acids Test for mitochondrial dysfunction
+   - Heavy metals if detox impairment
+   - Food sensitivity if multiple reactions
+
+3. Standard labs to rule out pathology:
+   - CBC, CMP, Thyroid panel
+   - Inflammatory markers (CRP, ESR)
+   - Metabolic markers if indicated
+
+Categorize as:
+- Essential: Must have for accurate diagnosis
+- Recommended: Would significantly enhance understanding
+- Optional: Nice to have but not critical
+
+Return as JSON:
+{
+  "essential": ["lab names"],
+  "recommended": ["lab names"],
+  "optional": ["lab names"],
+  "reasoning": {
+    "lab_name": "specific clinical reasoning"
+  },
+  "expectedFindings": {
+    "lab_name": "what we expect to find based on symptoms"
+  }
+}
+`;
+
+    const response = await anthropic.messages.create({
+      model: this.MODEL,
+      max_tokens: this.MAX_TOKENS,
+      temperature: 0.3,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
+
+    const content =
+      response.content[0].type === "text" ? response.content[0].text : "";
+
+    return this.parseJSONResponse(content);
+  }
+
+  // Helper methods
+  private buildAssessmentContext(assessment: any, responses: any[]) {
+    return {
+      currentModule: assessment.currentModule,
+      questionsAsked: assessment.questionsAsked,
+      responseCount: responses.length,
+      symptomProfile: assessment.symptomProfile || {},
+      seedOilRisk: assessment.seedOilRisk || {},
+      lastResponses: responses.slice(-5), // Last 5 responses for context
+    };
+  }
+
+  private parseJSONResponse(content: string): any {
+    try {
+      // Extract JSON from Claude's response
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
+      throw new Error("No JSON found in response");
+    } catch (error) {
+      console.error("Error parsing AI response:", error);
+      throw new Error("Failed to parse AI response");
+    }
+  }
+
+  private async storeAIReasoning(
+    assessmentId: string,
+    type: string,
+    reasoning: any
+  ) {
+    // Store in database for audit trail
+    await prisma.clientAssessment.update({
+      where: { id: assessmentId },
+      data: {
+        aiContext: {
+          ...reasoning,
+          type,
+          timestamp: new Date(),
+        },
+      },
+    });
+  }
+
+  private async storeAssessmentAnalysis(assessmentId: string, analysis: any) {
+    await prisma.assessmentAnalysis.upsert({
+      where: { assessmentId },
+      create: {
+        assessmentId,
+        overallScore: analysis.overallScore,
+        nodeScores: analysis.nodeScores,
+        seedOilScore: analysis.seedOilAssessment,
+        aiSummary: JSON.stringify(analysis),
+        keyFindings: analysis.primaryConcerns,
+        riskFactors: analysis.hiddenPatterns,
+        strengths: analysis.strengths,
+        primaryConcerns: analysis.primaryConcerns,
+        suggestedLabs: {},
+        labPredictions: {},
+      },
+      update: {
+        overallScore: analysis.overallScore,
+        nodeScores: analysis.nodeScores,
+        seedOilScore: analysis.seedOilAssessment,
+        aiSummary: JSON.stringify(analysis),
+        keyFindings: analysis.primaryConcerns,
+        riskFactors: analysis.hiddenPatterns,
+        strengths: analysis.strengths,
+        updatedAt: new Date(),
+      },
+    });
+  }
+}
+
+// Export singleton instance
+export const assessmentAI = new AssessmentAIService();

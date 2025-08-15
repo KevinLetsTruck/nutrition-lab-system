@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { auth } from '@/lib/auth-helpers';
-import { getQuestionsByModule } from '@/lib/assessment/questions';
-import { FunctionalModule } from '@/lib/assessment/types';
-import { AssessmentStatus } from '@prisma/client';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { auth } from "@/lib/auth-helpers";
+import { getQuestionsByModule } from "@/lib/assessment/questions";
+import { FunctionalModule } from "@/lib/assessment/types";
+import { AssessmentStatus } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,34 +11,38 @@ export async function POST(req: NextRequest) {
     const session = await auth(req);
     if (!session?.user?.id) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
+        { success: false, error: "Unauthorized" },
         { status: 401 }
       );
     }
+
+    console.log("Assessment start - session user ID:", session.user.id);
 
     // Check if user already has an active assessment
     const existingAssessment = await prisma.clientAssessment.findFirst({
       where: {
         clientId: session.user.id,
-        status: 'IN_PROGRESS'
-      }
+        status: "IN_PROGRESS",
+      },
     });
 
     if (existingAssessment) {
       // Return existing assessment to resume
       const responses = await prisma.clientResponse.findMany({
         where: { assessmentId: existingAssessment.id },
-        orderBy: { answeredAt: 'desc' },
-        take: 1
+        orderBy: { answeredAt: "desc" },
+        take: 1,
       });
 
       const lastResponse = responses[0];
       const questions = getQuestionsByModule(FunctionalModule.SCREENING);
-      
+
       // Find next question after last answered
       let nextQuestionIndex = 0;
       if (lastResponse) {
-        const lastQuestionIndex = questions.findIndex(q => q.id === lastResponse.questionId);
+        const lastQuestionIndex = questions.findIndex(
+          (q) => q.id === lastResponse.questionId
+        );
         nextQuestionIndex = lastQuestionIndex + 1;
       }
 
@@ -49,8 +53,8 @@ export async function POST(req: NextRequest) {
             assessmentId: existingAssessment.id,
             firstQuestion: questions[nextQuestionIndex],
             module: existingAssessment.currentModule,
-            isResuming: true
-          }
+            isResuming: true,
+          },
         });
       }
     }
@@ -58,17 +62,17 @@ export async function POST(req: NextRequest) {
     // Get the default assessment template
     let assessmentTemplate = await prisma.assessmentTemplate.findFirst({
       where: { isActive: true },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: "desc" },
     });
 
     // If no template exists, create the default one
     if (!assessmentTemplate) {
       const allQuestions = getQuestionsByModule(FunctionalModule.SCREENING);
-      
+
       assessmentTemplate = await prisma.assessmentTemplate.create({
         data: {
-          name: 'Comprehensive Functional Medicine Assessment',
-          version: '1.0.0',
+          name: "Comprehensive Functional Medicine Assessment",
+          version: "1.0.0",
           questionBank: allQuestions,
           modules: {
             SCREENING: { order: 1, questions: allQuestions.length },
@@ -78,7 +82,7 @@ export async function POST(req: NextRequest) {
             BIOTRANSFORMATION: { order: 5, questions: 50 },
             TRANSPORT: { order: 6, questions: 50 },
             COMMUNICATION: { order: 7, questions: 50 },
-            STRUCTURAL: { order: 8, questions: 50 }
+            STRUCTURAL: { order: 8, questions: 50 },
           },
           scoringRules: {
             severityThresholds: { low: 3, medium: 6, high: 8 },
@@ -90,11 +94,11 @@ export async function POST(req: NextRequest) {
               BIOTRANSFORMATION: 1.1,
               TRANSPORT: 1.0,
               COMMUNICATION: 1.2,
-              STRUCTURAL: 0.9
-            }
+              STRUCTURAL: 0.9,
+            },
           },
-          isActive: true
-        }
+          isActive: true,
+        },
       });
     }
 
@@ -102,24 +106,24 @@ export async function POST(req: NextRequest) {
     const newAssessment = await prisma.clientAssessment.create({
       data: {
         client: {
-          connect: { id: session.user.id }
+          connect: { id: session.user.id },
         },
         template: {
-          connect: { id: assessmentTemplate.id }
+          connect: { id: assessmentTemplate.id },
         },
-        currentModule: 'SCREENING',
+        currentModule: "SCREENING",
         questionsAsked: 1,
         questionsSaved: 0,
-        status: 'IN_PROGRESS',
+        status: "IN_PROGRESS",
         startedAt: new Date(),
         lastActiveAt: new Date(),
         aiContext: {
-          modules: ['SCREENING'],
+          modules: ["SCREENING"],
           primaryConcerns: [],
-          riskFactors: []
+          riskFactors: [],
         },
-        symptomProfile: {}
-      }
+        symptomProfile: {},
+      },
     });
 
     // Get first question from screening module
@@ -127,25 +131,26 @@ export async function POST(req: NextRequest) {
     const firstQuestion = questions[0];
 
     // Log assessment start
-    console.log(`Assessment ${newAssessment.id} started for client ${session.user.id}`);
+    console.log(
+      `Assessment ${newAssessment.id} started for client ${session.user.id}`
+    );
 
     return NextResponse.json({
       success: true,
       data: {
         assessmentId: newAssessment.id,
         firstQuestion,
-        module: 'SCREENING',
-        questionsInModule: questions.length
-      }
+        module: "SCREENING",
+        questionsInModule: questions.length,
+      },
     });
-
   } catch (error) {
-    console.error('Error starting assessment:', error);
+    console.error("Error starting assessment:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to start assessment',
-        details: error instanceof Error ? error.message : 'Unknown error'
+      {
+        success: false,
+        error: "Failed to start assessment",
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );
