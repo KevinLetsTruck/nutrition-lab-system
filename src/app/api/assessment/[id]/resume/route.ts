@@ -108,9 +108,14 @@ export async function POST(
     }
 
     // Prepare resume data
+    const formattedCurrentQuestion = currentQuestion ? {
+      ...currentQuestion,
+      type: currentQuestion.type as string
+    } : null;
+    
     const resumeData = {
       assessmentId,
-      currentQuestion,
+      currentQuestion: formattedCurrentQuestion,
       currentModule: assessment.currentModule,
       responses: assessment.responses.map(r => ({
         id: r.id,

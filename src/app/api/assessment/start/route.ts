@@ -129,6 +129,12 @@ export async function POST(req: NextRequest) {
     // Get first question from screening module
     const questions = getQuestionsByModule(FunctionalModule.SCREENING);
     const firstQuestion = questions[0];
+    
+    // Ensure question type is properly serialized
+    const formattedFirstQuestion = {
+      ...firstQuestion,
+      type: firstQuestion.type as string
+    };
 
     // Log assessment start
     console.log(
@@ -139,7 +145,7 @@ export async function POST(req: NextRequest) {
       success: true,
       data: {
         assessmentId: newAssessment.id,
-        firstQuestion,
+        firstQuestion: formattedFirstQuestion,
         module: "SCREENING",
         questionsInModule: questions.length,
       },
