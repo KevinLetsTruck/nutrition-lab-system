@@ -18,7 +18,9 @@
     "test:medical": "node test-medical-system.js",
     "test:medical:verbose": "node test-medical-system.js --verbose",
     "test:medical:basic": "node test-medical-system.js --basic",
-    "test:assessment-ai": "tsx scripts/test-claude-assessment.ts"
+    "test:assessment-ai": "tsx scripts/test-claude-assessment.ts",
+    "test:claude": "node scripts/test-claude-simple.js",
+    "test:claude-mock": "node scripts/test-claude-mock.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.59.0",
