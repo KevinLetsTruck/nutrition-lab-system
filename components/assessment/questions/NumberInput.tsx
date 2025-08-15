@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { AssessmentQuestion } from '@/lib/assessment/types';
+import { cn } from '@/lib/utils';
 
 interface NumberInputProps {
   question: AssessmentQuestion;
@@ -16,148 +17,99 @@ export function NumberInput({
   onChange,
   disabled = false
 }: NumberInputProps) {
-  const [localValue, setLocalValue] = useState(value?.toString() || '');
+  const [inputValue, setInputValue] = useState(value?.toString() || '');
   
-  const min = question.numberOptions?.min ?? 0;
-  const max = question.numberOptions?.max ?? 999;
-  const step = question.numberOptions?.step ?? 1;
-  const unit = question.numberOptions?.unit || '';
-  const prefix = question.numberOptions?.prefix || '';
-  const suffix = question.numberOptions?.suffix || '';
+  const min = question.min ?? 0;
+  const max = question.max ?? 999;
+  const step = question.step ?? 1;
+  const unit = question.unit || '';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
+    setInputValue(newValue);
     
-    // Allow empty string
-    if (newValue === '') {
-      setLocalValue('');
-      return;
-    }
-    
-    // Allow decimal point if step allows decimals
-    if (step < 1 && newValue.endsWith('.')) {
-      setLocalValue(newValue);
-      return;
-    }
-    
-    const numValue = parseFloat(newValue);
-    if (!isNaN(numValue) && numValue >= min && numValue <= max) {
-      setLocalValue(newValue);
-      onChange(numValue);
+    const parsed = parseFloat(newValue);
+    if (!isNaN(parsed) && parsed >= min && parsed <= max) {
+      onChange(parsed);
     }
   };
 
   const handleIncrement = () => {
-    const current = parseFloat(localValue) || min;
+    const current = value || min;
     const newValue = Math.min(current + step, max);
-    setLocalValue(newValue.toString());
+    setInputValue(newValue.toString());
     onChange(newValue);
   };
 
   const handleDecrement = () => {
-    const current = parseFloat(localValue) || min;
+    const current = value || min;
     const newValue = Math.max(current - step, min);
-    setLocalValue(newValue.toString());
+    setInputValue(newValue.toString());
     onChange(newValue);
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center space-x-4">
-        {prefix && <span className="text-gray-700 font-medium">{prefix}</span>}
-        
-        <div className="relative flex items-center">
-          <button
-            type="button"
-            onClick={handleDecrement}
-            disabled={disabled || parseFloat(localValue) <= min}
-            className={`
-              p-2 rounded-l-lg border-2 border-r-0
-              ${disabled || parseFloat(localValue) <= min
-                ? 'bg-gray-100 border-gray-200 cursor-not-allowed text-gray-400'
-                : 'bg-white border-gray-300 hover:bg-gray-100 text-gray-700'
-              }
-            `}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-            </svg>
-          </button>
-          
+      <div className="flex items-center space-x-2">
+        <button
+          onClick={handleDecrement}
+          disabled={disabled || (value !== null && value <= min)}
+          className={cn(
+            "w-10 h-10 rounded-lg border-2 transition-all",
+            "hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500",
+            "disabled:opacity-50 disabled:cursor-not-allowed",
+            "border-gray-300"
+          )}
+        >
+          <svg className="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+          </svg>
+        </button>
+
+        <div className="flex-1 relative max-w-xs">
           <input
             type="number"
-            value={localValue}
+            value={inputValue}
             onChange={handleChange}
-            disabled={disabled}
             min={min}
             max={max}
             step={step}
-            className={`
-              w-32 px-4 py-2 text-center border-2 border-l-0 border-r-0
-              ${disabled 
-                ? 'bg-gray-100 border-gray-200 cursor-not-allowed' 
-                : 'bg-white border-gray-300 focus:border-blue-500 focus:z-10'
-              }
-              focus:outline-none appearance-none
-            `}
+            disabled={disabled}
+            className={cn(
+              "w-full px-3 py-2 text-center border rounded-lg",
+              "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
+              "border-gray-300",
+              unit && "pr-12"
+            )}
           />
-          
-          <button
-            type="button"
-            onClick={handleIncrement}
-            disabled={disabled || parseFloat(localValue) >= max}
-            className={`
-              p-2 rounded-r-lg border-2 border-l-0
-              ${disabled || parseFloat(localValue) >= max
-                ? 'bg-gray-100 border-gray-200 cursor-not-allowed text-gray-400'
-                : 'bg-white border-gray-300 hover:bg-gray-100 text-gray-700'
-              }
-            `}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-          </button>
+          {unit && (
+            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+              {unit}
+            </span>
+          )}
         </div>
-        
-        {(unit || suffix) && (
-          <span className="text-gray-700 font-medium">{unit || suffix}</span>
-        )}
+
+        <button
+          onClick={handleIncrement}
+          disabled={disabled || (value !== null && value >= max)}
+          className={cn(
+            "w-10 h-10 rounded-lg border-2 transition-all",
+            "hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500",
+            "disabled:opacity-50 disabled:cursor-not-allowed",
+            "border-gray-300"
+          )}
+        >
+          <svg className="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
       </div>
-      
-      <div className="text-sm text-gray-500">
+
+      <div className="text-center text-sm text-gray-500">
         Range: {min} - {max} {unit}
+        {step !== 1 && ` (step: ${step})`}
       </div>
-      
-      {question.numberOptions?.thresholds && value !== null && (
-        <div className="mt-4">
-          {question.numberOptions.thresholds.map((threshold, index) => {
-            if (value >= threshold.min && value <= threshold.max) {
-              return (
-                <div 
-                  key={index}
-                  className={`
-                    p-3 rounded-lg border
-                    ${threshold.severity === 'high' ? 'bg-red-50 border-red-200' : ''}
-                    ${threshold.severity === 'medium' ? 'bg-yellow-50 border-yellow-200' : ''}
-                    ${threshold.severity === 'low' ? 'bg-green-50 border-green-200' : ''}
-                  `}
-                >
-                  <p className={`
-                    text-sm
-                    ${threshold.severity === 'high' ? 'text-red-800' : ''}
-                    ${threshold.severity === 'medium' ? 'text-yellow-800' : ''}
-                    ${threshold.severity === 'low' ? 'text-green-800' : ''}
-                  `}>
-                    <strong>{threshold.label}:</strong> {threshold.message}
-                  </p>
-                </div>
-              );
-            }
-            return null;
-          })}
-        </div>
-      )}
     </div>
   );
 }
