@@ -47,6 +47,7 @@ export function TextInput({
           rows={4}
           className={cn(
             "w-full px-4 py-3 border rounded-lg resize-none",
+            "text-gray-900 placeholder-gray-500",
             "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
             "disabled:opacity-50 disabled:cursor-not-allowed",
             "border-gray-300"

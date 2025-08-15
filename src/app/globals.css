@@ -38,6 +38,19 @@
     background: var(--bg-primary);
     color: var(--text-primary);
   }
+  
+  /* Override for light theme pages */
+  .light-theme,
+  .light-theme * {
+    color: #111827 !important;
+  }
+  
+  .light-theme input,
+  .light-theme textarea,
+  .light-theme select {
+    color: #111827 !important;
+    background-color: white !important;
+  }
 }
 
 @layer components {
