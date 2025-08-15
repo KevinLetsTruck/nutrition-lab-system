@@ -3,15 +3,15 @@ import { useState, useEffect } from "react";
 
 // High contrast styles for better readability
 const highContrastStyles = {
-  label: "text-gray-900 font-bold text-lg",
+  label: "text-white font-bold text-lg",
   input:
-    "w-full bg-white border-2 border-gray-600 rounded-md px-4 py-3 text-gray-900 font-semibold text-lg placeholder-gray-500 focus:outline-none focus:ring-3 focus:ring-blue-500 focus:border-blue-600",
+    "w-full bg-gray-900/50 border-2 border-gray-700 rounded-md px-4 py-3 text-white font-semibold text-lg placeholder-gray-500 focus:outline-none focus:ring-3 focus:ring-blue-500 focus:border-blue-600",
   button: "font-bold text-lg py-3 px-6",
-  heading: "text-2xl font-bold text-gray-900",
-  subheading: "text-xl font-bold text-gray-800",
-  text: "text-lg font-medium text-gray-800",
-  smallText: "text-base font-medium text-gray-700",
-  card: "bg-white shadow-xl rounded-lg p-6 border-2 border-gray-200",
+  heading: "text-2xl font-bold text-white",
+  subheading: "text-xl font-bold text-gray-300",
+  text: "text-lg font-medium text-gray-300",
+  smallText: "text-base font-medium text-gray-400",
+  card: "bg-gray-800/50 shadow-xl rounded-lg p-6 border-2 border-gray-700",
   statusCard: "p-4 rounded-lg border-2",
 };
 
@@ -171,29 +171,30 @@ export default function PipelineMonitor() {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-5xl font-black text-gray-900 mb-2">
-          🔬 AI Pipeline Monitor
-        </h1>
-        <p className={highContrastStyles.heading}>
-          Real-time monitoring of Kevin Rutherford's 3-Stage Medical Document
-          Processing System
-        </p>
-      </div>
+    <div className="min-h-screen bg-[#1a1f2e]">
+      <div className="p-8 max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-5xl font-black text-white mb-2">
+            🔬 AI Pipeline Monitor
+          </h1>
+          <p className={highContrastStyles.heading}>
+            Real-time monitoring of Kevin Rutherford's 3-Stage Medical Document
+            Processing System
+          </p>
+        </div>
 
-      <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4 text-gray-900">
-          Document Testing Options
-        </h2>
+        <div className="bg-gray-800/50 shadow-lg rounded-lg p-6 mb-6 border border-gray-700">
+          <h2 className="text-xl font-semibold mb-4 text-white">
+            Document Testing Options
+          </h2>
 
         {/* Upload New Document Section */}
-        <div className="border-b border-gray-200 pb-6 mb-6">
-          <h3 className="text-lg font-medium mb-3 flex items-center text-gray-900">
+          <div className="border-b border-gray-700 pb-6 mb-6">
+            <h3 className="text-lg font-medium mb-3 flex items-center text-white">
             <span className="mr-2">📤</span>
             Option 1: Upload & Test with Real Document
           </h3>
-          <p className="text-sm text-gray-900 mb-4 font-medium">
+          <p className="text-sm text-gray-400 mb-4 font-medium">
             Upload a lab report (PDF or image) and watch the AI pipeline process
             it in real-time
           </p>
@@ -205,7 +206,7 @@ export default function PipelineMonitor() {
                 accept=".pdf,.jpg,.jpeg,.png,.tiff,.heic,.webp"
                 onChange={handleFileUpload}
                 disabled={isUploading || isMonitoring}
-                className="block w-full text-sm text-gray-900 font-medium bg-white border-2 border-gray-400 rounded-md p-2
+                className="block w-full text-sm text-white font-medium bg-gray-900/50 border-2 border-gray-700 rounded-md p-2
                     file:mr-4 file:py-2 file:px-4
                     file:rounded-md file:border-0
                     file:text-sm file:font-bold
@@ -317,15 +318,15 @@ export default function PipelineMonitor() {
           </p>
           <div className="text-lg text-gray-700 font-medium">
             <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-              <div className="bg-white p-4 rounded-lg border-2 border-blue-200">
+              <div className="bg-gray-800/50 p-4 rounded-lg border-2 border-blue-500/50">
                 <span className="text-2xl">📄</span>
                 <p className="font-bold mt-2">OCR</p>
                 <p className="text-sm">Text Extraction</p>
               </div>
-              <div className="bg-white p-4 rounded-lg border-2 border-green-200">
+              <div className="bg-gray-800/50 p-4 rounded-lg border-2 border-green-500/50">
                 <span className="text-2xl">🔍</span>
-                <p className="font-bold mt-2">Structure</p>
-                <p className="text-sm">AI Analysis</p>
+                <p className="font-bold mt-2 text-white">Structure</p>
+                <p className="text-sm text-gray-400">AI Analysis</p>
               </div>
               <div className="bg-white p-4 rounded-lg border-2 border-purple-200">
                 <span className="text-2xl">🧪</span>

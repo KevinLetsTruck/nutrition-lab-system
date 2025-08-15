@@ -71,24 +71,24 @@ export default function TestingDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#1a1f2e]">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-gray-800/50 border-b border-gray-800">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <TestTube className="h-8 w-8 text-purple-600" />
               <div>
-                <h1 className="text-2xl font-bold">Testing Dashboard</h1>
-                <p className="text-sm text-gray-600">Assessment Testing & Issue Management</p>
+                <h1 className="text-2xl font-bold text-white">Testing Dashboard</h1>
+                <p className="text-sm text-gray-400">Assessment Testing & Issue Management</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-green-600">
+              <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
                 <Activity className="h-3 w-3 mr-1" />
                 System Active
               </Badge>
-              <Badge variant="outline">
+              <Badge className="bg-gray-700/50 text-gray-300 border-gray-600">
                 Test Mode: ON
               </Badge>
             </div>
@@ -100,26 +100,26 @@ export default function TestingDashboard() {
         {/* Quick Actions Bar */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
           {/* Assessment Status Card */}
-          <Card className={activeAssessment ? 'border-green-500 bg-green-50' : 'border-gray-200'}>
+          <Card className={activeAssessment ? 'border-green-500 bg-gray-800/50' : 'bg-gray-800/50 border-gray-700'}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <ClipboardCheck className="h-8 w-8 text-green-600" />
                 {activeAssessment && (
-                  <Badge className="bg-green-600">In Progress</Badge>
+                  <Badge className="bg-green-500/10 text-green-400 border-green-500/20">In Progress</Badge>
                 )}
               </div>
-              <h3 className="font-semibold mb-2">Assessment Testing</h3>
+              <h3 className="font-semibold mb-2 text-white">Assessment Testing</h3>
               {activeAssessment ? (
                 <div className="space-y-2">
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-400">
                     Module: {activeAssessment.currentModule}
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-400">
                     Questions: {activeAssessment.questionsAsked || 0}
                   </p>
                   <Button 
                     onClick={resumeAssessment}
-                    className="w-full mt-3"
+                    className="w-full mt-3 bg-green-600 hover:bg-green-700 text-white"
                     size="sm"
                   >
                     <PlayCircle className="mr-2 h-4 w-4" />
@@ -128,12 +128,12 @@ export default function TestingDashboard() {
                 </div>
               ) : (
                 <div>
-                  <p className="text-sm text-gray-600 mb-3">
+                  <p className="text-sm text-gray-400 mb-3">
                     No active assessment
                   </p>
                   <Button 
                     onClick={startNewAssessment}
-                    className="w-full"
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
                     size="sm"
                   >
                     <PlayCircle className="mr-2 h-4 w-4" />
@@ -145,35 +145,35 @@ export default function TestingDashboard() {
           </Card>
 
           {/* Issues Summary Card */}
-          <Card className={stats.blockers > 0 ? 'border-red-500 bg-red-50' : 'border-gray-200'}>
+          <Card className={stats.blockers > 0 ? 'border-red-500 bg-gray-800/50' : 'bg-gray-800/50 border-gray-700'}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <Bug className="h-8 w-8 text-red-600" />
                 {stats.blockers > 0 && (
-                  <Badge className="bg-red-600 animate-pulse">
+                  <Badge className="bg-red-500/10 text-red-400 border-red-500/20 animate-pulse">
                     {stats.blockers} Blockers
                   </Badge>
                 )}
               </div>
-              <h3 className="font-semibold mb-2">Issue Tracking</h3>
+              <h3 className="font-semibold mb-2 text-white">Issue Tracking</h3>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Total Issues:</span>
-                  <span className="font-bold">{stats.totalIssues}</span>
+                  <span className="text-gray-400">Total Issues:</span>
+                  <span className="font-bold text-white">{stats.totalIssues}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Critical:</span>
-                  <span className="font-bold text-red-600">{stats.criticalIssues}</span>
+                  <span className="text-gray-400">Critical:</span>
+                  <span className="font-bold text-red-400">{stats.criticalIssues}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Fixed:</span>
-                  <span className="font-bold text-green-600">{stats.fixed}</span>
+                  <span className="text-gray-400">Fixed:</span>
+                  <span className="font-bold text-green-400">{stats.fixed}</span>
                 </div>
               </div>
               <Button 
                 onClick={() => router.push('/dashboard/assessment-issues')}
                 variant="outline"
-                className="w-full mt-3"
+                className="w-full mt-3 border-gray-600 text-gray-300 hover:bg-gray-700"
                 size="sm"
               >
                 <Bug className="mr-2 h-4 w-4" />
@@ -183,14 +183,14 @@ export default function TestingDashboard() {
           </Card>
 
           {/* Quick Issue Log Card */}
-          <Card>
+          <Card className="bg-gray-800/50 border-gray-700">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <AlertCircle className="h-8 w-8 text-orange-600" />
-                <Badge variant="outline">Quick Log</Badge>
+                <Badge className="bg-orange-500/10 text-orange-400 border-orange-500/20">Quick Log</Badge>
               </div>
-              <h3 className="font-semibold mb-2">Found an Issue?</h3>
-              <p className="text-sm text-gray-600 mb-3">
+              <h3 className="font-semibold mb-2 text-white">Found an Issue?</h3>
+              <p className="text-sm text-gray-400 mb-3">
                 Log it quickly while testing
               </p>
               <Button 
@@ -214,7 +214,7 @@ export default function TestingDashboard() {
                   }
                 }}
                 variant="outline"
-                className="w-full"
+                className="w-full border-gray-600 text-gray-300 hover:bg-gray-700"
                 size="sm"
               >
                 <AlertCircle className="mr-2 h-4 w-4" />
@@ -227,31 +227,31 @@ export default function TestingDashboard() {
           </Card>
 
           {/* System Monitor Card */}
-          <Card>
+          <Card className="bg-gray-800/50 border-gray-700">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <Activity className="h-8 w-8 text-blue-600" />
-                <Badge variant="outline">Monitor</Badge>
+                <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20">Monitor</Badge>
               </div>
-              <h3 className="font-semibold mb-2">System Status</h3>
+              <h3 className="font-semibold mb-2 text-white">System Status</h3>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-sm">API Active</span>
+                  <span className="text-sm text-gray-400">API Active</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-sm">Claude AI Connected</span>
+                  <span className="text-sm text-gray-400">Claude AI Connected</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-sm">Database Ready</span>
+                  <span className="text-sm text-gray-400">Database Ready</span>
                 </div>
               </div>
               <Button 
                 onClick={() => router.push('/dashboard/pipeline-monitor')}
                 variant="outline"
-                className="w-full mt-3"
+                className="w-full mt-3 border-gray-600 text-gray-300 hover:bg-gray-700"
                 size="sm"
               >
                 <Activity className="mr-2 h-4 w-4" />
@@ -263,59 +263,59 @@ export default function TestingDashboard() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="guide" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="guide">Testing Guide</TabsTrigger>
-            <TabsTrigger value="recent">Recent Issues</TabsTrigger>
-            <TabsTrigger value="checklist">Checklist</TabsTrigger>
-            <TabsTrigger value="help">Help</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 bg-gray-800/50 border-gray-700">
+            <TabsTrigger value="guide" className="data-[state=active]:bg-gray-700 data-[state=active]:text-white">Testing Guide</TabsTrigger>
+            <TabsTrigger value="recent" className="data-[state=active]:bg-gray-700 data-[state=active]:text-white">Recent Issues</TabsTrigger>
+            <TabsTrigger value="checklist" className="data-[state=active]:bg-gray-700 data-[state=active]:text-white">Checklist</TabsTrigger>
+            <TabsTrigger value="help" className="data-[state=active]:bg-gray-700 data-[state=active]:text-white">Help</TabsTrigger>
           </TabsList>
 
           <TabsContent value="guide">
-            <Card>
+            <Card className="bg-gray-800/50 border-gray-700">
               <CardHeader>
-                <CardTitle>Testing Workflow</CardTitle>
-                <CardDescription>Follow this process for systematic testing</CardDescription>
+                <CardTitle className="text-white">Testing Workflow</CardTitle>
+                <CardDescription className="text-gray-400">Follow this process for systematic testing</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-bold">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-600/20 border border-blue-600/30 rounded-full flex items-center justify-center text-sm font-bold text-blue-400">
                       1
                     </div>
                     <div>
-                      <h4 className="font-semibold">Start Assessment</h4>
-                      <p className="text-sm text-gray-600">Click "Start New Test" to begin a fresh assessment</p>
+                      <h4 className="font-semibold text-white">Start Assessment</h4>
+                      <p className="text-sm text-gray-400">Click "Start New Test" to begin a fresh assessment</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-bold">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-600/20 border border-blue-600/30 rounded-full flex items-center justify-center text-sm font-bold text-blue-400">
                       2
                     </div>
                     <div>
-                      <h4 className="font-semibold">Answer Questions</h4>
-                      <p className="text-sm text-gray-600">Test all question types, try edge cases</p>
+                      <h4 className="font-semibold text-white">Answer Questions</h4>
+                      <p className="text-sm text-gray-400">Test all question types, try edge cases</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-bold">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-600/20 border border-blue-600/30 rounded-full flex items-center justify-center text-sm font-bold text-blue-400">
                       3
                     </div>
                     <div>
-                      <h4 className="font-semibold">Log Issues</h4>
-                      <p className="text-sm text-gray-600">Use Ctrl+Shift+I for quick logging</p>
-                      <div className="mt-2 p-2 bg-yellow-50 rounded text-sm">
+                      <h4 className="font-semibold text-white">Log Issues</h4>
+                      <p className="text-sm text-gray-400">Use Ctrl+Shift+I for quick logging</p>
+                      <div className="mt-2 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded text-sm text-yellow-400">
                         <strong>Blocked?</strong> Stop and fix immediately<br />
                         <strong>Not blocked?</strong> Log and continue
                       </div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-bold">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-600/20 border border-blue-600/30 rounded-full flex items-center justify-center text-sm font-bold text-blue-400">
                       4
                     </div>
                     <div>
-                      <h4 className="font-semibold">Test Features</h4>
-                      <p className="text-sm text-gray-600">Pause/Resume, Back button, Auto-advance</p>
+                      <h4 className="font-semibold text-white">Test Features</h4>
+                      <p className="text-sm text-gray-400">Pause/Resume, Back button, Auto-advance</p>
                     </div>
                   </div>
                 </div>
@@ -324,10 +324,10 @@ export default function TestingDashboard() {
           </TabsContent>
 
           <TabsContent value="recent">
-            <Card>
+            <Card className="bg-gray-800/50 border-gray-700">
               <CardHeader>
-                <CardTitle>Recent Issues</CardTitle>
-                <CardDescription>Latest issues logged during testing</CardDescription>
+                <CardTitle className="text-white">Recent Issues</CardTitle>
+                <CardDescription className="text-gray-400">Latest issues logged during testing</CardDescription>
               </CardHeader>
               <CardContent>
                 {recentIssues.length === 0 ? (
@@ -335,7 +335,7 @@ export default function TestingDashboard() {
                 ) : (
                   <div className="space-y-3">
                     {recentIssues.map((issue) => (
-                      <div key={issue.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div key={issue.id} className="flex items-center justify-between p-3 border border-gray-700 rounded-lg bg-gray-900/50">
                         <div className="flex items-center gap-3">
                           {issue.priority === 'CRITICAL' ? (
                             <AlertTriangle className="h-5 w-5 text-red-600" />
@@ -343,14 +343,14 @@ export default function TestingDashboard() {
                             <AlertCircle className="h-5 w-5 text-orange-600" />
                           )}
                           <div>
-                            <p className="font-medium text-sm">{issue.title}</p>
+                            <p className="font-medium text-sm text-white">{issue.title}</p>
                             <p className="text-xs text-gray-500">
                               {issue.category} • {issue.status}
                             </p>
                           </div>
                         </div>
                         {issue.blocksTesting && (
-                          <Badge className="bg-red-600">Blocker</Badge>
+                          <Badge className="bg-red-500/10 text-red-400 border-red-500/20">Blocker</Badge>
                         )}
                       </div>
                     ))}
@@ -361,10 +361,10 @@ export default function TestingDashboard() {
           </TabsContent>
 
           <TabsContent value="checklist">
-            <Card>
+            <Card className="bg-gray-800/50 border-gray-700">
               <CardHeader>
-                <CardTitle>Testing Checklist</CardTitle>
-                <CardDescription>Ensure comprehensive testing coverage</CardDescription>
+                <CardTitle className="text-white">Testing Checklist</CardTitle>
+                <CardDescription className="text-gray-400">Ensure comprehensive testing coverage</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -380,8 +380,8 @@ export default function TestingDashboard() {
                     'Complete full assessment',
                     'Review results page'
                   ].map((item, i) => (
-                    <label key={i} className="flex items-center gap-2">
-                      <input type="checkbox" className="rounded" />
+                    <label key={i} className="flex items-center gap-2 text-gray-300 hover:text-white cursor-pointer">
+                      <input type="checkbox" className="rounded bg-gray-700 border-gray-600 text-purple-600 focus:ring-purple-600" />
                       <span className="text-sm">{item}</span>
                     </label>
                   ))}
@@ -391,15 +391,15 @@ export default function TestingDashboard() {
           </TabsContent>
 
           <TabsContent value="help">
-            <Card>
+            <Card className="bg-gray-800/50 border-gray-700">
               <CardHeader>
-                <CardTitle>Quick Help</CardTitle>
+                <CardTitle className="text-white">Quick Help</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold mb-2">Keyboard Shortcuts</h4>
-                    <div className="space-y-1 text-sm text-gray-600">
+                    <h4 className="font-semibold mb-2 text-white">Keyboard Shortcuts</h4>
+                    <div className="space-y-1 text-sm text-gray-400">
                       <div>Ctrl+Shift+I - Quick log issue</div>
                       <div>Ctrl+Shift+D - Toggle dev toolbar</div>
                       <div>Y/N - Yes/No questions</div>
@@ -408,19 +408,19 @@ export default function TestingDashboard() {
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-semibold mb-2">Issue Priority</h4>
+                    <h4 className="font-semibold mb-2 text-white">Issue Priority</h4>
                     <div className="space-y-1 text-sm">
                       <div className="flex items-center gap-2">
-                        <Badge className="bg-red-600">Critical</Badge>
-                        <span>Blocks testing - fix immediately</span>
+                        <Badge className="bg-red-500/10 text-red-400 border-red-500/20">Critical</Badge>
+                        <span className="text-gray-300">Blocks testing - fix immediately</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge className="bg-orange-600">High</Badge>
-                        <span>Major issue - fix same day</span>
+                        <Badge className="bg-orange-500/10 text-orange-400 border-orange-500/20">High</Badge>
+                        <span className="text-gray-300">Major issue - fix same day</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge className="bg-yellow-600">Medium</Badge>
-                        <span>Important - fix this week</span>
+                        <Badge className="bg-yellow-500/10 text-yellow-400 border-yellow-500/20">Medium</Badge>
+                        <span className="text-gray-300">Important - fix this week</span>
                       </div>
                     </div>
                   </div>
@@ -431,16 +431,16 @@ export default function TestingDashboard() {
         </Tabs>
 
         {/* Quick Navigation */}
-        <Card className="mt-6">
+        <Card className="mt-6 bg-gray-800/50 border-gray-700">
           <CardHeader>
-            <CardTitle>Quick Navigation</CardTitle>
+            <CardTitle className="text-white">Quick Navigation</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <Button
                 variant="outline"
                 onClick={() => router.push('/dashboard/assessment/new')}
-                className="justify-start"
+                className="justify-start border-gray-600 text-gray-300 hover:bg-gray-700"
               >
                 <PlayCircle className="mr-2 h-4 w-4" />
                 New Assessment
@@ -448,7 +448,7 @@ export default function TestingDashboard() {
               <Button
                 variant="outline"
                 onClick={() => router.push('/dashboard/assessment-issues')}
-                className="justify-start"
+                className="justify-start border-gray-600 text-gray-300 hover:bg-gray-700"
               >
                 <Bug className="mr-2 h-4 w-4" />
                 Issue Tracker
@@ -456,7 +456,7 @@ export default function TestingDashboard() {
               <Button
                 variant="outline"
                 onClick={() => router.push('/dashboard/pipeline-monitor')}
-                className="justify-start"
+                className="justify-start border-gray-600 text-gray-300 hover:bg-gray-700"
               >
                 <Activity className="mr-2 h-4 w-4" />
                 AI Monitor
@@ -464,7 +464,7 @@ export default function TestingDashboard() {
               <Button
                 variant="outline"
                 onClick={() => router.push('/dashboard/assessments')}
-                className="justify-start"
+                className="justify-start border-gray-600 text-gray-300 hover:bg-gray-700"
               >
                 <FileText className="mr-2 h-4 w-4" />
                 All Assessments

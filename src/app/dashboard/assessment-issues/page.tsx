@@ -332,55 +332,56 @@ export default function AssessmentIssuesPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Assessment Issue Tracker</h1>
-        <p className="text-gray-600">
-          Track and fix issues found during assessment testing
-        </p>
-      </div>
+    <div className="min-h-screen bg-[#1a1f2e]">
+      <div className="container mx-auto py-8 px-4 max-w-7xl">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2 text-white">Assessment Issue Tracker</h1>
+          <p className="text-gray-400">
+            Track and fix issues found during assessment testing
+          </p>
+        </div>
 
-      {/* Decision Flow Card */}
-      <Card className="mb-6 border-2 border-purple-500">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
-            Issue Routing Guide
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-bold text-red-600 mb-2">🔴 Bring to Claude IMMEDIATELY:</h3>
-              <ul className="text-sm space-y-1">
-                <li>• "Failed to fetch" errors</li>
-                <li>• Build/compile errors</li>
-                <li>• App crashes</li>
-                <li>• Can't proceed with testing</li>
-                <li>• Auth/API failures</li>
-              </ul>
+        {/* Decision Flow Card */}
+        <Card className="mb-6 border-2 border-purple-500 bg-gray-800/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Brain className="h-5 w-5" />
+              Issue Routing Guide
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h3 className="font-bold text-red-400 mb-2">🔴 Bring to Claude IMMEDIATELY:</h3>
+                <ul className="text-sm space-y-1 text-gray-300">
+                  <li>• "Failed to fetch" errors</li>
+                  <li>• Build/compile errors</li>
+                  <li>• App crashes</li>
+                  <li>• Can't proceed with testing</li>
+                  <li>• Auth/API failures</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-bold text-green-400 mb-2">📝 Log & Continue Testing:</h3>
+                <ul className="text-sm space-y-1 text-gray-300">
+                  <li>• Wrong calculations</li>
+                  <li>• UI/design issues</li>
+                  <li>• Confusing wording</li>
+                  <li>• Missing features</li>
+                  <li>• Seed oil question problems</li>
+                </ul>
+              </div>
             </div>
-            <div>
-              <h3 className="font-bold text-green-600 mb-2">📝 Log & Continue Testing:</h3>
-              <ul className="text-sm space-y-1">
-                <li>• Wrong calculations</li>
-                <li>• UI/design issues</li>
-                <li>• Confusing wording</li>
-                <li>• Missing features</li>
-                <li>• Seed oil question problems</li>
-              </ul>
+            <div className="mt-4 p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+              <p className="text-sm text-gray-300">
+                <strong>Quick Rule:</strong> Can you continue testing? 
+                <span className="text-green-400 font-bold"> YES → Log it</span>, 
+                <span className="text-red-400 font-bold"> NO → Claude NOW</span>
+              </p>
             </div>
-          </div>
-          <div className="mt-4 p-3 bg-purple-50 rounded-lg">
-            <p className="text-sm">
-              <strong>Quick Rule:</strong> Can you continue testing? 
-              <span className="text-green-600 font-bold"> YES → Log it</span>, 
-              <span className="text-red-600 font-bold"> NO → Claude NOW</span>
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
       {/* Quick Add Button */}
       <div className="mb-6 flex items-center justify-between">
@@ -401,75 +402,75 @@ export default function AssessmentIssuesPage() {
             Export for Claude
           </Button>
         </div>
-        <div className="text-sm text-gray-500">
-          Press <kbd className="px-2 py-1 bg-gray-100 rounded">Ctrl+Shift+I</kbd> to quickly log issues
+        <div className="text-sm text-gray-400">
+          Press <kbd className="px-2 py-1 bg-gray-700 text-gray-300 border border-gray-600 rounded">Ctrl+Shift+I</kbd> to quickly log issues
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-8">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-gray-600">Total Issues</p>
-          </CardContent>
-        </Card>
-        {stats.blocking > 0 && (
-          <Card className="border-2 border-red-600 bg-red-100">
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-8">
+          <Card className="bg-gray-800/50 border-gray-700">
             <CardContent className="p-4">
-              <div className="text-2xl font-bold text-red-700">
-                {stats.blocking}
-              </div>
-              <p className="text-xs text-red-700 font-semibold">🚨 BLOCKING</p>
+              <div className="text-2xl font-bold text-white">{stats.total}</div>
+              <p className="text-xs text-gray-400">Total Issues</p>
             </CardContent>
           </Card>
-        )}
-        <Card className="border-orange-200 bg-orange-50">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-orange-600">
-              {stats.critical}
-            </div>
-            <p className="text-xs text-orange-600">Critical</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{stats.open}</div>
-            <p className="text-xs text-gray-600">Open</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-blue-600">
-              {stats.inProgress}
-            </div>
-            <p className="text-xs text-gray-600">In Progress</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">
-              {stats.fixed}
-            </div>
-            <p className="text-xs text-gray-600">Fixed</p>
-          </CardContent>
-        </Card>
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-red-600">
-              {stats.biasIssues}
-            </div>
-            <p className="text-xs text-red-600">Bias Issues</p>
-          </CardContent>
-        </Card>
-        <Card className="border-orange-200 bg-orange-50">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-orange-600">
-              {stats.seedOilIssues}
-            </div>
-            <p className="text-xs text-orange-600">Seed Oil</p>
-          </CardContent>
-        </Card>
+          {stats.blocking > 0 && (
+            <Card className="border-2 border-red-600 bg-red-900/20">
+              <CardContent className="p-4">
+                <div className="text-2xl font-bold text-red-400">
+                  {stats.blocking}
+                </div>
+                <p className="text-xs text-red-400 font-semibold">🚨 BLOCKING</p>
+              </CardContent>
+            </Card>
+          )}
+          <Card className="bg-gray-800/50 border-orange-500/50">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-orange-400">
+                {stats.critical}
+              </div>
+              <p className="text-xs text-orange-400">Critical</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-gray-800/50 border-gray-700">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-white">{stats.open}</div>
+              <p className="text-xs text-gray-400">Open</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-gray-800/50 border-gray-700">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-blue-400">
+                {stats.inProgress}
+              </div>
+              <p className="text-xs text-gray-400">In Progress</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-gray-800/50 border-gray-700">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-green-400">
+                {stats.fixed}
+              </div>
+              <p className="text-xs text-gray-400">Fixed</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-gray-800/50 border-red-500/50">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-red-400">
+                {stats.biasIssues}
+              </div>
+              <p className="text-xs text-red-400">Bias Issues</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-gray-800/50 border-orange-500/50">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-orange-400">
+                {stats.seedOilIssues}
+              </div>
+              <p className="text-xs text-orange-400">Seed Oil</p>
+            </CardContent>
+          </Card>
       </div>
 
       {/* Filters */}
@@ -542,7 +543,7 @@ export default function AssessmentIssuesPage() {
                       )}
                     </div>
                     <h3 className="font-semibold mb-1">{issue.title}</h3>
-                    <p className="text-sm text-gray-600 line-clamp-2">
+                    <p className="text-sm text-gray-400 line-clamp-2">
                       {issue.description}
                     </p>
                     {issue.errorMessage && (
@@ -584,7 +585,7 @@ export default function AssessmentIssuesPage() {
                             />
                           ))}
                           {issue.screenshots.length > 3 && (
-                            <div className="h-12 w-12 rounded border bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-600">
+                            <div className="h-12 w-12 rounded border border-gray-600 bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-300">
                               +{issue.screenshots.length - 3}
                             </div>
                           )}
@@ -626,25 +627,26 @@ export default function AssessmentIssuesPage() {
         })}
       </div>
 
-      {/* Add Issue Form Modal */}
-      {showAddForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <CardTitle>Log New Issue</CardTitle>
-              <CardDescription>
-                Document an issue found during assessment testing
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <QuickIssueForm
-                onSubmit={addIssue}
-                onCancel={() => setShowAddForm(false)}
-              />
-            </CardContent>
-          </Card>
-        </div>
-      )}
+        {/* Add Issue Form Modal */}
+        {showAddForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-gray-800 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white">Log New Issue</CardTitle>
+                <CardDescription className="text-gray-400">
+                  Document an issue found during assessment testing
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <QuickIssueForm
+                  onSubmit={addIssue}
+                  onCancel={() => setShowAddForm(false)}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -756,16 +758,16 @@ function QuickIssueForm({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">Category *</label>
-          <select
-            className="w-full p-2 border rounded"
-            value={formData.category}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                category: e.target.value as IssueCategory,
-              })
-            }
-          >
+                      <select
+              className="w-full p-2 border border-gray-700 bg-gray-900/50 text-white rounded"
+              value={formData.category}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  category: e.target.value as IssueCategory,
+                })
+              }
+            >
             {Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
               <option key={key} value={key}>
                 {config.label}
@@ -777,7 +779,7 @@ function QuickIssueForm({
         <div>
           <label className="block text-sm font-medium mb-1">Priority *</label>
           <select
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border border-gray-700 bg-gray-900/50 text-white rounded"
             value={formData.priority}
             onChange={(e) =>
               setFormData({
@@ -971,7 +973,7 @@ function QuickIssueForm({
         <label className="block text-sm font-medium mb-1">Screenshots</label>
         <div className="space-y-2">
           {/* Upload Area */}
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
+          <div className="border-2 border-dashed border-gray-600 rounded-lg p-4 text-center hover:border-blue-400 transition-colors bg-gray-900/30">
             <input
               type="file"
               id="screenshot-upload"
@@ -985,7 +987,7 @@ function QuickIssueForm({
               className="cursor-pointer"
             >
               <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-400">
                 Click to upload or paste screenshot
               </p>
               <p className="text-xs text-gray-500 mt-1">
