@@ -36,7 +36,7 @@ export function LikertScale({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between text-sm text-gray-600 mb-2">
+      <div className="flex justify-between text-sm text-gray-400 mb-2">
         <span>{question.scaleMin || 'None'}</span>
         <span>{question.scaleMax || 'Severe'}</span>
       </div>
@@ -53,8 +53,8 @@ export function LikertScale({
               "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
               "disabled:opacity-50 disabled:cursor-not-allowed",
               value === num
-                ? "bg-blue-600 border-blue-600 text-white"
-                : "bg-white border-gray-300 text-gray-700 hover:border-blue-400"
+                ? "bg-blue-500 border-blue-600 text-white"
+                : "bg-gray-800 border-gray-600 text-gray-200 hover:bg-gray-700 hover:border-blue-400"
             )}
           >
             {num}
@@ -63,7 +63,7 @@ export function LikertScale({
       </div>
       
       {value !== null && (
-        <div className="text-center text-sm text-gray-600">
+        <div className="text-center text-sm text-gray-400">
           Selected: <span className="font-semibold">{value}</span>
           {value <= 3 && " - Mild"}
           {value >= 4 && value <= 6 && " - Moderate"}
@@ -71,7 +71,7 @@ export function LikertScale({
         </div>
       )}
       
-      <p className="text-xs text-gray-500 text-center">
+      <p className="text-xs text-gray-400 text-center">
         Tip: Press number keys 0-9 for quick selection
       </p>
     </div>
