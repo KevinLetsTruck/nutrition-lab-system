@@ -3,9 +3,10 @@
 import React from 'react';
 import { LikertScaleDemo } from '@/components/assessment/questions/LikertScaleDemo';
 import { MultipleChoiceDemo } from '@/components/assessment/questions/MultipleChoiceDemo';
+import { YesNoDemo } from '@/components/assessment/questions/YesNoDemo';
 
 export default function AssessmentDemoPage() {
-  const [activeDemo, setActiveDemo] = React.useState<'likert' | 'multiple'>('multiple');
+  const [activeDemo, setActiveDemo] = React.useState<'likert' | 'multiple' | 'yesno'>('yesno');
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -39,16 +40,28 @@ export default function AssessmentDemoPage() {
             >
               Multiple Choice (A-E)
             </button>
+            <button
+              onClick={() => setActiveDemo('yesno')}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                activeDemo === 'yesno'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-700 hover:text-gray-900'
+              }`}
+            >
+              Yes/No (Y/N)
+            </button>
           </div>
         </div>
 
         <div className="mt-8">
-          {activeDemo === 'likert' ? <LikertScaleDemo /> : <MultipleChoiceDemo />}
+          {activeDemo === 'likert' && <LikertScaleDemo />}
+          {activeDemo === 'multiple' && <MultipleChoiceDemo />}
+          {activeDemo === 'yesno' && <YesNoDemo />}
         </div>
 
         <div className="mt-12 bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-xl font-semibold mb-4">Keyboard Shortcuts</h2>
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-3 gap-6">
             <div>
               <h3 className="font-medium text-gray-900 mb-2">Likert Scale</h3>
               <ul className="space-y-1 text-sm text-gray-600">
@@ -63,6 +76,14 @@ export default function AssessmentDemoPage() {
                 <li>• Press <kbd className="px-2 py-1 bg-gray-100 rounded">A</kbd> - <kbd className="px-2 py-1 bg-gray-100 rounded">E</kbd> for quick selection</li>
                 <li>• Auto-advances to next question</li>
                 <li>• Visual confirmation before advancing</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-900 mb-2">Yes/No</h3>
+              <ul className="space-y-1 text-sm text-gray-600">
+                <li>• Press <kbd className="px-2 py-1 bg-gray-100 rounded">Y</kbd> for Yes</li>
+                <li>• Press <kbd className="px-2 py-1 bg-gray-100 rounded">N</kbd> for No</li>
+                <li>• Auto-advances immediately</li>
               </ul>
             </div>
           </div>
