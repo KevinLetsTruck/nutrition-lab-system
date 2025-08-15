@@ -52,6 +52,15 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
   const [questionsInCurrentModule, setQuestionsInCurrentModule] = useState(75);
   const [questionsAnsweredInModule, setQuestionsAnsweredInModule] = useState(0);
 
+  // Helper to get auth headers
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    };
+  };
+
   // Auto-save to localStorage for recovery
   useEffect(() => {
     if (assessmentId) {
@@ -72,7 +81,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
     try {
       const response = await fetch('/api/assessment/start', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: getAuthHeaders()
       });
       
       if (!response.ok) throw new Error('Failed to start assessment');
@@ -105,7 +114,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
     try {
       const response = await fetch(`/api/assessment/${assessmentId}/response`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           questionId: currentQuestion.id,
           value,
@@ -170,6 +179,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
     try {
       const response = await fetch(`/api/assessment/${assessmentId}/pause`, {
         method: 'POST',
+        headers: getAuthHeaders()
       });
       
       if (!response.ok) throw new Error('Failed to pause assessment');
@@ -189,6 +199,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
     try {
       const response = await fetch(`/api/assessment/${id}/resume`, {
         method: 'POST',
+        headers: getAuthHeaders()
       });
       
       if (!response.ok) throw new Error('Failed to resume assessment');
@@ -225,7 +236,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
       
       const response = await fetch(`/api/assessment/${assessmentId}/previous`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           lastQuestionId: lastResponse.questionId
         }),
