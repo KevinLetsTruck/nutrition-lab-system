@@ -4,9 +4,10 @@ import React from 'react';
 import { LikertScaleDemo } from '@/components/assessment/questions/LikertScaleDemo';
 import { MultipleChoiceDemo } from '@/components/assessment/questions/MultipleChoiceDemo';
 import { YesNoDemo } from '@/components/assessment/questions/YesNoDemo';
+import { FrequencyDemo } from '@/components/assessment/questions/FrequencyDemo';
 
 export default function AssessmentDemoPage() {
-  const [activeDemo, setActiveDemo] = React.useState<'likert' | 'multiple' | 'yesno'>('yesno');
+  const [activeDemo, setActiveDemo] = React.useState<'likert' | 'multiple' | 'yesno' | 'frequency'>('frequency');
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -50,6 +51,16 @@ export default function AssessmentDemoPage() {
             >
               Yes/No (Y/N)
             </button>
+            <button
+              onClick={() => setActiveDemo('frequency')}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                activeDemo === 'frequency'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-700 hover:text-gray-900'
+              }`}
+            >
+              Frequency
+            </button>
           </div>
         </div>
 
@@ -57,11 +68,12 @@ export default function AssessmentDemoPage() {
           {activeDemo === 'likert' && <LikertScaleDemo />}
           {activeDemo === 'multiple' && <MultipleChoiceDemo />}
           {activeDemo === 'yesno' && <YesNoDemo />}
+          {activeDemo === 'frequency' && <FrequencyDemo />}
         </div>
 
         <div className="mt-12 bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold mb-4">Keyboard Shortcuts</h2>
-          <div className="grid md:grid-cols-3 gap-6">
+          <h2 className="text-xl font-semibold mb-4">Component Features</h2>
+          <div className="grid md:grid-cols-2 gap-6">
             <div>
               <h3 className="font-medium text-gray-900 mb-2">Likert Scale</h3>
               <ul className="space-y-1 text-sm text-gray-600">
@@ -84,6 +96,14 @@ export default function AssessmentDemoPage() {
                 <li>• Press <kbd className="px-2 py-1 bg-gray-100 rounded">Y</kbd> for Yes</li>
                 <li>• Press <kbd className="px-2 py-1 bg-gray-100 rounded">N</kbd> for No</li>
                 <li>• Auto-advances immediately</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-900 mb-2">Frequency</h3>
+              <ul className="space-y-1 text-sm text-gray-600">
+                <li>• Standard & custom patterns</li>
+                <li>• Bowel, pain, fatigue variants</li>
+                <li>• Click to select frequency</li>
               </ul>
             </div>
           </div>

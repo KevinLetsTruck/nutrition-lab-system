@@ -24,6 +24,7 @@ export interface AssessmentQuestion {
   // Additional properties for other question types
   seedOilRelevant?: boolean;
   frequencyOptions?: FrequencyOption[];
+  frequencyType?: 'bowel' | 'pain' | 'fatigue'; // For custom frequency patterns
   durationOptions?: DurationOption[];
   textOptions?: TextOptions;
   numberOptions?: NumberOptions;
