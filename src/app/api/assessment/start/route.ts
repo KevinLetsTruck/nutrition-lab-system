@@ -101,8 +101,12 @@ export async function POST(req: NextRequest) {
     // Create new assessment for the client
     const newAssessment = await prisma.clientAssessment.create({
       data: {
-        clientId: session.user.id,
-        assessmentTemplateId: assessmentTemplate.id,
+        client: {
+          connect: { id: session.user.id }
+        },
+        template: {
+          connect: { id: assessmentTemplate.id }
+        },
         currentModule: 'SCREENING',
         questionsAsked: 1,
         questionsSaved: 0,
