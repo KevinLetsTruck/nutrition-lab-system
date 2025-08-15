@@ -5,9 +5,10 @@ import { LikertScaleDemo } from '@/components/assessment/questions/LikertScaleDe
 import { MultipleChoiceDemo } from '@/components/assessment/questions/MultipleChoiceDemo';
 import { YesNoDemo } from '@/components/assessment/questions/YesNoDemo';
 import { FrequencyDemo } from '@/components/assessment/questions/FrequencyDemo';
+import { DurationDemo } from '@/components/assessment/questions/DurationDemo';
 
 export default function AssessmentDemoPage() {
-  const [activeDemo, setActiveDemo] = React.useState<'likert' | 'multiple' | 'yesno' | 'frequency'>('frequency');
+  const [activeDemo, setActiveDemo] = React.useState<'likert' | 'multiple' | 'yesno' | 'frequency' | 'duration'>('duration');
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -61,6 +62,16 @@ export default function AssessmentDemoPage() {
             >
               Frequency
             </button>
+            <button
+              onClick={() => setActiveDemo('duration')}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                activeDemo === 'duration'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-700 hover:text-gray-900'
+              }`}
+            >
+              Duration
+            </button>
           </div>
         </div>
 
@@ -69,6 +80,7 @@ export default function AssessmentDemoPage() {
           {activeDemo === 'multiple' && <MultipleChoiceDemo />}
           {activeDemo === 'yesno' && <YesNoDemo />}
           {activeDemo === 'frequency' && <FrequencyDemo />}
+          {activeDemo === 'duration' && <DurationDemo />}
         </div>
 
         <div className="mt-12 bg-white rounded-lg shadow-sm p-6">
@@ -104,6 +116,14 @@ export default function AssessmentDemoPage() {
                 <li>• Standard & custom patterns</li>
                 <li>• Bowel, pain, fatigue variants</li>
                 <li>• Click to select frequency</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-900 mb-2">Duration</h3>
+              <ul className="space-y-1 text-sm text-gray-600">
+                <li>• Flexible time units</li>
+                <li>• Days, weeks, months, years</li>
+                <li>• Auto-validation of ranges</li>
               </ul>
             </div>
           </div>
