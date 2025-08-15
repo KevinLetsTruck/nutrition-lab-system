@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { auth } from '@/lib/auth-helpers';
 import { generateAssessmentAnalysis } from '@/lib/ai/assessment-analysis';
 
 export async function GET(
@@ -9,7 +9,7 @@ export async function GET(
 ) {
   try {
     // Get the authenticated user
-    const session = await auth();
+    const session = await auth(req);
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { auth } from '@/lib/auth-helpers';
 import { getNextQuestionWithAI } from '@/lib/ai/assessment-ai';
 import { getQuestionsByModule } from '@/lib/assessment/questions';
 import { FunctionalModule } from '@/lib/assessment/types';
@@ -11,7 +11,7 @@ export async function POST(
 ) {
   try {
     // Get the authenticated user
-    const session = await auth();
+    const session = await auth(req);
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -221,7 +221,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth();
+    const session = await auth(req);
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
