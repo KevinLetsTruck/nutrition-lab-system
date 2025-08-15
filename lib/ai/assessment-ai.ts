@@ -1,15 +1,275 @@
-import { Anthropic } from "@anthropic-ai/sdk";
+import { Anthropic } from '@anthropic-ai/sdk';
+import { AssessmentQuestion, ClientResponse, ModuleType } from '@/lib/assessment/types';
+import { getScreeningQuestions } from '@/lib/assessment/questions/screening-questions';
+// Import other modules when they are implemented
+// import { getAssimilationQuestions } from '@/lib/assessment/questions/assimilation-questions';
+// import { getDefenseRepairQuestions } from '@/lib/assessment/questions/defense-repair-questions';
+// import { getEnergyQuestions } from '@/lib/assessment/questions/energy-questions';
+// import { getBiotransformationQuestions } from '@/lib/assessment/questions/biotransformation-questions';
+// import { getTransportQuestions } from '@/lib/assessment/questions/transport-questions';
+// import { getCommunicationQuestions } from '@/lib/assessment/questions/communication-questions';
+// import { getStructuralQuestions } from '@/lib/assessment/questions/structural-questions';
+
+// Initialize Claude client
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY!,
+});
+
+interface AssessmentContext {
+  currentModule: ModuleType;
+  responses: ClientResponse[];
+  symptomProfile: any;
+  questionsAsked: number;
+  assessmentContext: any;
+}
+
+interface AIDecision {
+  nextQuestion?: AssessmentQuestion;
+  nextModule?: ModuleType;
+  questionsInModule?: number;
+  questionsSaved?: number;
+  reasoning: string;
+}
+
+const MODULE_SEQUENCE: ModuleType[] = [
+  'SCREENING',
+  'ASSIMILATION',
+  'DEFENSE_REPAIR',
+  'ENERGY',
+  'BIOTRANSFORMATION',
+  'TRANSPORT',
+  'COMMUNICATION',
+  'STRUCTURAL'
+];
+
+function getQuestionsForModule(module: ModuleType): AssessmentQuestion[] {
+  switch (module) {
+    case 'SCREENING': 
+      return getScreeningQuestions();
+    // Uncomment as modules are implemented
+    // case 'ASSIMILATION': return getAssimilationQuestions();
+    // case 'DEFENSE_REPAIR': return getDefenseRepairQuestions();
+    // case 'ENERGY': return getEnergyQuestions();
+    // case 'BIOTRANSFORMATION': return getBiotransformationQuestions();
+    // case 'TRANSPORT': return getTransportQuestions();
+    // case 'COMMUNICATION': return getCommunicationQuestions();
+    // case 'STRUCTURAL': return getStructuralQuestions();
+    default: 
+      // For now, return screening questions as placeholder
+      return getScreeningQuestions();
+  }
+}
+
+export async function getNextQuestionWithAI(context: AssessmentContext): Promise<AIDecision> {
+  const { currentModule, responses, symptomProfile, questionsAsked } = context;
+  
+  // Get available questions for current module
+  const moduleQuestions = getQuestionsForModule(currentModule);
+  
+  // Get already answered question IDs
+  const answeredQuestionIds = responses.map(r => r.questionId);
+  
+  // Filter to get remaining unanswered questions
+  const remainingQuestions = moduleQuestions.filter(
+    q => !answeredQuestionIds.includes(q.id)
+  );
+
+  // If no questions remain in current module, move to next
+  if (remainingQuestions.length === 0) {
+    const currentModuleIndex = MODULE_SEQUENCE.indexOf(currentModule);
+    if (currentModuleIndex < MODULE_SEQUENCE.length - 1) {
+      const nextModule = MODULE_SEQUENCE[currentModuleIndex + 1];
+      const nextModuleQuestions = getQuestionsForModule(nextModule);
+      
+      // Use Claude to select first question of new module
+      return selectQuestionWithClaude(
+        nextModuleQuestions,
+        responses,
+        symptomProfile,
+        nextModule,
+        true // isNewModule
+      );
+    } else {
+      // Assessment complete
+      return {
+        nextQuestion: undefined,
+        reasoning: 'All modules completed',
+        questionsSaved: 0
+      };
+    }
+  }
+
+  // Use Claude to intelligently select next question
+  return selectQuestionWithClaude(
+    remainingQuestions,
+    responses,
+    symptomProfile,
+    currentModule,
+    false
+  );
+}
+
+async function selectQuestionWithClaude(
+  availableQuestions: AssessmentQuestion[],
+  responses: ClientResponse[],
+  symptomProfile: any,
+  module: ModuleType,
+  isNewModule: boolean
+): Promise<AIDecision> {
+  try {
+    // Prepare context for Claude
+    const recentResponses = responses.slice(-10).map(r => ({
+      question: r.questionText,
+      answer: r.responseValue,
+      type: r.responseType
+    }));
+
+    const highSeveritySymptoms = responses.filter(r => {
+      return r.responseType === 'LIKERT_SCALE' && 
+             typeof r.responseValue === 'number' && 
+             r.responseValue >= 7;
+    }).map(r => ({
+      symptom: r.questionText,
+      severity: r.responseValue
+    }));
+
+    const prompt = `You are an expert functional medicine practitioner conducting an adaptive health assessment. Your goal is to gather the most clinically relevant information while minimizing the number of questions asked.
+
+Current Assessment Context:
+- Module: ${module} ${isNewModule ? '(just started)' : ''}
+- Questions asked so far: ${responses.length}
+- Recent responses: ${JSON.stringify(recentResponses, null, 2)}
+- High severity symptoms (≥7/10): ${JSON.stringify(highSeveritySymptoms, null, 2)}
+
+Available questions in current module:
+${availableQuestions.slice(0, 20).map((q, i) => `${i + 1}. [${q.id}] ${q.text} (Type: ${q.type})`).join('\n')}
+${availableQuestions.length > 20 ? `... and ${availableQuestions.length - 20} more questions` : ''}
+
+Based on the patterns in the responses, select the NEXT MOST VALUABLE question that will:
+1. Provide maximum diagnostic value
+2. Avoid redundancy with already-gathered information
+3. Follow logical clinical reasoning
+4. Prioritize questions related to high-severity symptoms
+5. Skip basic questions if severe symptoms already indicate advanced issues
+
+Consider these clinical patterns:
+- If digestive issues are severe (≥7), skip mild symptom questions and focus on root causes
+- If energy/fatigue is severe, prioritize mitochondrial and thyroid-related questions
+- If multiple systems show dysfunction, look for connecting patterns
+- For seed oil exposure questions, prioritize if inflammation markers are high
+
+Respond with a JSON object:
+{
+  "selectedQuestionId": "the_question_id",
+  "reasoning": "Brief explanation of why this question is most valuable now",
+  "questionsToSkip": ["id1", "id2"],
+  "skipReason": "Why these questions can be skipped",
+  "estimatedQuestionsSaved": <number>
+}`;
+
+    const response = await anthropic.messages.create({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 500,
+      temperature: 0.3, // Lower temperature for more consistent clinical decisions
+      messages: [
+        {
+          role: 'user',
+          content: prompt
+        }
+      ]
+    });
+
+    // Parse Claude's response
+    const content = response.content[0].type === 'text' ? response.content[0].text : '';
+    
+    // Extract JSON from response (Claude might include explanation text)
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('Could not parse Claude response');
+    }
+
+    const aiResponse = JSON.parse(jsonMatch[0]);
+    
+    // Find the selected question
+    const selectedQuestion = availableQuestions.find(
+      q => q.id === aiResponse.selectedQuestionId
+    );
+
+    if (!selectedQuestion) {
+      // Fallback to first available question if Claude's selection not found
+      console.error('Claude selected invalid question ID:', aiResponse.selectedQuestionId);
+      return {
+        nextQuestion: availableQuestions[0],
+        nextModule: isNewModule ? module : undefined,
+        questionsInModule: getQuestionsForModule(module).length,
+        questionsSaved: 0,
+        reasoning: 'Fallback to sequential selection'
+      };
+    }
+
+    return {
+      nextQuestion: selectedQuestion,
+      nextModule: isNewModule ? module : undefined,
+      questionsInModule: getQuestionsForModule(module).length,
+      questionsSaved: aiResponse.estimatedQuestionsSaved || 0,
+      reasoning: aiResponse.reasoning
+    };
+
+  } catch (error) {
+    console.error('Error calling Claude API:', error);
+    
+    // Fallback to simple algorithm if Claude fails
+    return fallbackQuestionSelection(
+      availableQuestions,
+      responses,
+      module,
+      isNewModule
+    );
+  }
+}
+
+// Fallback algorithm if Claude API fails
+function fallbackQuestionSelection(
+  availableQuestions: AssessmentQuestion[],
+  responses: ClientResponse[],
+  module: ModuleType,
+  isNewModule: boolean
+): AIDecision {
+  // Check for high severity symptoms
+  const hasHighSeverity = responses.some(r => 
+    r.responseType === 'LIKERT_SCALE' && 
+    typeof r.responseValue === 'number' && 
+    r.responseValue >= 7
+  );
+
+  let questionsSaved = 0;
+  let nextQuestion = availableQuestions[0];
+  let reasoning = 'Sequential selection (fallback mode)';
+
+  if (hasHighSeverity && availableQuestions.length > 5) {
+    // Skip some basic questions if high severity exists
+    const skipCount = Math.min(3, Math.floor(availableQuestions.length * 0.2));
+    nextQuestion = availableQuestions[skipCount];
+    questionsSaved = skipCount;
+    reasoning = `Skipping ${skipCount} basic questions due to high severity symptoms`;
+  }
+
+  return {
+    nextQuestion,
+    nextModule: isNewModule ? module : undefined,
+    questionsInModule: getQuestionsForModule(module).length,
+    questionsSaved,
+    reasoning
+  };
+}
+
+// Keep the original assessment AI class and methods below for other functionality
+
 import {
-  AssessmentQuestion,
   FunctionalModule,
   SeedOilAssessment,
 } from "@/lib/assessment/types";
 import { prisma } from "@/src/lib/db";
-
-// Initialize Anthropic client
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-});
 
 export class AssessmentAIService {
   private readonly MODEL = "claude-3-opus-20240229";
@@ -491,102 +751,3 @@ Return as JSON:
 
 // Export singleton instance
 export const assessmentAI = new AssessmentAIService();
-
-// Helper function for API routes
-export async function getNextQuestionWithAI(params: {
-  currentModule: string;
-  responses: any[];
-  symptomProfile: any;
-  questionsAsked: number;
-  assessmentContext: any;
-}): Promise<{
-  nextQuestion?: AssessmentQuestion;
-  nextModule?: FunctionalModule;
-  questionsInModule?: number;
-  questionsSaved?: number;
-  reasoning?: string;
-}> {
-  // Import the question modules
-  const { getScreeningQuestions } = await import('@/lib/assessment/questions/screening-questions');
-  const { getModuleQuestions } = await import('@/lib/assessment/questions');
-  
-  // Get current module questions
-  const currentQuestions = params.currentModule === 'SCREENING' 
-    ? getScreeningQuestions()
-    : getModuleQuestions(params.currentModule as FunctionalModule);
-  
-  // Find answered question IDs
-  const answeredQuestionIds = new Set(params.responses.map(r => r.questionId));
-  
-  // Get remaining questions in current module
-  const remainingQuestions = currentQuestions.filter(q => !answeredQuestionIds.has(q.id));
-  
-  // If no remaining questions in current module, move to next module
-  if (remainingQuestions.length === 0) {
-    // Determine next module based on AI analysis
-    const moduleOrder: FunctionalModule[] = [
-      'SCREENING',
-      'ASSIMILATION',
-      'DEFENSE_REPAIR',
-      'ENERGY',
-      'BIOTRANSFORMATION',
-      'TRANSPORT',
-      'COMMUNICATION',
-      'STRUCTURAL'
-    ];
-    
-    const currentIndex = moduleOrder.indexOf(params.currentModule as FunctionalModule);
-    
-    // Check if assessment is complete
-    if (currentIndex === moduleOrder.length - 1) {
-      return {
-        nextQuestion: undefined,
-        reasoning: 'Assessment complete - all modules finished'
-      };
-    }
-    
-    // Move to next module
-    const nextModule = moduleOrder[currentIndex + 1];
-    const nextModuleQuestions = getModuleQuestions(nextModule);
-    
-    return {
-      nextQuestion: nextModuleQuestions[0],
-      nextModule,
-      questionsInModule: nextModuleQuestions.length,
-      reasoning: `Completed ${params.currentModule} module, moving to ${nextModule}`
-    };
-  }
-  
-  // Use AI to select most relevant question from remaining
-  // For now, we'll use a simple algorithm based on symptom severity
-  
-  // Check for high severity symptoms that might skip questions
-  const highSeveritySymptoms = params.assessmentContext?.highSeveritySymptoms || [];
-  let questionsSaved = 0;
-  
-  // If we have high severity symptoms in this module, we can skip some questions
-  if (highSeveritySymptoms.length > 0) {
-    // Skip questions that would be redundant given high severity
-    const skipCategories = ['mild_symptoms', 'lifestyle_basic'];
-    const filteredQuestions = remainingQuestions.filter(
-      q => !skipCategories.includes(q.category || '')
-    );
-    
-    questionsSaved = remainingQuestions.length - filteredQuestions.length;
-    
-    if (filteredQuestions.length > 0) {
-      return {
-        nextQuestion: filteredQuestions[0],
-        questionsSaved,
-        reasoning: `Skipping ${questionsSaved} questions due to high severity symptoms`
-      };
-    }
-  }
-  
-  // Default: return next question in sequence
-  return {
-    nextQuestion: remainingQuestions[0],
-    questionsSaved: 0,
-    reasoning: 'Proceeding with standard question sequence'
-  };
-}
