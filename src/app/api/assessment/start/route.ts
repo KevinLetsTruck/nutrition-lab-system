@@ -68,9 +68,31 @@ export async function POST(req: NextRequest) {
       assessmentTemplate = await prisma.assessmentTemplate.create({
         data: {
           name: 'Comprehensive Functional Medicine Assessment',
-          description: '400+ question adaptive assessment across 7 functional medicine nodes',
-          version: '1.0',
-          baseQuestions: allQuestions,
+          version: '1.0.0',
+          questionBank: allQuestions,
+          modules: {
+            SCREENING: { order: 1, questions: allQuestions.length },
+            ASSIMILATION: { order: 2, questions: 50 },
+            DEFENSE_REPAIR: { order: 3, questions: 50 },
+            ENERGY: { order: 4, questions: 50 },
+            BIOTRANSFORMATION: { order: 5, questions: 50 },
+            TRANSPORT: { order: 6, questions: 50 },
+            COMMUNICATION: { order: 7, questions: 50 },
+            STRUCTURAL: { order: 8, questions: 50 }
+          },
+          scoringRules: {
+            severityThresholds: { low: 3, medium: 6, high: 8 },
+            moduleWeights: {
+              SCREENING: 1.5,
+              ASSIMILATION: 1.0,
+              DEFENSE_REPAIR: 1.2,
+              ENERGY: 1.3,
+              BIOTRANSFORMATION: 1.1,
+              TRANSPORT: 1.0,
+              COMMUNICATION: 1.2,
+              STRUCTURAL: 0.9
+            }
+          },
           isActive: true
         }
       });
