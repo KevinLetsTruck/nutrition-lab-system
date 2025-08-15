@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { questionBank } from "@/lib/assessment/questions";
 import { assessmentModules } from "@/lib/assessment/modules";
-import { QuestionCategory } from "@/lib/assessment/types";
 
 export async function POST() {
   try {
@@ -42,7 +41,7 @@ export async function POST() {
           totalQuestions: questionBank.length,
           modules: assessmentModules.length,
           seedOilQuestions: questionBank.filter(
-            (q) => q.category === QuestionCategory.SEED_OIL
+            (q) => q.category === "SEED_OIL"
           ).length,
           templateId: updated.id,
         },
