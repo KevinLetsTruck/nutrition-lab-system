@@ -69,7 +69,9 @@ export async function POST(req: NextRequest) {
           { status: 404 }
         );
       }
-      console.log(`👤 Client validated: ${client.name}`);
+      console.log(
+        `👤 Client validated: ${client.firstName} ${client.lastName}`
+      );
     }
 
     const uploadResults = [];
@@ -122,19 +124,14 @@ export async function POST(req: NextRequest) {
           ] || "UNKNOWN";
 
         // Create database record
-        const document = await prisma.document.create({
+        const document = await prisma.medicalDocument.create({
           data: {
-            clientId: clientId || "standalone",
-            fileName: file.name,
+            clientId: clientId, // Can be null for standalone uploads
             originalFileName: file.name,
-            fileType: file.type,
-            fileSize: size || file.size,
-            fileUrl: url,
-            storageKey: key,
-            documentType: documentType as DocumentType,
-            extractedText: "",
-            ocrConfidence: 0,
-            status: ProcessingStatus.UPLOADED,
+            documentType: documentType,
+            s3Url: url,
+            s3Key: key,
+            status: "PENDING",
             metadata: {
               mimeType: file.type,
               originalSize: file.size,

@@ -13,13 +13,13 @@ export async function GET(req: NextRequest, { params }: Params) {
     const { id } = await params;
 
     const [labValues, document] = await Promise.all([
-      prisma.labValue.findMany({
+      prisma.medicalLabValue.findMany({
         where: { documentId: id },
         orderBy: [{ confidence: "desc" }, { testName: "asc" }],
       }),
-      prisma.document.findUnique({
+      prisma.medicalDocument.findUnique({
         where: { id },
-        select: { originalFileName: true, fileName: true },
+        select: { originalFileName: true },
       }),
     ]);
 
@@ -50,10 +50,7 @@ export async function GET(req: NextRequest, { params }: Params) {
       },
       document: {
         id,
-        originalFileName:
-          document?.originalFileName ||
-          document?.fileName ||
-          "Unknown Document",
+        originalFileName: document?.originalFileName || "Unknown Document",
       },
     });
   } catch (error) {
@@ -72,7 +69,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     const { forceReExtract = false } = body;
 
     // Get document
-    const document = await prisma.document.findUnique({
+    const document = await prisma.medicalDocument.findUnique({
       where: { id: documentId },
     });
 
@@ -83,7 +80,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       );
     }
 
-    if (!document.extractedText) {
+    if (!document.ocrText) {
       return NextResponse.json(
         { error: "Document has no OCR text. Process the document first." },
         { status: 400 }
@@ -92,7 +89,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 
     // Check if already has lab values
     if (!forceReExtract) {
-      const existingCount = await prisma.labValue.count({
+      const existingCount = await prisma.medicalLabValue.count({
         where: { documentId },
       });
 
@@ -107,7 +104,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 
     // Clear existing values if force re-extract
     if (forceReExtract) {
-      await prisma.labValue.deleteMany({
+      await prisma.medicalLabValue.deleteMany({
         where: { documentId },
       });
     }
@@ -115,11 +112,11 @@ export async function POST(req: NextRequest, { params }: Params) {
     // Extract lab values
     const result = await labValueExtractor.extractLabValues(
       documentId,
-      document.extractedText
+      document.ocrText
     );
 
     // Update document metadata
-    await prisma.document.update({
+    await prisma.medicalDocument.update({
       where: { id: documentId },
       data: {
         metadata: {

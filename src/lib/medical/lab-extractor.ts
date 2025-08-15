@@ -49,7 +49,7 @@ export interface LabExtractionResult {
 
 export class LabValueExtractor {
   private lastProcessedText: string | null = null;
-  
+
   // Common lab test patterns with multiple variations
   private readonly LAB_PATTERNS = {
     // Basic Metabolic Panel (BMP/CMP)
@@ -981,50 +981,50 @@ export class LabValueExtractor {
     // Enhanced mapping for better categorization
     const testNameMappings: { [key: string]: string } = {
       // Basic Metabolic Panel
-      "glucose": "BASIC_METABOLIC",
+      glucose: "BASIC_METABOLIC",
       "blood urea nitrogen": "BASIC_METABOLIC",
-      "bun": "BASIC_METABOLIC",
-      "creatinine": "BASIC_METABOLIC",
-      "egfr": "BASIC_METABOLIC",
-      "sodium": "BASIC_METABOLIC",
-      "potassium": "BASIC_METABOLIC",
-      "chloride": "BASIC_METABOLIC",
-      "co2": "BASIC_METABOLIC",
-      "bicarbonate": "BASIC_METABOLIC",
-      
+      bun: "BASIC_METABOLIC",
+      creatinine: "BASIC_METABOLIC",
+      egfr: "BASIC_METABOLIC",
+      sodium: "BASIC_METABOLIC",
+      potassium: "BASIC_METABOLIC",
+      chloride: "BASIC_METABOLIC",
+      co2: "BASIC_METABOLIC",
+      bicarbonate: "BASIC_METABOLIC",
+
       // Lipid Panel
       "total cholesterol": "LIPID_PANEL",
-      "hdl": "LIPID_PANEL",
-      "ldl": "LIPID_PANEL",
-      "triglycerides": "LIPID_PANEL",
-      
+      hdl: "LIPID_PANEL",
+      ldl: "LIPID_PANEL",
+      triglycerides: "LIPID_PANEL",
+
       // Diabetes/Hemoglobin
       "hemoglobin a1c": "DIABETES",
-      "hba1c": "DIABETES",
-      "a1c": "DIABETES",
-      
+      hba1c: "DIABETES",
+      a1c: "DIABETES",
+
       // Protein Tests
       "total protein": "PROTEIN",
-      "albumin": "PROTEIN",
-      "globulin": "PROTEIN",
-      
+      albumin: "PROTEIN",
+      globulin: "PROTEIN",
+
       // Liver Function
-      "alt": "LIVER_FUNCTION",
-      "ast": "LIVER_FUNCTION",
+      alt: "LIVER_FUNCTION",
+      ast: "LIVER_FUNCTION",
       "alkaline phosphatase": "LIVER_FUNCTION",
-      "bilirubin": "LIVER_FUNCTION",
-      
+      bilirubin: "LIVER_FUNCTION",
+
       // Thyroid
-      "tsh": "THYROID",
-      "t4": "THYROID",
-      "t3": "THYROID",
-      
+      tsh: "THYROID",
+      t4: "THYROID",
+      t3: "THYROID",
+
       // Complete Blood Count
-      "hemoglobin": "CBC",
-      "hematocrit": "CBC",
+      hemoglobin: "CBC",
+      hematocrit: "CBC",
       "white blood cells": "CBC",
       "red blood cells": "CBC",
-      "platelets": "CBC"
+      platelets: "CBC",
     };
 
     // Check for exact matches first
@@ -1343,49 +1343,49 @@ export class LabValueExtractor {
   private inferTestNameFromTextContent(currentIndex: number): string | null {
     // This is a more robust approach that looks at the actual text content
     // to determine what test this might be
-    const lines = this.lastProcessedText?.split('\n') || [];
+    const lines = this.lastProcessedText?.split("\n") || [];
     if (currentIndex >= lines.length) return null;
-    
+
     const currentLine = lines[currentIndex].trim();
-    
+
     // Pattern matching based on content
-    if (currentLine.includes('mg/dL') && currentLine.includes('70-99')) {
+    if (currentLine.includes("mg/dL") && currentLine.includes("70-99")) {
       return "Glucose";
     }
-    if (currentLine.includes('mg/dL') && currentLine.includes('6-20')) {
+    if (currentLine.includes("mg/dL") && currentLine.includes("6-20")) {
       return "Blood Urea Nitrogen (BUN)";
     }
-    if (currentLine.includes('mg/dL') && currentLine.includes('0.7-1.3')) {
+    if (currentLine.includes("mg/dL") && currentLine.includes("0.7-1.3")) {
       return "Creatinine";
     }
-    if (currentLine.includes('mL/min/1.73m²')) {
+    if (currentLine.includes("mL/min/1.73m²")) {
       return "eGFR";
     }
-    if (currentLine.includes('mmol/L') && currentLine.includes('136-145')) {
+    if (currentLine.includes("mmol/L") && currentLine.includes("136-145")) {
       return "Sodium";
     }
-    if (currentLine.includes('mmol/L') && currentLine.includes('3.5-5.1')) {
+    if (currentLine.includes("mmol/L") && currentLine.includes("3.5-5.1")) {
       return "Potassium";
     }
-    if (currentLine.includes('mmol/L') && currentLine.includes('98-107')) {
+    if (currentLine.includes("mmol/L") && currentLine.includes("98-107")) {
       return "Chloride";
     }
-    if (currentLine.includes('mmol/L') && currentLine.includes('22-29')) {
+    if (currentLine.includes("mmol/L") && currentLine.includes("22-29")) {
       return "CO2";
     }
-    if (currentLine.includes('%') && currentLine.includes('6.1')) {
+    if (currentLine.includes("%") && currentLine.includes("6.1")) {
       return "Hemoglobin A1c";
     }
-    if (currentLine.includes('%') && currentLine.includes('<5.7')) {
+    if (currentLine.includes("%") && currentLine.includes("<5.7")) {
       return "Hemoglobin A1c";
     }
-    if (currentLine.includes('g/dL') && currentLine.includes('6.0-8.3')) {
+    if (currentLine.includes("g/dL") && currentLine.includes("6.0-8.3")) {
       return "Total Protein";
     }
-    if (currentLine.includes('g/dL') && currentLine.includes('3.5-5.0')) {
+    if (currentLine.includes("g/dL") && currentLine.includes("3.5-5.0")) {
       return "Albumin";
     }
-    
+
     return "Lab Test";
   }
 
@@ -1393,18 +1393,18 @@ export class LabValueExtractor {
     // Based on the OCR text analysis, we know the expected test names and their positions
     // This is a hardcoded mapping based on the actual OCR text structure
     const testNameMapping: { [key: number]: string } = {
-      16: "Glucose",           // Line 16: "110 mg/dL 70-99 mg/dL"
+      16: "Glucose", // Line 16: "110 mg/dL 70-99 mg/dL"
       18: "Blood Urea Nitrogen (BUN)", // Line 18: "Blood Urea Nitrogen (BUN) 18 mg/dL 6-20 mg/dL"
-      22: "Creatinine",        // Line 22: "1.1 mg/dL 0.7-1.3 mg/dL"
-      24: "eGFR",             // Line 24: ">60 mL/min/1.73m²"
-      25: "Sodium",           // Line 25: "140 mmol/L 136-145 mmol/L"
-      27: "Potassium",        // Line 27: "4.2 mmol/L 3.5-5.1 mmol/L"
-      30: "Chloride",         // Line 30: "101 mmol/L 98-107 mmol/L"
-      31: "CO2",              // Line 31: "24 mmol/L 22-29 mmol/L"
-      36: "Hemoglobin A1c",   // Line 36: "6.1%"
-      37: "Hemoglobin A1c",   // Line 37: "<5.7%"
-      38: "Total Protein",    // Line 38: "7.2 g/dL 6.0-8.3 g/dL"
-      39: "Albumin"           // Line 39: "4.1 g/dL 3.5-5.0 g/dL"
+      22: "Creatinine", // Line 22: "1.1 mg/dL 0.7-1.3 mg/dL"
+      24: "eGFR", // Line 24: ">60 mL/min/1.73m²"
+      25: "Sodium", // Line 25: "140 mmol/L 136-145 mmol/L"
+      27: "Potassium", // Line 27: "4.2 mmol/L 3.5-5.1 mmol/L"
+      30: "Chloride", // Line 30: "101 mmol/L 98-107 mmol/L"
+      31: "CO2", // Line 31: "24 mmol/L 22-29 mmol/L"
+      36: "Hemoglobin A1c", // Line 36: "6.1%"
+      37: "Hemoglobin A1c", // Line 37: "<5.7%"
+      38: "Total Protein", // Line 38: "7.2 g/dL 6.0-8.3 g/dL"
+      39: "Albumin", // Line 39: "4.1 g/dL 3.5-5.0 g/dL"
     };
 
     return testNameMapping[currentIndex] || "Lab Test";
@@ -1926,7 +1926,8 @@ export class LabValueExtractor {
     }
 
     // Get standard name for categorization
-    const standardName = params.standardName || this.getStandardTestName(params.testName);
+    const standardName =
+      params.standardName || this.getStandardTestName(params.testName);
 
     return {
       testName: params.testName,
@@ -1983,7 +1984,7 @@ export class LabValueExtractor {
 
     try {
       // Get document to retrieve clientId
-      const document = await prisma.document.findUnique({
+      const document = await prisma.medicalDocument.findUnique({
         where: { id: documentId },
         select: { clientId: true },
       });
@@ -1996,13 +1997,13 @@ export class LabValueExtractor {
       const clientId = document.clientId || "standalone";
 
       // Delete existing lab values for this document
-      await prisma.labValue.deleteMany({
+      await prisma.medicalLabValue.deleteMany({
         where: { documentId },
       });
 
       // Insert new lab values
       if (values.length > 0) {
-        await prisma.labValue.createMany({
+        await prisma.medicalLabValue.createMany({
           data: values.map((value) => ({
             id: `${documentId}_${value.testName.replace(
               /\s+/g,

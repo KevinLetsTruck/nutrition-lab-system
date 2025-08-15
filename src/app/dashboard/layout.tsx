@@ -4,7 +4,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { usePathname } from "next/navigation";
-import { Users, LogOut, Leaf, Calendar, Archive } from "lucide-react";
+import { Users, LogOut, Leaf, Calendar, Archive, Monitor } from "lucide-react";
 
 export default function DashboardLayout({
   children,
@@ -103,6 +103,15 @@ export default function DashboardLayout({
                 <Archive className="h-5 w-5 mr-3" />
                 Archived
               </Link>
+              <Link
+                href="/dashboard/pipeline-monitor"
+                className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium ${
+                  isActive("/dashboard/pipeline-monitor") ? "active" : ""
+                }`}
+              >
+                <Monitor className="h-5 w-5 mr-3" />
+                AI Pipeline Monitor
+              </Link>
             </div>
           </div>
 
@@ -138,6 +147,15 @@ export default function DashboardLayout({
               >
                 <Archive className="h-5 w-5 mr-3 inline" />
                 Archived
+              </Link>
+              <Link
+                href="/dashboard/pipeline-monitor"
+                className={`nav-link-large block px-4 py-3 text-base font-medium ${
+                  isActive("/dashboard/pipeline-monitor") ? "active" : ""
+                }`}
+              >
+                <Monitor className="h-5 w-5 mr-3 inline" />
+                AI Pipeline Monitor
               </Link>
             </div>
           </div>

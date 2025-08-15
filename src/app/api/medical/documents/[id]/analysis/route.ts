@@ -33,20 +33,24 @@ export async function GET(req: NextRequest, { params }: Params) {
       );
     }
 
-    // Check if functional analysis has been completed
-    const hasAnalysis =
-      document.metadata &&
-      typeof document.metadata === "object" &&
-      "functionalAnalysisComplete" in document.metadata;
+    // Check if functional analysis has been completed (new AI pipeline)
+    const metadata = document.metadata as any;
+    const hasNewAIAnalysis =
+      metadata &&
+      typeof metadata === "object" &&
+      (metadata.functionalAnalysis || metadata.functionalAnalysisCompleted);
 
-    if (!hasAnalysis) {
-      return NextResponse.json(
-        {
-          error:
-            "Functional analysis not yet completed - ensure lab values have been extracted first",
-        },
-        { status: 404 }
-      );
+    // If no new AI analysis, return appropriate response
+    if (!hasNewAIAnalysis) {
+      return NextResponse.json({
+        document,
+        hasAnalysis: false,
+        analysisType: "none",
+        message:
+          "This document was processed with the legacy system. The new AI-powered functional medicine analysis is available for newly uploaded documents.",
+        suggestion:
+          "Upload a new document to see the complete AI pipeline with structure analysis, lab extraction, and functional medicine insights.",
+      });
     }
 
     // Get lab values for context
@@ -55,26 +59,23 @@ export async function GET(req: NextRequest, { params }: Params) {
       orderBy: { confidence: "desc" },
     });
 
-    // Since we're storing analysis results in document metadata, extract them
-    const metadata = document.metadata as any;
+    // Extract the new AI functional analysis from metadata
+    const functionalAnalysis = metadata.functionalAnalysis;
     const analysis = {
-      overallHealth: {
-        score: metadata.overallHealthScore || 0,
-        grade: metadata.healthGrade || "F",
-        summary: `Health grade ${metadata.healthGrade || "F"} with ${
-          metadata.patternsDetected || 0
-        } patterns detected`,
-      },
-      patternsDetected: metadata.patternsDetected || 0,
-      criticalFindings: metadata.criticalFindings || 0,
-      dotRiskLevel: metadata.dotRiskLevel || "low",
+      functionalAnalysis,
+      hasAnalysis: true,
+      analysisType: "ai_powered",
+      structureAnalysis: metadata.structureAnalysis,
+      aiExtraction: metadata.aiExtraction,
+      narrativeReport: metadata.narrativeReport,
+      processingPipeline: metadata.processingPipeline,
     };
 
     return NextResponse.json({
       document,
       analysis,
       labValues,
-      generatedAt: document.metadata,
+      generatedAt: new Date().toISOString(),
       message: "Functional medicine analysis retrieved successfully",
     });
   } catch (error) {

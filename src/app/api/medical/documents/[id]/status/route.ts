@@ -12,7 +12,7 @@ export async function GET(req: NextRequest, { params }: Params) {
     const { id } = await params;
 
     // Get document with processing status
-    const document = await prisma.document.findUnique({
+    const document = await prisma.medicalDocument.findUnique({
       where: { id },
       include: {
         client: {
@@ -41,12 +41,13 @@ export async function GET(req: NextRequest, { params }: Params) {
       status: document.status,
       documentType: document.documentType,
       originalFileName: document.originalFileName,
-      uploadDate: document.uploadedAt,
+      uploadDate: document.uploadDate,
       processedAt: document.processedAt,
       ocrConfidence: document.ocrConfidence,
-      errorMessage: document.processingError,
+      errorMessage: document.errorMessage,
       client: document.client,
       metadata: document.metadata,
+      extractedText: document.ocrText,
       processing: queueEntry
         ? {
             status: queueEntry.status,
@@ -56,9 +57,9 @@ export async function GET(req: NextRequest, { params }: Params) {
             errorMessage: queueEntry.errorMessage,
           }
         : null,
-      textPreview: document.extractedText
-        ? document.extractedText.substring(0, 200) +
-          (document.extractedText.length > 200 ? "..." : "")
+      textPreview: document.ocrText
+        ? document.ocrText.substring(0, 200) +
+          (document.ocrText.length > 200 ? "..." : "")
         : null,
     };
 
