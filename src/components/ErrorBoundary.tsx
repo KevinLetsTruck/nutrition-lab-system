@@ -44,10 +44,10 @@ export class ErrorBoundary extends Component<Props, State> {
       updatedAt: new Date()
     };
     
-    // Save to localStorage for issue tracker
-    const existingIssues = JSON.parse(localStorage.getItem('assessment-issues') || '[]');
-    existingIssues.unshift(issue);
-    localStorage.setItem('assessment-issues', JSON.stringify(existingIssues));
+    // Temporarily disabled - issue tracking coming soon
+    // const existingIssues = JSON.parse(localStorage.getItem('assessment-issues') || '[]');
+    // existingIssues.unshift(issue);
+    // localStorage.setItem('assessment-issues', JSON.stringify(existingIssues));
     
     return {
       hasError: true,
@@ -118,13 +118,7 @@ URL: ${window.location.href}
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Reload Page
               </Button>
-              <Button 
-                onClick={() => window.location.href = '/dashboard/assessment-issues'}
-                variant="outline"
-              >
-                <Bug className="mr-2 h-4 w-4" />
-                View Issue Tracker
-              </Button>
+              {/* Issue tracker button removed - coming soon */}
             </div>
           </Card>
         </div>

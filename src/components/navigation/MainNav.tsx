@@ -8,7 +8,6 @@ import {
   Home,
   TestTube,
   ClipboardCheck,
-  Bug,
   Activity,
   FileText,
   Settings
@@ -30,11 +29,6 @@ const navItems = [
     title: 'Assessments',
     href: '/dashboard/assessments',
     icon: ClipboardCheck
-  },
-  {
-    title: 'Issues',
-    href: '/dashboard/assessment-issues',
-    icon: Bug
   },
   {
     title: 'AI Monitor',

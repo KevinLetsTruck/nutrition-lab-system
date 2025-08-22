@@ -45,16 +45,16 @@ export default function TestingDashboard() {
       setActiveAssessment(JSON.parse(savedState));
     }
 
-    // Load recent issues
-    const issues = JSON.parse(localStorage.getItem('assessment-issues') || '[]');
-    setRecentIssues(issues.slice(0, 5));
+    // Load recent issues - temporarily disabled
+    // const issues = JSON.parse(localStorage.getItem('assessment-issues') || '[]');
+    setRecentIssues([]);
     
     // Calculate stats
     setStats({
-      totalIssues: issues.length,
-      criticalIssues: issues.filter((i: any) => i.priority === 'CRITICAL').length,
-      blockers: issues.filter((i: any) => i.blocksTesting).length,
-      fixed: issues.filter((i: any) => i.status === 'FIXED').length
+      totalIssues: 0,
+      criticalIssues: 0,
+      blockers: 0,
+      fixed: 0
     });
   }, []);
 
@@ -170,15 +170,10 @@ export default function TestingDashboard() {
                   <span className="font-bold text-green-400">{stats.fixed}</span>
                 </div>
               </div>
-              <Button 
-                onClick={() => router.push('/dashboard/assessment-issues')}
-                variant="outline"
-                className="w-full mt-3 border-gray-600 text-gray-300 hover:bg-gray-700"
-                size="sm"
-              >
-                <Bug className="mr-2 h-4 w-4" />
-                View All Issues
-              </Button>
+              {/* Issues tracking temporarily disabled */}
+              <div className="mt-3 text-xs text-gray-500 text-center">
+                Issue tracking coming soon
+              </div>
             </CardContent>
           </Card>
 
@@ -206,9 +201,10 @@ export default function TestingDashboard() {
                       createdAt: new Date(),
                       updatedAt: new Date()
                     };
-                    const existing = JSON.parse(localStorage.getItem('assessment-issues') || '[]');
-                    existing.unshift(newIssue);
-                    localStorage.setItem('assessment-issues', JSON.stringify(existing));
+                    // Temporarily store in memory only
+                    // const existing = JSON.parse(localStorage.getItem('assessment-issues') || '[]');
+                    // existing.unshift(newIssue);
+                    // localStorage.setItem('assessment-issues', JSON.stringify(existing));
                     toast.success('Issue logged!');
                     window.location.reload();
                   }
@@ -447,7 +443,7 @@ export default function TestingDashboard() {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => router.push('/dashboard/assessment-issues')}
+                onClick={() => toast.info('Issue tracking coming soon')}
                 className="justify-start border-gray-600 text-gray-300 hover:bg-gray-700"
               >
                 <Bug className="mr-2 h-4 w-4" />

@@ -40,9 +40,10 @@ export function DevToolbar() {
       updatedAt: new Date()
     };
 
-    const existing = JSON.parse(localStorage.getItem('assessment-issues') || '[]');
-    existing.unshift(issue);
-    localStorage.setItem('assessment-issues', JSON.stringify(existing));
+    // Temporarily store in memory only
+    // const existing = JSON.parse(localStorage.getItem('assessment-issues') || '[]');
+    // existing.unshift(issue);
+    // localStorage.setItem('assessment-issues', JSON.stringify(existing));
     
     toast.success('Issue logged!');
     setQuickNote('');
@@ -90,7 +91,7 @@ export function DevToolbar() {
               <Button 
                 size="sm" 
                 variant="outline"
-                onClick={() => window.location.href = '/dashboard/assessment-issues'}
+                onClick={() => toast.info('Issue tracking coming soon')}
                 className="text-xs"
               >
                 <Bug className="mr-1 h-3 w-3" />

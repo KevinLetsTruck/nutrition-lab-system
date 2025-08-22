@@ -11,7 +11,6 @@ import {
   Calendar,
   Archive,
   Monitor,
-  Bug,
   TestTube,
 } from "lucide-react";
 
@@ -131,15 +130,7 @@ export default function DashboardLayout({
                 <Monitor className="h-5 w-5 mr-3" />
                 AI Pipeline Monitor
               </Link>
-              <Link
-                href="/dashboard/assessment-issues"
-                className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
-                  isActive("/dashboard/assessment-issues") ? "active" : ""
-                }`}
-              >
-                <Bug className="h-5 w-5 mr-3" />
-                Assessment Issues
-              </Link>
+
             </div>
           </div>
 
@@ -195,15 +186,7 @@ export default function DashboardLayout({
                 <Monitor className="h-5 w-5 mr-3 inline" />
                 AI Pipeline Monitor
               </Link>
-              <Link
-                href="/dashboard/assessment-issues"
-                className={`nav-link-large block px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
-                  isActive("/dashboard/assessment-issues") ? "active" : ""
-                }`}
-              >
-                <Bug className="h-5 w-5 mr-3 inline" />
-                Assessment Issues
-              </Link>
+
             </div>
           </div>
         </nav>
