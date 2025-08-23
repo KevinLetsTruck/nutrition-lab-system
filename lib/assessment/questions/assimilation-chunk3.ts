@@ -261,8 +261,7 @@ export const assimilationQuestionsChunk3: AssessmentQuestion[] = [
     options: [
       { value: "yes", label: "Yes", score: 3 },
       { value: "no", label: "No", score: 0 },
-      { value: "unsure", label: "Unsure", score: 1 },
-    ],
+      { value: "unsure", label: "Unsure", score: 1 }],
     clinicalRelevance: ["gut_brain_axis", "stress_response"]
   },
   {

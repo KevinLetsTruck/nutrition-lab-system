@@ -2,6 +2,7 @@
 export interface AssessmentQuestion {
   id: string;
   module: FunctionalModule;
+  bodySystem?: string; // Body system categorization
   category?: QuestionCategory;
   text: string;
   type: QuestionType;
