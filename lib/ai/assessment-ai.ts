@@ -107,11 +107,17 @@ export async function getNextQuestionWithAI(
   // Check if we have a cached decision
   if (decisionCache.has(cacheKey)) {
     const cachedDecision = decisionCache.get(cacheKey)!;
+    
+    // Get already answered question IDs
+    const answeredQuestionIds = new Set(responses.map((r) => r.questionId));
 
-    // Detect if we're about to return the same question as last time
-    if (cachedDecision.nextQuestion?.id === lastSelectedQuestionId) {
+    // Detect if we're about to return the same question as last time OR an already answered question
+    if (
+      cachedDecision.nextQuestion?.id === lastSelectedQuestionId ||
+      (cachedDecision.nextQuestion?.id && answeredQuestionIds.has(cachedDecision.nextQuestion.id))
+    ) {
       console.warn(
-        `Detected repeated question selection: ${lastSelectedQuestionId}. Clearing cache.`
+        `Detected repeated/duplicate question selection: ${cachedDecision.nextQuestion?.id}. Clearing cache.`
       );
       decisionCache.clear();
       lastSelectedQuestionId = null;

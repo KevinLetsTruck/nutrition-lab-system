@@ -85,17 +85,16 @@ export async function GET(
 
     if (useAI) {
       try {
-        // Get only recent responses for context (faster query)
-        const recentResponses = await prisma.clientResponse.findMany({
+        // Get ALL responses to ensure we don't repeat questions
+        const allResponses = await prisma.clientResponse.findMany({
           where: { assessmentId },
           orderBy: { answeredAt: "desc" },
-          take: 20, // Only get last 20 responses for performance
         });
 
         // Build context for AI
         const assessmentContext = {
           currentModule: assessment.currentModule,
-          responses: recentResponses.map((r) => ({
+          responses: allResponses.map((r) => ({
             questionId: r.questionId,
             questionText: r.questionText,
             responseValue: r.responseValue,
@@ -124,9 +123,20 @@ export async function GET(
 
         if (aiDecision.nextQuestion) {
           nextQuestion = aiDecision.nextQuestion;
-          console.log(
-            `AI selected question: ${nextQuestion.id} - Reasoning: ${aiDecision.reasoning} (${aiTime}ms)`
-          );
+          
+          // Check if this question was already answered
+          if (answeredIds.has(nextQuestion.id)) {
+            console.error(
+              `WARNING: AI selected already answered question ${nextQuestion.id}! Total answered: ${answeredIds.size}`
+            );
+            console.error(`Answered IDs: ${Array.from(answeredIds).join(', ')}`);
+            // Fallback to linear selection
+            nextQuestion = null;
+          } else {
+            console.log(
+              `AI selected question: ${nextQuestion.id} - Reasoning: ${aiDecision.reasoning} (${aiTime}ms)`
+            );
+          }
         }
       } catch (error) {
         console.error(
