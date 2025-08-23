@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
   Home,
-  TestTube,
   ClipboardCheck,
   FileText,
   Settings
@@ -17,12 +16,6 @@ const navItems = [
     title: 'Dashboard',
     href: '/dashboard',
     icon: Home
-  },
-  {
-    title: 'Testing Hub',
-    href: '/dashboard/testing',
-    icon: TestTube,
-    badge: 'NEW'
   },
   {
     title: 'Assessments',
@@ -45,8 +38,8 @@ export function MainNav() {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-8">
             <Link href="/dashboard" className="flex items-center space-x-2">
-              <TestTube className="h-6 w-6 text-purple-600" />
-              <span className="font-bold text-xl">FNTP Testing</span>
+              <Home className="h-6 w-6 text-purple-600" />
+              <span className="font-bold text-xl">FNTP Dashboard</span>
             </Link>
             
             <div className="hidden md:flex space-x-1">

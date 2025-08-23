@@ -18,7 +18,7 @@ export default function TestPage() {
           <ul className="space-y-2 text-gray-300">
             <li>✅ Next.js server running</li>
             <li>✅ Pages loading correctly</li>
-            <li>✅ Archived clients page removed</li>
+            <li>✅ Testing page removed</li>
             <li>✅ Navigation cleaned up</li>
           </ul>
         </div>
@@ -28,12 +28,6 @@ export default function TestPage() {
             Available Pages
           </h2>
           <div className="grid grid-cols-2 gap-4">
-            <Link 
-              href="/dashboard/testing"
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-center"
-            >
-              Testing Hub
-            </Link>
             <Link 
               href="/dashboard/clients"
               className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-center"
@@ -55,7 +49,7 @@ export default function TestPage() {
           </h2>
           <ul className="space-y-2 text-yellow-200">
             <li>• Issue tracking has been temporarily disabled</li>
-            <li>• Archived clients page has been removed (use filter in Clients page)</li>
+            <li>• Testing page has been removed</li>
             <li>• Some TypeScript errors exist but don't affect runtime</li>
           </ul>
         </div>
