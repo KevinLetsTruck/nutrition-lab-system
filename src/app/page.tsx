@@ -50,10 +50,13 @@ export default function Home() {
 
             {/* Main Heading */}
             <h1 className="text-5xl md:text-7xl font-bold leading-tight">
-              <span className="text-brand-green">Transform Your Life</span>{" "}
-              <span className="text-brand-orange">Through</span>
+              <span className="bg-gradient-to-r from-brand-green via-green-400 to-brand-orange bg-clip-text text-transparent">
+                Transform Your Life Through
+              </span>
               <br />
-              <span className="text-white">Holistic Health Coaching</span>
+              <span className="bg-gradient-to-r from-gray-100 via-white to-gray-100 bg-clip-text text-transparent">
+                Holistic Health Coaching
+              </span>
             </h1>
 
             {/* Subheading */}

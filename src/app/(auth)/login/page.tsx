@@ -61,7 +61,7 @@ export default function LoginPage() {
               />
             </svg>
           </div>
-          <span className="text-white font-semibold text-xl">
+          <span className="font-semibold text-xl gradient-text">
             DestinationHealth
           </span>
         </Link>

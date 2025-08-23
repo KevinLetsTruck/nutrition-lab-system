@@ -45,37 +45,50 @@ export default function AssessmentWelcomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-navy flex items-center justify-center px-4">
-      <div className="max-w-5xl mx-auto text-center space-y-8">
-        {/* Badge */}
-        <div className="inline-flex items-center px-6 py-2 bg-brand-green/20 text-brand-green rounded-xl text-sm font-medium border border-brand-green/30">
-          Personalized Nutrition & Wellness
-        </div>
+    <div className="min-h-screen bg-brand-navy relative">
+      {/* Header with Logo */}
+      <header className="absolute top-0 left-0 p-6">
+        <span className="font-semibold text-xl gradient-text">
+          DestinationHealth
+        </span>
+      </header>
 
-        {/* Main Heading */}
-        <h1 className="text-5xl md:text-7xl font-bold leading-tight">
-          <span className="text-brand-green">Transform Your Life</span>{" "}
-          <span className="text-brand-orange">Through</span>
-          <br />
-          <span className="text-white">Holistic Health Coaching</span>
-        </h1>
+      {/* Main Content */}
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="max-w-5xl mx-auto text-center space-y-8">
+          {/* Badge */}
+          <div className="inline-flex items-center px-6 py-2 bg-brand-green/20 text-brand-green rounded-xl text-sm font-medium border border-brand-green/30">
+            Personalized Nutrition & Wellness
+          </div>
 
-        {/* Subheading */}
-        <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
-          Start your journey to optimal health with evidence-based nutritional
-          guidance and personalized wellness strategies designed just for you
-        </p>
+          {/* Main Heading */}
+          <h1 className="text-5xl md:text-7xl font-bold leading-tight">
+            <span className="bg-gradient-to-r from-brand-green via-green-400 to-brand-orange bg-clip-text text-transparent">
+              Transform Your Life Through
+            </span>
+            <br />
+            <span className="bg-gradient-to-r from-gray-100 via-white to-gray-100 bg-clip-text text-transparent">
+              Holistic Health Coaching
+            </span>
+          </h1>
 
-        {/* CTA Button */}
-        <div className="pt-8">
-          <Button
-            size="lg"
-            className="text-lg px-8 py-6"
-            onClick={handleStartAssessment}
-          >
-            Begin Your Health Journey
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
+          {/* Subheading */}
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+            Start your journey to optimal health with evidence-based nutritional
+            guidance and personalized wellness strategies designed just for you
+          </p>
+
+          {/* CTA Button */}
+          <div className="pt-8">
+            <Button
+              size="lg"
+              className="text-lg px-8 py-6"
+              onClick={handleStartAssessment}
+            >
+              Begin Your Health Journey
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

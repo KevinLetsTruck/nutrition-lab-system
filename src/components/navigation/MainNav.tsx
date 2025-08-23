@@ -48,7 +48,7 @@ export function MainNav() {
                 />
               </svg>
             </div>
-            <span className="text-white font-semibold text-lg">
+            <span className="font-semibold text-lg gradient-text">
               DestinationHealth
             </span>
           </Link>

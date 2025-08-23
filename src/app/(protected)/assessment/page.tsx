@@ -361,13 +361,24 @@ export default function AssessmentPage() {
       <div className="border-b border-gray-800 bg-brand-darkNavy">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-white">
-                Health Assessment
-              </h1>
-              <p className="text-sm text-gray-400">
-                {assessment?.currentModule.replace("_", " ")} Module
-              </p>
+            <div className="flex items-center gap-6">
+              {/* Logo */}
+              <span className="font-semibold text-xl gradient-text">
+                DestinationHealth
+              </span>
+
+              {/* Divider */}
+              <div className="h-8 w-px bg-gray-700"></div>
+
+              {/* Assessment Info */}
+              <div>
+                <h1 className="text-2xl font-bold text-white">
+                  Health Assessment
+                </h1>
+                <p className="text-sm text-gray-400">
+                  {assessment?.currentModule.replace("_", " ")}
+                </p>
+              </div>
             </div>
             <Button
               variant="ghost"

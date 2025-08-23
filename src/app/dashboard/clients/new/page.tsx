@@ -4,6 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function NewClientPage() {
   const router = useRouter();
@@ -65,300 +73,178 @@ export default function NewClientPage() {
   }
 
   return (
-    <div
-      className="min-h-screen py-8"
-      style={{ background: "var(--bg-primary)" }}
-    >
+    <div className="min-h-screen bg-brand-navy py-8">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div
-          className="shadow rounded-lg"
-          style={{ background: "var(--bg-card)" }}
-        >
-          <div
-            className="px-6 py-4"
-            style={{ borderBottom: "1px solid var(--border-primary)" }}
-          >
+        <Card className="border-gray-700">
+          <CardHeader className="border-b border-gray-700">
             <div className="flex items-center justify-between">
-              <h2
-                className="text-xl font-semibold"
-                style={{ color: "var(--text-primary)" }}
-              >
-                Add New Client
-              </h2>
-              <Link
-                href="/dashboard/clients"
-                className="transition-colors hover:opacity-80"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Cancel
-              </Link>
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            {error && (
-              <div
-                className="px-4 py-3 rounded"
-                style={{
-                  background: "rgba(239, 68, 68, 0.1)",
-                  border: "1px solid rgba(239, 68, 68, 0.3)",
-                  color: "#dc2626",
-                }}
-              >
-                {error}
-              </div>
-            )}
-
-            {/* Basic Information */}
-            <div>
-              <h3
-                className="text-lg font-medium mb-4"
-                style={{ color: "var(--text-primary)" }}
-              >
-                Basic Information
-              </h3>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="firstName"
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    First Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="firstName"
-                    id="firstName"
-                    required
-                    className="mt-1 block w-full px-3 py-2 rounded-md transition-colors hover:border-opacity-75 focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                    style={
-                      {
-                        background: "var(--bg-secondary)",
-                        border: "1px solid var(--border-primary)",
-                        color: "var(--text-primary)",
-                        "--tw-ring-color": "var(--primary-green)",
-                      } as React.CSSProperties
-                    }
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="lastName"
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    Last Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="lastName"
-                    id="lastName"
-                    required
-                    className="mt-1 block w-full px-3 py-2 rounded-md transition-colors hover:border-opacity-75 focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                    style={
-                      {
-                        background: "var(--bg-secondary)",
-                        border: "1px solid var(--border-primary)",
-                        color: "var(--text-primary)",
-                        "--tw-ring-color": "var(--primary-green)",
-                      } as React.CSSProperties
-                    }
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    id="email"
-                    required
-                    className="mt-1 block w-full px-3 py-2 rounded-md transition-colors hover:border-opacity-75 focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                    style={
-                      {
-                        background: "var(--bg-secondary)",
-                        border: "1px solid var(--border-primary)",
-                        color: "var(--text-primary)",
-                        "--tw-ring-color": "var(--primary-green)",
-                      } as React.CSSProperties
-                    }
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="phone"
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    id="phone"
-                    className="mt-1 block w-full px-3 py-2 rounded-md transition-colors hover:border-opacity-75 focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                    style={
-                      {
-                        background: "var(--bg-secondary)",
-                        border: "1px solid var(--border-primary)",
-                        color: "var(--text-primary)",
-                        "--tw-ring-color": "var(--primary-green)",
-                      } as React.CSSProperties
-                    }
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="dateOfBirth"
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    Date of Birth
-                  </label>
-                  <input
-                    type="date"
-                    name="dateOfBirth"
-                    id="dateOfBirth"
-                    className="mt-1 block w-full px-3 py-2 rounded-md transition-colors hover:border-opacity-75 focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                    style={
-                      {
-                        background: "var(--bg-secondary)",
-                        border: "1px solid var(--border-primary)",
-                        color: "var(--text-primary)",
-                        "--tw-ring-color": "var(--primary-green)",
-                      } as React.CSSProperties
-                    }
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="gender"
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    Gender
-                  </label>
-                  <select
-                    name="gender"
-                    id="gender"
-                    className="mt-1 block w-full px-3 py-2 rounded-md transition-colors hover:border-opacity-75 focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                    style={
-                      {
-                        background: "var(--bg-secondary)",
-                        border: "1px solid var(--border-primary)",
-                        color: "var(--text-primary)",
-                        "--tw-ring-color": "var(--primary-green)",
-                      } as React.CSSProperties
-                    }
-                  >
-                    <option value="">Select gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Truck Driver Information */}
-            <div>
-              <h3
-                className="text-lg font-medium mb-4"
-                style={{ color: "var(--text-primary)" }}
-              >
-                Truck Driver Information
-              </h3>
-              <div className="space-y-4">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="isTruckDriver"
-                    id="isTruckDriver"
-                    defaultChecked
-                    className="h-4 w-4 rounded"
-                    style={{ accentColor: "var(--primary-green)" }}
-                  />
-                  <label
-                    htmlFor="isTruckDriver"
-                    className="ml-2 block text-sm"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    This client is a truck driver
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            {/* Health Information */}
-            <div>
-              <h3
-                className="text-lg font-medium mb-4"
-                style={{ color: "var(--text-primary)" }}
-              >
-                Health Goals
-              </h3>
-              <div>
-                <label
-                  htmlFor="healthGoals"
-                  className="block text-sm font-medium mb-2"
-                  style={{ color: "var(--text-secondary)" }}
+              <h2 className="text-2xl font-bold text-white">Add New Client</h2>
+              <Link href="/dashboard/clients">
+                <Button
+                  variant="ghost"
+                  className="text-gray-400 hover:text-white"
                 >
-                  Primary Health Goal
-                </label>
-                <textarea
-                  name="healthGoals"
-                  id="healthGoals"
-                  rows={3}
-                  className="mt-1 block w-full px-3 py-2 rounded-md resize-none transition-colors hover:border-opacity-75 focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                  style={
-                    {
-                      background: "var(--bg-secondary)",
-                      border: "1px solid var(--border-primary)",
-                      color: "var(--text-primary)",
-                      "--tw-ring-color": "var(--primary-green)",
-                    } as React.CSSProperties
-                  }
-                  placeholder="e.g., Lose weight, improve energy, manage blood sugar, pass DOT physical..."
-                />
-              </div>
-            </div>
-
-            {/* Submit Buttons */}
-            <div className="flex justify-end space-x-3">
-              <Link
-                href="/dashboard/clients"
-                className="py-2 px-4 rounded-md text-sm font-medium transition-colors hover:opacity-80"
-                style={{
-                  background: "var(--bg-secondary)",
-                  color: "var(--text-secondary)",
-                  border: "1px solid var(--border-primary)",
-                }}
-              >
-                Cancel
+                  Cancel
+                </Button>
               </Link>
-              <button
-                type="submit"
-                disabled={loading}
-                className="inline-flex justify-center py-2 px-4 text-sm font-medium rounded-md text-white transition-colors hover:opacity-90 disabled:opacity-50"
-                style={{
-                  background: "var(--primary-green)",
-                }}
-              >
-                {loading ? "Creating..." : "Create Client"}
-              </button>
             </div>
-          </form>
-        </div>
+          </CardHeader>
+
+          <CardContent>
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              {error && (
+                <Alert variant="destructive" className="mb-6">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {/* Basic Information */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-medium text-white mb-4 flex items-center">
+                    <div className="w-1 h-6 bg-brand-green mr-3 rounded-full"></div>
+                    Basic Information
+                  </h3>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <Label htmlFor="firstName" className="text-gray-300">
+                        First Name *
+                      </Label>
+                      <Input
+                        type="text"
+                        name="firstName"
+                        id="firstName"
+                        required
+                        className="mt-1"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="lastName" className="text-gray-300">
+                        Last Name *
+                      </Label>
+                      <Input
+                        type="text"
+                        name="lastName"
+                        id="lastName"
+                        required
+                        className="mt-1"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="email" className="text-gray-300">
+                        Email *
+                      </Label>
+                      <Input
+                        type="email"
+                        name="email"
+                        id="email"
+                        required
+                        className="mt-1"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="phone" className="text-gray-300">
+                        Phone
+                      </Label>
+                      <Input
+                        type="tel"
+                        name="phone"
+                        id="phone"
+                        className="mt-1"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="dateOfBirth" className="text-gray-300">
+                        Date of Birth
+                      </Label>
+                      <Input
+                        type="date"
+                        name="dateOfBirth"
+                        id="dateOfBirth"
+                        className="mt-1"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="gender" className="text-gray-300">
+                        Gender
+                      </Label>
+                      <Select name="gender" id="gender" className="mt-1">
+                        <option value="">Select gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Truck Driver Information */}
+                <div>
+                  <h3 className="text-lg font-medium text-white mb-4 flex items-center">
+                    <div className="w-1 h-6 bg-brand-orange mr-3 rounded-full"></div>
+                    Truck Driver Information
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center">
+                      <Checkbox
+                        name="isTruckDriver"
+                        id="isTruckDriver"
+                        defaultChecked
+                        className="border-gray-600 data-[state=checked]:bg-brand-green data-[state=checked]:border-brand-green"
+                      />
+                      <Label
+                        htmlFor="isTruckDriver"
+                        className="ml-2 text-gray-300"
+                      >
+                        This client is a truck driver
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Health Information */}
+                <div>
+                  <h3 className="text-lg font-medium text-white mb-4 flex items-center">
+                    <div className="w-1 h-6 bg-brand-green mr-3 rounded-full"></div>
+                    Health Goals
+                  </h3>
+                  <div>
+                    <Label htmlFor="healthGoals" className="text-gray-300">
+                      Primary Health Goal
+                    </Label>
+                    <Textarea
+                      name="healthGoals"
+                      id="healthGoals"
+                      rows={3}
+                      className="mt-1 resize-none"
+                      placeholder="e.g., Lose weight, improve energy, manage blood sugar, pass DOT physical..."
+                    />
+                  </div>
+                </div>
+
+                {/* Submit Buttons */}
+                <div className="flex justify-end space-x-3 pt-6 border-t border-gray-700">
+                  <Link href="/dashboard/clients">
+                    <Button variant="outline" type="button">
+                      Cancel
+                    </Button>
+                  </Link>
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-brand-green hover:bg-brand-green/90 border-brand-green"
+                  >
+                    {loading ? "Creating..." : "Create Client"}
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
