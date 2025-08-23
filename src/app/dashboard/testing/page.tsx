@@ -244,15 +244,10 @@ export default function TestingDashboard() {
                   <span className="text-sm text-gray-400">Database Ready</span>
                 </div>
               </div>
-              <Button 
-                onClick={() => router.push('/dashboard/pipeline-monitor')}
-                variant="outline"
-                className="w-full mt-3 border-gray-600 text-gray-300 hover:bg-gray-700"
-                size="sm"
-              >
-                <Activity className="mr-2 h-4 w-4" />
-                AI Monitor
-              </Button>
+              {/* AI Monitor temporarily disabled */}
+              <div className="mt-3 text-xs text-gray-500 text-center">
+                AI Monitor coming soon
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -451,7 +446,7 @@ export default function TestingDashboard() {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => router.push('/dashboard/pipeline-monitor')}
+                onClick={() => toast.info('AI Monitor coming soon')}
                 className="justify-start border-gray-600 text-gray-300 hover:bg-gray-700"
               >
                 <Activity className="mr-2 h-4 w-4" />

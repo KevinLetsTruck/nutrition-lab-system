@@ -8,7 +8,6 @@ import {
   Home,
   TestTube,
   ClipboardCheck,
-  Activity,
   FileText,
   Settings
 } from 'lucide-react';
@@ -29,11 +28,6 @@ const navItems = [
     title: 'Assessments',
     href: '/dashboard/assessments',
     icon: ClipboardCheck
-  },
-  {
-    title: 'AI Monitor',
-    href: '/dashboard/pipeline-monitor',
-    icon: Activity
   },
   {
     title: 'Documents',
