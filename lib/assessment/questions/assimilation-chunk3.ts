@@ -1,5 +1,5 @@
 // ASSIMILATION Module Questions - Chunk 3
-// Questions 36-55 of 65 total
+// Questions 33-52 of 57 total (after removing direct seed oil questions)
 
 import { AssessmentQuestion } from '../types';
 
@@ -157,40 +157,6 @@ export const assimilationQuestionsChunk3: AssessmentQuestion[] = [
     ],
     scoringWeight: 1.2,
     clinicalRelevance: ["candida", "oral_dysbiosis"]
-  },
-
-  // ========== SEED OIL IMPACT (2 more questions) ==========
-  {
-    id: "ASM_SO05",
-    module: "ASSIMILATION",
-    category: "SEED_OIL",
-    text: "Have you noticed improved digestion when avoiding seed oils?",
-    type: "MULTIPLE_CHOICE",
-    options: [
-      { value: "never_tried", label: "Never tried avoiding", score: 3 },
-      { value: "no_change", label: "No change", score: 2 },
-      { value: "mild_improvement", label: "Mild improvement", score: 1 },
-      { value: "significant", label: "Significant improvement", score: 0 },
-      { value: "complete_resolution", label: "Symptoms resolved", score: 0 }
-    ],
-    scoringWeight: 2.0,
-    clinicalRelevance: ["inflammatory_driver", "oxidative_stress"]
-  },
-  {
-    id: "ASM_SO06",
-    module: "ASSIMILATION",
-    category: "SEED_OIL",
-    text: "Do you get nauseous after eating foods cooked in vegetable oils?",
-    type: "FREQUENCY",
-    options: [
-      { value: "never", label: "Never", score: 0 },
-      { value: "rarely", label: "Rarely", score: 1 },
-      { value: "sometimes", label: "Sometimes", score: 2 },
-      { value: "often", label: "Often", score: 3 },
-      { value: "always", label: "Always", score: 4 }
-    ],
-    scoringWeight: 1.7,
-    clinicalRelevance: ["gallbladder_stress", "lipid_intolerance"]
   },
 
   // ========== HYDRATION & FLUID INTAKE (3 questions) ==========

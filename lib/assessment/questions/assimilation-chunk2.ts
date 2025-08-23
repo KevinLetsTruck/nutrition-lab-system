@@ -1,5 +1,5 @@
 // ASSIMILATION Module Questions - Chunk 2
-// Questions 16-34 of 64 total (after removing duplicate food sensitivity question)
+// Questions 16-32 of 61 total (after removing duplicate and direct seed oil questions)
 
 import { AssessmentQuestion } from '../types';
 
@@ -34,38 +34,6 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
     ],
     scoringWeight: 1.5,
     clinicalRelevance: ["lactose_intolerance", "casein_sensitivity"]
-  },
-  
-  // ========== SEED OIL QUESTIONS (2 more) ==========
-  {
-    id: "ASM_SO03",
-    module: "ASSIMILATION",
-    category: "SEED_OIL",
-    text: "Do you notice changes in stool quality after eating foods high in vegetable oils?",
-    type: "MULTIPLE_CHOICE",
-    options: [
-      { value: "no_change", label: "No change", score: 0 },
-      { value: "looser", label: "Looser stools", score: 3 },
-      { value: "oily", label: "Oily/greasy stools", score: 4 },
-      { value: "urgent", label: "Urgent bowel movements", score: 3 },
-      { value: "constipated", label: "More constipated", score: 2 }
-    ],
-    scoringWeight: 1.7,
-    clinicalRelevance: ["fat_malabsorption", "gallbladder_dysfunction"],
-    labCorrelations: ["elastase", "fecal_fat", "GGT"]
-  },
-  {
-    id: "ASM_SO04",
-    module: "ASSIMILATION",
-    category: "SEED_OIL",
-    text: "How do you feel after eating at restaurants that use fryer oils?",
-    type: "LIKERT_SCALE",
-    scoringWeight: 1.6,
-    scaleMin: "Feel fine",
-    scaleMax: "Feel terrible",
-    scale: { min: 0, max: 10 },
-    clinicalRelevance: ["oxidative_stress", "inflammatory_response"],
-    helpText: "Restaurant fryer oils are often reused and highly oxidized"
   },
 
   {
