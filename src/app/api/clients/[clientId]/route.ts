@@ -119,9 +119,6 @@ export async function PATCH(
       "dateOfBirth",
       "gender",
       "medications",
-      "height",
-      "weight",
-      "primaryHealthGoal",
       "healthGoals",
       "conditions",
       "allergies",
@@ -139,7 +136,7 @@ export async function PATCH(
       }
     }
 
-    // Handle height/weight if provided (store in healthGoals)
+    // Handle height/weight/primaryHealthGoal if provided (store in healthGoals)
     if (body.height || body.weight || body.primaryHealthGoal) {
       const client = await prisma.client.findUnique({
         where: { id: clientId },
@@ -179,7 +176,7 @@ export async function PATCH(
     }
 
     return NextResponse.json(
-      { error: "Failed to update client" },
+      { error: "Failed to update client", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
