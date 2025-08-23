@@ -213,7 +213,11 @@ export const respiratoryQuestions: AssessmentQuestion[] = [
       { value: "very_easily", label: "Yes, very easily", score: 3 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["exercise_tolerance", "deconditioning", "lung_function"],
+    clinicalRelevance: [
+      "exercise_tolerance",
+      "deconditioning",
+      "lung_function",
+    ],
   },
   {
     id: "RESP014",

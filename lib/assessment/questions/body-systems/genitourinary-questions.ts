@@ -157,7 +157,11 @@ export const genitourinaryQuestions: AssessmentQuestion[] = [
       { value: "constantly", label: "Constantly", score: 4 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["pelvic_pain", "interstitial_cystitis", "endometriosis"],
+    clinicalRelevance: [
+      "pelvic_pain",
+      "interstitial_cystitis",
+      "endometriosis",
+    ],
   },
 
   // Infections

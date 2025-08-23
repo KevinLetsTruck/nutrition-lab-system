@@ -173,7 +173,11 @@ export const immuneQuestions: AssessmentQuestion[] = [
       { value: "chronically", label: "Chronically", score: 4 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["lymphatic_function", "chronic_infection", "immune_activation"],
+    clinicalRelevance: [
+      "lymphatic_function",
+      "chronic_infection",
+      "immune_activation",
+    ],
   },
   {
     id: "IMMUNE012",
@@ -313,7 +317,11 @@ export const immuneQuestions: AssessmentQuestion[] = [
       { value: "unsure", label: "Unsure", score: 1 },
     ],
     scoringWeight: 2.0,
-    clinicalRelevance: ["chronic_infection", "post_viral", "immune_dysfunction"],
+    clinicalRelevance: [
+      "chronic_infection",
+      "post_viral",
+      "immune_dysfunction",
+    ],
   },
   {
     id: "IMMUNE021",

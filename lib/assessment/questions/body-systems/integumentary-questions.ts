@@ -89,7 +89,11 @@ export const integumentaryQuestions: AssessmentQuestion[] = [
       { value: "extremely", label: "Extremely sensitive", score: 3 },
     ],
     scoringWeight: 1.0,
-    clinicalRelevance: ["skin_sensitivity", "contact_dermatitis", "barrier_function"],
+    clinicalRelevance: [
+      "skin_sensitivity",
+      "contact_dermatitis",
+      "barrier_function",
+    ],
   },
 
   // Itching

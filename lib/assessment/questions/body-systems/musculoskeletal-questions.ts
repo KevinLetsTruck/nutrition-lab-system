@@ -54,7 +54,11 @@ export const musculoskeletalQuestions: AssessmentQuestion[] = [
       { value: "na", label: "No stiffness", score: 0 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["inflammatory_arthritis", "rheumatoid", "osteoarthritis"],
+    clinicalRelevance: [
+      "inflammatory_arthritis",
+      "rheumatoid",
+      "osteoarthritis",
+    ],
   },
 
   // Back Pain
@@ -398,7 +402,11 @@ export const musculoskeletalQuestions: AssessmentQuestion[] = [
       { value: "sometimes", label: "Sometimes", score: 2 },
     ],
     scoringWeight: 2.0,
-    clinicalRelevance: ["fibromyalgia", "chronic_pain", "central_sensitization"],
+    clinicalRelevance: [
+      "fibromyalgia",
+      "chronic_pain",
+      "central_sensitization",
+    ],
   },
   {
     id: "MUSC026",

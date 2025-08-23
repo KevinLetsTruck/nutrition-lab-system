@@ -1,11 +1,13 @@
 # New Body System-Based Assessment Summary
 
 ## Overview
+
 We've created a comprehensive, symptom-focused assessment organized by body systems instead of abstract functional modules. This new structure is designed to identify which body systems need the most attention for targeted protocols and care.
 
 ## Body Systems Created (with Question Counts)
 
 ### 1. **Neurological System** - 20 questions
+
 - Headaches & migraines
 - Brain fog & cognitive function
 - Memory & concentration
@@ -19,6 +21,7 @@ We've created a comprehensive, symptom-focused assessment organized by body syst
 - Vision changes
 
 ### 2. **Digestive System** - 20 questions
+
 - Bloating & gas
 - Bowel movements & constipation
 - Stomach issues (heartburn, pain, nausea)
@@ -31,6 +34,7 @@ We've created a comprehensive, symptom-focused assessment organized by body syst
 - Bad breath/oral health
 
 ### 3. **Cardiovascular System** - 28 questions
+
 - Heart rate & rhythm (palpitations, irregular beats)
 - Blood pressure issues
 - Chest symptoms (pain, tightness, pressure)
@@ -45,6 +49,7 @@ We've created a comprehensive, symptom-focused assessment organized by body syst
 - Fainting/syncope
 
 ### 4. **Respiratory System** - 26 questions
+
 - Breathing quality & shortness of breath
 - Chronic cough & phlegm production
 - Wheezing & asthma
@@ -58,6 +63,7 @@ We've created a comprehensive, symptom-focused assessment organized by body syst
 - Breathing patterns
 
 ### 5. **Immune System** - 29 questions
+
 - Infection frequency & recovery time
 - Wound healing
 - Environmental & food allergies
@@ -73,6 +79,7 @@ We've created a comprehensive, symptom-focused assessment organized by body syst
 - Post-COVID immune changes
 
 ### 6. **Musculoskeletal System** - 28 questions
+
 - Joint pain & stiffness
 - Back pain (upper, lower, sciatica)
 - Muscle symptoms (pain, weakness, cramps)
@@ -86,6 +93,7 @@ We've created a comprehensive, symptom-focused assessment organized by body syst
 - Exercise recovery
 
 ### 7. **Endocrine System** - 30 questions
+
 - Energy levels & fatigue patterns
 - Blood sugar regulation
 - Thyroid symptoms
@@ -99,6 +107,7 @@ We've created a comprehensive, symptom-focused assessment organized by body syst
 - Sleep & recovery
 
 ### 8. **Integumentary System (Skin/Hair/Nails)** - 20 questions
+
 - Skin conditions (dry, oily, eczema, psoriasis)
 - Rashes & reactions
 - Itching patterns
@@ -111,6 +120,7 @@ We've created a comprehensive, symptom-focused assessment organized by body syst
 - Sweating abnormalities
 
 ### 9. **Genitourinary System** - 25 questions
+
 - Urinary frequency & urgency
 - Bladder control & incontinence
 - Stream & flow issues
@@ -124,6 +134,7 @@ We've created a comprehensive, symptom-focused assessment organized by body syst
 - Kidney stones
 
 ### 10. **Special Topics** - 20 questions (already created)
+
 - Seed oil consumption & reactions
 - COVID-19 history & long COVID
 - Vaccine status & reactions
@@ -138,21 +149,27 @@ We've created a comprehensive, symptom-focused assessment organized by body syst
 ## Key Features
 
 ### 1. **Symptom-Focused**
+
 Every question directly relates to symptoms or functional issues that impact quality of life.
 
 ### 2. **Balanced Coverage**
+
 Unlike seed oils being overemphasized, each system gets appropriate attention based on clinical importance.
 
 ### 3. **Modern Health Concerns**
+
 Includes post-COVID symptoms, vaccine reactions, and environmental toxins - but balanced with traditional health markers.
 
 ### 4. **Gender-Specific Questions**
+
 Appropriately marked questions that only show to relevant gender.
 
 ### 5. **Conditional Logic**
+
 Questions that skip follow-ups if not relevant (e.g., if no chest pain, skip exercise-related chest pain question).
 
 ### 6. **Comprehensive Scoring**
+
 Each question weighted by clinical relevance with scoring from 0-4 or 0-5 depending on severity.
 
 ## Benefits Over Old System
