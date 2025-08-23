@@ -328,35 +328,6 @@ export const transportQuestions: AssessmentQuestion[] = [
     ]
   },
   {
-    "id": "TRA010",
-    "text": "Do you have high cholesterol?",
-    "type": "YES_NO",
-    "module": "TRANSPORT",
-    "options": [
-      {
-        "label": "No/Unknown",
-        "score": 0,
-        "value": "no"
-      },
-      {
-        "label": "Yes",
-        "score": 2,
-        "value": "yes"
-      }
-    ],
-    "category": "METABOLIC",
-    "scoringWeight": 1.5,
-    "labCorrelations": [
-      "Lipid panel",
-      "ApoB",
-      "Lp(a)"
-    ],
-    "clinicalRelevance": [
-      "dyslipidemia",
-      "cardiovascular_risk"
-    ]
-  },
-  {
     "id": "TRA011",
     "text": "Do you have a family history of heart disease?",
     "type": "YES_NO",

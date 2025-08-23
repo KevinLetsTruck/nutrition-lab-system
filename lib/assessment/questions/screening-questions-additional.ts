@@ -403,22 +403,6 @@ export const additionalScreeningQuestionsPart2: AssessmentQuestion[] = [
     clinicalRelevance: ["hypoglycemia", "insulin_resistance"]
   },
   {
-    id: "SCR058",
-    module: "SCREENING",
-    text: "Do you have high cholesterol or triglycerides?",
-    type: "MULTIPLE_CHOICE",
-    options: [
-      { value: "no", label: "No", score: 0 },
-      { value: "borderline", label: "Borderline high", score: 2 },
-      { value: "high", label: "High", score: 3 },
-      { value: "very_high", label: "Very high", score: 4 },
-      { value: "unknown", label: "Don't know", score: 1 }
-    ],
-    scoringWeight: 1.5,
-    clinicalRelevance: ["lipid_metabolism", "cardiovascular_risk"],
-    seedOilRelevant: true
-  },
-  {
     id: "SCR059",
     module: "SCREENING",
     text: "Do you have diabetes or pre-diabetes?",
