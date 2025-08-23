@@ -553,6 +553,13 @@ export const additionalScreeningQuestionsPart2: AssessmentQuestion[] = [
     ],
     scoringWeight: 0.5,
     clinicalRelevance: ["DOT_compliance", "occupational_health"],
+    conditionalLogic: [
+      {
+        condition: "no",
+        action: "skip",
+        skipQuestions: ["SCR068", "SCR069", "SCR070"],
+      },
+    ],
   },
   {
     id: "SCR068",

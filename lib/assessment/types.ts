@@ -32,6 +32,7 @@ export interface AssessmentQuestion {
   textOptions?: TextOptions;
   numberOptions?: NumberOptions;
   multiSelectOptions?: MultiSelectOptions;
+  conditionalLogic?: ConditionalLogic[];
 }
 
 export enum FunctionalModule {
@@ -74,6 +75,14 @@ export interface QuestionOption {
   triggers?: string[]; // Question IDs to trigger
   description?: string;
   seedOilRisk?: 'low' | 'medium' | 'high';
+}
+
+export interface ConditionalLogic {
+  condition: string | number; // The response value that triggers this logic
+  action: 'skip' | 'trigger' | 'require';
+  skipQuestions?: string[]; // Question IDs to skip
+  triggerQuestions?: string[]; // Question IDs to trigger
+  requiredQuestions?: string[]; // Question IDs that become required
 }
 
 export interface FrequencyOption {

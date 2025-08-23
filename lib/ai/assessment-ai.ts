@@ -170,6 +170,24 @@ export async function getNextQuestionWithAI(
     });
   }
 
+  // Filter out questions based on conditional logic
+  remainingQuestions = remainingQuestions.filter((q) => {
+    // Check if this question should be skipped based on previous answers
+    for (const response of responses) {
+      const answeredQuestion = moduleQuestions.find(mq => mq.id === response.questionId);
+      if (answeredQuestion?.conditionalLogic) {
+        for (const logic of answeredQuestion.conditionalLogic) {
+          if (logic.action === "skip" && 
+              logic.condition === response.responseValue &&
+              logic.skipQuestions?.includes(q.id)) {
+            return false; // Skip this question
+          }
+        }
+      }
+    }
+    return true;
+  });
+
   // If no questions remain in current module, move to next
   if (remainingQuestions.length === 0) {
     const currentModuleIndex = MODULE_SEQUENCE.indexOf(currentModule);
