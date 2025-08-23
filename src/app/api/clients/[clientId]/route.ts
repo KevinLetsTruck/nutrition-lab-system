@@ -94,6 +94,82 @@ export async function PUT(
   }
 }
 
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ clientId: string }> }
+) {
+  try {
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "No valid authorization header" },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
+    const user = verifyToken(token);
+    const { clientId } = await params;
+    const body = await request.json();
+
+    // Allow updating more fields for intake form
+    const allowedFields = [
+      "dateOfBirth",
+      "gender",
+      "medications",
+      "height",
+      "weight",
+      "primaryHealthGoal",
+      "healthGoals",
+      "conditions",
+      "allergies"
+    ];
+    const updateData: any = {};
+
+    for (const field of allowedFields) {
+      if (body[field] !== undefined) {
+        updateData[field] = body[field];
+      }
+    }
+
+    // Handle height/weight if provided (store in metadata)
+    if (body.height || body.weight) {
+      const client = await prisma.client.findUnique({
+        where: { id: clientId },
+        select: { metadata: true }
+      });
+      
+      const metadata = client?.metadata || {};
+      if (body.height) metadata.height = body.height;
+      if (body.weight) metadata.weight = body.weight;
+      updateData.metadata = metadata;
+    }
+
+    const client = await prisma.client.update({
+      where: { id: clientId },
+      data: updateData,
+    });
+
+    return NextResponse.json(client);
+  } catch (error) {
+    if (error instanceof jwt.JsonWebTokenError) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+
+    if (
+      error instanceof Error &&
+      error.message.includes("Record to update not found")
+    ) {
+      return NextResponse.json({ error: "Client not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(
+      { error: "Failed to update client" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ clientId: string }> }

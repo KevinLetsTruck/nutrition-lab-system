@@ -17,11 +17,18 @@ export async function GET(
 
     const { id: assessmentId } = await context.params;
 
-    // Get assessment with template
+    // Get assessment with template and client info
     const assessment = await prisma.clientAssessment.findUnique({
       where: { id: assessmentId },
       include: {
         template: true,
+        client: {
+          select: {
+            gender: true,
+            dateOfBirth: true,
+            medications: true
+          }
+        },
         responses: {
           select: { questionId: true },
         },
@@ -97,6 +104,13 @@ export async function GET(
           })),
           symptomProfile: {}, // Can be enhanced with actual symptom analysis
           questionsAsked: answeredIds.size,
+          clientInfo: {
+            gender: assessment.client.gender,
+            age: assessment.client.dateOfBirth 
+              ? Math.floor((new Date().getTime() - new Date(assessment.client.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+              : null,
+            medications: assessment.client.medications
+          }
         };
 
         // Get AI recommendation (with caching and optimizations)

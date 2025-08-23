@@ -25,7 +25,12 @@ interface AssessmentContext {
   responses: ClientResponse[];
   symptomProfile: any;
   questionsAsked: number;
-  assessmentContext: any;
+  assessmentContext?: any;
+  clientInfo?: {
+    gender?: string | null;
+    age?: number | null;
+    medications?: any;
+  };
 }
 
 interface AIDecision {
@@ -80,10 +85,10 @@ function shouldUseAI(responses: ClientResponse[], questionsAsked: number): boole
 export async function getNextQuestionWithAI(
   context: AssessmentContext
 ): Promise<AIDecision> {
-  const { currentModule, responses, symptomProfile, questionsAsked } = context;
+  const { currentModule, responses, symptomProfile, questionsAsked, clientInfo } = context;
 
-  // Check cache first
-  const cacheKey = `${currentModule}-${questionsAsked}-${responses.length}`;
+  // Check cache first (include gender in cache key for accurate caching)
+  const cacheKey = `${currentModule}-${questionsAsked}-${responses.length}-${clientInfo?.gender || 'unknown'}`;
   if (decisionCache.has(cacheKey)) {
     return decisionCache.get(cacheKey)!;
   }
@@ -95,9 +100,36 @@ export async function getNextQuestionWithAI(
   const answeredQuestionIds = responses.map((r) => r.questionId);
 
   // Filter to get remaining unanswered questions
-  const remainingQuestions = moduleQuestions.filter(
+  let remainingQuestions = moduleQuestions.filter(
     (q) => !answeredQuestionIds.includes(q.id)
   );
+
+  // Filter out gender-specific questions if gender is known
+  if (clientInfo?.gender) {
+    remainingQuestions = remainingQuestions.filter((q) => {
+      const questionText = q.text.toLowerCase();
+      
+      // Skip female-specific questions for males
+      if (clientInfo.gender === 'male' && 
+          (questionText.includes('menstrual') || 
+           questionText.includes('period') || 
+           questionText.includes('pregnant') ||
+           questionText.includes('menopause') ||
+           questionText.includes('for women:'))) {
+        return false;
+      }
+      
+      // Skip male-specific questions for females
+      if (clientInfo.gender === 'female' && 
+          (questionText.includes('erectile') || 
+           questionText.includes('prostate') ||
+           questionText.includes('for men:'))) {
+        return false;
+      }
+      
+      return true;
+    });
+  }
 
   // If no questions remain in current module, move to next
   if (remainingQuestions.length === 0) {
@@ -141,7 +173,7 @@ export async function getNextQuestionWithAI(
   const aiDecision = await selectQuestionWithClaude(
     remainingQuestions,
     responses,
-    symptomProfile,
+    { ...symptomProfile, clientInfo },
     currentModule,
     false
   );
@@ -186,6 +218,8 @@ async function selectQuestionWithClaude(
 Module: ${module}
 Questions asked: ${responses.length}
 Key symptoms: ${highSeveritySymptoms.map(s => s.symptom).join(", ") || "none"}
+${symptomProfile.clientInfo ? `Client: ${symptomProfile.clientInfo.age || 'Unknown age'}yo ${symptomProfile.clientInfo.gender || 'unknown gender'}` : ''}
+${symptomProfile.clientInfo?.medications ? `On medications: ${JSON.stringify(symptomProfile.clientInfo.medications.current || [])}` : ''}
 
 Available questions (first 10):
 ${availableQuestions
@@ -197,6 +231,7 @@ Select based on:
 1. Maximum diagnostic value
 2. Avoid redundancy
 3. Prioritize severe symptoms
+4. Consider client demographics
 
 Return only: {"selectedQuestionId": "ID", "reasoning": "one sentence"}`;
 

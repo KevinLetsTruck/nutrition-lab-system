@@ -41,7 +41,7 @@ export default function AssessmentWelcomePage() {
   }, [user, router]);
 
   const handleStartAssessment = () => {
-    router.push("/assessment");
+    router.push("/assessment/intake");
   };
 
   return (
