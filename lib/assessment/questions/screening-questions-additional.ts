@@ -402,11 +402,13 @@ export const additionalScreeningQuestionsPart2: AssessmentQuestion[] = [
     id: "SCR057",
     module: "SCREENING",
     text: "Are you sensitive to chemicals, perfumes, or smoke?",
-    type: "LIKERT_SCALE",
+    type: "YES_NO",
     scoringWeight: 1.5,
-    scaleMin: "Not sensitive",
-    scaleMax: "Extremely sensitive",
-    scale: { min: 1, max: 5 },
+    options: [
+      { value: "yes", label: "Yes", score: 3 },
+      { value: "no", label: "No", score: 0 },
+      { value: "unsure", label: "Unsure", score: 1 },
+    ],
     clinicalRelevance: ["chemical_sensitivity", "detox_capacity"],
   },
   {

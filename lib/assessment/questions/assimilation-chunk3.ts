@@ -256,11 +256,13 @@ export const assimilationQuestionsChunk3: AssessmentQuestion[] = [
     id: "ASM052",
     module: "ASSIMILATION",
     text: "Do you experience digestive symptoms when stressed?",
-    type: "LIKERT_SCALE",
+    type: "YES_NO",
     scoringWeight: 1.5,
-    scaleMin: "No connection",
-    scaleMax: "Always worse with stress",
-    scale: { min: 1, max: 5 },
+    options: [
+      { value: "yes", label: "Yes", score: 3 },
+      { value: "no", label: "No", score: 0 },
+      { value: "unsure", label: "Unsure", score: 1 },
+    ],
     clinicalRelevance: ["gut_brain_axis", "stress_response"]
   },
   {

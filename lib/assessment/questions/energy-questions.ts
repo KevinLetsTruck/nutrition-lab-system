@@ -138,7 +138,7 @@ export const energyQuestions: AssessmentQuestion[] = [
   {
     id: "ENE006",
     text: "Are you sensitive to cold temperatures?",
-    type: "LIKERT_SCALE",
+    type: "YES_NO",
     module: "ENERGY",
     options: [
       {
@@ -259,7 +259,7 @@ export const energyQuestions: AssessmentQuestion[] = [
   {
     id: "ENE_SO01",
     text: "Do you notice energy differences when eating home-cooked versus restaurant meals?",
-    type: "LIKERT_SCALE",
+    type: "YES_NO",
     module: "ENERGY",
     options: [
       {
@@ -573,7 +573,7 @@ export const energyQuestions: AssessmentQuestion[] = [
   {
     id: "ENE_SO03",
     text: "Do you feel more energetic when eating simple, whole foods?",
-    type: "LIKERT_SCALE",
+    type: "YES_NO",
     module: "ENERGY",
     options: [
       {
@@ -1107,7 +1107,7 @@ export const energyQuestions: AssessmentQuestion[] = [
   {
     id: "ENE_SO07",
     text: "Do you have more sustained energy when avoiding packaged and processed foods?",
-    type: "LIKERT_SCALE",
+    type: "YES_NO",
     module: "ENERGY",
     options: [
       {
