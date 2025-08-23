@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { auth } from "@/lib/auth-middleware";
+import { getNextQuestionWithAI } from "@/lib/ai/assessment-ai";
+import { FunctionalModule } from "@/lib/assessment/types";
 
 export async function GET(
   req: NextRequest,
@@ -68,34 +70,75 @@ export async function GET(
 
     let nextQuestion = null;
     let nextModule = assessment.currentModule;
+    let aiDecision = null;
 
-    if (unansweredInModule.length > 0) {
-      // Still have questions in current module
-      nextQuestion = unansweredInModule[0];
-    } else {
-      // Current module complete, find next module
-      const modules = [
-        "SCREENING",
-        "ENERGY",
-        "TRANSPORT", 
-        "DEFENSE_REPAIR",
-        "ASSIMILATION",
-        "BIOTRANSFORMATION",
-        "COMMUNICATION",
-        "STRUCTURAL",
-      ];
-      const currentIndex = modules.indexOf(assessment.currentModule);
+    // Try to use AI for intelligent question selection
+    const useAI = process.env.ANTHROPIC_API_KEY && unansweredInModule.length > 0;
+    
+    if (useAI) {
+      try {
+        // Get all responses for context
+        const allResponses = await prisma.clientResponse.findMany({
+          where: { assessmentId },
+          orderBy: { answeredAt: 'desc' }
+        });
 
-      // Find next module with unanswered questions
-      for (let i = currentIndex + 1; i < modules.length; i++) {
-        const moduleQuestions = allQuestions.filter(
-          (q) => q.module === modules[i] && !answeredIds.has(q.id)
-        );
+        // Build context for AI
+        const assessmentContext = {
+          currentModule: assessment.currentModule,
+          responses: allResponses.map(r => ({
+            questionId: r.questionId,
+            questionText: r.questionText,
+            responseValue: r.responseValue,
+            responseType: r.responseType,
+            module: r.module
+          })),
+          symptomProfile: {}, // Can be enhanced with actual symptom analysis
+          questionsAsked: answeredIds.size
+        };
 
-        if (moduleQuestions.length > 0) {
-          nextQuestion = moduleQuestions[0];
-          nextModule = modules[i];
-          break;
+        // Get AI recommendation
+        aiDecision = await getNextQuestionWithAI(assessmentContext);
+        
+        if (aiDecision.nextQuestion) {
+          nextQuestion = aiDecision.nextQuestion;
+          console.log(`AI selected question: ${nextQuestion.id} - Reasoning: ${aiDecision.reasoning}`);
+        }
+      } catch (error) {
+        console.error("AI question selection failed, falling back to linear:", error);
+      }
+    }
+    
+    // Fallback to linear selection if AI didn't work or no AI key
+    if (!nextQuestion) {
+      if (unansweredInModule.length > 0) {
+        // Still have questions in current module
+        nextQuestion = unansweredInModule[0];
+      } else {
+        // Current module complete, find next module
+        const modules = [
+          "SCREENING",
+          "ENERGY",
+          "TRANSPORT", 
+          "DEFENSE_REPAIR",
+          "ASSIMILATION",
+          "BIOTRANSFORMATION",
+          "COMMUNICATION",
+          "STRUCTURAL",
+        ];
+        const currentIndex = modules.indexOf(assessment.currentModule);
+
+        // Find next module with unanswered questions
+        for (let i = currentIndex + 1; i < modules.length; i++) {
+          const moduleQuestions = allQuestions.filter(
+            (q) => q.module === modules[i] && !answeredIds.has(q.id)
+          );
+
+          if (moduleQuestions.length > 0) {
+            nextQuestion = moduleQuestions[0];
+            nextModule = modules[i];
+            break;
+          }
         }
       }
     }
@@ -135,6 +178,10 @@ export async function GET(
       questionsAsked: answeredIds.size,
       totalQuestions: allQuestions.length,
       currentModule: nextModule,
+      aiRecommendation: aiDecision ? {
+        reasoning: aiDecision.reasoning,
+        questionsSaved: aiDecision.questionsSaved || 0
+      } : null,
     });
   } catch (error) {
     console.error("Error getting next question:", error);
