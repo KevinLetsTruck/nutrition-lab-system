@@ -12,18 +12,22 @@ We've implemented an intelligent autocomplete system for the medication and supp
 ## Components
 
 ### 1. Autocomplete Component (`src/components/ui/autocomplete.tsx`)
+
 - Built on top of shadcn/ui Command component
 - Provides searchable dropdown with categories
 - Supports keyboard navigation
 - Dark theme optimized
 
 ### 2. Supporting UI Components
+
 - **Command** (`src/components/ui/command.tsx`) - Core search functionality
 - **Popover** (`src/components/ui/popover.tsx`) - Dropdown container
 - **Dialog** (`src/components/ui/dialog.tsx`) - Modal support
 
 ### 3. Data Sources (`lib/data/medications-supplements.ts`)
+
 - **Common Medications**: 50+ medications across categories:
+
   - Cardiovascular
   - Diabetes
   - Mental Health
@@ -43,15 +47,19 @@ We've implemented an intelligent autocomplete system for the medication and supp
 ## Features
 
 ### Smart Auto-fill
+
 When a user selects a medication or supplement from the dropdown:
+
 - The name is populated
 - If available, the first common dosage is auto-filled
 - User can still modify the dosage as needed
 
 ### Custom Entries
+
 Users can type any medication or supplement not in the database. The autocomplete accepts custom values, ensuring flexibility for less common items.
 
 ### Search Functionality
+
 - Real-time filtering as users type
 - Searches both item names and categories
 - Case-insensitive matching
