@@ -56,7 +56,11 @@ export default function AssessmentPage() {
   const initializeAssessment = async () => {
     try {
       // First, try to find existing assessment
-      const response = await fetch(`/api/assessment/client/${user.clientId}`);
+      const response = await fetch(`/api/assessment/client/${user.clientId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
