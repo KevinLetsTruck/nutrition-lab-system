@@ -12,6 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight, Plus, X } from "lucide-react";
+import { Autocomplete } from "@/components/ui/autocomplete";
+import { commonMedications, commonSupplements } from "@/lib/data/medications-supplements";
 
 export default function AssessmentIntakePage() {
   const router = useRouter();
@@ -35,6 +37,21 @@ export default function AssessmentIntakePage() {
   const [supplements, setSupplements] = useState<
     { name: string; dosage: string; brand: string }[]
   >([]);
+
+  // Prepare autocomplete options
+  const medicationOptions = commonMedications.map(med => ({
+    value: med.name,
+    label: med.name,
+    category: med.category,
+    metadata: med
+  }));
+
+  const supplementOptions = commonSupplements.map(supp => ({
+    value: supp.name,
+    label: supp.name,
+    category: supp.category,
+    metadata: supp
+  }));
 
   // Check if we already have this info
   useEffect(() => {
@@ -170,10 +187,17 @@ export default function AssessmentIntakePage() {
                     <stop offset="100%" stopColor="#f97316" />
                   </linearGradient>
                 </defs>
-                <path
-                  d="M 20 10 L 35 30 L 50 10 L 65 30 L 80 10 L 90 20 L 65 50 L 90 80 L 80 90 L 50 60 L 20 90 L 10 80 L 35 50 L 10 20 Z"
-                  fill="url(#metabolx-gradient-intake)"
-                />
+                {/* X shape with gradient - modern stylized design */}
+                <g>
+                  {/* Top-left to bottom-right diagonal */}
+                  <rect x="15" y="25" width="70" height="15" rx="7.5" 
+                        transform="rotate(45 50 50)" 
+                        fill="url(#metabolx-gradient-intake)" />
+                  {/* Top-right to bottom-left diagonal */}
+                  <rect x="15" y="25" width="70" height="15" rx="7.5" 
+                        transform="rotate(-45 50 50)" 
+                        fill="url(#metabolx-gradient-intake)" />
+                </g>
               </svg>
             </div>
             {/* MetabolX Text */}
@@ -348,12 +372,19 @@ export default function AssessmentIntakePage() {
                         <Label className="text-gray-400 text-sm">
                           Medication Name
                         </Label>
-                        <Input
+                        <Autocomplete
+                          options={medicationOptions}
                           value={med.name}
-                          onChange={(e) =>
-                            updateMedication(index, "name", e.target.value)
-                          }
-                          placeholder="e.g., Metformin"
+                          onChange={(value, option) => {
+                            updateMedication(index, "name", value);
+                            // Auto-fill dosage if available in metadata
+                            if (option?.metadata?.commonDosages?.length > 0) {
+                              updateMedication(index, "dosage", option.metadata.commonDosages[0]);
+                            }
+                          }}
+                          placeholder="Select or type medication..."
+                          searchPlaceholder="Search medications..."
+                          emptyText="Type to search or add custom medication"
                           className="mt-1"
                         />
                       </div>
@@ -428,12 +459,19 @@ export default function AssessmentIntakePage() {
                         <Label className="text-gray-400 text-sm">
                           Supplement Name
                         </Label>
-                        <Input
+                        <Autocomplete
+                          options={supplementOptions}
                           value={supp.name}
-                          onChange={(e) =>
-                            updateSupplement(index, "name", e.target.value)
-                          }
-                          placeholder="e.g., Vitamin D3"
+                          onChange={(value, option) => {
+                            updateSupplement(index, "name", value);
+                            // Auto-fill dosage if available in metadata
+                            if (option?.metadata?.commonDosages?.length > 0) {
+                              updateSupplement(index, "dosage", option.metadata.commonDosages[0]);
+                            }
+                          }}
+                          placeholder="Select or type supplement..."
+                          searchPlaceholder="Search supplements..."
+                          emptyText="Type to search or add custom supplement"
                           className="mt-1"
                         />
                       </div>
