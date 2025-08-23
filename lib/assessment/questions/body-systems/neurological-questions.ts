@@ -1,5 +1,5 @@
-import { AssessmentQuestion } from '../../types';
-import { BodySystems } from '../../body-systems';
+import { AssessmentQuestion } from "../../types";
+import { BodySystems } from "../../body-systems";
 
 export const neurologicalQuestions: AssessmentQuestion[] = [
   // Headaches & Migraines
@@ -14,10 +14,14 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
       { value: "rarely", label: "Rarely (less than monthly)", score: 1 },
       { value: "monthly", label: "Monthly", score: 2 },
       { value: "weekly", label: "Weekly", score: 3 },
-      { value: "daily", label: "Daily", score: 4 }
+      { value: "daily", label: "Daily", score: 4 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["neurological_function", "inflammation", "vascular_health"]
+    clinicalRelevance: [
+      "neurological_function",
+      "inflammation",
+      "vascular_health",
+    ],
   },
   {
     id: "NEURO002",
@@ -29,13 +33,15 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
     scaleMax: "Severe",
     scoringWeight: 1.5,
     clinicalRelevance: ["pain_severity", "quality_of_life"],
-    conditionalLogic: [{
-      condition: "never",
-      action: "skip",
-      skipQuestions: ["NEURO002"]
-    }]
+    conditionalLogic: [
+      {
+        condition: "never",
+        action: "skip",
+        skipQuestions: ["NEURO002"],
+      },
+    ],
   },
-  
+
   // Brain Fog & Cognitive Function
   {
     id: "NEURO003",
@@ -48,10 +54,10 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
       { value: "occasionally", label: "Occasionally", score: 1 },
       { value: "frequently", label: "Frequently", score: 2 },
       { value: "daily", label: "Daily", score: 3 },
-      { value: "constant", label: "Constant", score: 4 }
+      { value: "constant", label: "Constant", score: 4 },
     ],
     scoringWeight: 2.0,
-    clinicalRelevance: ["cognitive_function", "inflammation", "post_covid"]
+    clinicalRelevance: ["cognitive_function", "inflammation", "post_covid"],
   },
   {
     id: "NEURO004",
@@ -64,10 +70,10 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
       { value: "same", label: "About the same", score: 0 },
       { value: "slightly_worse", label: "Slightly worse", score: 1 },
       { value: "moderately_worse", label: "Moderately worse", score: 2 },
-      { value: "much_worse", label: "Much worse", score: 3 }
+      { value: "much_worse", label: "Much worse", score: 3 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["cognitive_decline", "neurodegeneration"]
+    clinicalRelevance: ["cognitive_decline", "neurodegeneration"],
   },
   {
     id: "NEURO005",
@@ -80,12 +86,12 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
       { value: "rarely", label: "Rarely", score: 1 },
       { value: "sometimes", label: "Sometimes", score: 2 },
       { value: "often", label: "Often", score: 3 },
-      { value: "always", label: "Always", score: 4 }
+      { value: "always", label: "Always", score: 4 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["ADHD", "cognitive_function", "inflammation"]
+    clinicalRelevance: ["ADHD", "cognitive_function", "inflammation"],
   },
-  
+
   // Mood & Mental Health
   {
     id: "NEURO006",
@@ -98,10 +104,14 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
       { value: "rarely", label: "Rarely", score: 1 },
       { value: "sometimes", label: "Sometimes", score: 2 },
       { value: "often", label: "Often", score: 3 },
-      { value: "always", label: "Always", score: 4 }
+      { value: "always", label: "Always", score: 4 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["anxiety", "stress_response", "neurotransmitter_balance"]
+    clinicalRelevance: [
+      "anxiety",
+      "stress_response",
+      "neurotransmitter_balance",
+    ],
   },
   {
     id: "NEURO007",
@@ -114,12 +124,16 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
       { value: "rarely", label: "Rarely", score: 1 },
       { value: "sometimes", label: "Sometimes", score: 2 },
       { value: "often", label: "Often", score: 3 },
-      { value: "always", label: "Always", score: 4 }
+      { value: "always", label: "Always", score: 4 },
     ],
     scoringWeight: 2.0,
-    clinicalRelevance: ["depression", "neurotransmitter_balance", "inflammation"]
+    clinicalRelevance: [
+      "depression",
+      "neurotransmitter_balance",
+      "inflammation",
+    ],
   },
-  
+
   // Sleep Quality
   {
     id: "NEURO008",
@@ -130,7 +144,7 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
     scaleMin: "Very Poor",
     scaleMax: "Excellent",
     scoringWeight: 2.0,
-    clinicalRelevance: ["sleep_quality", "recovery", "hormone_balance"]
+    clinicalRelevance: ["sleep_quality", "recovery", "hormone_balance"],
   },
   {
     id: "NEURO009",
@@ -143,10 +157,10 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
       { value: "10-20min", label: "10-20 minutes", score: 0 },
       { value: "20-30min", label: "20-30 minutes", score: 1 },
       { value: "30-60min", label: "30-60 minutes", score: 2 },
-      { value: "over60min", label: "Over 60 minutes", score: 3 }
+      { value: "over60min", label: "Over 60 minutes", score: 3 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["sleep_onset", "anxiety", "circadian_rhythm"]
+    clinicalRelevance: ["sleep_onset", "anxiety", "circadian_rhythm"],
   },
   {
     id: "NEURO010",
@@ -159,12 +173,12 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
       { value: "once", label: "Once", score: 1 },
       { value: "2-3times", label: "2-3 times", score: 2 },
       { value: "4-5times", label: "4-5 times", score: 3 },
-      { value: "more5", label: "More than 5 times", score: 4 }
+      { value: "more5", label: "More than 5 times", score: 4 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["sleep_maintenance", "bladder_function", "stress"]
+    clinicalRelevance: ["sleep_maintenance", "bladder_function", "stress"],
   },
-  
+
   // Stress Response
   {
     id: "NEURO011",
@@ -175,7 +189,7 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
     scaleMin: "Very Poorly",
     scaleMax: "Very Well",
     scoringWeight: 1.5,
-    clinicalRelevance: ["stress_resilience", "adrenal_function", "coping"]
+    clinicalRelevance: ["stress_resilience", "adrenal_function", "coping"],
   },
   {
     id: "NEURO012",
@@ -188,12 +202,12 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
       { value: "rarely", label: "Rarely", score: 1 },
       { value: "sometimes", label: "Sometimes", score: 2 },
       { value: "often", label: "Often", score: 3 },
-      { value: "always", label: "Always", score: 4 }
+      { value: "always", label: "Always", score: 4 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["stress_tolerance", "burnout", "executive_function"]
+    clinicalRelevance: ["stress_tolerance", "burnout", "executive_function"],
   },
-  
+
   // Neurological Symptoms
   {
     id: "NEURO013",
@@ -206,10 +220,14 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
       { value: "rarely", label: "Rarely", score: 1 },
       { value: "sometimes", label: "Sometimes", score: 2 },
       { value: "often", label: "Often", score: 3 },
-      { value: "always", label: "Always", score: 4 }
+      { value: "always", label: "Always", score: 4 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["orthostatic_hypotension", "vestibular", "blood_pressure"]
+    clinicalRelevance: [
+      "orthostatic_hypotension",
+      "vestibular",
+      "blood_pressure",
+    ],
   },
   {
     id: "NEURO014",
@@ -220,10 +238,10 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
     options: [
       { value: "yes", label: "Yes", score: 3 },
       { value: "no", label: "No", score: 0 },
-      { value: "unsure", label: "Unsure", score: 1 }
+      { value: "unsure", label: "Unsure", score: 1 },
     ],
     scoringWeight: 2.0,
-    clinicalRelevance: ["neuropathy", "B12_deficiency", "diabetes"]
+    clinicalRelevance: ["neuropathy", "B12_deficiency", "diabetes"],
   },
   {
     id: "NEURO015",
@@ -234,12 +252,12 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
     options: [
       { value: "yes", label: "Yes", score: 3 },
       { value: "no", label: "No", score: 0 },
-      { value: "unsure", label: "Unsure", score: 1 }
+      { value: "unsure", label: "Unsure", score: 1 },
     ],
     scoringWeight: 2.0,
-    clinicalRelevance: ["movement_disorders", "neurological_dysfunction"]
+    clinicalRelevance: ["movement_disorders", "neurological_dysfunction"],
   },
-  
+
   // Post-COVID Neurological
   {
     id: "NEURO016",
@@ -250,10 +268,10 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
     options: [
       { value: "yes", label: "Yes", score: 3 },
       { value: "no", label: "No", score: 0 },
-      { value: "na", label: "Haven't had COVID", score: 0 }
+      { value: "na", label: "Haven't had COVID", score: 0 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["post_covid", "neurological_damage", "olfactory"]
+    clinicalRelevance: ["post_covid", "neurological_damage", "olfactory"],
   },
   {
     id: "NEURO017",
@@ -264,12 +282,12 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
     options: [
       { value: "yes", label: "Yes", score: 3 },
       { value: "no", label: "No", score: 0 },
-      { value: "na", label: "Haven't had COVID", score: 0 }
+      { value: "na", label: "Haven't had COVID", score: 0 },
     ],
     scoringWeight: 2.0,
-    clinicalRelevance: ["post_covid", "cognitive_dysfunction", "long_covid"]
+    clinicalRelevance: ["post_covid", "cognitive_dysfunction", "long_covid"],
   },
-  
+
   // Vaccine-Related Neurological
   {
     id: "NEURO018",
@@ -280,12 +298,12 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
     options: [
       { value: "yes", label: "Yes", score: 3 },
       { value: "no", label: "No", score: 0 },
-      { value: "na", label: "Not vaccinated", score: 0 }
+      { value: "na", label: "Not vaccinated", score: 0 },
     ],
     scoringWeight: 2.0,
-    clinicalRelevance: ["vaccine_adverse_events", "neurological_inflammation"]
+    clinicalRelevance: ["vaccine_adverse_events", "neurological_inflammation"],
   },
-  
+
   // Balance & Coordination
   {
     id: "NEURO019",
@@ -298,12 +316,12 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
       { value: "rarely", label: "Rarely", score: 1 },
       { value: "sometimes", label: "Sometimes", score: 2 },
       { value: "often", label: "Often", score: 3 },
-      { value: "always", label: "Always", score: 4 }
+      { value: "always", label: "Always", score: 4 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["cerebellar_function", "vestibular", "neuropathy"]
+    clinicalRelevance: ["cerebellar_function", "vestibular", "neuropathy"],
   },
-  
+
   // Vision Changes
   {
     id: "NEURO020",
@@ -314,9 +332,13 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
     options: [
       { value: "yes", label: "Yes", score: 2 },
       { value: "no", label: "No", score: 0 },
-      { value: "unsure", label: "Unsure", score: 1 }
+      { value: "unsure", label: "Unsure", score: 1 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["optic_nerve", "vascular_health", "neurological_function"]
-  }
+    clinicalRelevance: [
+      "optic_nerve",
+      "vascular_health",
+      "neurological_function",
+    ],
+  },
 ];

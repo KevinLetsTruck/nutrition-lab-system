@@ -28,13 +28,13 @@ export interface AssessmentQuestion {
   // Additional properties for other question types
   seedOilRelevant?: boolean;
   frequencyOptions?: FrequencyOption[];
-  frequencyType?: 'bowel' | 'pain' | 'fatigue'; // For custom frequency patterns
+  frequencyType?: "bowel" | "pain" | "fatigue"; // For custom frequency patterns
   durationOptions?: DurationOption[];
   textOptions?: TextOptions;
   numberOptions?: NumberOptions;
   multiSelectOptions?: MultiSelectOptions;
   conditionalLogic?: ConditionalLogic[];
-  genderSpecific?: 'male' | 'female'; // Only show to specific gender
+  genderSpecific?: "male" | "female"; // Only show to specific gender
 }
 
 export enum FunctionalModule {
@@ -76,12 +76,12 @@ export interface QuestionOption {
   score?: number;
   triggers?: string[]; // Question IDs to trigger
   description?: string;
-  seedOilRisk?: 'low' | 'medium' | 'high';
+  seedOilRisk?: "low" | "medium" | "high";
 }
 
 export interface ConditionalLogic {
   condition: string | number; // The response value that triggers this logic
-  action: 'skip' | 'trigger' | 'require';
+  action: "skip" | "trigger" | "require";
   skipQuestions?: string[]; // Question IDs to skip
   triggerQuestions?: string[]; // Question IDs to trigger
   requiredQuestions?: string[]; // Question IDs that become required
@@ -118,7 +118,7 @@ export interface NumberOptions {
     max: number;
     label: string;
     message: string;
-    severity: 'low' | 'medium' | 'high';
+    severity: "low" | "medium" | "high";
   }>;
 }
 
