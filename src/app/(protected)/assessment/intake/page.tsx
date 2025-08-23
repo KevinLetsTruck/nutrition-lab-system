@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight, Plus, X } from "lucide-react";
 import { Autocomplete } from "@/components/ui/autocomplete";
-import { commonMedications, commonSupplements } from "../../../../lib/data/medications-supplements";
+import { commonMedications, commonSupplements } from "../../../../../../lib/data/medications-supplements";
 
 export default function AssessmentIntakePage() {
   const router = useRouter();
