@@ -862,48 +862,6 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
     ]
   },
   {
-    "id": "BIO020",
-    "text": "How often do you have bowel movements?",
-    "type": "MULTIPLE_CHOICE",
-    "module": "BIOTRANSFORMATION",
-    "options": [
-      {
-        "label": "1-2 times daily",
-        "score": 0,
-        "value": 0
-      },
-      {
-        "label": "3+ times daily",
-        "score": 2,
-        "value": 1
-      },
-      {
-        "label": "Every other day",
-        "score": 2,
-        "value": 2
-      },
-      {
-        "label": "2-3 times/week",
-        "score": 3,
-        "value": 3
-      },
-      {
-        "label": "Less than 2 times/week",
-        "score": 4,
-        "value": 4
-      }
-    ],
-    "scoringWeight": 1.6,
-    "labCorrelations": [
-      "Transit time",
-      "Gut motility"
-    ],
-    "clinicalRelevance": [
-      "elimination",
-      "toxin_retention"
-    ]
-  },
-  {
     "id": "BIO021",
     "text": "Do you have hemorrhoids or anal fissures?",
     "type": "YES_NO",
