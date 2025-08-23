@@ -13,7 +13,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight, Plus, X } from "lucide-react";
 import { Autocomplete } from "@/components/ui/autocomplete";
-import { commonMedications, commonSupplements } from "../../../../../../lib/data/medications-supplements";
+import {
+  commonMedications,
+  commonSupplements,
+} from "@/lib/data/medications-supplements";
 
 export default function AssessmentIntakePage() {
   const router = useRouter();
@@ -39,18 +42,18 @@ export default function AssessmentIntakePage() {
   >([]);
 
   // Prepare autocomplete options
-  const medicationOptions = commonMedications.map(med => ({
+  const medicationOptions = commonMedications.map((med) => ({
     value: med.name,
     label: med.name,
     category: med.category,
-    metadata: med
+    metadata: med,
   }));
 
-  const supplementOptions = commonSupplements.map(supp => ({
+  const supplementOptions = commonSupplements.map((supp) => ({
     value: supp.name,
     label: supp.name,
     category: supp.category,
-    metadata: supp
+    metadata: supp,
   }));
 
   // Check if we already have this info
@@ -170,7 +173,7 @@ export default function AssessmentIntakePage() {
           <span className="font-semibold text-xl gradient-text">
             DestinationHealth
           </span>
-          
+
           {/* MetabolX Logo - Center */}
           <div className="flex flex-col items-center">
             {/* MetabolX Icon */}
@@ -181,7 +184,13 @@ export default function AssessmentIntakePage() {
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <defs>
-                  <linearGradient id="metabolx-gradient-intake" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <linearGradient
+                    id="metabolx-gradient-intake"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="100%"
+                  >
                     <stop offset="0%" stopColor="#10b981" />
                     <stop offset="50%" stopColor="#84cc16" />
                     <stop offset="100%" stopColor="#f97316" />
@@ -190,23 +199,37 @@ export default function AssessmentIntakePage() {
                 {/* X shape with gradient - modern stylized design */}
                 <g>
                   {/* Top-left to bottom-right diagonal */}
-                  <rect x="15" y="25" width="70" height="15" rx="7.5" 
-                        transform="rotate(45 50 50)" 
-                        fill="url(#metabolx-gradient-intake)" />
+                  <rect
+                    x="15"
+                    y="25"
+                    width="70"
+                    height="15"
+                    rx="7.5"
+                    transform="rotate(45 50 50)"
+                    fill="url(#metabolx-gradient-intake)"
+                  />
                   {/* Top-right to bottom-left diagonal */}
-                  <rect x="15" y="25" width="70" height="15" rx="7.5" 
-                        transform="rotate(-45 50 50)" 
-                        fill="url(#metabolx-gradient-intake)" />
+                  <rect
+                    x="15"
+                    y="25"
+                    width="70"
+                    height="15"
+                    rx="7.5"
+                    transform="rotate(-45 50 50)"
+                    fill="url(#metabolx-gradient-intake)"
+                  />
                 </g>
               </svg>
             </div>
             {/* MetabolX Text */}
             <div className="text-center">
               <div className="font-bold text-white text-xs">MetabolX</div>
-              <div className="text-xs text-gray-400 uppercase tracking-wider">Assessment</div>
+              <div className="text-xs text-gray-400 uppercase tracking-wider">
+                Assessment
+              </div>
             </div>
           </div>
-          
+
           <span className="text-sm text-gray-400">
             Pre-Assessment Information
           </span>
@@ -379,7 +402,11 @@ export default function AssessmentIntakePage() {
                             updateMedication(index, "name", value);
                             // Auto-fill dosage if available in metadata
                             if (option?.metadata?.commonDosages?.length > 0) {
-                              updateMedication(index, "dosage", option.metadata.commonDosages[0]);
+                              updateMedication(
+                                index,
+                                "dosage",
+                                option.metadata.commonDosages[0]
+                              );
                             }
                           }}
                           placeholder="Select or type medication..."
@@ -466,7 +493,11 @@ export default function AssessmentIntakePage() {
                             updateSupplement(index, "name", value);
                             // Auto-fill dosage if available in metadata
                             if (option?.metadata?.commonDosages?.length > 0) {
-                              updateSupplement(index, "dosage", option.metadata.commonDosages[0]);
+                              updateSupplement(
+                                index,
+                                "dosage",
+                                option.metadata.commonDosages[0]
+                              );
                             }
                           }}
                           placeholder="Select or type supplement..."
