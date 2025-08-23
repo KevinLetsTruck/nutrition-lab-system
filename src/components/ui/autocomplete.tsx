@@ -90,7 +90,7 @@ export function Autocomplete({
           )}
           disabled={disabled}
         >
-          {selectedOption ? selectedOption.label : placeholder}
+          {selectedOption ? selectedOption.label : (value || placeholder)}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -117,16 +117,20 @@ export function Autocomplete({
             {filteredOptions.map((option) => (
               <CommandItem
                 key={option.value}
-                value={option.label}
-                onSelect={(currentValue) => {
-                  const selected = filteredOptions.find(
-                    (opt) => opt.label.toLowerCase() === currentValue.toLowerCase()
-                  );
-                  if (selected) {
-                    onChange?.(selected.value, selected);
-                    setOpen(false);
-                    setSearchValue("");
-                  }
+                value={option.value}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onChange?.(option.value, option);
+                  setOpen(false);
+                  setSearchValue("");
+                  setInputValue(option.label);
+                }}
+                onSelect={() => {
+                  onChange?.(option.value, option);
+                  setOpen(false);
+                  setSearchValue("");
+                  setInputValue(option.label);
                 }}
                 className="text-gray-100 hover:bg-gray-800 cursor-pointer"
               >

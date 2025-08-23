@@ -143,19 +143,24 @@ export async function PATCH(
         select: { healthGoals: true },
       });
 
-      const healthGoalsData = typeof client?.healthGoals === 'object' && client.healthGoals !== null
-        ? client.healthGoals as any
-        : {};
-      
+      const healthGoalsData =
+        typeof client?.healthGoals === "object" && client.healthGoals !== null
+          ? (client.healthGoals as any)
+          : {};
+
       if (body.height) healthGoalsData.height = body.height;
       if (body.weight) healthGoalsData.weight = body.weight;
-      if (body.primaryHealthGoal) healthGoalsData.primaryGoal = body.primaryHealthGoal;
-      
+      if (body.primaryHealthGoal)
+        healthGoalsData.primaryGoal = body.primaryHealthGoal;
+
       updateData.healthGoals = healthGoalsData;
     }
 
-    console.log("Update data to be saved:", JSON.stringify(updateData, null, 2));
-    
+    console.log(
+      "Update data to be saved:",
+      JSON.stringify(updateData, null, 2)
+    );
+
     const client = await prisma.client.update({
       where: { id: clientId },
       data: updateData,
@@ -176,7 +181,10 @@ export async function PATCH(
     }
 
     return NextResponse.json(
-      { error: "Failed to update client", details: error instanceof Error ? error.message : String(error) },
+      {
+        error: "Failed to update client",
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     );
   }
