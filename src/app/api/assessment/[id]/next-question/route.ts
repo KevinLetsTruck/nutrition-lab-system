@@ -76,8 +76,11 @@ export async function GET(
       // Current module complete, find next module
       const modules = [
         "SCREENING",
+        "ENERGY",
+        "TRANSPORT", 
+        "DEFENSE_REPAIR",
         "ASSIMILATION",
-        "TRANSPORT",
+        "BIOTRANSFORMATION",
         "COMMUNICATION",
         "STRUCTURAL",
       ];

@@ -126,11 +126,11 @@ export const getNextModule = (
 ): FunctionalModule | null => {
   const moduleOrder = [
     FunctionalModule.SCREENING,
-    FunctionalModule.ASSIMILATION,
-    FunctionalModule.DEFENSE_REPAIR,
     FunctionalModule.ENERGY,
-    FunctionalModule.BIOTRANSFORMATION,
     FunctionalModule.TRANSPORT,
+    FunctionalModule.DEFENSE_REPAIR,
+    FunctionalModule.ASSIMILATION,
+    FunctionalModule.BIOTRANSFORMATION,
     FunctionalModule.COMMUNICATION,
     FunctionalModule.STRUCTURAL,
   ];
