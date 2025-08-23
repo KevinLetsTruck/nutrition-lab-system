@@ -136,7 +136,12 @@ export const transportQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.7,
     "labCorrelations": [
       "24-hour BP monitor",
@@ -316,7 +321,12 @@ export const transportQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "IMMUNE",
     "scoringWeight": 1.3,
     "labCorrelations": [
@@ -343,7 +353,12 @@ export const transportQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "METABOLIC",
     "scoringWeight": 1.5,
     "labCorrelations": [
@@ -414,7 +429,12 @@ export const transportQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "no"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "LIFESTYLE",
     "scoringWeight": 1.5,
     "labCorrelations": [
@@ -518,7 +538,12 @@ export const transportQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.4,
     "labCorrelations": [
       "CBC",
@@ -584,7 +609,12 @@ export const transportQuestions: AssessmentQuestion[] = [
         "score": 4,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.8,
     "labCorrelations": [
       "Carotid ultrasound",
@@ -648,7 +678,12 @@ export const transportQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.6,
     "labCorrelations": [
       "HbA1c",
@@ -757,7 +792,12 @@ export const transportQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "IMMUNE",
     "scoringWeight": 1.5,
     "labCorrelations": [
@@ -785,7 +825,12 @@ export const transportQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "LIFESTYLE",
     "scoringWeight": 1.5,
     "labCorrelations": [

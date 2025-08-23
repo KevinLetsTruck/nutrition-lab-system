@@ -100,7 +100,12 @@ export const communicationQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "HORMONAL",
     "scoringWeight": 1.4,
     "labCorrelations": [
@@ -766,7 +771,12 @@ export const communicationQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.4,
     "labCorrelations": [
       "Blood sugar",
@@ -915,7 +925,12 @@ export const communicationQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "HORMONAL",
     "scoringWeight": 1.6,
     "labCorrelations": [

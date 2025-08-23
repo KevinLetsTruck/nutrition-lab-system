@@ -153,7 +153,8 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
     options: [
       { value: "yes", label: "Yes", score: 2 },
       { value: "no", label: "No", score: 0 }
-    ],
+    ,
+      { value: "unsure", label: "Unsure", score: 1 }],
     scoringWeight: 1.0,
     clinicalRelevance: ["zinc_deficiency", "protein_malabsorption"]
   },

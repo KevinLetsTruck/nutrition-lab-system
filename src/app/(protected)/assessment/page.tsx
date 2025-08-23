@@ -317,6 +317,12 @@ export default function AssessmentPage() {
                   No
                 </Label>
               </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="unsure" id="unsure" />
+                <Label htmlFor="unsure" className="cursor-pointer text-base">
+                  Unsure
+                </Label>
+              </div>
             </div>
           </RadioGroup>
         );

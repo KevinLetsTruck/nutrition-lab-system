@@ -221,7 +221,12 @@ export const defenserepairQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "IMMUNE",
     "scoringWeight": 1.5,
     "labCorrelations": [
@@ -468,7 +473,12 @@ export const defenserepairQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "IMMUNE",
     "scoringWeight": 1.7,
     "labCorrelations": [
@@ -536,7 +546,12 @@ export const defenserepairQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "IMMUNE",
     "scoringWeight": 1.7,
     "labCorrelations": [
@@ -729,7 +744,12 @@ export const defenserepairQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "IMMUNE",
     "scoringWeight": 1.6,
     "labCorrelations": [
@@ -784,7 +804,12 @@ export const defenserepairQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "IMMUNE",
     "scoringWeight": 1.7,
     "labCorrelations": [
@@ -878,7 +903,12 @@ export const defenserepairQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "IMMUNE",
     "scoringWeight": 1.4,
     "labCorrelations": [
@@ -983,7 +1013,12 @@ export const defenserepairQuestions: AssessmentQuestion[] = [
         "score": 1,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "IMMUNE",
     "scoringWeight": 1.2,
     "labCorrelations": [
@@ -1077,7 +1112,12 @@ export const defenserepairQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "IMMUNE",
     "scoringWeight": 1.6,
     "labCorrelations": [
@@ -1105,7 +1145,12 @@ export const defenserepairQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "IMMUNE",
     "scoringWeight": 1.7,
     "labCorrelations": [
@@ -1133,7 +1178,12 @@ export const defenserepairQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "IMMUNE",
     "scoringWeight": 1.4,
     "labCorrelations": [
@@ -1244,7 +1294,12 @@ export const defenserepairQuestions: AssessmentQuestion[] = [
         "score": 0,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "SEED_OIL",
     "scoringWeight": 1.5,
     "labCorrelations": [

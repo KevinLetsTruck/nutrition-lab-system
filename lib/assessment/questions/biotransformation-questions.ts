@@ -124,7 +124,12 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.7,
     "labCorrelations": [
       "Mycotoxins",
@@ -153,7 +158,12 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.6,
     "labCorrelations": [
       "Heavy metals",
@@ -368,7 +378,12 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.7,
     "labCorrelations": [
       "Liver panel",
@@ -481,7 +496,12 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "no"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.4,
     "labCorrelations": [
       "Autonomic function",
@@ -546,7 +566,12 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "SEED_OIL",
     "scoringWeight": 1.5,
     "labCorrelations": [
@@ -659,7 +684,12 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.4,
     "labCorrelations": [
       "CBS genetics",
@@ -724,7 +754,12 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "HORMONAL",
     "scoringWeight": 1.3,
     "labCorrelations": [
@@ -777,7 +812,12 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.5,
     "labCorrelations": [
       "VOCs",
@@ -804,7 +844,12 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
         "score": 0,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "SEED_OIL",
     "scoringWeight": 1.5,
     "labCorrelations": [
@@ -874,7 +919,12 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.2,
     "labCorrelations": [
       "Inflammatory markers"
@@ -900,7 +950,12 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.5,
     "labCorrelations": [
       "Genetic testing",
@@ -927,7 +982,12 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.3,
     "labCorrelations": [
       "Genetic markers"
@@ -1065,7 +1125,12 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.2,
     "labCorrelations": [
       "B vitamins",
@@ -1236,7 +1301,12 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
         "score": 1,
         "value": "no"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.2,
     "labCorrelations": [
       "Detox capacity"

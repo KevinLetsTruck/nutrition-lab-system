@@ -54,7 +54,12 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
       { "label": "Sometimes", "value": 2 },
       { "label": "Often", "value": 3 },
       { "label": "Constantly", "value": 4 }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.2,
     "labCorrelations": ["Estrogen", "Progesterone", "Prolactin"],
     "clinicalRelevance": ["estrogen_dominance", "hormonal_imbalance"]
@@ -78,7 +83,12 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
     "options": [
       { "label": "Never", "value": 0 },
       { "label": "Always", "value": 10 }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.4,
     "labCorrelations": ["Dopamine", "Norepinephrine", "Testosterone"],
     "clinicalRelevance": ["dopamine_deficiency", "depression"]
@@ -232,7 +242,12 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
       { "label": "Become angry/irritable", "value": "angry", "score": 3 },
       { "label": "Shut down/withdraw", "value": "freeze", "score": 3 },
       { "label": "Panic/overwhelming anxiety", "value": "panic", "score": 4 }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.4,
     "labCorrelations": ["Cortisol", "DHEA", "Epinephrine"],
     "clinicalRelevance": ["stress_resilience", "HPA_axis"]
@@ -365,7 +380,12 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
     "options": [
       { "label": "No difficulty", "value": 0 },
       { "label": "Severe difficulty", "value": 10 }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.2,
     "labCorrelations": ["B12", "Thyroid", "Blood Sugar"],
     "clinicalRelevance": ["executive_function", "cognitive_processing"]
@@ -424,7 +444,12 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
       { "label": "Lack of sweating", "value": "lack", "score": 2 },
       { "label": "Night sweats only", "value": "night", "score": 3 },
       { "label": "Cold sweats", "value": "cold", "score": 3 }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.2,
     "labCorrelations": ["Thyroid", "Hormones", "Blood Sugar"],
     "clinicalRelevance": ["autonomic_dysfunction", "hormonal_imbalance"]
@@ -512,7 +537,12 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
     "options": [
       { "label": "No difficulty", "value": 0 },
       { "label": "Severe difficulty", "value": 10 }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.4,
     "labCorrelations": ["B12", "Thyroid", "Magnesium"],
     "clinicalRelevance": ["cerebellar_function", "proprioception"]
@@ -621,7 +651,12 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
     "options": [
       { "label": "No stress", "value": 0 },
       { "label": "Overwhelming stress", "value": 10 }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.5,
     "labCorrelations": ["Cortisol", "DHEA", "Inflammatory markers"],
     "clinicalRelevance": ["chronic_stress", "HPA_axis_dysfunction"]
@@ -646,7 +681,12 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
       { "label": "Significant winter depression", "value": "SAD", "score": 3 },
       { "label": "Summer depression", "value": "summer", "score": 2 },
       { "label": "Both seasons affect me", "value": "both", "score": 4 }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.2,
     "labCorrelations": ["Vitamin D", "Thyroid", "Serotonin"],
     "clinicalRelevance": ["seasonal_affective_disorder", "vitamin_D_deficiency"]

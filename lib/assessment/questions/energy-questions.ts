@@ -657,7 +657,12 @@ export const energyQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "no"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "METABOLIC",
     "scoringWeight": 1.5,
     "labCorrelations": [
@@ -1014,7 +1019,12 @@ export const energyQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "METABOLIC",
     "scoringWeight": 1.5,
     "labCorrelations": [
@@ -1044,7 +1054,12 @@ export const energyQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "METABOLIC",
     "scoringWeight": 1.6,
     "labCorrelations": [
@@ -1149,7 +1164,12 @@ export const energyQuestions: AssessmentQuestion[] = [
         "score": 0,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "SEED_OIL",
     "scoringWeight": 1.5,
     "labCorrelations": [
@@ -1220,7 +1240,12 @@ export const energyQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.4,
     "labCorrelations": [
       "Testosterone",
@@ -1481,7 +1506,12 @@ export const energyQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "HORMONAL",
     "scoringWeight": 1.3,
     "labCorrelations": [
@@ -1509,7 +1539,12 @@ export const energyQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.5,
     "labCorrelations": [
       "Telomeres",
@@ -1604,7 +1639,12 @@ export const energyQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "no"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.4,
     "labCorrelations": [
       "Cardiovascular markers",

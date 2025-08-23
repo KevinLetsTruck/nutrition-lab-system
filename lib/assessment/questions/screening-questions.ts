@@ -227,7 +227,12 @@ export const screeningQuestions: AssessmentQuestion[] = [
         "score": 0,
         "value": "no"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "category": "HORMONAL",
     "scoringWeight": 1.3,
     "labCorrelations": [

@@ -260,7 +260,12 @@ export const structuralQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.7,
     "labCorrelations": [
       "DEXA scan",
@@ -289,7 +294,12 @@ export const structuralQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.6,
     "labCorrelations": [
       "Bone markers",
@@ -317,7 +327,12 @@ export const structuralQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.4,
     "labCorrelations": [
       "Collagen markers",
@@ -344,7 +359,12 @@ export const structuralQuestions: AssessmentQuestion[] = [
         "score": 1,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.3,
     "labCorrelations": [
       "Collagen",
@@ -463,7 +483,12 @@ export const structuralQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.4,
     "labCorrelations": [
       "Ergonomic assessment"
@@ -489,7 +514,12 @@ export const structuralQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.5,
     "labCorrelations": [
       "Inflammatory markers",
@@ -517,7 +547,12 @@ export const structuralQuestions: AssessmentQuestion[] = [
         "score": 0,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.4,
     "labCorrelations": [
       "Joint assessment"
@@ -585,7 +620,12 @@ export const structuralQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.4,
     "labCorrelations": [
       "Imaging",
@@ -612,7 +652,12 @@ export const structuralQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "no"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.4,
     "labCorrelations": [
       "Balance assessment",
@@ -677,7 +722,12 @@ export const structuralQuestions: AssessmentQuestion[] = [
         "score": 1,
         "value": "yes"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.2,
     "labCorrelations": [
       "Collagen",
@@ -927,7 +977,12 @@ export const structuralQuestions: AssessmentQuestion[] = [
         "score": 3,
         "value": "no"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.5,
     "labCorrelations": [
       "Functional assessment",
@@ -954,7 +1009,12 @@ export const structuralQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "no"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.4,
     "labCorrelations": [
       "ROM assessment",
@@ -981,7 +1041,12 @@ export const structuralQuestions: AssessmentQuestion[] = [
         "score": 2,
         "value": "no"
       }
-    ],
+    ,
+      {
+        "label": "Unsure",
+        "score": 1,
+        "value": "unsure"
+      }],
     "scoringWeight": 1.3,
     "labCorrelations": [
       "Flexibility test",

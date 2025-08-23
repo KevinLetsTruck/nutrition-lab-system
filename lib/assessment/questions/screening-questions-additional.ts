@@ -69,7 +69,8 @@ export const additionalScreeningQuestionsPart2: AssessmentQuestion[] = [
     options: [
       { value: "yes", label: "Yes", score: 3 },
       { value: "no", label: "No", score: 0 }
-    ],
+    ,
+      { value: "unsure", label: "Unsure", score: 1 }],
     scoringWeight: 1.5,
     clinicalRelevance: ["enzyme_deficiency", "malabsorption"]
   },
@@ -182,7 +183,8 @@ export const additionalScreeningQuestionsPart2: AssessmentQuestion[] = [
     options: [
       { value: "yes", label: "Yes", score: 4 },
       { value: "no", label: "No", score: 0 }
-    ],
+    ,
+      { value: "unsure", label: "Unsure", score: 1 }],
     scoringWeight: 2.0,
     clinicalRelevance: ["autoimmune_status", "immune_dysregulation"]
   },
@@ -476,7 +478,8 @@ export const additionalScreeningQuestionsPart2: AssessmentQuestion[] = [
     options: [
       { value: "yes", label: "Yes", score: 3 },
       { value: "no", label: "No", score: 0 }
-    ],
+    ,
+      { value: "unsure", label: "Unsure", score: 1 }],
     scoringWeight: 1.5,
     clinicalRelevance: ["occupational_exposure", "toxic_burden"]
   },
@@ -518,7 +521,8 @@ export const additionalScreeningQuestionsPart2: AssessmentQuestion[] = [
     options: [
       { value: "yes", label: "Yes", score: 2 },
       { value: "no", label: "No", score: 0 }
-    ],
+    ,
+      { value: "unsure", label: "Unsure", score: 1 }],
     scoringWeight: 0.5,
     clinicalRelevance: ["EMF_sensitivity", "nervous_system"]
   },
@@ -578,7 +582,8 @@ export const additionalScreeningQuestionsPart2: AssessmentQuestion[] = [
     options: [
       { value: "yes", label: "Yes", score: 3 },
       { value: "no", label: "No", score: 0 }
-    ],
+    ,
+      { value: "unsure", label: "Unsure", score: 1 }],
     scoringWeight: 1.0,
     clinicalRelevance: ["trauma_history", "stress_response"]
   },
@@ -603,7 +608,8 @@ export const additionalScreeningQuestionsPart2: AssessmentQuestion[] = [
     options: [
       { value: "yes", label: "Yes", score: 1 },
       { value: "no", label: "No", score: 0 }
-    ],
+    ,
+      { value: "unsure", label: "Unsure", score: 1 }],
     scoringWeight: 0.5,
     clinicalRelevance: ["DOT_compliance", "occupational_health"]
   },
@@ -630,7 +636,8 @@ export const additionalScreeningQuestionsPart2: AssessmentQuestion[] = [
     options: [
       { value: "yes", label: "Yes", score: 3 },
       { value: "no", label: "No", score: 0 }
-    ],
+    ,
+      { value: "unsure", label: "Unsure", score: 1 }],
     scoringWeight: 1.5,
     clinicalRelevance: ["sleep_apnea", "DOT_screening"]
   },
