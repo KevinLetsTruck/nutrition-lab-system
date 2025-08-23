@@ -99,6 +99,7 @@ export async function PATCH(
   { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
+    console.log("PATCH request received");
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
@@ -111,6 +112,7 @@ export async function PATCH(
     const user = verifyToken(token);
     const { clientId } = await params;
     const body = await request.json();
+    console.log("Request body:", JSON.stringify(body, null, 2));
 
     // Allow updating more fields for intake form
     const allowedFields = [

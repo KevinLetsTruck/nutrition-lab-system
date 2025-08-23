@@ -80,7 +80,7 @@ export function Autocomplete({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0 bg-gray-900 border-gray-700">
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0 bg-gray-900 border-gray-700">
         <Command className="bg-gray-900">
           <CommandInput
             placeholder={searchPlaceholder}
@@ -95,13 +95,18 @@ export function Autocomplete({
             {filteredOptions.map((option) => (
               <CommandItem
                 key={option.value}
-                value={option.value}
-                onSelect={() => {
-                  onChange?.(option.value, option);
-                  setOpen(false);
-                  setSearchValue("");
+                value={option.label}
+                onSelect={(currentValue) => {
+                  const selected = filteredOptions.find(
+                    (opt) => opt.label.toLowerCase() === currentValue.toLowerCase()
+                  );
+                  if (selected) {
+                    onChange?.(selected.value, selected);
+                    setOpen(false);
+                    setSearchValue("");
+                  }
                 }}
-                className="text-gray-100 hover:bg-gray-800"
+                className="text-gray-100 hover:bg-gray-800 cursor-pointer"
               >
                 <Check
                   className={cn(

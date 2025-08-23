@@ -134,23 +134,29 @@ export default function AssessmentIntakePage() {
 
     try {
       // Update client info
+      const updateData = {
+        ...formData,
+        medications: {
+          current: medications.filter((m) => m.name),
+          supplements: supplements.filter((s) => s.name),
+        },
+      };
+
+      console.log("Sending update data:", updateData);
+
       const response = await fetch(`/api/clients/${user?.clientId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({
-          ...formData,
-          medications: {
-            current: medications.filter((m) => m.name),
-            supplements: supplements.filter((s) => s.name),
-          },
-        }),
+        body: JSON.stringify(updateData),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update client information");
+        const errorData = await response.json();
+        console.error("Update failed:", errorData);
+        throw new Error(errorData.details || "Failed to update client information");
       }
 
       // Navigate to assessment
