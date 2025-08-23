@@ -9,7 +9,6 @@ import {
   LogOut,
   Leaf,
   Calendar,
-  Archive,
   TestTube,
 } from "lucide-react";
 
@@ -93,10 +92,7 @@ export default function DashboardLayout({
               <Link
                 href="/dashboard/clients"
                 className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
-                  isActive("/dashboard/clients") &&
-                  !isActive("/dashboard/clients/archived")
-                    ? "active"
-                    : ""
+                  isActive("/dashboard/clients") ? "active" : ""
                 }`}
               >
                 <Users className="h-5 w-5 mr-3" />
@@ -110,15 +106,6 @@ export default function DashboardLayout({
               >
                 <Calendar className="h-5 w-5 mr-3" />
                 Thursday Calls
-              </Link>
-              <Link
-                href="/dashboard/clients/archived"
-                className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
-                  isActive("/dashboard/clients/archived") ? "active" : ""
-                }`}
-              >
-                <Archive className="h-5 w-5 mr-3" />
-                Archived
               </Link>
             </div>
           </div>
@@ -139,10 +126,7 @@ export default function DashboardLayout({
               <Link
                 href="/dashboard/clients"
                 className={`nav-link-large block px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
-                  isActive("/dashboard/clients") &&
-                  !isActive("/dashboard/clients/archived")
-                    ? "active"
-                    : ""
+                  isActive("/dashboard/clients") ? "active" : ""
                 }`}
               >
                 <Users className="h-5 w-5 mr-3 inline" />
@@ -156,15 +140,6 @@ export default function DashboardLayout({
               >
                 <Calendar className="h-5 w-5 mr-3 inline" />
                 Thursday Calls
-              </Link>
-              <Link
-                href="/dashboard/clients/archived"
-                className={`nav-link-large block px-4 py-3 text-base font-medium text-gray-300 hover:text-white ${
-                  isActive("/dashboard/clients/archived") ? "active" : ""
-                }`}
-              >
-                <Archive className="h-5 w-5 mr-3 inline" />
-                Archived
               </Link>
             </div>
           </div>

@@ -18,7 +18,7 @@ export default function TestPage() {
           <ul className="space-y-2 text-gray-300">
             <li>✅ Next.js server running</li>
             <li>✅ Pages loading correctly</li>
-            <li>✅ Pipeline-monitor page removed</li>
+            <li>✅ Archived clients page removed</li>
             <li>✅ Navigation cleaned up</li>
           </ul>
         </div>
@@ -55,7 +55,7 @@ export default function TestPage() {
           </h2>
           <ul className="space-y-2 text-yellow-200">
             <li>• Issue tracking has been temporarily disabled</li>
-            <li>• Pipeline monitor has been removed</li>
+            <li>• Archived clients page has been removed (use filter in Clients page)</li>
             <li>• Some TypeScript errors exist but don't affect runtime</li>
           </ul>
         </div>
