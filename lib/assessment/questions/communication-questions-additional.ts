@@ -37,6 +37,7 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
     "text": "Do you have irregular menstrual cycles? (if applicable)",
     "type": "YES_NO",
     "module": "COMMUNICATION",
+    "genderSpecific": "female",
     "conditionalField": "sex",
     "conditionalValue": "female",
     "scoringWeight": 1.4,

@@ -6,6 +6,7 @@ export const communicationQuestions: AssessmentQuestion[] = [
     "text": "For women: How regular are your menstrual cycles?",
     "type": "MULTIPLE_CHOICE",
     "module": "COMMUNICATION",
+    "genderSpecific": "female",
     "options": [
       {
         "label": "Very regular (28-30 days)",
@@ -831,6 +832,7 @@ export const communicationQuestions: AssessmentQuestion[] = [
     "text": "For women: Are you in perimenopause or menopause?",
     "type": "MULTIPLE_CHOICE",
     "module": "COMMUNICATION",
+    "genderSpecific": "female",
     "options": [
       {
         "label": "No/Not applicable",

@@ -268,6 +268,7 @@ export const additionalScreeningQuestionsPart2: AssessmentQuestion[] = [
     module: "SCREENING",
     text: "For women: Are your menstrual cycles regular?",
     type: "MULTIPLE_CHOICE",
+    genderSpecific: "female", // Only show to females
     options: [
       { value: "na", label: "Not applicable", score: 0 },
       { value: "regular", label: "Regular (26-32 days)", score: 0 },

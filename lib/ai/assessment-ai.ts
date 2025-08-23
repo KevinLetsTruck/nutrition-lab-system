@@ -145,6 +145,12 @@ export async function getNextQuestionWithAI(
     const beforeCount = remainingQuestions.length;
     
     remainingQuestions = remainingQuestions.filter((q) => {
+      // Check genderSpecific property first
+      if (q.genderSpecific && q.genderSpecific !== clientInfo.gender) {
+        console.log(`Filtering out ${q.genderSpecific}-specific question for ${clientInfo.gender} user: ${q.id} - ${q.text}`);
+        return false;
+      }
+
       const questionText = q.text.toLowerCase();
 
       // Skip female-specific questions for males
@@ -412,6 +418,12 @@ function fallbackQuestionSelection(
   if (clientInfo?.gender) {
     console.log(`[Fallback] Filtering questions for gender: ${clientInfo.gender}`);
     trulyAvailableQuestions = trulyAvailableQuestions.filter((q) => {
+      // Check genderSpecific property first
+      if (q.genderSpecific && q.genderSpecific !== clientInfo.gender) {
+        console.log(`[Fallback] Filtering out ${q.genderSpecific}-specific question: ${q.id}`);
+        return false;
+      }
+
       const questionText = q.text.toLowerCase();
       
       if (

@@ -33,6 +33,7 @@ export interface AssessmentQuestion {
   numberOptions?: NumberOptions;
   multiSelectOptions?: MultiSelectOptions;
   conditionalLogic?: ConditionalLogic[];
+  genderSpecific?: 'male' | 'female'; // Only show to specific gender
 }
 
 export enum FunctionalModule {
