@@ -1,6 +1,11 @@
-import { Anthropic } from '@anthropic-ai/sdk';
-import { AssessmentQuestion, ClientResponse, ModuleType, FunctionalModule } from '../assessment/types';
-import { getQuestionsByModule } from '../assessment/questions/index';
+import { Anthropic } from "@anthropic-ai/sdk";
+import {
+  AssessmentQuestion,
+  ClientResponse,
+  ModuleType,
+  FunctionalModule,
+} from "../assessment/types";
+import { getQuestionsByModule } from "../assessment/questions/index";
 // Import other modules when they are implemented
 // import { getAssimilationQuestions } from '@/lib/assessment/questions/assimilation-questions';
 // import { getDefenseRepairQuestions } from '@/lib/assessment/questions/defense-repair-questions';
@@ -32,14 +37,14 @@ interface AIDecision {
 }
 
 const MODULE_SEQUENCE: ModuleType[] = [
-  'SCREENING',
-  'ASSIMILATION',
-  'DEFENSE_REPAIR',
-  'ENERGY',
-  'BIOTRANSFORMATION',
-  'TRANSPORT',
-  'COMMUNICATION',
-  'STRUCTURAL'
+  "SCREENING",
+  "ASSIMILATION",
+  "DEFENSE_REPAIR",
+  "ENERGY",
+  "BIOTRANSFORMATION",
+  "TRANSPORT",
+  "COMMUNICATION",
+  "STRUCTURAL",
 ];
 
 function getQuestionsForModule(module: ModuleType): AssessmentQuestion[] {
@@ -48,18 +53,20 @@ function getQuestionsForModule(module: ModuleType): AssessmentQuestion[] {
   return getQuestionsByModule(functionalModule);
 }
 
-export async function getNextQuestionWithAI(context: AssessmentContext): Promise<AIDecision> {
+export async function getNextQuestionWithAI(
+  context: AssessmentContext
+): Promise<AIDecision> {
   const { currentModule, responses, symptomProfile, questionsAsked } = context;
-  
+
   // Get available questions for current module
   const moduleQuestions = getQuestionsForModule(currentModule);
-  
+
   // Get already answered question IDs
-  const answeredQuestionIds = responses.map(r => r.questionId);
-  
+  const answeredQuestionIds = responses.map((r) => r.questionId);
+
   // Filter to get remaining unanswered questions
   const remainingQuestions = moduleQuestions.filter(
-    q => !answeredQuestionIds.includes(q.id)
+    (q) => !answeredQuestionIds.includes(q.id)
   );
 
   // If no questions remain in current module, move to next
@@ -68,7 +75,7 @@ export async function getNextQuestionWithAI(context: AssessmentContext): Promise
     if (currentModuleIndex < MODULE_SEQUENCE.length - 1) {
       const nextModule = MODULE_SEQUENCE[currentModuleIndex + 1];
       const nextModuleQuestions = getQuestionsForModule(nextModule);
-      
+
       // Use Claude to select first question of new module
       return selectQuestionWithClaude(
         nextModuleQuestions,
@@ -81,8 +88,8 @@ export async function getNextQuestionWithAI(context: AssessmentContext): Promise
       // Assessment complete
       return {
         nextQuestion: undefined,
-        reasoning: 'All modules completed',
-        questionsSaved: 0
+        reasoning: "All modules completed",
+        questionsSaved: 0,
       };
     }
   }
@@ -106,32 +113,47 @@ async function selectQuestionWithClaude(
 ): Promise<AIDecision> {
   try {
     // Prepare context for Claude
-    const recentResponses = responses.slice(-10).map(r => ({
+    const recentResponses = responses.slice(-10).map((r) => ({
       question: r.questionText,
       answer: r.responseValue,
-      type: r.responseType
+      type: r.responseType,
     }));
 
-    const highSeveritySymptoms = responses.filter(r => {
-      return r.responseType === 'LIKERT_SCALE' && 
-             typeof r.responseValue === 'number' && 
-             r.responseValue >= 7;
-    }).map(r => ({
-      symptom: r.questionText,
-      severity: r.responseValue
-    }));
+    const highSeveritySymptoms = responses
+      .filter((r) => {
+        return (
+          r.responseType === "LIKERT_SCALE" &&
+          typeof r.responseValue === "number" &&
+          r.responseValue >= 7
+        );
+      })
+      .map((r) => ({
+        symptom: r.questionText,
+        severity: r.responseValue,
+      }));
 
     const prompt = `You are an expert functional medicine practitioner conducting an adaptive health assessment. Your goal is to gather the most clinically relevant information while minimizing the number of questions asked.
 
 Current Assessment Context:
-- Module: ${module} ${isNewModule ? '(just started)' : ''}
+- Module: ${module} ${isNewModule ? "(just started)" : ""}
 - Questions asked so far: ${responses.length}
 - Recent responses: ${JSON.stringify(recentResponses, null, 2)}
-- High severity symptoms (≥7/10): ${JSON.stringify(highSeveritySymptoms, null, 2)}
+- High severity symptoms (≥7/10): ${JSON.stringify(
+      highSeveritySymptoms,
+      null,
+      2
+    )}
 
 Available questions in current module:
-${availableQuestions.slice(0, 20).map((q, i) => `${i + 1}. [${q.id}] ${q.text} (Type: ${q.type})`).join('\n')}
-${availableQuestions.length > 20 ? `... and ${availableQuestions.length - 20} more questions` : ''}
+${availableQuestions
+  .slice(0, 20)
+  .map((q, i) => `${i + 1}. [${q.id}] ${q.text} (Type: ${q.type})`)
+  .join("\n")}
+${
+  availableQuestions.length > 20
+    ? `... and ${availableQuestions.length - 20} more questions`
+    : ""
+}
 
 Based on the patterns in the responses, select the NEXT MOST VALUABLE question that will:
 1. Provide maximum diagnostic value
@@ -156,42 +178,46 @@ Respond with a JSON object:
 }`;
 
     const response = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+      model: "claude-3-5-sonnet-20241022",
       max_tokens: 500,
       temperature: 0.3, // Lower temperature for more consistent clinical decisions
       messages: [
         {
-          role: 'user',
-          content: prompt
-        }
-      ]
+          role: "user",
+          content: prompt,
+        },
+      ],
     });
 
     // Parse Claude's response
-    const content = response.content[0].type === 'text' ? response.content[0].text : '';
-    
+    const content =
+      response.content[0].type === "text" ? response.content[0].text : "";
+
     // Extract JSON from response (Claude might include explanation text)
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      throw new Error('Could not parse Claude response');
+      throw new Error("Could not parse Claude response");
     }
 
     const aiResponse = JSON.parse(jsonMatch[0]);
-    
+
     // Find the selected question
     const selectedQuestion = availableQuestions.find(
-      q => q.id === aiResponse.selectedQuestionId
+      (q) => q.id === aiResponse.selectedQuestionId
     );
 
     if (!selectedQuestion) {
       // Fallback to first available question if Claude's selection not found
-      console.error('Claude selected invalid question ID:', aiResponse.selectedQuestionId);
+      console.error(
+        "Claude selected invalid question ID:",
+        aiResponse.selectedQuestionId
+      );
       return {
         nextQuestion: availableQuestions[0],
         nextModule: isNewModule ? module : undefined,
         questionsInModule: getQuestionsForModule(module).length,
         questionsSaved: 0,
-        reasoning: 'Fallback to sequential selection'
+        reasoning: "Fallback to sequential selection",
       };
     }
 
@@ -200,12 +226,11 @@ Respond with a JSON object:
       nextModule: isNewModule ? module : undefined,
       questionsInModule: getQuestionsForModule(module).length,
       questionsSaved: aiResponse.estimatedQuestionsSaved || 0,
-      reasoning: aiResponse.reasoning
+      reasoning: aiResponse.reasoning,
     };
-
   } catch (error) {
-    console.error('Error calling Claude API:', error);
-    
+    console.error("Error calling Claude API:", error);
+
     // Fallback to simple algorithm if Claude fails
     return fallbackQuestionSelection(
       availableQuestions,
@@ -224,15 +249,16 @@ function fallbackQuestionSelection(
   isNewModule: boolean
 ): AIDecision {
   // Check for high severity symptoms
-  const hasHighSeverity = responses.some(r => 
-    r.responseType === 'LIKERT_SCALE' && 
-    typeof r.responseValue === 'number' && 
-    r.responseValue >= 7
+  const hasHighSeverity = responses.some(
+    (r) =>
+      r.responseType === "LIKERT_SCALE" &&
+      typeof r.responseValue === "number" &&
+      r.responseValue >= 7
   );
 
   let questionsSaved = 0;
   let nextQuestion = availableQuestions[0];
-  let reasoning = 'Sequential selection (fallback mode)';
+  let reasoning = "Sequential selection (fallback mode)";
 
   if (hasHighSeverity && availableQuestions.length > 5) {
     // Skip some basic questions if high severity exists
@@ -247,15 +273,13 @@ function fallbackQuestionSelection(
     nextModule: isNewModule ? module : undefined,
     questionsInModule: getQuestionsForModule(module).length,
     questionsSaved,
-    reasoning
+    reasoning,
   };
 }
 
 // Keep the original assessment AI class and methods below for other functionality
 
-import {
-  SeedOilAssessment,
-} from "@/lib/assessment/types";
+import { SeedOilAssessment } from "@/lib/assessment/types";
 import { prisma } from "@/lib/db";
 
 export class AssessmentAIService {
