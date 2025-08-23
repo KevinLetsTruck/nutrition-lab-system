@@ -4,10 +4,10 @@
 
 ### 1. Question Count Changes
 - **Started with**: 388 questions
-- **Ended with**: 380 questions
-- **Removed**: 8 questions total
+- **Ended with**: 379 questions
+- **Removed**: 9 questions total
   - 2 cholesterol questions
-  - 3 duplicate digestive questions
+  - 4 duplicate digestive questions (including food sensitivity)
   - 1 duplicate bowel movement question  
   - 2 overly direct seed oil questions
 
@@ -47,6 +47,7 @@
 3. **Bowel movements frequency** - kept comprehensive version in ASSIMILATION
 4. **Undigested food in stool** - kept frequency version in ASSIMILATION
 5. **Bowel movement patterns** - removed from BIOTRANSFORMATION
+6. **Food sensitivities** - kept SCR033 in SCREENING, removed ASM016 from ASSIMILATION
 
 ### 8. Question Improvements
 - Changed "fried foods" questions to general food tolerance
