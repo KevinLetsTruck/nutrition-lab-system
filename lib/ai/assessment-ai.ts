@@ -141,6 +141,9 @@ export async function getNextQuestionWithAI(
 
   // Filter out gender-specific questions if gender is known
   if (clientInfo?.gender) {
+    console.log(`Filtering questions for gender: ${clientInfo.gender}`);
+    const beforeCount = remainingQuestions.length;
+    
     remainingQuestions = remainingQuestions.filter((q) => {
       const questionText = q.text.toLowerCase();
 
@@ -153,6 +156,7 @@ export async function getNextQuestionWithAI(
           questionText.includes("menopause") ||
           questionText.includes("for women:"))
       ) {
+        console.log(`Filtering out female question for male user: ${q.id} - ${q.text}`);
         return false;
       }
 
@@ -163,11 +167,16 @@ export async function getNextQuestionWithAI(
           questionText.includes("prostate") ||
           questionText.includes("for men:"))
       ) {
+        console.log(`Filtering out male question for female user: ${q.id} - ${q.text}`);
         return false;
       }
 
       return true;
     });
+    
+    console.log(`Gender filtering: ${beforeCount} → ${remainingQuestions.length} questions`);
+  } else {
+    console.log("No gender info available for filtering");
   }
 
   // Filter out questions based on conditional logic
@@ -220,7 +229,8 @@ export async function getNextQuestionWithAI(
       remainingQuestions,
       responses,
       currentModule,
-      false
+      false,
+      clientInfo
     );
     decisionCache.set(cacheKey, decision);
     lastSelectedQuestionId = decision.nextQuestion?.id || null;
@@ -365,7 +375,8 @@ Return only: {"selectedQuestionId": "ID", "reasoning": "one sentence"}`;
       availableQuestions,
       responses,
       module,
-      isNewModule
+      isNewModule,
+      symptomProfile?.clientInfo
     );
   }
 }
@@ -375,7 +386,8 @@ function fallbackQuestionSelection(
   availableQuestions: AssessmentQuestion[],
   responses: ClientResponse[],
   module: ModuleType,
-  isNewModule: boolean
+  isNewModule: boolean,
+  clientInfo?: any
 ): AIDecision {
   // If no available questions, return empty decision
   if (availableQuestions.length === 0) {
@@ -392,9 +404,40 @@ function fallbackQuestionSelection(
   const answeredQuestionIds = new Set(responses.map((r) => r.questionId));
 
   // Filter out any questions that might have slipped through as already answered
-  const trulyAvailableQuestions = availableQuestions.filter(
+  let trulyAvailableQuestions = availableQuestions.filter(
     (q) => !answeredQuestionIds.has(q.id)
   );
+
+  // Apply gender filtering in fallback too
+  if (clientInfo?.gender) {
+    console.log(`[Fallback] Filtering questions for gender: ${clientInfo.gender}`);
+    trulyAvailableQuestions = trulyAvailableQuestions.filter((q) => {
+      const questionText = q.text.toLowerCase();
+      
+      if (
+        clientInfo.gender === "male" &&
+        (questionText.includes("menstrual") ||
+          questionText.includes("period") ||
+          questionText.includes("pregnant") ||
+          questionText.includes("menopause") ||
+          questionText.includes("for women:"))
+      ) {
+        console.log(`[Fallback] Filtering out female question: ${q.id}`);
+        return false;
+      }
+      
+      if (
+        clientInfo.gender === "female" &&
+        (questionText.includes("erectile") ||
+          questionText.includes("prostate") ||
+          questionText.includes("for men:"))
+      ) {
+        return false;
+      }
+      
+      return true;
+    });
+  }
 
   if (trulyAvailableQuestions.length === 0) {
     return {
