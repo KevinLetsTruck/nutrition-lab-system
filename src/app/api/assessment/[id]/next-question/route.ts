@@ -73,42 +73,48 @@ export async function GET(
     let aiDecision = null;
 
     // Try to use AI for intelligent question selection
-    const useAI = process.env.ANTHROPIC_API_KEY && unansweredInModule.length > 0;
-    
+    const useAI =
+      process.env.ANTHROPIC_API_KEY && unansweredInModule.length > 0;
+
     if (useAI) {
       try {
         // Get all responses for context
         const allResponses = await prisma.clientResponse.findMany({
           where: { assessmentId },
-          orderBy: { answeredAt: 'desc' }
+          orderBy: { answeredAt: "desc" },
         });
 
         // Build context for AI
         const assessmentContext = {
           currentModule: assessment.currentModule,
-          responses: allResponses.map(r => ({
+          responses: allResponses.map((r) => ({
             questionId: r.questionId,
             questionText: r.questionText,
             responseValue: r.responseValue,
             responseType: r.responseType,
-            module: r.module
+            module: r.module,
           })),
           symptomProfile: {}, // Can be enhanced with actual symptom analysis
-          questionsAsked: answeredIds.size
+          questionsAsked: answeredIds.size,
         };
 
         // Get AI recommendation
         aiDecision = await getNextQuestionWithAI(assessmentContext);
-        
+
         if (aiDecision.nextQuestion) {
           nextQuestion = aiDecision.nextQuestion;
-          console.log(`AI selected question: ${nextQuestion.id} - Reasoning: ${aiDecision.reasoning}`);
+          console.log(
+            `AI selected question: ${nextQuestion.id} - Reasoning: ${aiDecision.reasoning}`
+          );
         }
       } catch (error) {
-        console.error("AI question selection failed, falling back to linear:", error);
+        console.error(
+          "AI question selection failed, falling back to linear:",
+          error
+        );
       }
     }
-    
+
     // Fallback to linear selection if AI didn't work or no AI key
     if (!nextQuestion) {
       if (unansweredInModule.length > 0) {
@@ -119,7 +125,7 @@ export async function GET(
         const modules = [
           "SCREENING",
           "ENERGY",
-          "TRANSPORT", 
+          "TRANSPORT",
           "DEFENSE_REPAIR",
           "ASSIMILATION",
           "BIOTRANSFORMATION",
@@ -178,10 +184,12 @@ export async function GET(
       questionsAsked: answeredIds.size,
       totalQuestions: allQuestions.length,
       currentModule: nextModule,
-      aiRecommendation: aiDecision ? {
-        reasoning: aiDecision.reasoning,
-        questionsSaved: aiDecision.questionsSaved || 0
-      } : null,
+      aiRecommendation: aiDecision
+        ? {
+            reasoning: aiDecision.reasoning,
+            questionsSaved: aiDecision.questionsSaved || 0,
+          }
+        : null,
     });
   } catch (error) {
     console.error("Error getting next question:", error);

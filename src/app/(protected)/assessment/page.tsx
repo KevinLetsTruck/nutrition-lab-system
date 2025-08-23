@@ -270,11 +270,15 @@ export default function AssessmentPage() {
 
     switch (currentQuestion.type) {
       case "LIKERT_SCALE":
+        // Get labels from question options (if available)
+        const lowLabel = currentQuestion.options?.[0]?.label || "Strongly Disagree";
+        const highLabel = currentQuestion.options?.[1]?.label || "Strongly Agree";
+        
         return (
           <div className="space-y-4">
             <div className="flex justify-between text-sm text-muted-foreground mb-2">
-              <span>Strongly Disagree</span>
-              <span>Strongly Agree</span>
+              <span>{lowLabel}</span>
+              <span>{highLabel}</span>
             </div>
             <RadioGroup
               value={answer.toString()}
