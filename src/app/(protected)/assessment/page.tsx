@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ChevronRight, ChevronLeft, Save, LogOut } from "lucide-react";
-import { cn } from "@/lib/utils";
+
 
 interface Question {
   id: string;
@@ -510,30 +510,24 @@ export default function AssessmentPage() {
         </div>
       </div>
 
-      {/* Progress Bar */}
+      {/* Progress Indicator */}
       <div className="container mx-auto px-4 py-6">
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm text-gray-400">
-            <span>
-              Question {(assessment?.questionsAsked || 0) + 1} of{" "}
-              {assessment?.totalQuestions || 0}
-            </span>
-            <span>
-              {Math.round(
-                ((assessment?.questionsAsked || 0) /
-                  (assessment?.totalQuestions || 1)) *
-                  100
-              )}
-              % Complete
-            </span>
+        <div className="space-y-3">
+          <div className="flex justify-between items-center text-sm">
+            <div className="text-gray-300">
+              <span className="font-medium">Question {(assessment?.questionsAsked || 0) + 1}</span>
+            </div>
+            <div className="text-gray-400">
+              Current Module: <span className="text-gray-300">{assessment?.currentModule.replace("_", " ")}</span>
+            </div>
           </div>
-          <Progress
-            value={
-              ((assessment?.questionsAsked || 0) /
-                (assessment?.totalQuestions || 1)) *
-              100
-            }
-          />
+          {/* Simple progress indicator without specific numbers */}
+          <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-brand-green to-brand-orange transition-all duration-500"
+              style={{ width: `${Math.min((assessment?.questionsAsked || 0) * 2, 95)}%` }}
+            />
+          </div>
         </div>
       </div>
 
@@ -542,19 +536,9 @@ export default function AssessmentPage() {
         <Card className="max-w-3xl mx-auto bg-gray-900/50 border-gray-800">
           <CardHeader>
             <div className="space-y-4">
-              <div className="flex items-start justify-between">
-                <h2 className="text-xl font-semibold flex-1 pr-4">
-                  {currentQuestion?.text}
-                </h2>
-                <span
-                  className={cn(
-                    "px-3 py-1 rounded-full text-xs font-medium shrink-0",
-                    "bg-brand-green/20 text-brand-green"
-                  )}
-                >
-                  {currentQuestion?.type.replace("_", " ")}
-                </span>
-              </div>
+              <h2 className="text-xl font-semibold">
+                {currentQuestion?.text}
+              </h2>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
