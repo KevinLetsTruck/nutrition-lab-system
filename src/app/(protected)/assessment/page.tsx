@@ -140,6 +140,58 @@ export default function AssessmentPage() {
     }
   };
 
+  const loadPreviousQuestion = async () => {
+    if (!assessment) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(
+        `/api/assessment/${assessment.id}/previous-question`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        if (data.atStart) {
+          setError("You're at the beginning of the assessment");
+        } else {
+          throw new Error("Failed to load previous question");
+        }
+        return;
+      }
+
+      const data = await response.json();
+
+      setCurrentQuestion(data.question);
+      setAssessment((prev) => ({
+        ...prev!,
+        questionsAsked: data.questionsAsked,
+        currentModule: data.currentModule,
+      }));
+
+      // Set the previous answer
+      if (data.previousAnswer !== undefined && data.previousAnswer !== null) {
+        if (data.question.type === "MULTI_SELECT") {
+          setMultiSelectAnswers(data.previousAnswer);
+        } else {
+          setAnswer(data.previousAnswer);
+        }
+      } else {
+        resetAnswer(data.question);
+      }
+    } catch (err) {
+      setError("Failed to load previous question. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const resetAnswer = (question: Question) => {
     switch (question.type) {
       case "LIKERT_SCALE":
@@ -409,7 +461,7 @@ export default function AssessmentPage() {
         <div className="space-y-2">
           <div className="flex justify-between text-sm text-gray-400">
             <span>
-              Question {assessment?.questionsAsked || 0} of{" "}
+              Question {(assessment?.questionsAsked || 0) + 1} of{" "}
               {assessment?.totalQuestions || 0}
             </span>
             <span>
@@ -463,8 +515,8 @@ export default function AssessmentPage() {
             <div className="flex justify-between pt-6">
               <Button
                 variant="outline"
-                onClick={() => window.history.back()}
-                disabled={assessment?.questionsAsked === 1}
+                onClick={loadPreviousQuestion}
+                disabled={loading || assessment?.questionsAsked === 0}
               >
                 <ChevronLeft className="h-4 w-4 mr-2" />
                 Previous
