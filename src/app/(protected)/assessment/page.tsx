@@ -25,6 +25,8 @@ interface Question {
     value: string;
     score: number;
   }>;
+  scaleMin?: string;
+  scaleMax?: string;
 }
 
 interface Assessment {
@@ -270,9 +272,9 @@ export default function AssessmentPage() {
 
     switch (currentQuestion.type) {
       case "LIKERT_SCALE":
-        // Get labels from question options (if available)
-        const lowLabel = currentQuestion.options?.[0]?.label || "Strongly Disagree";
-        const highLabel = currentQuestion.options?.[1]?.label || "Strongly Agree";
+        // Get labels from question options or scale properties
+        const lowLabel = currentQuestion.scaleMin || currentQuestion.options?.[0]?.label || "Strongly Disagree";
+        const highLabel = currentQuestion.scaleMax || currentQuestion.options?.[1]?.label || "Strongly Agree";
         
         return (
           <div className="space-y-6">
