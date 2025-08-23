@@ -437,15 +437,7 @@ export default function AssessmentPage() {
               {/* Divider */}
               <div className="h-8 w-px bg-gray-700"></div>
 
-              {/* Assessment Info */}
-              <div>
-                <h1 className="text-2xl font-bold text-white">
-                  Health Assessment
-                </h1>
-                <p className="text-sm text-gray-400">
-                  {assessment?.currentModule.replace("_", " ")}
-                </p>
-              </div>
+
             </div>
 
             {/* Center Section - MetabolX Logo */}
@@ -513,13 +505,8 @@ export default function AssessmentPage() {
       {/* Progress Indicator */}
       <div className="container mx-auto px-4 py-6">
         <div className="space-y-3">
-          <div className="flex justify-between items-center text-sm">
-            <div className="text-gray-300">
-              <span className="font-medium">Question {(assessment?.questionsAsked || 0) + 1}</span>
-            </div>
-            <div className="text-gray-400">
-              Current Module: <span className="text-gray-300">{assessment?.currentModule.replace("_", " ")}</span>
-            </div>
+          <div className="text-gray-300 text-sm">
+            <span className="font-medium">Question {(assessment?.questionsAsked || 0) + 1}</span>
           </div>
           {/* Simple progress indicator without specific numbers */}
           <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
