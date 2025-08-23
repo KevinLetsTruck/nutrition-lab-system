@@ -200,7 +200,7 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
     text: "Do you have pain 2-3 hours after eating?",
     type: "FREQUENCY",
     options: [
-      { value: "never", label: "Never", score: 0 },
+      { value: "never", label: "Never / No pain", score: 0 },
       { value: "rarely", label: "Rarely", score: 1 },
       { value: "sometimes", label: "Sometimes", score: 2 },
       { value: "often", label: "Often", score: 3 },
