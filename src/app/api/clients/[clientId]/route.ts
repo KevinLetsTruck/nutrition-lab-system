@@ -122,7 +122,7 @@ export async function PATCH(
       "primaryHealthGoal",
       "healthGoals",
       "conditions",
-      "allergies"
+      "allergies",
     ];
     const updateData: any = {};
 
@@ -136,9 +136,9 @@ export async function PATCH(
     if (body.height || body.weight) {
       const client = await prisma.client.findUnique({
         where: { id: clientId },
-        select: { metadata: true }
+        select: { metadata: true },
       });
-      
+
       const metadata = client?.metadata || {};
       if (body.height) metadata.height = body.height;
       if (body.weight) metadata.weight = body.weight;

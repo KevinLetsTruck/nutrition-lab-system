@@ -61,11 +61,17 @@ function getQuestionsForModule(module: ModuleType): AssessmentQuestion[] {
 // Cache for AI decisions to avoid repeated calls
 const decisionCache = new Map<string, AIDecision>();
 
+// Track last selected question to detect loops
+let lastSelectedQuestionId: string | null = null;
+
 // Determine if AI is needed based on question count and severity
-function shouldUseAI(responses: ClientResponse[], questionsAsked: number): boolean {
+function shouldUseAI(
+  responses: ClientResponse[],
+  questionsAsked: number
+): boolean {
   // Use AI for key decision points
   if (questionsAsked === 0 || questionsAsked % 10 === 0) return true;
-  
+
   // Use AI if high severity symptoms detected
   const hasHighSeverity = responses.some(
     (r) =>
@@ -73,24 +79,45 @@ function shouldUseAI(responses: ClientResponse[], questionsAsked: number): boole
       typeof r.responseValue === "number" &&
       r.responseValue >= 4 // Changed from 7 to 4 for 5-point scale
   );
-  
+
   // Use AI if multiple concerning patterns
   const concerningResponses = responses.filter(
     (r) => r.responseType === "YES_NO" && r.responseValue === "yes"
   ).length;
-  
+
   return hasHighSeverity || concerningResponses >= 3;
 }
 
 export async function getNextQuestionWithAI(
   context: AssessmentContext
 ): Promise<AIDecision> {
-  const { currentModule, responses, symptomProfile, questionsAsked, clientInfo } = context;
+  const {
+    currentModule,
+    responses,
+    symptomProfile,
+    questionsAsked,
+    clientInfo,
+  } = context;
 
   // Check cache first (include gender in cache key for accurate caching)
-  const cacheKey = `${currentModule}-${questionsAsked}-${responses.length}-${clientInfo?.gender || 'unknown'}`;
+  const cacheKey = `${currentModule}-${questionsAsked}-${responses.length}-${
+    clientInfo?.gender || "unknown"
+  }`;
+  
+  // Check if we have a cached decision
   if (decisionCache.has(cacheKey)) {
-    return decisionCache.get(cacheKey)!;
+    const cachedDecision = decisionCache.get(cacheKey)!;
+    
+    // Detect if we're about to return the same question as last time
+    if (cachedDecision.nextQuestion?.id === lastSelectedQuestionId) {
+      console.warn(`Detected repeated question selection: ${lastSelectedQuestionId}. Clearing cache.`);
+      decisionCache.clear();
+      lastSelectedQuestionId = null;
+    } else {
+      // Update last selected question and return cached decision
+      lastSelectedQuestionId = cachedDecision.nextQuestion?.id || null;
+      return cachedDecision;
+    }
   }
 
   // Get available questions for current module
@@ -108,25 +135,29 @@ export async function getNextQuestionWithAI(
   if (clientInfo?.gender) {
     remainingQuestions = remainingQuestions.filter((q) => {
       const questionText = q.text.toLowerCase();
-      
+
       // Skip female-specific questions for males
-      if (clientInfo.gender === 'male' && 
-          (questionText.includes('menstrual') || 
-           questionText.includes('period') || 
-           questionText.includes('pregnant') ||
-           questionText.includes('menopause') ||
-           questionText.includes('for women:'))) {
+      if (
+        clientInfo.gender === "male" &&
+        (questionText.includes("menstrual") ||
+          questionText.includes("period") ||
+          questionText.includes("pregnant") ||
+          questionText.includes("menopause") ||
+          questionText.includes("for women:"))
+      ) {
         return false;
       }
-      
+
       // Skip male-specific questions for females
-      if (clientInfo.gender === 'female' && 
-          (questionText.includes('erectile') || 
-           questionText.includes('prostate') ||
-           questionText.includes('for men:'))) {
+      if (
+        clientInfo.gender === "female" &&
+        (questionText.includes("erectile") ||
+          questionText.includes("prostate") ||
+          questionText.includes("for men:"))
+      ) {
         return false;
       }
-      
+
       return true;
     });
   }
@@ -166,6 +197,7 @@ export async function getNextQuestionWithAI(
       false
     );
     decisionCache.set(cacheKey, decision);
+    lastSelectedQuestionId = decision.nextQuestion?.id || null;
     return decision;
   }
 
@@ -177,9 +209,10 @@ export async function getNextQuestionWithAI(
     currentModule,
     false
   );
-  
-  // Cache the decision
+
+    // Cache the decision and track last selected question
   decisionCache.set(cacheKey, aiDecision);
+  lastSelectedQuestionId = aiDecision.nextQuestion?.id || null;
   
   return aiDecision;
 }
@@ -217,9 +250,21 @@ async function selectQuestionWithClaude(
 
 Module: ${module}
 Questions asked: ${responses.length}
-Key symptoms: ${highSeveritySymptoms.map(s => s.symptom).join(", ") || "none"}
-${symptomProfile.clientInfo ? `Client: ${symptomProfile.clientInfo.age || 'Unknown age'}yo ${symptomProfile.clientInfo.gender || 'unknown gender'}` : ''}
-${symptomProfile.clientInfo?.medications ? `On medications: ${JSON.stringify(symptomProfile.clientInfo.medications.current || [])}` : ''}
+Key symptoms: ${highSeveritySymptoms.map((s) => s.symptom).join(", ") || "none"}
+${
+  symptomProfile.clientInfo
+    ? `Client: ${symptomProfile.clientInfo.age || "Unknown age"}yo ${
+        symptomProfile.clientInfo.gender || "unknown gender"
+      }`
+    : ""
+}
+${
+  symptomProfile.clientInfo?.medications
+    ? `On medications: ${JSON.stringify(
+        symptomProfile.clientInfo.medications.current || []
+      )}`
+    : ""
+}
 
 Available questions (first 10):
 ${availableQuestions
@@ -306,22 +351,51 @@ function fallbackQuestionSelection(
   module: ModuleType,
   isNewModule: boolean
 ): AIDecision {
-  // Check for high severity symptoms
+  // If no available questions, return empty decision
+  if (availableQuestions.length === 0) {
+    return {
+      nextQuestion: undefined,
+      nextModule: undefined,
+      questionsInModule: 0,
+      questionsSaved: 0,
+      reasoning: "No available questions in module",
+    };
+  }
+
+  // Get answered question IDs to ensure we don't select them again
+  const answeredQuestionIds = new Set(responses.map(r => r.questionId));
+  
+  // Filter out any questions that might have slipped through as already answered
+  const trulyAvailableQuestions = availableQuestions.filter(
+    q => !answeredQuestionIds.has(q.id)
+  );
+
+  if (trulyAvailableQuestions.length === 0) {
+    return {
+      nextQuestion: undefined,
+      nextModule: undefined,
+      questionsInModule: 0,
+      questionsSaved: 0,
+      reasoning: "All questions in module already answered",
+    };
+  }
+
+  // Check for high severity symptoms (adjusted for 5-point scale)
   const hasHighSeverity = responses.some(
     (r) =>
       r.responseType === "LIKERT_SCALE" &&
       typeof r.responseValue === "number" &&
-      r.responseValue >= 7
+      r.responseValue >= 4
   );
 
   let questionsSaved = 0;
-  let nextQuestion = availableQuestions[0];
+  let nextQuestion = trulyAvailableQuestions[0];
   let reasoning = "Sequential selection (fallback mode)";
 
-  if (hasHighSeverity && availableQuestions.length > 5) {
+  if (hasHighSeverity && trulyAvailableQuestions.length > 5) {
     // Skip some basic questions if high severity exists
-    const skipCount = Math.min(3, Math.floor(availableQuestions.length * 0.2));
-    nextQuestion = availableQuestions[skipCount];
+    const skipCount = Math.min(3, Math.floor(trulyAvailableQuestions.length * 0.2));
+    nextQuestion = trulyAvailableQuestions[Math.min(skipCount, trulyAvailableQuestions.length - 1)];
     questionsSaved = skipCount;
     reasoning = `Skipping ${skipCount} basic questions due to high severity symptoms`;
   }

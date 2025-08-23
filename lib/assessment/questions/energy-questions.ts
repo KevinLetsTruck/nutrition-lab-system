@@ -2,32 +2,6 @@ import { AssessmentQuestion } from '../types';
 
 export const energyQuestions: AssessmentQuestion[] = [
   {
-    "id": "ENE001",
-    "text": "How would you rate your overall energy level throughout the day?",
-    "type": "LIKERT_SCALE",
-    "module": "ENERGY",
-    "options": [
-      {
-        "label": "No energy - exhausted all day",
-        "value": 1
-      },
-      {
-        "label": "Abundant energy all day",
-        "value": 5
-      }
-    ],
-    "scoringWeight": 1.8,
-    "labCorrelations": [
-      "Mitochondrial markers",
-      "CoQ10",
-      "Carnitine"
-    ],
-    "clinicalRelevance": [
-      "mitochondrial_dysfunction",
-      "ATP_production"
-    ]
-  },
-  {
     "id": "ENE002",
     "text": "Do you experience post-exertional malaise (feeling worse after physical or mental activity)?",
     "type": "FREQUENCY",

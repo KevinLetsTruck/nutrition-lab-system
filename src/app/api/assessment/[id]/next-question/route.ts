@@ -26,8 +26,8 @@ export async function GET(
           select: {
             gender: true,
             dateOfBirth: true,
-            medications: true
-          }
+            medications: true,
+          },
         },
         responses: {
           select: { questionId: true },
@@ -106,11 +106,15 @@ export async function GET(
           questionsAsked: answeredIds.size,
           clientInfo: {
             gender: assessment.client.gender,
-            age: assessment.client.dateOfBirth 
-              ? Math.floor((new Date().getTime() - new Date(assessment.client.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+            age: assessment.client.dateOfBirth
+              ? Math.floor(
+                  (new Date().getTime() -
+                    new Date(assessment.client.dateOfBirth).getTime()) /
+                    (365.25 * 24 * 60 * 60 * 1000)
+                )
               : null,
-            medications: assessment.client.medications
-          }
+            medications: assessment.client.medications,
+          },
         };
 
         // Get AI recommendation (with caching and optimizations)

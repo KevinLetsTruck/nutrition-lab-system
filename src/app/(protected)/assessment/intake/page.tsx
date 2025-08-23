@@ -19,7 +19,7 @@ export default function AssessmentIntakePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [clientData, setClientData] = useState<any>(null);
-  
+
   // Form data
   const [formData, setFormData] = useState({
     dateOfBirth: "",
@@ -28,9 +28,13 @@ export default function AssessmentIntakePage() {
     weight: "",
     primaryHealthGoal: "",
   });
-  
-  const [medications, setMedications] = useState<{ name: string; dosage: string; frequency: string }[]>([]);
-  const [supplements, setSupplements] = useState<{ name: string; dosage: string; brand: string }[]>([]);
+
+  const [medications, setMedications] = useState<
+    { name: string; dosage: string; frequency: string }[]
+  >([]);
+  const [supplements, setSupplements] = useState<
+    { name: string; dosage: string; brand: string }[]
+  >([]);
 
   // Check if we already have this info
   useEffect(() => {
@@ -47,21 +51,22 @@ export default function AssessmentIntakePage() {
         if (response.ok) {
           const data = await response.json();
           setClientData(data);
-          
+
           // Pre-fill form if data exists
           if (data.dateOfBirth) {
-            setFormData(prev => ({
+            setFormData((prev) => ({
               ...prev,
               dateOfBirth: data.dateOfBirth,
               gender: data.gender || "",
             }));
           }
-          
+
           // If medications exist, parse them
           if (data.medications) {
-            const meds = typeof data.medications === 'string' 
-              ? JSON.parse(data.medications) 
-              : data.medications;
+            const meds =
+              typeof data.medications === "string"
+                ? JSON.parse(data.medications)
+                : data.medications;
             if (meds.current) setMedications(meds.current);
             if (meds.supplements) setSupplements(meds.supplements);
           }
@@ -118,8 +123,8 @@ export default function AssessmentIntakePage() {
         body: JSON.stringify({
           ...formData,
           medications: {
-            current: medications.filter(m => m.name),
-            supplements: supplements.filter(s => s.name),
+            current: medications.filter((m) => m.name),
+            supplements: supplements.filter((s) => s.name),
           },
         }),
       });
@@ -137,7 +142,8 @@ export default function AssessmentIntakePage() {
     }
   };
 
-  const canSkip = clientData?.dateOfBirth && clientData?.gender && clientData?.medications;
+  const canSkip =
+    clientData?.dateOfBirth && clientData?.gender && clientData?.medications;
 
   return (
     <div className="min-h-screen bg-brand-navy">
@@ -147,7 +153,9 @@ export default function AssessmentIntakePage() {
           <span className="font-semibold text-xl gradient-text">
             DestinationHealth
           </span>
-          <span className="text-sm text-gray-400">Pre-Assessment Information</span>
+          <span className="text-sm text-gray-400">
+            Pre-Assessment Information
+          </span>
         </div>
       </header>
 
@@ -163,9 +171,12 @@ export default function AssessmentIntakePage() {
       <div className="max-w-4xl mx-auto px-6 py-8">
         <Card className="border-gray-700">
           <CardHeader className="border-b border-gray-700 pb-6">
-            <h2 className="text-2xl font-bold text-white">Basic Health Information</h2>
+            <h2 className="text-2xl font-bold text-white">
+              Basic Health Information
+            </h2>
             <p className="text-gray-400 mt-2">
-              Please provide some basic information to help personalize your assessment
+              Please provide some basic information to help personalize your
+              assessment
             </p>
           </CardHeader>
 
@@ -192,7 +203,12 @@ export default function AssessmentIntakePage() {
                       type="date"
                       id="dateOfBirth"
                       value={formData.dateOfBirth}
-                      onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          dateOfBirth: e.target.value,
+                        })
+                      }
                       required
                       className="mt-1"
                     />
@@ -205,7 +221,9 @@ export default function AssessmentIntakePage() {
                     <Select
                       id="gender"
                       value={formData.gender}
-                      onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, gender: e.target.value })
+                      }
                       required
                       className="mt-1"
                     >
@@ -213,7 +231,9 @@ export default function AssessmentIntakePage() {
                       <option value="male">Male</option>
                       <option value="female">Female</option>
                       <option value="other">Other</option>
-                      <option value="prefer_not_to_say">Prefer not to say</option>
+                      <option value="prefer_not_to_say">
+                        Prefer not to say
+                      </option>
                     </Select>
                   </div>
 
@@ -225,7 +245,9 @@ export default function AssessmentIntakePage() {
                       type="number"
                       id="height"
                       value={formData.height}
-                      onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, height: e.target.value })
+                      }
                       placeholder="e.g., 70"
                       className="mt-1"
                     />
@@ -239,7 +261,9 @@ export default function AssessmentIntakePage() {
                       type="number"
                       id="weight"
                       value={formData.weight}
-                      onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, weight: e.target.value })
+                      }
                       placeholder="e.g., 180"
                       className="mt-1"
                     />
@@ -253,7 +277,12 @@ export default function AssessmentIntakePage() {
                   <Textarea
                     id="primaryHealthGoal"
                     value={formData.primaryHealthGoal}
-                    onChange={(e) => setFormData({ ...formData, primaryHealthGoal: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        primaryHealthGoal: e.target.value,
+                      })
+                    }
                     rows={2}
                     placeholder="What's your main health goal? (e.g., lose weight, increase energy, improve digestion)"
                     className="mt-1"
@@ -268,11 +297,15 @@ export default function AssessmentIntakePage() {
                   Current Medications
                 </h3>
                 <p className="text-sm text-gray-400 mb-4">
-                  List any prescription or over-the-counter medications you currently take
+                  List any prescription or over-the-counter medications you
+                  currently take
                 </p>
 
                 {medications.map((med, index) => (
-                  <div key={index} className="mb-4 p-4 bg-gray-800/50 rounded-xl">
+                  <div
+                    key={index}
+                    className="mb-4 p-4 bg-gray-800/50 rounded-xl"
+                  >
                     <div className="flex justify-end mb-2">
                       <Button
                         type="button"
@@ -286,10 +319,14 @@ export default function AssessmentIntakePage() {
                     </div>
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                       <div>
-                        <Label className="text-gray-400 text-sm">Medication Name</Label>
+                        <Label className="text-gray-400 text-sm">
+                          Medication Name
+                        </Label>
                         <Input
                           value={med.name}
-                          onChange={(e) => updateMedication(index, "name", e.target.value)}
+                          onChange={(e) =>
+                            updateMedication(index, "name", e.target.value)
+                          }
                           placeholder="e.g., Metformin"
                           className="mt-1"
                         />
@@ -298,16 +335,22 @@ export default function AssessmentIntakePage() {
                         <Label className="text-gray-400 text-sm">Dosage</Label>
                         <Input
                           value={med.dosage}
-                          onChange={(e) => updateMedication(index, "dosage", e.target.value)}
+                          onChange={(e) =>
+                            updateMedication(index, "dosage", e.target.value)
+                          }
                           placeholder="e.g., 500mg"
                           className="mt-1"
                         />
                       </div>
                       <div>
-                        <Label className="text-gray-400 text-sm">Frequency</Label>
+                        <Label className="text-gray-400 text-sm">
+                          Frequency
+                        </Label>
                         <Input
                           value={med.frequency}
-                          onChange={(e) => updateMedication(index, "frequency", e.target.value)}
+                          onChange={(e) =>
+                            updateMedication(index, "frequency", e.target.value)
+                          }
                           placeholder="e.g., Twice daily"
                           className="mt-1"
                         />
@@ -334,11 +377,15 @@ export default function AssessmentIntakePage() {
                   Current Supplements
                 </h3>
                 <p className="text-sm text-gray-400 mb-4">
-                  List any vitamins, minerals, or other supplements you currently take
+                  List any vitamins, minerals, or other supplements you
+                  currently take
                 </p>
 
                 {supplements.map((supp, index) => (
-                  <div key={index} className="mb-4 p-4 bg-gray-800/50 rounded-xl">
+                  <div
+                    key={index}
+                    className="mb-4 p-4 bg-gray-800/50 rounded-xl"
+                  >
                     <div className="flex justify-end mb-2">
                       <Button
                         type="button"
@@ -352,10 +399,14 @@ export default function AssessmentIntakePage() {
                     </div>
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                       <div>
-                        <Label className="text-gray-400 text-sm">Supplement Name</Label>
+                        <Label className="text-gray-400 text-sm">
+                          Supplement Name
+                        </Label>
                         <Input
                           value={supp.name}
-                          onChange={(e) => updateSupplement(index, "name", e.target.value)}
+                          onChange={(e) =>
+                            updateSupplement(index, "name", e.target.value)
+                          }
                           placeholder="e.g., Vitamin D3"
                           className="mt-1"
                         />
@@ -364,7 +415,9 @@ export default function AssessmentIntakePage() {
                         <Label className="text-gray-400 text-sm">Dosage</Label>
                         <Input
                           value={supp.dosage}
-                          onChange={(e) => updateSupplement(index, "dosage", e.target.value)}
+                          onChange={(e) =>
+                            updateSupplement(index, "dosage", e.target.value)
+                          }
                           placeholder="e.g., 5000 IU"
                           className="mt-1"
                         />
@@ -373,7 +426,9 @@ export default function AssessmentIntakePage() {
                         <Label className="text-gray-400 text-sm">Brand</Label>
                         <Input
                           value={supp.brand}
-                          onChange={(e) => updateSupplement(index, "brand", e.target.value)}
+                          onChange={(e) =>
+                            updateSupplement(index, "brand", e.target.value)
+                          }
                           placeholder="e.g., Nature's Way"
                           className="mt-1"
                         />
@@ -405,11 +460,7 @@ export default function AssessmentIntakePage() {
                     Skip (already completed)
                   </Button>
                 )}
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="ml-auto"
-                >
+                <Button type="submit" disabled={loading} className="ml-auto">
                   {loading ? "Saving..." : "Continue to Assessment"}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
