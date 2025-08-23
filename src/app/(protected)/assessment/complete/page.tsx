@@ -46,18 +46,48 @@ export default function AssessmentCompletePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-brand-navy flex items-center justify-center p-4">
-      <Card className="max-w-2xl w-full text-center bg-gray-900/50 border-gray-800">
-        <CardHeader className="space-y-4 pb-8">
-          <div className="mx-auto">
-            <Trophy className="h-20 w-20 text-yellow-500 animate-bounce" />
+    <div className="min-h-screen bg-brand-navy relative">
+      {/* MetabolX Logo at top */}
+      <div className="absolute top-6 left-1/2 transform -translate-x-1/2">
+        <div className="flex flex-col items-center">
+          <div className="relative w-12 h-12 mb-1">
+            <svg
+              viewBox="0 0 100 100"
+              className="w-full h-full"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <defs>
+                <linearGradient id="metabolx-gradient-complete" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#10b981" />
+                  <stop offset="50%" stopColor="#84cc16" />
+                  <stop offset="100%" stopColor="#f97316" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M 20 10 L 35 30 L 50 10 L 65 30 L 80 10 L 90 20 L 65 50 L 90 80 L 80 90 L 50 60 L 20 90 L 10 80 L 35 50 L 10 20 Z"
+                fill="url(#metabolx-gradient-complete)"
+              />
+            </svg>
           </div>
-          <h1 className="text-4xl font-bold">Congratulations! 🎉</h1>
-          <p className="text-xl text-muted-foreground">
-            You've completed your health assessment
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-8">
+          <div className="text-center">
+            <div className="font-bold text-white text-sm">MetabolX</div>
+            <div className="text-xs text-gray-400 uppercase tracking-wider">Assessment</div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="max-w-2xl w-full text-center bg-gray-900/50 border-gray-800">
+          <CardHeader className="space-y-4 pb-8">
+            <div className="mx-auto">
+              <Trophy className="h-20 w-20 text-yellow-500 animate-bounce" />
+            </div>
+            <h1 className="text-4xl font-bold">Congratulations! 🎉</h1>
+            <p className="text-xl text-muted-foreground">
+              You've completed your health assessment
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-8">
           <div className="grid gap-6 md:grid-cols-3">
             <div className="space-y-2">
               <CheckCircle className="h-12 w-12 text-green-500 mx-auto" />
@@ -130,6 +160,7 @@ export default function AssessmentCompletePage() {
           </div>
         </CardContent>
       </Card>
+    </div>
     </div>
   );
 }

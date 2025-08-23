@@ -103,14 +103,16 @@ export async function getNextQuestionWithAI(
   const cacheKey = `${currentModule}-${questionsAsked}-${responses.length}-${
     clientInfo?.gender || "unknown"
   }`;
-  
+
   // Check if we have a cached decision
   if (decisionCache.has(cacheKey)) {
     const cachedDecision = decisionCache.get(cacheKey)!;
-    
+
     // Detect if we're about to return the same question as last time
     if (cachedDecision.nextQuestion?.id === lastSelectedQuestionId) {
-      console.warn(`Detected repeated question selection: ${lastSelectedQuestionId}. Clearing cache.`);
+      console.warn(
+        `Detected repeated question selection: ${lastSelectedQuestionId}. Clearing cache.`
+      );
       decisionCache.clear();
       lastSelectedQuestionId = null;
     } else {
@@ -210,10 +212,10 @@ export async function getNextQuestionWithAI(
     false
   );
 
-    // Cache the decision and track last selected question
+  // Cache the decision and track last selected question
   decisionCache.set(cacheKey, aiDecision);
   lastSelectedQuestionId = aiDecision.nextQuestion?.id || null;
-  
+
   return aiDecision;
 }
 
@@ -363,11 +365,11 @@ function fallbackQuestionSelection(
   }
 
   // Get answered question IDs to ensure we don't select them again
-  const answeredQuestionIds = new Set(responses.map(r => r.questionId));
-  
+  const answeredQuestionIds = new Set(responses.map((r) => r.questionId));
+
   // Filter out any questions that might have slipped through as already answered
   const trulyAvailableQuestions = availableQuestions.filter(
-    q => !answeredQuestionIds.has(q.id)
+    (q) => !answeredQuestionIds.has(q.id)
   );
 
   if (trulyAvailableQuestions.length === 0) {
@@ -394,8 +396,14 @@ function fallbackQuestionSelection(
 
   if (hasHighSeverity && trulyAvailableQuestions.length > 5) {
     // Skip some basic questions if high severity exists
-    const skipCount = Math.min(3, Math.floor(trulyAvailableQuestions.length * 0.2));
-    nextQuestion = trulyAvailableQuestions[Math.min(skipCount, trulyAvailableQuestions.length - 1)];
+    const skipCount = Math.min(
+      3,
+      Math.floor(trulyAvailableQuestions.length * 0.2)
+    );
+    nextQuestion =
+      trulyAvailableQuestions[
+        Math.min(skipCount, trulyAvailableQuestions.length - 1)
+      ];
     questionsSaved = skipCount;
     reasoning = `Skipping ${skipCount} basic questions due to high severity symptoms`;
   }

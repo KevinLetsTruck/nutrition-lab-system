@@ -427,7 +427,8 @@ export default function AssessmentPage() {
       <div className="border-b border-gray-800 bg-brand-darkNavy">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
+            {/* Left Section */}
+            <div className="flex items-center gap-6 flex-1">
               {/* Logo */}
               <span className="font-semibold text-xl gradient-text">
                 DestinationHealth
@@ -446,22 +447,59 @@ export default function AssessmentPage() {
                 </p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              className="text-gray-300 hover:text-white hover:bg-gray-800"
-              onClick={() => {
-                if (
-                  confirm(
-                    "Are you sure you want to exit? Your progress is saved."
-                  )
-                ) {
-                  logout();
-                }
-              }}
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Exit
-            </Button>
+
+            {/* Center Section - MetabolX Logo */}
+            <div className="flex items-center justify-center flex-1">
+              <div className="flex flex-col items-center">
+                {/* MetabolX Icon */}
+                <div className="relative w-12 h-12 mb-1">
+                  <svg
+                    viewBox="0 0 100 100"
+                    className="w-full h-full"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    {/* Define gradient */}
+                    <defs>
+                      <linearGradient id="metabolx-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#10b981" />
+                        <stop offset="50%" stopColor="#84cc16" />
+                        <stop offset="100%" stopColor="#f97316" />
+                      </linearGradient>
+                    </defs>
+                    {/* X shape with gradient */}
+                    <path
+                      d="M 20 10 L 35 30 L 50 10 L 65 30 L 80 10 L 90 20 L 65 50 L 90 80 L 80 90 L 50 60 L 20 90 L 10 80 L 35 50 L 10 20 Z"
+                      fill="url(#metabolx-gradient)"
+                    />
+                  </svg>
+                </div>
+                {/* MetabolX Text */}
+                <div className="text-center">
+                  <div className="font-bold text-white text-sm">MetabolX</div>
+                  <div className="text-xs text-gray-400 uppercase tracking-wider">Assessment</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Section */}
+            <div className="flex items-center justify-end flex-1">
+              <Button
+                variant="ghost"
+                className="text-gray-300 hover:text-white hover:bg-gray-800"
+                onClick={() => {
+                  if (
+                    confirm(
+                      "Are you sure you want to exit? Your progress is saved."
+                    )
+                  ) {
+                    logout();
+                  }
+                }}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Exit
+              </Button>
+            </div>
           </div>
         </div>
       </div>

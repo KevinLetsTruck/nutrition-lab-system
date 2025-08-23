@@ -153,6 +153,36 @@ export default function AssessmentIntakePage() {
           <span className="font-semibold text-xl gradient-text">
             DestinationHealth
           </span>
+          
+          {/* MetabolX Logo - Center */}
+          <div className="flex flex-col items-center">
+            {/* MetabolX Icon */}
+            <div className="relative w-10 h-10 mb-1">
+              <svg
+                viewBox="0 0 100 100"
+                className="w-full h-full"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <defs>
+                  <linearGradient id="metabolx-gradient-intake" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#10b981" />
+                    <stop offset="50%" stopColor="#84cc16" />
+                    <stop offset="100%" stopColor="#f97316" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M 20 10 L 35 30 L 50 10 L 65 30 L 80 10 L 90 20 L 65 50 L 90 80 L 80 90 L 50 60 L 20 90 L 10 80 L 35 50 L 10 20 Z"
+                  fill="url(#metabolx-gradient-intake)"
+                />
+              </svg>
+            </div>
+            {/* MetabolX Text */}
+            <div className="text-center">
+              <div className="font-bold text-white text-xs">MetabolX</div>
+              <div className="text-xs text-gray-400 uppercase tracking-wider">Assessment</div>
+            </div>
+          </div>
+          
           <span className="text-sm text-gray-400">
             Pre-Assessment Information
           </span>
