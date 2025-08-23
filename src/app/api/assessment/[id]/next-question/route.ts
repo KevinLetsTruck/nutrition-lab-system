@@ -78,16 +78,17 @@ export async function GET(
 
     if (useAI) {
       try {
-        // Get all responses for context
-        const allResponses = await prisma.clientResponse.findMany({
+        // Get only recent responses for context (faster query)
+        const recentResponses = await prisma.clientResponse.findMany({
           where: { assessmentId },
           orderBy: { answeredAt: "desc" },
+          take: 20, // Only get last 20 responses for performance
         });
 
         // Build context for AI
         const assessmentContext = {
           currentModule: assessment.currentModule,
-          responses: allResponses.map((r) => ({
+          responses: recentResponses.map((r) => ({
             questionId: r.questionId,
             questionText: r.questionText,
             responseValue: r.responseValue,
@@ -98,13 +99,15 @@ export async function GET(
           questionsAsked: answeredIds.size,
         };
 
-        // Get AI recommendation
+        // Get AI recommendation (with caching and optimizations)
+        const startTime = Date.now();
         aiDecision = await getNextQuestionWithAI(assessmentContext);
+        const aiTime = Date.now() - startTime;
 
         if (aiDecision.nextQuestion) {
           nextQuestion = aiDecision.nextQuestion;
           console.log(
-            `AI selected question: ${nextQuestion.id} - Reasoning: ${aiDecision.reasoning}`
+            `AI selected question: ${nextQuestion.id} - Reasoning: ${aiDecision.reasoning} (${aiTime}ms)`
           );
         }
       } catch (error) {

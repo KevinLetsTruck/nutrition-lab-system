@@ -53,10 +53,40 @@ function getQuestionsForModule(module: ModuleType): AssessmentQuestion[] {
   return getQuestionsByModule(functionalModule);
 }
 
+// Cache for AI decisions to avoid repeated calls
+const decisionCache = new Map<string, AIDecision>();
+
+// Determine if AI is needed based on question count and severity
+function shouldUseAI(responses: ClientResponse[], questionsAsked: number): boolean {
+  // Use AI for key decision points
+  if (questionsAsked === 0 || questionsAsked % 10 === 0) return true;
+  
+  // Use AI if high severity symptoms detected
+  const hasHighSeverity = responses.some(
+    (r) =>
+      r.responseType === "LIKERT_SCALE" &&
+      typeof r.responseValue === "number" &&
+      r.responseValue >= 4 // Changed from 7 to 4 for 5-point scale
+  );
+  
+  // Use AI if multiple concerning patterns
+  const concerningResponses = responses.filter(
+    (r) => r.responseType === "YES_NO" && r.responseValue === "yes"
+  ).length;
+  
+  return hasHighSeverity || concerningResponses >= 3;
+}
+
 export async function getNextQuestionWithAI(
   context: AssessmentContext
 ): Promise<AIDecision> {
   const { currentModule, responses, symptomProfile, questionsAsked } = context;
+
+  // Check cache first
+  const cacheKey = `${currentModule}-${questionsAsked}-${responses.length}`;
+  if (decisionCache.has(cacheKey)) {
+    return decisionCache.get(cacheKey)!;
+  }
 
   // Get available questions for current module
   const moduleQuestions = getQuestionsForModule(currentModule);
@@ -94,14 +124,32 @@ export async function getNextQuestionWithAI(
     }
   }
 
+  // Check if we should use AI for this decision
+  if (!shouldUseAI(responses, questionsAsked)) {
+    // Use simple algorithm for faster response
+    const decision = fallbackQuestionSelection(
+      remainingQuestions,
+      responses,
+      currentModule,
+      false
+    );
+    decisionCache.set(cacheKey, decision);
+    return decision;
+  }
+
   // Use Claude to intelligently select next question
-  return selectQuestionWithClaude(
+  const aiDecision = await selectQuestionWithClaude(
     remainingQuestions,
     responses,
     symptomProfile,
     currentModule,
     false
   );
+  
+  // Cache the decision
+  decisionCache.set(cacheKey, aiDecision);
+  
+  return aiDecision;
 }
 
 async function selectQuestionWithClaude(
@@ -132,55 +180,30 @@ async function selectQuestionWithClaude(
         severity: r.responseValue,
       }));
 
-    const prompt = `You are an expert functional medicine practitioner conducting an adaptive health assessment. Your goal is to gather the most clinically relevant information while minimizing the number of questions asked.
+    // Simplified, focused prompt for faster processing
+    const prompt = `Select the most diagnostic question from these options:
 
-Current Assessment Context:
-- Module: ${module} ${isNewModule ? "(just started)" : ""}
-- Questions asked so far: ${responses.length}
-- Recent responses: ${JSON.stringify(recentResponses, null, 2)}
-- High severity symptoms (≥7/10): ${JSON.stringify(
-      highSeveritySymptoms,
-      null,
-      2
-    )}
+Module: ${module}
+Questions asked: ${responses.length}
+Key symptoms: ${highSeveritySymptoms.map(s => s.symptom).join(", ") || "none"}
 
-Available questions in current module:
+Available questions (first 10):
 ${availableQuestions
-  .slice(0, 20)
-  .map((q, i) => `${i + 1}. [${q.id}] ${q.text} (Type: ${q.type})`)
+  .slice(0, 10)
+  .map((q) => `${q.id}: ${q.text}`)
   .join("\n")}
-${
-  availableQuestions.length > 20
-    ? `... and ${availableQuestions.length - 20} more questions`
-    : ""
-}
 
-Based on the patterns in the responses, select the NEXT MOST VALUABLE question that will:
-1. Provide maximum diagnostic value
-2. Avoid redundancy with already-gathered information
-3. Follow logical clinical reasoning
-4. Prioritize questions related to high-severity symptoms
-5. Skip basic questions if severe symptoms already indicate advanced issues
+Select based on:
+1. Maximum diagnostic value
+2. Avoid redundancy
+3. Prioritize severe symptoms
 
-Consider these clinical patterns:
-- If digestive issues are severe (≥7), skip mild symptom questions and focus on root causes
-- If energy/fatigue is severe, prioritize mitochondrial and thyroid-related questions
-- If multiple systems show dysfunction, look for connecting patterns
-- For seed oil exposure questions, prioritize if inflammation markers are high
-
-Respond with a JSON object:
-{
-  "selectedQuestionId": "the_question_id",
-  "reasoning": "Brief explanation of why this question is most valuable now",
-  "questionsToSkip": ["id1", "id2"],
-  "skipReason": "Why these questions can be skipped",
-  "estimatedQuestionsSaved": <number>
-}`;
+Return only: {"selectedQuestionId": "ID", "reasoning": "one sentence"}`;
 
     const response = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
-      max_tokens: 500,
-      temperature: 0.3, // Lower temperature for more consistent clinical decisions
+      model: "claude-3-haiku-20240307", // Much faster model (5-10x speed improvement)
+      max_tokens: 300, // Reduced for faster response
+      temperature: 0.2, // Lower temperature for more consistent clinical decisions
       messages: [
         {
           role: "user",
