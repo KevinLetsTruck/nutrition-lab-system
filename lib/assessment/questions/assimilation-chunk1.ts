@@ -1,5 +1,5 @@
 // ASSIMILATION Module Questions (Digestive System)
-// Total: 64 questions including 1 gateway question
+// Total: 63 questions including 1 gateway question
 // This file contains questions 1-19
 
 import { AssessmentQuestion } from '../types';

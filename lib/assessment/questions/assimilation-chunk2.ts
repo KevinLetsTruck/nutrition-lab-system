@@ -1,35 +1,10 @@
 // ASSIMILATION Module Questions - Chunk 2
-// Questions 16-35 of 65 total
+// Questions 16-34 of 64 total (after removing duplicate food sensitivity question)
 
 import { AssessmentQuestion } from '../types';
 
 export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
-  // ========== FOOD SENSITIVITIES & REACTIONS (5 questions) ==========
-  {
-    id: "ASM016",
-    module: "ASSIMILATION",
-    category: "DIGESTIVE",
-    text: "How many foods do you suspect you're sensitive or intolerant to?",
-    type: "MULTIPLE_CHOICE",
-    options: [
-      { value: "none", label: "None", score: 0 },
-      { value: "1_2", label: "1-2 foods", score: 1 },
-      { value: "3_5", label: "3-5 foods", score: 2 },
-      { value: "6_10", label: "6-10 foods", score: 3 },
-      { value: "over_10", label: "More than 10 foods", score: 5 }
-    ],
-    scoringWeight: 2.0,
-    clinicalRelevance: ["intestinal_permeability", "immune_activation"],
-    labCorrelations: ["zonulin", "food_sensitivity_panel"],
-    triggerConditions: [
-      {
-        threshold: 3,
-        operator: "gte",
-        triggersModule: "DEFENSE_REPAIR",
-        priority: "high"
-      }
-    ]
-  },
+  // ========== FOOD SENSITIVITIES & REACTIONS (4 questions) ========== 
   {
     id: "ASM017",
     module: "ASSIMILATION",
