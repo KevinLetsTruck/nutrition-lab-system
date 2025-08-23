@@ -25,8 +25,8 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
     "type": "LIKERT_SCALE",
     "module": "COMMUNICATION",
     "options": [
-      { "label": "Absent", "value": 0 },
-      { "label": "Normal/Healthy", "value": 10 }
+      { "label": "Absent", "value": 1 },
+      { "label": "Normal/Healthy", "value": 5 }
     ],
     "scoringWeight": 1.3,
     "labCorrelations": ["Testosterone", "DHEA", "Estrogen", "Thyroid"],
@@ -81,8 +81,8 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
     "type": "LIKERT_SCALE",
     "module": "COMMUNICATION",
     "options": [
-      { "label": "Never", "value": 0 },
-      { "label": "Always", "value": 10 }
+      { "label": "Never", "value": 1 },
+      { "label": "Always", "value": 5 }
     ,
       {
         "label": "Unsure",
@@ -147,8 +147,8 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
     "type": "LIKERT_SCALE",
     "module": "COMMUNICATION",
     "options": [
-      { "label": "Never", "value": 0 },
-      { "label": "Always", "value": 10 }
+      { "label": "Never", "value": 1 },
+      { "label": "Always", "value": 5 }
     ],
     "scoringWeight": 1.3,
     "labCorrelations": ["Dopamine", "Serotonin", "GABA"],
@@ -324,8 +324,8 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
     "type": "LIKERT_SCALE",
     "module": "COMMUNICATION",
     "options": [
-      { "label": "Very poor", "value": 0 },
-      { "label": "Excellent", "value": 10 }
+      { "label": "Very poor", "value": 1 },
+      { "label": "Excellent", "value": 5 }
     ],
     "scoringWeight": 1.3,
     "labCorrelations": ["B12", "Thyroid", "Testosterone", "DHEA"],
@@ -378,8 +378,8 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
     "type": "LIKERT_SCALE",
     "module": "COMMUNICATION",
     "options": [
-      { "label": "No difficulty", "value": 0 },
-      { "label": "Severe difficulty", "value": 10 }
+      { "label": "No difficulty", "value": 1 },
+      { "label": "Severe difficulty", "value": 5 }
     ,
       {
         "label": "Unsure",
@@ -535,8 +535,8 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
     "type": "LIKERT_SCALE",
     "module": "COMMUNICATION",
     "options": [
-      { "label": "No difficulty", "value": 0 },
-      { "label": "Severe difficulty", "value": 10 }
+      { "label": "No difficulty", "value": 1 },
+      { "label": "Severe difficulty", "value": 5 }
     ,
       {
         "label": "Unsure",
@@ -555,8 +555,8 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
     "type": "LIKERT_SCALE",
     "module": "COMMUNICATION",
     "options": [
-      { "label": "Very unstable", "value": 0 },
-      { "label": "Very stable", "value": 10 }
+      { "label": "Very unstable", "value": 1 },
+      { "label": "Very stable", "value": 5 }
     ],
     "scoringWeight": 1.4,
     "labCorrelations": ["Blood Sugar", "Cortisol", "Thyroid", "Sex hormones"],
@@ -616,8 +616,8 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
     "type": "LIKERT_SCALE",
     "module": "COMMUNICATION",
     "options": [
-      { "label": "Never", "value": 0 },
-      { "label": "Always", "value": 10 }
+      { "label": "Never", "value": 1 },
+      { "label": "Always", "value": 5 }
     ],
     "scoringWeight": 1.4,
     "labCorrelations": ["Dopamine", "Serotonin", "Thyroid", "Testosterone"],
@@ -649,8 +649,8 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
     "type": "LIKERT_SCALE",
     "module": "COMMUNICATION",
     "options": [
-      { "label": "No stress", "value": 0 },
-      { "label": "Overwhelming stress", "value": 10 }
+      { "label": "No stress", "value": 1 },
+      { "label": "Overwhelming stress", "value": 5 }
     ,
       {
         "label": "Unsure",
@@ -697,8 +697,8 @@ export const additionalCommunicationQuestions: AssessmentQuestion[] = [
     "type": "LIKERT_SCALE",
     "module": "COMMUNICATION",
     "options": [
-      { "label": "Very poor", "value": 0 },
-      { "label": "Excellent", "value": 10 }
+      { "label": "Very poor", "value": 1 },
+      { "label": "Excellent", "value": 5 }
     ],
     "scoringWeight": 1.6,
     "labCorrelations": ["Comprehensive hormone panel", "Neurotransmitter assessment"],

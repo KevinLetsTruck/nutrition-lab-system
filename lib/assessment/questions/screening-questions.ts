@@ -10,11 +10,11 @@ export const screeningQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "No energy - exhausted all day",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Abundant energy all day",
-        "value": 10
+        "value": 5
       }
     ],
     "scoringWeight": 1.5,
@@ -93,11 +93,11 @@ export const screeningQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Very poor - wake up exhausted",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Excellent - wake up refreshed",
-        "value": 10
+        "value": 5
       }
     ],
     "category": "LIFESTYLE",

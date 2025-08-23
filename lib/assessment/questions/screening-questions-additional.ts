@@ -188,7 +188,7 @@ export const additionalScreeningQuestionsPart2: AssessmentQuestion[] = [
     scoringWeight: 2.0,
     scaleMin: "No stress",
     scaleMax: "Overwhelming stress",
-    scale: { min: 0, max: 10 },
+    scale: { min: 1, max: 5 },
     clinicalRelevance: ["cortisol_dysregulation", "HPA_axis"],
     labCorrelations: ["cortisol", "DHEA"],
     triggerConditions: [
@@ -320,7 +320,7 @@ export const additionalScreeningQuestionsPart2: AssessmentQuestion[] = [
     scoringWeight: 1.5,
     scaleMin: "Never",
     scaleMax: "Intense daily cravings",
-    scale: { min: 0, max: 10 },
+    scale: { min: 1, max: 5 },
     clinicalRelevance: ["blood_sugar_imbalance", "candida"],
     seedOilRelevant: true,
   },
@@ -402,7 +402,7 @@ export const additionalScreeningQuestionsPart2: AssessmentQuestion[] = [
     scoringWeight: 1.5,
     scaleMin: "Not sensitive",
     scaleMax: "Extremely sensitive",
-    scale: { min: 0, max: 10 },
+    scale: { min: 1, max: 5 },
     clinicalRelevance: ["chemical_sensitivity", "detox_capacity"],
   },
   {
@@ -530,7 +530,7 @@ export const additionalScreeningQuestionsPart2: AssessmentQuestion[] = [
     scoringWeight: 1.0,
     scaleMin: "Very poorly",
     scaleMax: "Very well",
-    scale: { min: 0, max: 10 },
+    scale: { min: 1, max: 5 },
     clinicalRelevance: ["stress_resilience", "coping_capacity"],
   },
 

@@ -9,11 +9,11 @@ export const energyQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "No energy - exhausted all day",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Abundant energy all day",
-        "value": 10
+        "value": 5
       }
     ],
     "scoringWeight": 1.8,
@@ -196,11 +196,11 @@ export const energyQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Not sensitive",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Extremely sensitive",
-        "value": 10
+        "value": 5
       }
     ],
     "category": "HORMONAL",
@@ -345,11 +345,11 @@ export const energyQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "No difference",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Major energy difference",
-        "value": 10
+        "value": 5
       }
     ],
     "category": "SEED_OIL",
@@ -414,11 +414,11 @@ export const energyQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Exhausted",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Completely refreshed",
-        "value": 10
+        "value": 5
       }
     ],
     "category": "LIFESTYLE",
@@ -726,11 +726,11 @@ export const energyQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "No difference",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Significantly more energy",
-        "value": 10
+        "value": 5
       }
     ],
     "category": "SEED_OIL",
@@ -833,11 +833,11 @@ export const energyQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Very poor",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Excellent",
-        "value": 10
+        "value": 5
       }
     ],
     "scoringWeight": 1.5,
@@ -941,11 +941,11 @@ export const energyQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Not at all",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Completely dependent",
-        "value": 10
+        "value": 5
       }
     ],
     "category": "LIFESTYLE",
@@ -1381,11 +1381,11 @@ export const energyQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "No difference",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Much better energy",
-        "value": 10
+        "value": 5
       }
     ],
     "category": "SEED_OIL",
@@ -1407,11 +1407,11 @@ export const energyQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "No motivation",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Highly motivated",
-        "value": 10
+        "value": 5
       }
     ],
     "scoringWeight": 1.5,
@@ -1471,11 +1471,11 @@ export const energyQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Non-existent",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Very healthy",
-        "value": 10
+        "value": 5
       }
     ],
     "category": "HORMONAL",
@@ -1606,11 +1606,11 @@ export const energyQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "No stamina",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Excellent stamina",
-        "value": 10
+        "value": 5
       }
     ],
     "scoringWeight": 1.5,
@@ -1744,11 +1744,11 @@ export const energyQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Completely unsatisfied",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Completely satisfied",
-        "value": 10
+        "value": 5
       }
     ],
     "scoringWeight": 1.6,

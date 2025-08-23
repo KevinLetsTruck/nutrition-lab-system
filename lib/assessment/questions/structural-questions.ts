@@ -426,11 +426,11 @@ export const structuralQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Very poor",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Excellent",
-        "value": 10
+        "value": 5
       }
     ],
     "scoringWeight": 1.3,
@@ -450,11 +450,11 @@ export const structuralQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Very poor",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Excellent",
-        "value": 10
+        "value": 5
       }
     ],
     "scoringWeight": 1.4,
@@ -1065,11 +1065,11 @@ export const structuralQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Very poor",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Excellent",
-        "value": 10
+        "value": 5
       }
     ],
     "scoringWeight": 1.5,
@@ -1088,11 +1088,11 @@ export const structuralQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "No limitation",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Completely disabled",
-        "value": 10
+        "value": 5
       }
     ],
     "scoringWeight": 1.6,

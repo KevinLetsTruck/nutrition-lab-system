@@ -275,8 +275,8 @@ export default function AssessmentPage() {
         const highLabel = currentQuestion.options?.[1]?.label || "Strongly Agree";
         
         return (
-          <div className="space-y-4">
-            <div className="flex justify-between text-sm text-muted-foreground mb-2">
+          <div className="space-y-6">
+            <div className="flex justify-between text-sm text-muted-foreground">
               <span>{lowLabel}</span>
               <span>{highLabel}</span>
             </div>
@@ -284,17 +284,17 @@ export default function AssessmentPage() {
               value={answer.toString()}
               onValueChange={(value) => setAnswer(parseInt(value))}
             >
-              <div className="grid grid-cols-10 gap-2">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
-                  <div key={value} className="flex flex-col items-center">
+              <div className="grid grid-cols-5 gap-4">
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <div key={value} className="flex flex-col items-center space-y-2">
                     <RadioGroupItem
                       value={value.toString()}
                       id={`scale-${value}`}
-                      className="mb-1"
+                      className="h-6 w-6"
                     />
                     <Label
                       htmlFor={`scale-${value}`}
-                      className="cursor-pointer text-xs"
+                      className="cursor-pointer text-sm font-medium"
                     >
                       {value}
                     </Label>

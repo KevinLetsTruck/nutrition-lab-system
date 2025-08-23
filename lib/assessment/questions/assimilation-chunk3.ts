@@ -260,7 +260,7 @@ export const assimilationQuestionsChunk3: AssessmentQuestion[] = [
     scoringWeight: 1.5,
     scaleMin: "No connection",
     scaleMax: "Always worse with stress",
-    scale: { min: 0, max: 10 },
+    scale: { min: 1, max: 5 },
     clinicalRelevance: ["gut_brain_axis", "stress_response"]
   },
   {

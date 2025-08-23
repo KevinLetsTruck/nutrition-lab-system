@@ -888,11 +888,11 @@ export const transportQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Very poor",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Excellent",
-        "value": 10
+        "value": 5
       }
     ],
     "scoringWeight": 1.5,
@@ -912,11 +912,11 @@ export const transportQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Not concerned",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Very concerned",
-        "value": 10
+        "value": 5
       }
     ],
     "scoringWeight": 1.3,

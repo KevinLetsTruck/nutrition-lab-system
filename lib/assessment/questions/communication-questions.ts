@@ -324,11 +324,11 @@ export const communicationQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Very poor",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Excellent",
-        "value": 10
+        "value": 5
       }
     ],
     "scoringWeight": 1.5,
@@ -469,11 +469,11 @@ export const communicationQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Very poorly",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Very well",
-        "value": 10
+        "value": 5
       }
     ],
     "category": "STRESS",
@@ -1068,11 +1068,11 @@ export const communicationQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Very unsatisfied",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Very satisfied",
-        "value": 10
+        "value": 5
       }
     ],
     "scoringWeight": 1.6,

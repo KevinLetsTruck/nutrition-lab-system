@@ -132,7 +132,7 @@ export const assimilationQuestionsChunk4: AssessmentQuestion[] = [
     scoringWeight: 2.5,
     scaleMin: "No symptoms",
     scaleMax: "Severe, disabling",
-    scale: { min: 0, max: 10 },
+    scale: { min: 1, max: 5 },
     clinicalRelevance: ["overall_severity", "treatment_urgency"],
     triggerConditions: [
       {
@@ -151,7 +151,7 @@ export const assimilationQuestionsChunk4: AssessmentQuestion[] = [
     scoringWeight: 2.0,
     scaleMin: "No limitation",
     scaleMax: "Completely limited",
-    scale: { min: 0, max: 10 },
+    scale: { min: 1, max: 5 },
     clinicalRelevance: ["functional_impact", "quality_of_life"]
   },
   {
@@ -162,7 +162,7 @@ export const assimilationQuestionsChunk4: AssessmentQuestion[] = [
     scoringWeight: 1.0,
     scaleMin: "Not at all confident",
     scaleMax: "Very confident",
-    scale: { min: 0, max: 10 },
+    scale: { min: 1, max: 5 },
     clinicalRelevance: ["treatment_readiness", "patient_outlook"]
   }
 ];

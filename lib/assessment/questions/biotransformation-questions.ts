@@ -9,11 +9,11 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Not sensitive",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Extremely sensitive",
-        "value": 10
+        "value": 5
       }
     ],
     "scoringWeight": 1.7,
@@ -183,11 +183,11 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "No difference",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Much cleaner feeling",
-        "value": 10
+        "value": 5
       }
     ],
     "category": "SEED_OIL",
@@ -779,11 +779,11 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Not sensitive",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Extremely sensitive",
-        "value": 10
+        "value": 5
       }
     ],
     "scoringWeight": 1.3,
@@ -1227,11 +1227,11 @@ export const biotransformationQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Very low",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Extremely high",
-        "value": 10
+        "value": 5
       }
     ],
     "scoringWeight": 1.5,

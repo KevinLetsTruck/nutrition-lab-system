@@ -146,11 +146,11 @@ export const defenserepairQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "No inflammation",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Severe chronic inflammation",
-        "value": 10
+        "value": 5
       }
     ],
     "category": "IMMUNE",
@@ -670,11 +670,11 @@ export const defenserepairQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Very poor",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Excellent",
-        "value": 10
+        "value": 5
       }
     ],
     "category": "IMMUNE",
@@ -770,11 +770,11 @@ export const defenserepairQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Not sensitive",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Extremely sensitive",
-        "value": 10
+        "value": 5
       }
     ],
     "category": "IMMUNE",
@@ -869,11 +869,11 @@ export const defenserepairQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "No improvement",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Significant improvement",
-        "value": 10
+        "value": 5
       }
     ],
     "category": "SEED_OIL",
@@ -1077,11 +1077,11 @@ export const defenserepairQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "No stress",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Extreme stress",
-        "value": 10
+        "value": 5
       }
     ],
     "category": "IMMUNE",
@@ -1396,11 +1396,11 @@ export const defenserepairQuestions: AssessmentQuestion[] = [
     "options": [
       {
         "label": "Very poor",
-        "value": 0
+        "value": 1
       },
       {
         "label": "Excellent",
-        "value": 10
+        "value": 5
       }
     ],
     "category": "IMMUNE",
