@@ -4,12 +4,12 @@
 
 ### 1. Question Count Changes
 - **Started with**: 388 questions
-- **Ended with**: 379 questions
-- **Removed**: 9 questions total
+- **Ended with**: 375 questions
+- **Removed**: 13 questions total
   - 2 cholesterol questions
   - 4 duplicate digestive questions (including food sensitivity)
   - 1 duplicate bowel movement question  
-  - 2 overly direct seed oil questions
+  - 6 overly direct seed oil questions
 
 ### 2. YES/NO Questions Enhancement
 - Added "Unsure" option to all YES_NO questions
@@ -35,11 +35,15 @@
 - Fixed question numbering display
 
 ### 6. Seed Oil Questions Improvement
-- Reduced from 31 to 23 questions
+- Reduced from 31 to 19 questions (39% reduction)
 - Made questions subtle and non-leading
-- Removed direct questions about "seed oils"
+- Removed direct questions about "seed oils" or "vegetable oils"
+- Removed leading questions like:
+  - "Have you noticed improved digestion when avoiding seed oils?"
+  - "Do you notice changes in stool quality after eating foods high in vegetable oils?"
+  - "Do you get nauseous after eating foods cooked in vegetable oils?"
 - Integrated naturally into general health questions
-- Changed categories from SEED_OIL to appropriate health categories
+- Changed categories from SEED_OIL to appropriate health categories where possible
 
 ### 7. Duplicate Questions Removed
 1. **Heartburn/acid reflux** - kept only in ASSIMILATION
