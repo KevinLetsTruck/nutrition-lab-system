@@ -114,8 +114,8 @@ export const screeningQuestions: AssessmentQuestion[] = [
     ]
   },
 {
-    "id": "SCR_SO01",
-    "text": "How often do you eat fried foods from restaurants or fast food establishments?",
+    "id": "SCR011",
+    "text": "How often do you eat meals from restaurants or takeout?",
     "type": "FREQUENCY",
     "module": "SCREENING",
     "options": [
@@ -126,49 +126,33 @@ export const screeningQuestions: AssessmentQuestion[] = [
       },
       {
         "label": "1-2 times/month",
-        "score": 2,
+        "score": 1,
         "value": 1
       },
       {
         "label": "Weekly",
-        "score": 4,
+        "score": 2,
         "value": 2
       },
       {
         "label": "2-3 times/week",
-        "score": 7,
+        "score": 3,
         "value": 3
       },
       {
         "label": "Daily",
-        "score": 10,
+        "score": 4,
         "value": 4
       }
     ],
-    "category": "SEED_OIL",
-    "scoringWeight": 1.8,
+    "category": "LIFESTYLE",
+    "scoringWeight": 1.5,
     "labCorrelations": [
-      "F2-isoprostanes",
-      "4-HNE",
-      "CRP",
-      "Omega-6:3 ratio"
+      "CRP"
     ],
     "clinicalRelevance": [
-      "oxidative_stress",
-      "inflammation",
-      "mitochondrial_function"
-    ],
-    "triggerConditions": [
-      {
-        "operator": "gte",
-        "priority": "high",
-        "threshold": 3,
-        "triggersQuestions": [
-          "DIG_SO01",
-          "ENE_SO01",
-          "IMM_SO01"
-        ]
-      }
+      "dietary_quality",
+      "inflammation"
     ]
   },
 {
@@ -288,30 +272,46 @@ export const screeningQuestions: AssessmentQuestion[] = [
     ]
   },
 {
-    "id": "SCR_SO03",
-    "text": "Do you experience brain fog or mental fatigue after eating fried or processed foods?",
-    "type": "LIKERT_SCALE",
+    "id": "SCR012",
+    "text": "Do you experience brain fog or mental fatigue after meals?",
+    "type": "FREQUENCY",
     "module": "SCREENING",
     "options": [
       {
         "label": "Never",
-        "value": 0
+        "score": 0,
+        "value": "never"
       },
       {
-        "label": "Always, severely",
-        "value": 10
+        "label": "Occasionally",
+        "score": 1,
+        "value": "occasionally"
+      },
+      {
+        "label": "Sometimes",
+        "score": 2,
+        "value": "sometimes"
+      },
+      {
+        "label": "Often",
+        "score": 3,
+        "value": "often"
+      },
+      {
+        "label": "Always",
+        "score": 4,
+        "value": "always"
       }
     ],
-    "category": "SEED_OIL",
-    "scoringWeight": 1.6,
+    "category": "ENERGY",
+    "scoringWeight": 1.5,
     "labCorrelations": [
-      "4-HNE",
-      "MDA",
-      "Oxidized LDL"
+      "Blood sugar",
+      "Inflammatory markers"
     ],
     "clinicalRelevance": [
-      "neuroinflammation",
-      "oxidative_stress"
+      "postprandial_response",
+      "blood_sugar_regulation"
     ]
   },
 {
@@ -384,8 +384,8 @@ export const screeningQuestions: AssessmentQuestion[] = [
     ]
   },
 {
-    "id": "SCR_SO04",
-    "text": "How often do you consume packaged/processed foods (chips, crackers, cookies, etc.)?",
+    "id": "SCR013",
+    "text": "How often do you consume packaged snack foods (chips, crackers, cookies, etc.)?",
     "type": "FREQUENCY",
     "module": "SCREENING",
     "options": [
@@ -396,60 +396,73 @@ export const screeningQuestions: AssessmentQuestion[] = [
       },
       {
         "label": "Rarely",
-        "score": 2,
+        "score": 1,
         "value": 1
       },
       {
         "label": "Weekly",
-        "score": 4,
+        "score": 2,
         "value": 2
       },
       {
         "label": "Several times/week",
-        "score": 6,
+        "score": 3,
         "value": 3
       },
       {
         "label": "Daily",
-        "score": 9,
+        "score": 4,
         "value": 4
       }
     ],
-    "category": "SEED_OIL",
-    "helpText": "Most processed foods contain industrial seed oils",
-    "scoringWeight": 1.7,
+    "category": "LIFESTYLE",
+    "scoringWeight": 1.3,
     "clinicalRelevance": [
-      "oxidative_stress",
-      "AGE_formation",
-      "inflammation"
+      "dietary_quality",
+      "blood_sugar_control"
     ]
   },
 {
-    "id": "SCR_SO05",
-    "text": "Do you experience skin issues (acne, eczema, rashes) that worsen with fried/processed foods?",
-    "type": "LIKERT_SCALE",
+    "id": "SCR014",
+    "text": "Do you experience skin issues such as acne, eczema, or rashes?",
+    "type": "FREQUENCY",
     "module": "SCREENING",
     "options": [
       {
-        "label": "No skin issues",
-        "value": 0
+        "label": "Never",
+        "score": 0,
+        "value": "never"
       },
       {
-        "label": "Severe skin reactions",
-        "value": 10
+        "label": "Rarely",
+        "score": 1,
+        "value": "rarely"
+      },
+      {
+        "label": "Sometimes",
+        "score": 2,
+        "value": "sometimes"
+      },
+      {
+        "label": "Often",
+        "score": 3,
+        "value": "often"
+      },
+      {
+        "label": "Always",
+        "score": 4,
+        "value": "always"
       }
     ],
-    "category": "SEED_OIL",
-    "scoringWeight": 1.5,
+    "category": "IMMUNE",
+    "scoringWeight": 1.3,
     "labCorrelations": [
       "Food sensitivity panel",
-      "Zonulin",
       "Histamine"
     ],
     "clinicalRelevance": [
       "inflammation",
-      "gut_skin_axis",
-      "oxidative_stress"
+      "gut_skin_axis"
     ]
   },
 {
@@ -490,85 +503,6 @@ export const screeningQuestions: AssessmentQuestion[] = [
       "cell_membrane_integrity",
       "hormone_production",
       "vitamin_absorption"
-    ]
-  },
-{
-    "id": "SCR_SO07",
-    "text": "Do you check ingredient labels to avoid seed oils when shopping?",
-    "type": "MULTIPLE_CHOICE",
-    "module": "SCREENING",
-    "options": [
-      {
-        "label": "Always",
-        "score": 0,
-        "value": "always"
-      },
-      {
-        "label": "Sometimes",
-        "score": 3,
-        "value": "sometimes"
-      },
-      {
-        "label": "Rarely",
-        "score": 6,
-        "value": "rarely"
-      },
-      {
-        "label": "Never",
-        "score": 8,
-        "value": "never"
-      },
-      {
-        "label": "I don't know which oils to avoid",
-        "score": 7,
-        "value": "dont_know"
-      }
-    ],
-    "category": "SEED_OIL",
-    "scoringWeight": 1.4,
-    "clinicalRelevance": [
-      "dietary_awareness",
-      "inflammation_prevention"
-    ]
-  },
-{
-    "id": "SCR_SO08",
-    "text": "Have you noticed improved energy or reduced inflammation when avoiding seed oils?",
-    "type": "MULTIPLE_CHOICE",
-    "module": "SCREENING",
-    "options": [
-      {
-        "label": "Yes, significant improvement",
-        "score": 0,
-        "value": "yes_significant"
-      },
-      {
-        "label": "Yes, some improvement",
-        "score": 2,
-        "value": "yes_some"
-      },
-      {
-        "label": "No change noticed",
-        "score": 5,
-        "value": "no_change"
-      },
-      {
-        "label": "Never tried avoiding them",
-        "score": 7,
-        "value": "never_tried"
-      },
-      {
-        "label": "Feel worse when I avoid them",
-        "score": 3,
-        "value": "worse"
-      }
-    ],
-    "category": "SEED_OIL",
-    "helpText": "Your body's response to seed oil elimination can indicate metabolic health",
-    "scoringWeight": 1.6,
-    "clinicalRelevance": [
-      "metabolic_flexibility",
-      "inflammation_response"
     ]
   },
   // Include all additional screening questions (SCR033-SCR075)

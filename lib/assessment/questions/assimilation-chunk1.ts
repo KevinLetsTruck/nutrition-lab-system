@@ -1,6 +1,6 @@
 // ASSIMILATION Module Questions (Digestive System)
-// Total: 66 questions including 6 seed oil questions and 1 gateway question
-// This file contains questions 1-21 (including gateway)
+// Total: 64 questions including 1 gateway question
+// This file contains questions 1-19
 
 import { AssessmentQuestion } from '../types';
 
@@ -60,35 +60,41 @@ export const assimilationQuestionsChunk1: AssessmentQuestion[] = [
     labCorrelations: ["GI-MAP", "SIBO_breath_test"]
   },
   
-  // ========== SEED OIL DIGESTIVE IMPACT (2 questions) ==========
+  // ========== DIETARY TOLERANCE (2 questions) ==========
   {
-    id: "ASM_SO01",
+    id: "ASM_DT01",
     module: "ASSIMILATION",
-    category: "SEED_OIL",
-    text: "Do you experience digestive discomfort after eating fried foods?",
-    type: "LIKERT_SCALE",
-    scoringWeight: 1.8,
-    scaleMin: "Never",
-    scaleMax: "Always, severely",
-    scale: { min: 0, max: 10 },
-    clinicalRelevance: ["lipid_digestion", "gallbladder_function", "oxidative_stress"],
-    labCorrelations: ["lipase", "GGT", "oxidized_LDL"]
+    category: "DIGESTIVE",
+    text: "Are there specific types of foods that tend to cause digestive discomfort?",
+    type: "MULTI_SELECT",
+    options: [
+      { value: "dairy", label: "Dairy products", score: 2 },
+      { value: "gluten", label: "Wheat/gluten", score: 2 },
+      { value: "fatty_foods", label: "High-fat or fried foods", score: 2 },
+      { value: "spicy", label: "Spicy foods", score: 1 },
+      { value: "raw_veggies", label: "Raw vegetables", score: 1 },
+      { value: "beans", label: "Beans/legumes", score: 1 },
+      { value: "none", label: "No specific triggers", score: 0 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["food_sensitivities", "digestive_capacity"]
   },
   {
-    id: "ASM_SO02",
+    id: "ASM_DT02",
     module: "ASSIMILATION",
-    category: "SEED_OIL",
-    text: "How long after eating fried/processed foods do you feel digestive symptoms?",
+    category: "DIGESTIVE",
+    text: "How quickly do you typically notice digestive symptoms after eating?",
     type: "MULTIPLE_CHOICE",
     options: [
       { value: "immediate", label: "Within 30 minutes", score: 3 },
       { value: "1_2hrs", label: "1-2 hours", score: 2 },
       { value: "2_4hrs", label: "2-4 hours", score: 2 },
       { value: "next_day", label: "Next day", score: 1 },
-      { value: "no_symptoms", label: "No symptoms", score: 0 }
+      { value: "no_pattern", label: "No consistent pattern", score: 1 },
+      { value: "no_symptoms", label: "I don't have digestive symptoms", score: 0 }
     ],
-    scoringWeight: 1.5,
-    clinicalRelevance: ["digestive_timing", "inflammation_response"]
+    scoringWeight: 1.2,
+    clinicalRelevance: ["digestive_timing", "gut_motility"]
   },
 
   // ========== STOMACH ACID & DIGESTION (5 questions) ==========
