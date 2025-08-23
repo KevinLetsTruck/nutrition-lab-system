@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight, Plus, X } from "lucide-react";
-import { Autocomplete } from "@/components/ui/autocomplete";
+import { SimpleAutocomplete } from "@/components/ui/simple-autocomplete";
 import {
   commonMedications,
   commonSupplements,
@@ -401,7 +401,7 @@ export default function AssessmentIntakePage() {
                         <Label className="text-gray-400 text-sm">
                           Medication Name
                         </Label>
-                        <Autocomplete
+                        <SimpleAutocomplete
                           options={medicationOptions}
                           value={med.name}
                           onChange={(value, option) => {
@@ -492,7 +492,7 @@ export default function AssessmentIntakePage() {
                         <Label className="text-gray-400 text-sm">
                           Supplement Name
                         </Label>
-                        <Autocomplete
+                        <SimpleAutocomplete
                           options={supplementOptions}
                           value={supp.name}
                           onChange={(value, option) => {
