@@ -8,41 +8,50 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  password  String
-  role      String   @default("admin")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  password      String
+  role          String    @default("admin")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime?
+  rememberToken String?
 }
 
 model Client {
-  id            String         @id @default(cuid())
-  firstName     String
-  lastName      String
-  email         String         @unique
-  phone         String?
-  dateOfBirth   DateTime?
-  isTruckDriver Boolean        @default(true)
-  dotNumber     String?
-  cdlNumber     String?
-  healthGoals   Json?
-  medications   Json?
-  conditions    Json?
-  allergies     Json?
-  status        String         @default("active")
-  lastVisit     DateTime?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  gender        String?
-  assessments      Assessment[]
-  statuses         ClientStatus[]
-  documents        Document[]
-  notes            Note[]
-  protocols        Protocol[]
-  medicalDocuments MedicalDocument[]
-  clientAssessments ClientAssessment[]
+  id                     String             @id @default(cuid())
+  firstName              String
+  lastName               String
+  email                  String             @unique
+  phone                  String?
+  dateOfBirth            DateTime?
+  isTruckDriver          Boolean            @default(true)
+  dotNumber              String?
+  cdlNumber              String?
+  healthGoals            Json?
+  medications            Json?
+  conditions             Json?
+  allergies              Json?
+  status                 String             @default("active")
+  lastVisit              DateTime?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  gender                 String?
+  assessmentCompleted    Boolean            @default(false)
+  assessmentCompletedAt  DateTime?
+  emailVerificationToken String?
+  emailVerified          Boolean            @default(false)
+  lastLoginAt            DateTime?
+  password               String?
+  rememberToken          String?
+  assessments            Assessment[]
+  clientAssessments      ClientAssessment[]
+  statuses               ClientStatus[]
+  documents              Document[]
+  notes                  Note[]
+  protocols              Protocol[]
+  medicalDocuments       MedicalDocument[]
 }
 
 model Document {
@@ -335,6 +344,164 @@ model SystemMetrics {
   @@index([timestamp, intervalType])
 }
 
+model MedicalDocument {
+  id               String              @id @default(cuid())
+  clientId         String?             @map("client_id")
+  documentType     String              @map("document_type")
+  originalFileName String              @map("original_file_name")
+  s3Url            String?             @map("s3_url")
+  s3Key            String?             @map("s3_key")
+  uploadDate       DateTime            @default(now()) @map("upload_date")
+  status           MedicalDocStatus    @default(PENDING)
+  ocrText          String?             @map("ocr_text")
+  ocrConfidence    Float?              @map("ocr_confidence")
+  processedAt      DateTime?           @map("processed_at")
+  errorMessage     String?             @map("error_message")
+  metadata         Json?
+  analysis         MedicalDocAnalysis?
+  client           Client?             @relation(fields: [clientId], references: [id])
+  labValues        MedicalLabValue[]
+
+  @@index([clientId, uploadDate])
+  @@index([status])
+  @@map("medical_documents")
+}
+
+model MedicalLabValue {
+  id             String          @id @default(cuid())
+  documentId     String          @map("document_id")
+  testName       String          @map("test_name")
+  standardName   String?         @map("standard_name")
+  value          Float?
+  valueText      String?         @map("value_text")
+  unit           String?
+  referenceMin   Float?          @map("reference_min")
+  referenceMax   Float?          @map("reference_max")
+  functionalMin  Float?          @map("functional_min")
+  functionalMax  Float?          @map("functional_max")
+  optimalMin     Float?          @map("optimal_min")
+  optimalMax     Float?          @map("optimal_max")
+  flag           String?
+  collectionDate DateTime?       @map("collection_date")
+  labSource      String?         @map("lab_source")
+  confidence     Float?          @default(1.0)
+  document       MedicalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([testName])
+  @@index([standardName])
+  @@map("medical_lab_values")
+}
+
+model MedicalDocAnalysis {
+  id               String          @id @default(cuid())
+  documentId       String          @unique @map("document_id")
+  patterns         Json
+  rootCauses       Json?           @map("root_causes")
+  criticalValues   Json?           @map("critical_values")
+  functionalStatus Json?           @map("functional_status")
+  crossReferences  Json?           @map("cross_references")
+  trends           Json?
+  recommendations  Json?
+  createdAt        DateTime        @default(now()) @map("created_at")
+  document         MedicalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@map("medical_document_analyses")
+}
+
+model MedicalProcessingQueue {
+  id           String           @id @default(cuid())
+  documentId   String           @map("document_id")
+  jobType      String           @map("job_type")
+  priority     Int              @default(0)
+  status       MedicalJobStatus @default(QUEUED)
+  attempts     Int              @default(0)
+  maxAttempts  Int              @default(3) @map("max_attempts")
+  errorMessage String?          @map("error_message")
+  startedAt    DateTime?        @map("started_at")
+  completedAt  DateTime?        @map("completed_at")
+  createdAt    DateTime         @default(now()) @map("created_at")
+
+  @@index([status, priority])
+  @@map("medical_processing_queue")
+}
+
+model AssessmentTemplate {
+  id                String             @id @default(cuid())
+  name              String             @default("Functional Medicine Assessment v1.0")
+  version           String             @default("1.0.0")
+  questionBank      Json
+  modules           Json
+  scoringRules      Json
+  isActive          Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  clientAssessments ClientAssessment[]
+}
+
+model ClientAssessment {
+  id             String              @id @default(cuid())
+  clientId       String
+  templateId     String
+  currentModule  String              @default("SCREENING")
+  questionsAsked Int                 @default(0)
+  questionsSaved Int                 @default(0)
+  completionRate Float               @default(0)
+  aiContext      Json?
+  symptomProfile Json?
+  seedOilRisk    Json?
+  status         AssessmentStatus    @default(NOT_STARTED)
+  startedAt      DateTime?
+  lastActiveAt   DateTime?
+  completedAt    DateTime?
+  pausedAt       DateTime?
+  analysis       AssessmentAnalysis?
+  client         Client              @relation(fields: [clientId], references: [id])
+  template       AssessmentTemplate  @relation(fields: [templateId], references: [id])
+  responses      ClientResponse[]
+
+  @@index([clientId])
+  @@index([status])
+}
+
+model ClientResponse {
+  id              String           @id @default(cuid())
+  assessmentId    String
+  questionId      String
+  questionText    String
+  questionModule  String
+  responseType    String
+  responseValue   Json
+  responseText    String?
+  aiReasoning     String?
+  confidenceScore Float?
+  clinicalFlags   Json?
+  answeredAt      DateTime         @default(now())
+  assessment      ClientAssessment @relation(fields: [assessmentId], references: [id])
+
+  @@index([assessmentId])
+  @@index([questionId])
+}
+
+model AssessmentAnalysis {
+  id               String           @id @default(cuid())
+  assessmentId     String           @unique
+  overallScore     Float
+  nodeScores       Json
+  seedOilScore     Json
+  aiSummary        String
+  keyFindings      Json
+  riskFactors      Json
+  strengths        Json
+  primaryConcerns  Json
+  suggestedLabs    Json
+  labPredictions   Json
+  protocolPriority Json
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  assessment       ClientAssessment @relation(fields: [assessmentId], references: [id])
+}
+
 enum NoteType {
   INTERVIEW
   COACHING
@@ -494,97 +661,6 @@ enum StorageProvider {
   CLOUDINARY
 }
 
-// ====== MEDICAL DOCUMENT PROCESSING SYSTEM ======
-// New models for advanced medical document processing (separate from existing Document system)
-
-model MedicalDocument {
-  id               String               @id @default(cuid())
-  clientId         String?              @map("client_id")
-  documentType     String               @map("document_type")
-  originalFileName String               @map("original_file_name")
-  s3Url           String?              @map("s3_url")
-  s3Key           String?              @map("s3_key")
-  uploadDate      DateTime             @default(now()) @map("upload_date")
-  status          MedicalDocStatus     @default(PENDING)
-  ocrText         String?              @db.Text @map("ocr_text")
-  ocrConfidence   Float?               @map("ocr_confidence")
-  processedAt     DateTime?            @map("processed_at")
-  errorMessage    String?              @map("error_message")
-  metadata        Json?
-  
-  labValues       MedicalLabValue[]
-  analysis        MedicalDocAnalysis?
-  
-  // Links to your existing Client model
-  client          Client?              @relation(fields: [clientId], references: [id])
-  
-  @@index([clientId, uploadDate])
-  @@index([status])
-  @@map("medical_documents")
-}
-
-model MedicalLabValue {
-  id                String          @id @default(cuid())
-  documentId        String          @map("document_id")
-  testName          String          @map("test_name")
-  standardName      String?         @map("standard_name") // LOINC code or standard mapping
-  value             Float?
-  valueText         String?         @map("value_text") // For non-numeric results
-  unit              String?
-  referenceMin      Float?          @map("reference_min")
-  referenceMax      Float?          @map("reference_max")
-  functionalMin     Float?          @map("functional_min") // IFM/Kresser ranges
-  functionalMax     Float?          @map("functional_max")
-  optimalMin        Float?          @map("optimal_min")
-  optimalMax        Float?          @map("optimal_max")
-  flag              String?         // normal, high, low, critical
-  collectionDate    DateTime?       @map("collection_date")
-  labSource         String?         @map("lab_source") // LabCorp, Quest, etc.
-  confidence        Float?          @default(1.0)
-  
-  document          MedicalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  
-  @@index([documentId])
-  @@index([testName])
-  @@index([standardName])
-  @@map("medical_lab_values")
-}
-
-model MedicalDocAnalysis {
-  id               String          @id @default(cuid())
-  documentId       String          @unique @map("document_id")
-  patterns         Json            // Detected patterns with confidence scores
-  rootCauses       Json?           @map("root_causes")
-  criticalValues   Json?           @map("critical_values")
-  functionalStatus Json?           @map("functional_status")
-  crossReferences  Json?           @map("cross_references")
-  trends           Json?
-  recommendations  Json?
-  createdAt        DateTime        @default(now()) @map("created_at")
-  
-  document         MedicalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  
-  @@map("medical_document_analyses")
-}
-
-model MedicalProcessingQueue {
-  id            String              @id @default(cuid())
-  documentId    String              @map("document_id")
-  jobType       String              @map("job_type") // ocr, extraction, analysis
-  priority      Int                 @default(0)
-  status        MedicalJobStatus    @default(QUEUED)
-  attempts      Int                 @default(0)
-  maxAttempts   Int                 @default(3) @map("max_attempts")
-  errorMessage  String?             @map("error_message")
-  startedAt     DateTime?           @map("started_at")
-  completedAt   DateTime?           @map("completed_at")
-  createdAt     DateTime            @default(now()) @map("created_at")
-  
-  @@index([status, priority])
-  @@map("medical_processing_queue")
-}
-
-// New enums with unique names to avoid any conflicts
 enum MedicalDocStatus {
   PENDING
   PROCESSING
@@ -599,105 +675,6 @@ enum MedicalJobStatus {
   COMPLETED
   FAILED
   RETRY
-}
-
-// ====== FUNCTIONAL MEDICINE ASSESSMENT SYSTEM ======
-// Comprehensive assessment with seed oil integration
-
-model AssessmentTemplate {
-  id                String   @id @default(cuid())
-  name             String   @default("Functional Medicine Assessment v1.0")
-  version          String   @default("1.0.0")
-  questionBank     Json     // Stores all 400+ questions including seed oil
-  modules          Json     // Module structure and dependencies
-  scoringRules     Json     // AI scoring configuration
-  isActive         Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  
-  clientAssessments ClientAssessment[]
-}
-
-model ClientAssessment {
-  id              String   @id @default(cuid())
-  clientId        String
-  client          Client   @relation(fields: [clientId], references: [id])
-  templateId      String
-  template        AssessmentTemplate @relation(fields: [templateId], references: [id])
-  
-  // Progress tracking
-  currentModule   String   @default("SCREENING")
-  questionsAsked  Int      @default(0)
-  questionsSaved  Int      @default(0)
-  completionRate  Float    @default(0)
-  
-  // AI Context
-  aiContext       Json?    // Stores Claude's understanding
-  symptomProfile  Json?    // AI-generated symptom clustering
-  seedOilRisk     Json?    // Seed oil exposure and damage assessment
-  
-  // Status
-  status          AssessmentStatus @default(NOT_STARTED)
-  startedAt       DateTime?
-  lastActiveAt    DateTime?
-  completedAt     DateTime?
-  pausedAt        DateTime?
-  
-  responses       ClientResponse[]
-  analysis        AssessmentAnalysis?
-  
-  @@index([clientId])
-  @@index([status])
-}
-
-model ClientResponse {
-  id                String   @id @default(cuid())
-  assessmentId      String
-  assessment        ClientAssessment @relation(fields: [assessmentId], references: [id])
-  
-  questionId        String
-  questionText      String   @db.Text
-  questionModule    String
-  
-  responseType      String
-  responseValue     Json
-  responseText      String?  @db.Text
-  
-  // AI Metadata
-  aiReasoning       String?  @db.Text
-  confidenceScore   Float?
-  clinicalFlags     Json?    // Any red flags or concerns
-  
-  answeredAt        DateTime @default(now())
-  
-  @@index([assessmentId])
-  @@index([questionId])
-}
-
-model AssessmentAnalysis {
-  id                String   @id @default(cuid())
-  assessmentId      String   @unique
-  assessment        ClientAssessment @relation(fields: [assessmentId], references: [id])
-  
-  // Comprehensive Scores
-  overallScore      Float
-  nodeScores        Json     // Score for each functional node
-  seedOilScore      Json     // Specific seed oil damage assessment
-  
-  // AI Analysis
-  aiSummary         String   @db.Text
-  keyFindings       Json
-  riskFactors       Json
-  strengths         Json
-  
-  // Recommendations
-  primaryConcerns   Json
-  suggestedLabs     Json
-  labPredictions    Json
-  protocolPriority  Json
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
 }
 
 enum AssessmentStatus {

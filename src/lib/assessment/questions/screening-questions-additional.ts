@@ -1,0 +1,671 @@
+// Additional screening questions (continued from screening-questions.ts)
+// This file contains questions SCR033-SCR075 to complete the 75 total screening questions
+
+import { AssessmentQuestion } from '../types';
+
+export const additionalScreeningQuestionsPart2: AssessmentQuestion[] = [
+  // Digestive Overview (8 questions)
+  {
+    id: "SCR033",
+    module: "SCREENING",
+    category: "DIGESTIVE",
+    text: "How often do you experience bloating after meals?",
+    type: "FREQUENCY",
+    options: [
+      { value: "never", label: "Never", score: 0 },
+      { value: "rarely", label: "Rarely", score: 1 },
+      { value: "sometimes", label: "Sometimes", score: 2 },
+      { value: "often", label: "Often", score: 3 },
+      { value: "always", label: "Always", score: 4 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["digestive_dysfunction", "dysbiosis"],
+    triggerConditions: [
+      {
+        threshold: 3,
+        operator: "gte",
+        triggersModule: "ASSIMILATION",
+        priority: "high"
+      }
+    ]
+  },
+  {
+    id: "SCR034",
+    module: "SCREENING",
+    category: "DIGESTIVE",
+    text: "How many bowel movements do you have per day?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "less_than_1", label: "Less than 1 (constipated)", score: 3 },
+      { value: "1", label: "1 per day", score: 0 },
+      { value: "2", label: "2 per day", score: 0 },
+      { value: "3", label: "3 per day", score: 1 },
+      { value: "more_than_3", label: "More than 3", score: 2 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["bowel_function", "transit_time"]
+  },
+  {
+    id: "SCR035",
+    module: "SCREENING",
+    category: "DIGESTIVE",
+    text: "Do you experience heartburn or acid reflux?",
+    type: "FREQUENCY",
+    options: [
+      { value: "never", label: "Never", score: 0 },
+      { value: "monthly", label: "Monthly", score: 1 },
+      { value: "weekly", label: "Weekly", score: 2 },
+      { value: "few_times_week", label: "Few times per week", score: 3 },
+      { value: "daily", label: "Daily", score: 4 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["stomach_acid", "esophageal_health"]
+  },
+  {
+    id: "SCR036",
+    module: "SCREENING",
+    text: "Have you noticed undigested food in your stool?",
+    type: "YES_NO",
+    options: [
+      { value: "yes", label: "Yes", score: 3 },
+      { value: "no", label: "No", score: 0 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["enzyme_deficiency", "malabsorption"]
+  },
+  {
+    id: "SCR037",
+    module: "SCREENING",
+    text: "Do you have food sensitivities or intolerances?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "none", label: "None", score: 0 },
+      { value: "1_2", label: "1-2 foods", score: 1 },
+      { value: "3_5", label: "3-5 foods", score: 2 },
+      { value: "6_10", label: "6-10 foods", score: 3 },
+      { value: "many", label: "Many foods (>10)", score: 4 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["intestinal_permeability", "immune_activation"]
+  },
+  {
+    id: "SCR038",
+    module: "SCREENING",
+    text: "How soon after eating do you feel hungry again?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "less_1hr", label: "Less than 1 hour", score: 3 },
+      { value: "1_2hrs", label: "1-2 hours", score: 2 },
+      { value: "2_3hrs", label: "2-3 hours", score: 1 },
+      { value: "3_4hrs", label: "3-4 hours", score: 0 },
+      { value: "over_4hrs", label: "Over 4 hours", score: 0 }
+    ],
+    scoringWeight: 1.0,
+    clinicalRelevance: ["blood_sugar_regulation", "satiety_signals"]
+  },
+  {
+    id: "SCR039",
+    module: "SCREENING",
+    text: "Do you experience abdominal pain or cramping?",
+    type: "FREQUENCY",
+    options: [
+      { value: "never", label: "Never", score: 0 },
+      { value: "rarely", label: "Rarely", score: 1 },
+      { value: "sometimes", label: "Sometimes", score: 2 },
+      { value: "often", label: "Often", score: 3 },
+      { value: "daily", label: "Daily", score: 4 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["intestinal_inflammation", "IBS_indicators"]
+  },
+  {
+    id: "SCR040",
+    module: "SCREENING",
+    text: "Have you taken antibiotics in the past year?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "none", label: "None", score: 0 },
+      { value: "once", label: "Once", score: 1 },
+      { value: "2_3_times", label: "2-3 times", score: 2 },
+      { value: "4_5_times", label: "4-5 times", score: 3 },
+      { value: "more_than_5", label: "More than 5 times", score: 4 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["microbiome_disruption", "dysbiosis_risk"]
+  },
+
+  // Immune Status (7 questions)
+  {
+    id: "SCR041",
+    module: "SCREENING",
+    category: "IMMUNE",
+    text: "How often do you get sick (colds, flu, infections)?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "never", label: "Never/Rarely", score: 0 },
+      { value: "1_2_year", label: "1-2 times per year", score: 0 },
+      { value: "3_4_year", label: "3-4 times per year", score: 2 },
+      { value: "5_6_year", label: "5-6 times per year", score: 3 },
+      { value: "monthly", label: "Monthly or more", score: 4 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["immune_function", "infection_susceptibility"],
+    triggerConditions: [
+      {
+        threshold: 3,
+        operator: "gte",
+        triggersModule: "DEFENSE_REPAIR",
+        priority: "high"
+      }
+    ]
+  },
+  {
+    id: "SCR042",
+    module: "SCREENING",
+    text: "How long does it typically take you to recover from illness?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "few_days", label: "Few days", score: 0 },
+      { value: "week", label: "About a week", score: 1 },
+      { value: "2_weeks", label: "2 weeks", score: 2 },
+      { value: "3_weeks", label: "3 weeks", score: 3 },
+      { value: "month_plus", label: "A month or more", score: 4 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["recovery_capacity", "immune_resilience"]
+  },
+  {
+    id: "SCR043",
+    module: "SCREENING",
+    text: "Do you have any known autoimmune conditions?",
+    type: "YES_NO",
+    options: [
+      { value: "yes", label: "Yes", score: 4 },
+      { value: "no", label: "No", score: 0 }
+    ],
+    scoringWeight: 2.0,
+    clinicalRelevance: ["autoimmune_status", "immune_dysregulation"]
+  },
+  {
+    id: "SCR044",
+    module: "SCREENING",
+    text: "Do you have environmental allergies (pollen, dust, mold)?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "none", label: "None", score: 0 },
+      { value: "mild", label: "Mild", score: 1 },
+      { value: "moderate", label: "Moderate", score: 2 },
+      { value: "severe", label: "Severe", score: 3 }
+    ],
+    scoringWeight: 1.0,
+    clinicalRelevance: ["allergic_response", "histamine_issues"]
+  },
+  {
+    id: "SCR045",
+    module: "SCREENING",
+    text: "How quickly do wounds or cuts heal?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "very_fast", label: "Very fast (2-3 days)", score: 0 },
+      { value: "normal", label: "Normal (4-7 days)", score: 0 },
+      { value: "slow", label: "Slow (1-2 weeks)", score: 2 },
+      { value: "very_slow", label: "Very slow (>2 weeks)", score: 3 }
+    ],
+    scoringWeight: 1.0,
+    clinicalRelevance: ["wound_healing", "tissue_repair"]
+  },
+  {
+    id: "SCR046",
+    module: "SCREENING",
+    text: "Have you had COVID-19?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "no", label: "No", score: 0 },
+      { value: "yes_mild", label: "Yes, mild case", score: 1 },
+      { value: "yes_moderate", label: "Yes, moderate case", score: 2 },
+      { value: "yes_severe", label: "Yes, severe case", score: 3 },
+      { value: "yes_long_covid", label: "Yes, with long COVID", score: 4 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["post_viral_syndrome", "long_covid"]
+  },
+  {
+    id: "SCR047",
+    module: "SCREENING",
+    text: "Do you have swollen lymph nodes?",
+    type: "FREQUENCY",
+    options: [
+      { value: "never", label: "Never", score: 0 },
+      { value: "rarely", label: "Rarely", score: 1 },
+      { value: "sometimes", label: "Sometimes", score: 2 },
+      { value: "often", label: "Often", score: 3 },
+      { value: "always", label: "Always", score: 4 }
+    ],
+    scoringWeight: 1.0,
+    clinicalRelevance: ["lymphatic_congestion", "chronic_infection"]
+  },
+
+  // Hormonal Screening (7 questions)
+  {
+    id: "SCR048",
+    module: "SCREENING",
+    category: "HORMONAL",
+    text: "Rate your overall stress level",
+    type: "LIKERT_SCALE",
+    scoringWeight: 2.0,
+    scaleMin: "No stress",
+    scaleMax: "Overwhelming stress",
+    scale: { min: 0, max: 10 },
+    clinicalRelevance: ["cortisol_dysregulation", "HPA_axis"],
+    labCorrelations: ["cortisol", "DHEA"],
+    triggerConditions: [
+      {
+        threshold: 7,
+        operator: "gte",
+        triggersModule: "COMMUNICATION",
+        priority: "high"
+      }
+    ]
+  },
+  {
+    id: "SCR049",
+    module: "SCREENING",
+    text: "Do you have difficulty falling asleep?",
+    type: "FREQUENCY",
+    options: [
+      { value: "never", label: "Never", score: 0 },
+      { value: "rarely", label: "Rarely", score: 1 },
+      { value: "sometimes", label: "Sometimes", score: 2 },
+      { value: "often", label: "Often", score: 3 },
+      { value: "nightly", label: "Every night", score: 4 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["melatonin_production", "cortisol_rhythm"]
+  },
+  {
+    id: "SCR050",
+    module: "SCREENING",
+    text: "Do you wake up during the night?",
+    type: "FREQUENCY",
+    options: [
+      { value: "never", label: "Never", score: 0 },
+      { value: "rarely", label: "Rarely", score: 1 },
+      { value: "1_2_times", label: "1-2 times per night", score: 2 },
+      { value: "3_4_times", label: "3-4 times per night", score: 3 },
+      { value: "many_times", label: "Many times", score: 4 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["sleep_maintenance", "blood_sugar_drops"]
+  },
+  {
+    id: "SCR051",
+    module: "SCREENING",
+    text: "Have you noticed changes in your libido?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "increased", label: "Increased", score: 0 },
+      { value: "normal", label: "No change", score: 0 },
+      { value: "slightly_decreased", label: "Slightly decreased", score: 2 },
+      { value: "significantly_decreased", label: "Significantly decreased", score: 3 },
+      { value: "absent", label: "Absent", score: 4 }
+    ],
+    scoringWeight: 1.0,
+    clinicalRelevance: ["sex_hormones", "thyroid_function"]
+  },
+  {
+    id: "SCR052",
+    module: "SCREENING",
+    text: "Do you feel too hot or too cold compared to others?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "normal", label: "Normal temperature", score: 0 },
+      { value: "always_cold", label: "Always cold", score: 2 },
+      { value: "always_hot", label: "Always hot", score: 2 },
+      { value: "fluctuates", label: "Temperature fluctuates", score: 3 }
+    ],
+    scoringWeight: 1.0,
+    clinicalRelevance: ["thyroid_function", "metabolic_rate"]
+  },
+  {
+    id: "SCR053",
+    module: "SCREENING",
+    text: "For women: Are your menstrual cycles regular?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "na", label: "Not applicable", score: 0 },
+      { value: "regular", label: "Regular (26-32 days)", score: 0 },
+      { value: "irregular", label: "Irregular", score: 2 },
+      { value: "absent", label: "Absent/Menopausal", score: 1 },
+      { value: "heavy", label: "Heavy bleeding", score: 2 },
+      { value: "painful", label: "Very painful", score: 2 }
+    ],
+    scoringWeight: 1.0,
+    clinicalRelevance: ["female_hormones", "reproductive_health"]
+  },
+  {
+    id: "SCR054",
+    module: "SCREENING",
+    text: "Do you experience mood swings?",
+    type: "FREQUENCY",
+    options: [
+      { value: "never", label: "Never", score: 0 },
+      { value: "rarely", label: "Rarely", score: 1 },
+      { value: "sometimes", label: "Sometimes", score: 2 },
+      { value: "often", label: "Often", score: 3 },
+      { value: "daily", label: "Daily", score: 4 }
+    ],
+    scoringWeight: 1.0,
+    clinicalRelevance: ["neurotransmitter_balance", "hormone_fluctuations"]
+  },
+
+  // Metabolic Indicators (6 questions)
+  {
+    id: "SCR055",
+    module: "SCREENING",
+    category: "METABOLIC",
+    text: "Have you experienced unexplained weight changes?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "none", label: "No change", score: 0 },
+      { value: "loss_5_10", label: "Lost 5-10 lbs", score: 2 },
+      { value: "loss_over_10", label: "Lost >10 lbs", score: 3 },
+      { value: "gain_5_10", label: "Gained 5-10 lbs", score: 2 },
+      { value: "gain_over_10", label: "Gained >10 lbs", score: 3 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["metabolic_dysfunction", "thyroid_issues"]
+  },
+  {
+    id: "SCR056",
+    module: "SCREENING",
+    text: "Do you crave sugar or carbohydrates?",
+    type: "LIKERT_SCALE",
+    scoringWeight: 1.5,
+    scaleMin: "Never",
+    scaleMax: "Intense daily cravings",
+    scale: { min: 0, max: 10 },
+    clinicalRelevance: ["blood_sugar_imbalance", "candida"],
+    seedOilRelevant: true
+  },
+  {
+    id: "SCR057",
+    module: "SCREENING",
+    text: "Do you get shaky, weak, or irritable between meals?",
+    type: "FREQUENCY",
+    options: [
+      { value: "never", label: "Never", score: 0 },
+      { value: "rarely", label: "Rarely", score: 1 },
+      { value: "sometimes", label: "Sometimes", score: 2 },
+      { value: "often", label: "Often", score: 3 },
+      { value: "always", label: "Always", score: 4 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["hypoglycemia", "insulin_resistance"]
+  },
+  {
+    id: "SCR058",
+    module: "SCREENING",
+    text: "Do you have high cholesterol or triglycerides?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "no", label: "No", score: 0 },
+      { value: "borderline", label: "Borderline high", score: 2 },
+      { value: "high", label: "High", score: 3 },
+      { value: "very_high", label: "Very high", score: 4 },
+      { value: "unknown", label: "Don't know", score: 1 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["lipid_metabolism", "cardiovascular_risk"],
+    seedOilRelevant: true
+  },
+  {
+    id: "SCR059",
+    module: "SCREENING",
+    text: "Do you have diabetes or pre-diabetes?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "no", label: "No", score: 0 },
+      { value: "pre_diabetes", label: "Pre-diabetes", score: 3 },
+      { value: "type_2", label: "Type 2 diabetes", score: 4 },
+      { value: "type_1", label: "Type 1 diabetes", score: 4 },
+      { value: "gestational", label: "Gestational diabetes history", score: 2 }
+    ],
+    scoringWeight: 2.0,
+    clinicalRelevance: ["glucose_metabolism", "insulin_function"]
+  },
+  {
+    id: "SCR060",
+    module: "SCREENING",
+    text: "Where do you tend to gain weight?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "dont_gain", label: "Don't gain easily", score: 0 },
+      { value: "evenly", label: "Evenly distributed", score: 1 },
+      { value: "belly", label: "Belly/midsection", score: 3 },
+      { value: "hips_thighs", label: "Hips and thighs", score: 2 },
+      { value: "upper_body", label: "Upper body", score: 2 }
+    ],
+    scoringWeight: 1.0,
+    clinicalRelevance: ["insulin_resistance", "cortisol_patterns"]
+  },
+
+  // Environmental Exposures (6 questions)
+  {
+    id: "SCR061",
+    module: "SCREENING",
+    category: "TOXIC_BURDEN",
+    text: "Have you been exposed to mold or water-damaged buildings?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "never", label: "Never", score: 0 },
+      { value: "past", label: "In the past", score: 2 },
+      { value: "current_minor", label: "Currently, minor", score: 3 },
+      { value: "current_major", label: "Currently, significant", score: 4 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["mold_exposure", "biotoxin_illness"],
+    triggerConditions: [
+      {
+        threshold: 3,
+        operator: "gte",
+        triggersModule: "BIOTRANSFORMATION",
+        priority: "high"
+      }
+    ]
+  },
+  {
+    id: "SCR062",
+    module: "SCREENING",
+    text: "Are you sensitive to chemicals, perfumes, or smoke?",
+    type: "LIKERT_SCALE",
+    scoringWeight: 1.5,
+    scaleMin: "Not sensitive",
+    scaleMax: "Extremely sensitive",
+    scale: { min: 0, max: 10 },
+    clinicalRelevance: ["chemical_sensitivity", "detox_capacity"]
+  },
+  {
+    id: "SCR063",
+    module: "SCREENING",
+    text: "Do you work with or around chemicals?",
+    type: "YES_NO",
+    options: [
+      { value: "yes", label: "Yes", score: 3 },
+      { value: "no", label: "No", score: 0 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["occupational_exposure", "toxic_burden"]
+  },
+  {
+    id: "SCR064",
+    module: "SCREENING",
+    text: "How many amalgam (silver) fillings do you have?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "none", label: "None", score: 0 },
+      { value: "1_2", label: "1-2", score: 1 },
+      { value: "3_5", label: "3-5", score: 2 },
+      { value: "6_10", label: "6-10", score: 3 },
+      { value: "over_10", label: "More than 10", score: 4 }
+    ],
+    scoringWeight: 1.0,
+    clinicalRelevance: ["mercury_exposure", "heavy_metals"]
+  },
+  {
+    id: "SCR065",
+    module: "SCREENING",
+    text: "Rate the quality of your drinking water",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "filtered", label: "Filtered/Purified", score: 0 },
+      { value: "bottled", label: "Bottled", score: 1 },
+      { value: "tap_good", label: "Tap - good quality", score: 1 },
+      { value: "tap_poor", label: "Tap - poor quality", score: 3 },
+      { value: "well", label: "Well water", score: 2 }
+    ],
+    scoringWeight: 1.0,
+    clinicalRelevance: ["water_quality", "contaminant_exposure"]
+  },
+  {
+    id: "SCR066",
+    module: "SCREENING",
+    text: "Are you bothered by electromagnetic fields (WiFi, cell phones)?",
+    type: "YES_NO",
+    options: [
+      { value: "yes", label: "Yes", score: 2 },
+      { value: "no", label: "No", score: 0 }
+    ],
+    scoringWeight: 0.5,
+    clinicalRelevance: ["EMF_sensitivity", "nervous_system"]
+  },
+
+  // Stress & Mental Health (5 questions)
+  {
+    id: "SCR067",
+    module: "SCREENING",
+    category: "STRESS",
+    text: "Do you feel anxious or worried?",
+    type: "FREQUENCY",
+    options: [
+      { value: "never", label: "Never", score: 0 },
+      { value: "rarely", label: "Rarely", score: 1 },
+      { value: "sometimes", label: "Sometimes", score: 2 },
+      { value: "often", label: "Often", score: 3 },
+      { value: "always", label: "Always", score: 4 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["anxiety", "GABA_balance"]
+  },
+  {
+    id: "SCR068",
+    module: "SCREENING",
+    text: "Do you feel depressed or hopeless?",
+    type: "FREQUENCY",
+    options: [
+      { value: "never", label: "Never", score: 0 },
+      { value: "rarely", label: "Rarely", score: 1 },
+      { value: "sometimes", label: "Sometimes", score: 2 },
+      { value: "often", label: "Often", score: 3 },
+      { value: "always", label: "Always", score: 4 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["depression", "serotonin_balance"]
+  },
+  {
+    id: "SCR069",
+    module: "SCREENING",
+    text: "Do you have trouble concentrating or focusing?",
+    type: "FREQUENCY",
+    options: [
+      { value: "never", label: "Never", score: 0 },
+      { value: "rarely", label: "Rarely", score: 1 },
+      { value: "sometimes", label: "Sometimes", score: 2 },
+      { value: "often", label: "Often", score: 3 },
+      { value: "always", label: "Always", score: 4 }
+    ],
+    scoringWeight: 1.0,
+    clinicalRelevance: ["cognitive_function", "dopamine_balance"]
+  },
+  {
+    id: "SCR070",
+    module: "SCREENING",
+    text: "Have you experienced significant trauma or loss?",
+    type: "YES_NO",
+    options: [
+      { value: "yes", label: "Yes", score: 3 },
+      { value: "no", label: "No", score: 0 }
+    ],
+    scoringWeight: 1.0,
+    clinicalRelevance: ["trauma_history", "stress_response"]
+  },
+  {
+    id: "SCR071",
+    module: "SCREENING",
+    text: "How well do you handle stress?",
+    type: "LIKERT_SCALE",
+    scoringWeight: 1.0,
+    scaleMin: "Very poorly",
+    scaleMax: "Very well",
+    scale: { min: 0, max: 10 },
+    clinicalRelevance: ["stress_resilience", "coping_capacity"]
+  },
+
+  // Truck Driver Specific (4 questions)
+  {
+    id: "SCR072",
+    module: "SCREENING",
+    text: "Are you a commercial driver requiring DOT medical certification?",
+    type: "YES_NO",
+    options: [
+      { value: "yes", label: "Yes", score: 1 },
+      { value: "no", label: "No", score: 0 }
+    ],
+    scoringWeight: 0.5,
+    clinicalRelevance: ["DOT_compliance", "occupational_health"]
+  },
+  {
+    id: "SCR073",
+    module: "SCREENING",
+    text: "How many hours do you typically drive per day?",
+    type: "MULTIPLE_CHOICE",
+    options: [
+      { value: "none", label: "I don't drive commercially", score: 0 },
+      { value: "less_4", label: "Less than 4 hours", score: 1 },
+      { value: "4_8", label: "4-8 hours", score: 2 },
+      { value: "8_11", label: "8-11 hours", score: 3 },
+      { value: "over_11", label: "Over 11 hours", score: 4 }
+    ],
+    scoringWeight: 1.0,
+    clinicalRelevance: ["sedentary_time", "circulation_risk"]
+  },
+  {
+    id: "SCR074",
+    module: "SCREENING",
+    text: "Do you snore or have you been told you stop breathing during sleep?",
+    type: "YES_NO",
+    options: [
+      { value: "yes", label: "Yes", score: 3 },
+      { value: "no", label: "No", score: 0 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["sleep_apnea", "DOT_screening"]
+  },
+  {
+    id: "SCR075",
+    module: "SCREENING",
+    text: "How often do you eat at truck stops or fast food?",
+    type: "FREQUENCY",
+    options: [
+      { value: "never", label: "Never", score: 0 },
+      { value: "rarely", label: "Rarely", score: 1 },
+      { value: "weekly", label: "Weekly", score: 2 },
+      { value: "few_times_week", label: "Few times per week", score: 3 },
+      { value: "daily", label: "Daily", score: 4 }
+    ],
+    scoringWeight: 1.5,
+    clinicalRelevance: ["dietary_quality", "seed_oil_exposure"],
+    seedOilRelevant: true
+  }
+];
+
+export const additionalScreeningQuestions = additionalScreeningQuestionsPart2;

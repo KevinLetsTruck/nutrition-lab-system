@@ -1,0 +1,566 @@
+[
+  {
+    "id": "SCR001",
+    "text": "How would you rate your overall energy level throughout the day?",
+    "type": "LIKERT_SCALE",
+    "module": "SCREENING",
+    "options": [
+      {
+        "label": "No energy - exhausted all day",
+        "value": 0
+      },
+      {
+        "label": "Abundant energy all day",
+        "value": 10
+      }
+    ],
+    "scoringWeight": 1.5,
+    "labCorrelations": [
+      "TSH",
+      "Free T3",
+      "Cortisol",
+      "Ferritin"
+    ],
+    "clinicalRelevance": [
+      "mitochondrial_function",
+      "adrenal_health",
+      "thyroid_function"
+    ],
+    "triggerConditions": [
+      {
+        "operator": "lte",
+        "priority": "high",
+        "threshold": 4,
+        "triggersModule": "ENERGY"
+      }
+    ]
+  },
+  {
+    "id": "SCR_SO01",
+    "text": "How often do you eat fried foods from restaurants or fast food establishments?",
+    "type": "FREQUENCY",
+    "module": "SCREENING",
+    "options": [
+      {
+        "label": "Never",
+        "score": 0,
+        "value": 0
+      },
+      {
+        "label": "1-2 times/month",
+        "score": 2,
+        "value": 1
+      },
+      {
+        "label": "Weekly",
+        "score": 4,
+        "value": 2
+      },
+      {
+        "label": "2-3 times/week",
+        "score": 7,
+        "value": 3
+      },
+      {
+        "label": "Daily",
+        "score": 10,
+        "value": 4
+      }
+    ],
+    "category": "SEED_OIL",
+    "scoringWeight": 1.8,
+    "labCorrelations": [
+      "F2-isoprostanes",
+      "4-HNE",
+      "CRP",
+      "Omega-6:3 ratio"
+    ],
+    "clinicalRelevance": [
+      "oxidative_stress",
+      "inflammation",
+      "mitochondrial_function"
+    ],
+    "triggerConditions": [
+      {
+        "operator": "gte",
+        "priority": "high",
+        "threshold": 3,
+        "triggersQuestions": [
+          "DIG_SO01",
+          "ENE_SO01",
+          "IMM_SO01"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SCR_SO02",
+    "text": "Which cooking oils do you primarily use at home? (select all that apply)",
+    "type": "MULTI_SELECT",
+    "module": "SCREENING",
+    "options": [
+      {
+        "label": "Olive oil",
+        "score": 0,
+        "value": "olive"
+      },
+      {
+        "label": "Coconut oil",
+        "score": 0,
+        "value": "coconut"
+      },
+      {
+        "label": "Butter/Ghee",
+        "score": 0,
+        "value": "butter"
+      },
+      {
+        "label": "Avocado oil",
+        "score": 0,
+        "value": "avocado"
+      },
+      {
+        "label": "Canola oil",
+        "score": 3,
+        "value": "canola"
+      },
+      {
+        "label": "Vegetable oil",
+        "score": 3,
+        "value": "vegetable"
+      },
+      {
+        "label": "Sunflower oil",
+        "score": 3,
+        "value": "sunflower"
+      },
+      {
+        "label": "Corn oil",
+        "score": 3,
+        "value": "corn"
+      },
+      {
+        "label": "Soybean oil",
+        "score": 3,
+        "value": "soybean"
+      },
+      {
+        "label": "Safflower oil",
+        "score": 3,
+        "value": "safflower"
+      },
+      {
+        "label": "Grapeseed oil",
+        "score": 3,
+        "value": "grapeseed"
+      }
+    ],
+    "category": "SEED_OIL",
+    "scoringWeight": 2,
+    "clinicalRelevance": [
+      "lipid_peroxidation",
+      "cell_membrane_health"
+    ]
+  },
+  {
+    "id": "SCR_SO03",
+    "text": "Do you experience brain fog or mental fatigue after eating fried or processed foods?",
+    "type": "LIKERT_SCALE",
+    "module": "SCREENING",
+    "options": [
+      {
+        "label": "Never",
+        "value": 0
+      },
+      {
+        "label": "Always, severely",
+        "value": 10
+      }
+    ],
+    "category": "SEED_OIL",
+    "scoringWeight": 1.6,
+    "labCorrelations": [
+      "4-HNE",
+      "MDA",
+      "Oxidized LDL"
+    ],
+    "clinicalRelevance": [
+      "neuroinflammation",
+      "oxidative_stress"
+    ]
+  },
+  {
+    "id": "SCR002",
+    "text": "How often do you experience bloating or abdominal discomfort?",
+    "type": "FREQUENCY",
+    "module": "SCREENING",
+    "options": [
+      {
+        "label": "Never",
+        "value": 0
+      },
+      {
+        "label": "Rarely (1-2 times/month)",
+        "value": 1
+      },
+      {
+        "label": "Sometimes (weekly)",
+        "value": 2
+      },
+      {
+        "label": "Often (3-4 times/week)",
+        "value": 3
+      },
+      {
+        "label": "Daily",
+        "value": 4
+      }
+    ],
+    "category": "DIGESTIVE",
+    "scoringWeight": 1.4,
+    "labCorrelations": [
+      "GI-MAP",
+      "SIBO breath test",
+      "Zonulin"
+    ],
+    "clinicalRelevance": [
+      "dysbiosis",
+      "SIBO",
+      "food_sensitivities"
+    ],
+    "triggerConditions": [
+      {
+        "operator": "gte",
+        "threshold": 3,
+        "triggersModule": "ASSIMILATION"
+      }
+    ]
+  },
+  {
+    "id": "SCR003",
+    "text": "How would you rate your sleep quality?",
+    "type": "LIKERT_SCALE",
+    "module": "SCREENING",
+    "options": [
+      {
+        "label": "Very poor - wake up exhausted",
+        "value": 0
+      },
+      {
+        "label": "Excellent - wake up refreshed",
+        "value": 10
+      }
+    ],
+    "category": "LIFESTYLE",
+    "scoringWeight": 1.6,
+    "labCorrelations": [
+      "Cortisol rhythm",
+      "Melatonin",
+      "DHEA"
+    ],
+    "clinicalRelevance": [
+      "circadian_rhythm",
+      "HPA_axis",
+      "melatonin_production"
+    ]
+  },
+  {
+    "id": "SCR_SO04",
+    "text": "How often do you consume packaged/processed foods (chips, crackers, cookies, etc.)?",
+    "type": "FREQUENCY",
+    "module": "SCREENING",
+    "options": [
+      {
+        "label": "Never",
+        "score": 0,
+        "value": 0
+      },
+      {
+        "label": "Rarely",
+        "score": 2,
+        "value": 1
+      },
+      {
+        "label": "Weekly",
+        "score": 4,
+        "value": 2
+      },
+      {
+        "label": "Several times/week",
+        "score": 6,
+        "value": 3
+      },
+      {
+        "label": "Daily",
+        "score": 9,
+        "value": 4
+      }
+    ],
+    "category": "SEED_OIL",
+    "helpText": "Most processed foods contain industrial seed oils",
+    "scoringWeight": 1.7,
+    "clinicalRelevance": [
+      "oxidative_stress",
+      "AGE_formation",
+      "inflammation"
+    ]
+  },
+  {
+    "id": "SCR004",
+    "text": "Do you experience joint pain or stiffness?",
+    "type": "FREQUENCY",
+    "module": "SCREENING",
+    "options": [
+      {
+        "label": "Never",
+        "value": 0
+      },
+      {
+        "label": "Occasionally",
+        "value": 1
+      },
+      {
+        "label": "Frequently",
+        "value": 2
+      },
+      {
+        "label": "Most days",
+        "value": 3
+      },
+      {
+        "label": "Constantly",
+        "value": 4
+      }
+    ],
+    "scoringWeight": 1.4,
+    "labCorrelations": [
+      "CRP",
+      "ESR",
+      "Anti-CCP",
+      "RF"
+    ],
+    "clinicalRelevance": [
+      "inflammation",
+      "autoimmunity",
+      "oxidative_stress"
+    ]
+  },
+  {
+    "id": "SCR005",
+    "text": "Have you noticed changes in your weight without changes in diet or exercise?",
+    "type": "YES_NO",
+    "module": "SCREENING",
+    "options": [
+      {
+        "label": "Yes",
+        "score": 5,
+        "value": "yes"
+      },
+      {
+        "label": "No",
+        "score": 0,
+        "value": "no"
+      }
+    ],
+    "category": "HORMONAL",
+    "scoringWeight": 1.3,
+    "labCorrelations": [
+      "TSH",
+      "Free T4",
+      "Fasting insulin",
+      "HbA1c"
+    ],
+    "clinicalRelevance": [
+      "thyroid_function",
+      "insulin_resistance",
+      "cortisol_dysregulation"
+    ]
+  },
+  {
+    "id": "SCR_SO05",
+    "text": "Do you experience skin issues (acne, eczema, rashes) that worsen with fried/processed foods?",
+    "type": "LIKERT_SCALE",
+    "module": "SCREENING",
+    "options": [
+      {
+        "label": "No skin issues",
+        "value": 0
+      },
+      {
+        "label": "Severe skin reactions",
+        "value": 10
+      }
+    ],
+    "category": "SEED_OIL",
+    "scoringWeight": 1.5,
+    "labCorrelations": [
+      "Food sensitivity panel",
+      "Zonulin",
+      "Histamine"
+    ],
+    "clinicalRelevance": [
+      "inflammation",
+      "gut_skin_axis",
+      "oxidative_stress"
+    ]
+  },
+  {
+    "id": "SCR_SO06",
+    "text": "Have you been on a low-fat diet using vegetable oils instead of saturated fats?",
+    "type": "DURATION",
+    "module": "SCREENING",
+    "options": [
+      {
+        "label": "Never",
+        "score": 0,
+        "value": 0
+      },
+      {
+        "label": "Less than 1 year",
+        "score": 3,
+        "value": 1
+      },
+      {
+        "label": "1-5 years",
+        "score": 6,
+        "value": 2
+      },
+      {
+        "label": "5-10 years",
+        "score": 8,
+        "value": 3
+      },
+      {
+        "label": "More than 10 years",
+        "score": 10,
+        "value": 4
+      }
+    ],
+    "category": "SEED_OIL",
+    "scoringWeight": 2,
+    "clinicalRelevance": [
+      "cell_membrane_integrity",
+      "hormone_production",
+      "vitamin_absorption"
+    ]
+  },
+  {
+    "id": "SCR006",
+    "text": "How often do you experience anxiety or feelings of overwhelm?",
+    "type": "FREQUENCY",
+    "module": "SCREENING",
+    "options": [
+      {
+        "label": "Never",
+        "value": 0
+      },
+      {
+        "label": "Rarely",
+        "value": 1
+      },
+      {
+        "label": "Sometimes",
+        "value": 2
+      },
+      {
+        "label": "Often",
+        "value": 3
+      },
+      {
+        "label": "Constantly",
+        "value": 4
+      }
+    ],
+    "category": "STRESS",
+    "scoringWeight": 1.5,
+    "labCorrelations": [
+      "Cortisol",
+      "GABA",
+      "Serotonin metabolites"
+    ],
+    "clinicalRelevance": [
+      "neurotransmitter_balance",
+      "HPA_axis",
+      "inflammation"
+    ]
+  },
+  {
+    "id": "SCR_SO07",
+    "text": "Do you check ingredient labels to avoid seed oils when shopping?",
+    "type": "MULTIPLE_CHOICE",
+    "module": "SCREENING",
+    "options": [
+      {
+        "label": "Always",
+        "score": 0,
+        "value": "always"
+      },
+      {
+        "label": "Sometimes",
+        "score": 3,
+        "value": "sometimes"
+      },
+      {
+        "label": "Rarely",
+        "score": 6,
+        "value": "rarely"
+      },
+      {
+        "label": "Never",
+        "score": 8,
+        "value": "never"
+      },
+      {
+        "label": "I don't know which oils to avoid",
+        "score": 7,
+        "value": "dont_know"
+      }
+    ],
+    "category": "SEED_OIL",
+    "scoringWeight": 1.4,
+    "clinicalRelevance": [
+      "dietary_awareness",
+      "inflammation_prevention"
+    ]
+  },
+  {
+    "id": "SCR_SO08",
+    "text": "Have you noticed improved energy or reduced inflammation when avoiding seed oils?",
+    "type": "MULTIPLE_CHOICE",
+    "module": "SCREENING",
+    "options": [
+      {
+        "label": "Yes, significant improvement",
+        "score": 0,
+        "value": "yes_significant"
+      },
+      {
+        "label": "Yes, some improvement",
+        "score": 2,
+        "value": "yes_some"
+      },
+      {
+        "label": "No change noticed",
+        "score": 5,
+        "value": "no_change"
+      },
+      {
+        "label": "Never tried avoiding them",
+        "score": 7,
+        "value": "never_tried"
+      },
+      {
+        "label": "Feel worse when I avoid them",
+        "score": 3,
+        "value": "worse"
+      }
+    ],
+    "category": "SEED_OIL",
+    "helpText": "Your body's response to seed oil elimination can indicate metabolic health",
+    "scoringWeight": 1.6,
+    "clinicalRelevance": [
+      "metabolic_flexibility",
+      "inflammation_response"
+    ]
+  }
+]

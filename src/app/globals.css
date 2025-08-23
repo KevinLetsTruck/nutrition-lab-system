@@ -1,329 +1,109 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   :root {
-    /* DestinationHealth Dark Theme Design System */
-
-    /* Primary Colors */
-    --primary-green: #4ade80;
-    --primary-green-hover: #22c55e;
-    --primary-green-light: rgba(74, 222, 128, 0.1);
-
-    /* Dark Theme Base Colors */
-    --bg-primary: #1e293b;
-    --bg-secondary: #0f172a;
-    --bg-card: #1e293b;
-    --bg-hover: #334155;
-
-    /* Text Colors */
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-accent: #4ade80;
-
-    /* Border Colors */
-    --border-primary: #334155;
-    --border-hover: #475569;
-
-    /* Additional Accents */
-    --orange-accent: #fb923c;
-    --red-accent: #ef4444;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
   }
 
-  /* Dark mode overrides - temporary until full theme system */
   .dark {
-    /* Override any stubborn light backgrounds */
-    --background: 15 23 42; /* gray-900 */
-    --foreground: 241 245 249; /* gray-100 */
-    --card: 15 23 42; /* gray-900 */
-    --card-foreground: 241 245 249; /* gray-100 */
-    --muted: 30 41 59; /* gray-800 */
-    --muted-foreground: 148 163 184; /* gray-400 */
-    --border: 51 65 85; /* gray-700 */
-  }
-
-  /* Force dark backgrounds on common problem areas */
-  .dark select,
-  .dark input,
-  .dark textarea {
-    background-color: rgb(31 41 55); /* gray-800 */
-    color: rgb(243 244 246); /* gray-100 */
-    border-color: rgb(75 85 99); /* gray-600 */
-  }
-
-  .dark select option {
-    background-color: rgb(31 41 55);
-    color: rgb(243 244 246);
-  }
-
-  * {
-    border-color: var(--border-primary);
-  }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-      "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
-      "Helvetica Neue", sans-serif;
-    background: var(--bg-primary);
-    color: var(--text-primary);
-  }
-
-  /* Override for light theme pages */
-  .light-theme,
-  .light-theme * {
-    color: #111827 !important;
-  }
-
-  .light-theme input,
-  .light-theme textarea,
-  .light-theme select {
-    color: #111827 !important;
-    background-color: white !important;
-  }
-
-  /* Ensure text contrast in assessment components */
-  .assessment-question,
-  .assessment-question * {
-    color: #111827;
-  }
-
-  .assessment-question button span {
-    color: inherit;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+/* Custom slider styles to make the handle more visible */
 @layer components {
-  /* Primary Button (Green) */
-  .btn-primary {
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: all 0.2s ease-out;
-    background: var(--primary-green);
-    color: var(--bg-secondary);
-    border: none;
+  /* Make the slider track more visible */
+  [data-orientation="horizontal"] {
+    height: 8px !important;
+  }
+  
+  /* Style the slider track */
+  [data-orientation="horizontal"] > span:first-child {
+    @apply bg-gray-300 dark:bg-gray-600;
+    height: 8px !important;
+    border-radius: 4px;
+  }
+  
+  /* Style the filled portion of the track */
+  [data-orientation="horizontal"] > span:first-child > span {
+    @apply bg-blue-500 dark:bg-blue-400;
+    height: 8px !important;
+  }
+  
+  /* Make the slider handle/thumb more visible */
+  [role="slider"] {
+    @apply bg-white dark:bg-gray-200 border-2 border-blue-500 dark:border-blue-400 shadow-lg;
+    width: 24px !important;
+    height: 24px !important;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
+    transition: all 0.2s;
   }
-
-  .btn-primary:hover {
-    background: var(--primary-green-hover);
-    transform: translateY(-2px);
+  
+  [role="slider"]:hover {
+    @apply scale-110 shadow-xl;
   }
-
-  /* Secondary Button (Dark with border) */
-  .btn-secondary {
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-weight: 500;
-    transition: all 0.2s ease-out;
-    background: transparent;
-    color: var(--text-primary);
-    border: 1px solid var(--border-primary);
-    cursor: pointer;
-    text-decoration: none;
-  }
-
-  .btn-secondary:hover {
-    border-color: var(--primary-green);
-    background: var(--primary-green-light);
-  }
-
-  /* Form Inputs */
-  .input {
-    padding: 12px 16px;
-    border-radius: 8px;
-    transition: all 0.2s ease-out;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-primary);
-    color: var(--text-primary);
-    width: 100%;
-  }
-
-  .input::placeholder {
-    color: var(--text-secondary);
-  }
-
-  .input:focus {
-    outline: none;
-    border-color: var(--primary-green);
-    box-shadow: 0 0 0 3px var(--primary-green-light);
-  }
-
-  /* Cards */
-  .card {
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s ease-out;
-    background: var(--bg-card);
-    border: 1px solid var(--border-primary);
-  }
-
-  .card:hover {
-    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.4);
-    border-color: var(--border-hover);
-  }
-
-  /* Badges/Pills */
-  .badge {
-    padding: 4px 12px;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    background: var(--primary-green-light);
-    color: var(--primary-green);
-    display: inline-block;
-  }
-
-  .badge-orange {
-    background: rgba(251, 146, 60, 0.2);
-    color: var(--orange-accent);
-  }
-
-  .badge-red {
-    background: rgba(239, 68, 68, 0.2);
-    color: var(--red-accent);
-  }
-
-  /* Navigation Links */
-  .nav-link {
-    padding: 8px 16px;
-    border-radius: 8px;
-    transition: all 0.2s ease-out;
-    color: var(--text-primary);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .nav-link:hover {
-    background: var(--bg-hover);
-    color: var(--primary-green);
-  }
-
-  .nav-link.active {
-    background: var(--primary-green-light);
-    color: var(--primary-green);
-    border-bottom: 2px solid var(--primary-green);
-  }
-
-  /* Large Navigation Links for Header */
-  .nav-link-large {
-    padding: 12px 20px;
-    border-radius: 12px;
-    transition: all 0.3s ease-out;
-    color: var(--text-primary);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 600;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .nav-link-large::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(74, 222, 128, 0.1),
-      transparent
-    );
-    transition: left 0.5s ease-out;
-  }
-
-  .nav-link-large:hover::before {
-    left: 100%;
-  }
-
-  .nav-link-large:hover {
-    background: linear-gradient(
-      135deg,
-      var(--primary-green-light),
-      rgba(251, 146, 60, 0.1)
-    );
-    color: var(--primary-green);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);
-  }
-
-  .nav-link-large.active {
-    background: linear-gradient(
-      135deg,
-      var(--primary-green-light),
-      rgba(251, 146, 60, 0.15)
-    );
-    color: var(--primary-green);
-    border-bottom: 3px solid var(--primary-green);
-    box-shadow: 0 2px 8px rgba(74, 222, 128, 0.3);
-  }
-
-  /* Gradient Text Effect */
-  .gradient-text {
-    background: linear-gradient(135deg, #4ade80 0%, #fb923c 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    background-size: 200% 200%;
-    animation: gradientShift 4s ease-in-out infinite;
-  }
-
-  @keyframes gradientShift {
-    0%,
-    100% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-  }
-
-  /* Tables */
-  .table-dark {
-    background: var(--bg-card);
-    color: var(--text-primary);
-  }
-
-  .table-dark th {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-    border-bottom: 1px solid var(--border-primary);
-  }
-
-  .table-dark td {
-    border-bottom: 1px solid var(--border-primary);
-  }
-
-  .table-dark tr:hover {
-    background: var(--bg-hover);
-  }
-
-  /* Spinner */
-  .spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid var(--border-primary);
-    border-top: 2px solid var(--primary-green);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
+  
+  [role="slider"]:focus {
+    @apply ring-2 ring-blue-500 ring-offset-2;
   }
 }

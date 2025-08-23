@@ -1,0 +1,23 @@
+
+> fntp-nutrition-system@0.1.0 dev
+> next dev --turbopack
+
+ ⚠ Port 3000 is in use by process 21749
+27340, using available port 3007 instead.
+   ▲ Next.js 15.4.6 (Turbopack)
+   - Local:        http://localhost:3007
+   - Network:      http://10.0.0.58:3007
+   - Environments: .env.local, .env
+   - Experiments (use with caution):
+     · clientTraceMetadata
+     · serverComponentsExternalPackages
+
+ ✓ Starting...
+ ⚠ Invalid next.config.js options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverComponentsExternalPackages' at "experimental"
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ⚠ `experimental.serverComponentsExternalPackages` has been moved to `serverExternalPackages`. Please update your next.config.js file accordingly.
+ ○ Compiling instrumentation Node.js ...
+ ✓ Compiled instrumentation Node.js in 527ms
+ ✓ Compiled instrumentation Edge in 126ms
+ ✓ Ready in 1889ms

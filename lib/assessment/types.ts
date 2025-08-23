@@ -148,3 +148,22 @@ export interface SeedOilAssessment {
   priorityLevel: "LOW" | "MODERATE" | "HIGH" | "CRITICAL";
   recommendedInterventions: string[];
 }
+
+// Type aliases for compatibility
+export type ModuleType = FunctionalModule;
+
+// Client Response interface for assessment responses
+export interface ClientResponse {
+  id: string;
+  assessmentId: string;
+  questionId: string;
+  questionText: string;
+  questionModule: string;
+  responseType: QuestionType;
+  responseValue: any;
+  responseText?: string;
+  aiReasoning?: string;
+  confidenceScore?: number;
+  clinicalFlags?: any;
+  answeredAt: Date;
+}

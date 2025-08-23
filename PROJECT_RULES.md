@@ -337,3 +337,85 @@ When user reports issues:
 **DEFAULT MODE: BUILD IT**
 
 Unless explicitly told to stop or wait, continue building and implementing. Make reasonable decisions and move forward. The goal is rapid, autonomous development with minimal interruption.
+
+## Troubleshooting Rules - CRITICAL TIME SAVERS
+
+### BEFORE Trying to Fix "Broken" Things:
+
+1. **ALWAYS verify the server/service is actually broken:**
+   ```bash
+   # For Next.js apps
+   curl http://localhost:3000/api/[endpoint]
+   # Check if process is running
+   lsof -i :3000
+   ```
+   If it returns data, IT'S WORKING - don't try to "fix" it.
+
+2. **Browser showing errors? Check for CACHE issues first:**
+   - The error might be from old/cached code
+   - Try: Hard refresh (Cmd+Shift+R or Ctrl+Shift+R)
+   - Try: Open in incognito/private window
+   - Try: Check Developer Tools → Network → Disable cache
+   - The actual code might already be fixed!
+
+3. **Import/Module errors:**
+   - Check if file actually exists where import expects
+   - Look for duplicate directories (e.g., /lib vs /src/lib)
+   - Verify if error is current or cached
+   - Use relative imports if @ alias causes issues
+
+4. **Development server issues:**
+   - `npm run dev` is a BLOCKING command - it runs forever
+   - If terminal tool doesn't return, the server probably started successfully
+   - Check if port is already in use before starting
+   - Don't restart a working server unnecessarily
+
+### Time-Wasting Patterns to AVOID:
+
+1. **DON'T add complexity to fix simple problems:**
+   - Embed test data inline instead of creating new imports
+   - Fix issues in place rather than restructuring
+   - Make minimal changes to solve problems
+
+2. **DON'T trust browser error messages blindly:**
+   - They might be cached/old
+   - Verify with direct API calls first
+   - Check server logs for actual current errors
+
+3. **DON'T restart working services:**
+   - Verify they're actually broken first
+   - Check if the issue is client-side (browser cache)
+   - Most "server issues" are actually cache issues
+
+### Debugging Priority Order:
+
+1. **First:** Check if it's actually broken (curl/direct test)
+2. **Second:** Clear cache/use fresh browser session  
+3. **Third:** Check for simple typos/path issues
+4. **Fourth:** Make minimal code fix
+5. **Last:** Only restart/rebuild if truly necessary
+
+### Quick Diagnosis Commands:
+
+```bash
+# Is the server actually running?
+lsof -i :3000
+
+# Is the API responding?
+curl http://localhost:3000/api/health
+
+# Kill specific process if needed
+kill [PID]
+
+# Clear Next.js cache if needed
+rm -rf .next
+
+# Check what's actually in a directory
+ls -la [path]
+```
+
+### Remember:
+- **Most "broken" things are actually working** - it's usually a cache/display issue
+- **Minimal changes are better** - don't restructure to fix simple problems  
+- **Verify first, fix second** - don't fix what isn't broken
+- **Time is valuable** - don't spend an hour on a 1-minute problem
