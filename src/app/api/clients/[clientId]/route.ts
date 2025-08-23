@@ -132,17 +132,22 @@ export async function PATCH(
       }
     }
 
-    // Handle height/weight if provided (store in metadata)
-    if (body.height || body.weight) {
+    // Handle height/weight if provided (store in healthGoals)
+    if (body.height || body.weight || body.primaryHealthGoal) {
       const client = await prisma.client.findUnique({
         where: { id: clientId },
-        select: { metadata: true },
+        select: { healthGoals: true },
       });
 
-      const metadata = client?.metadata || {};
-      if (body.height) metadata.height = body.height;
-      if (body.weight) metadata.weight = body.weight;
-      updateData.metadata = metadata;
+      const healthGoalsData = typeof client?.healthGoals === 'object' && client.healthGoals !== null
+        ? client.healthGoals as any
+        : {};
+      
+      if (body.height) healthGoalsData.height = body.height;
+      if (body.weight) healthGoalsData.weight = body.weight;
+      if (body.primaryHealthGoal) healthGoalsData.primaryGoal = body.primaryHealthGoal;
+      
+      updateData.healthGoals = healthGoalsData;
     }
 
     const client = await prisma.client.update({

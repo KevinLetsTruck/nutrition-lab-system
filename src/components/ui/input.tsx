@@ -20,6 +20,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           "transition-all",
           "disabled:cursor-not-allowed disabled:opacity-50",
           error && "border-destructive focus-visible:ring-destructive",
+          // Style the calendar icon for date inputs
+          type === "date" && "[&::-webkit-calendar-picker-indicator]:brightness-150 [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:hover:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer",
           className
         )}
         ref={ref}
