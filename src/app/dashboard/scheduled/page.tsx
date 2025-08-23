@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import NoteViewerModal from "@/components/notes/NoteViewerModal";
 import dynamic from "next/dynamic";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 // Dynamically import PDFViewerModal with SSR disabled to prevent canvas module issues
 const PDFViewerModal = dynamic(
@@ -290,6 +292,28 @@ export default function ScheduledClientsPage() {
     });
   };
 
+  const getNextThursday = () => {
+    const today = new Date();
+    const currentDay = today.getDay();
+
+    // Calculate days until next Thursday (4 = Thursday)
+    // If today is Thursday, get next Thursday (7 days)
+    let daysUntilThursday = (4 - currentDay + 7) % 7;
+    if (daysUntilThursday === 0) {
+      daysUntilThursday = 7; // If today is Thursday, get next Thursday
+    }
+
+    const nextThursday = new Date(today);
+    nextThursday.setDate(today.getDate() + daysUntilThursday);
+
+    return nextThursday.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
   const getStatusLabel = (status: StatusType) => {
     const statusLabels: Record<StatusType, string> = {
       SIGNED_UP: "Signed Up",
@@ -350,16 +374,12 @@ export default function ScheduledClientsPage() {
             Error Loading Clients
           </h2>
           <p style={{ color: "var(--text-secondary)" }}>{error}</p>
-          <button
+          <Button
             onClick={fetchScheduledClients}
-            className="mt-4 px-4 py-2 rounded-md transition-colors"
-            style={{
-              background: "var(--primary-green)",
-              color: "white",
-            }}
+            className="mt-4 bg-brand-green hover:bg-brand-green/90 border-brand-green"
           >
             Try Again
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -390,464 +410,421 @@ export default function ScheduledClientsPage() {
             </div>
 
             {/* Date Display */}
-            <div
-              className="card p-4 text-center"
-              style={{ background: "var(--bg-card)" }}
-            >
-              <Calendar
-                className="w-6 h-6 mx-auto mb-2"
-                style={{ color: "var(--primary-green)" }}
-              />
-              <p
-                className="text-sm font-medium"
-                style={{ color: "var(--text-primary)" }}
-              >
-                {getCurrentDate()}
-              </p>
-            </div>
+            <Card className="border-brand-green/30">
+              <CardContent className="p-4 text-center">
+                <Calendar className="w-8 h-8 mx-auto mb-2 text-brand-green" />
+                <p className="text-xs text-gray-400 mb-1">Next Coaching Call</p>
+                <p className="text-sm font-medium text-white">
+                  {getNextThursday()}
+                </p>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Summary Stats */}
           <div className="flex justify-start mb-6">
-            <div className="card p-4" style={{ background: "var(--bg-card)" }}>
-              <div className="flex items-center">
-                <Users
-                  className="w-8 h-8 mr-3"
-                  style={{ color: "var(--primary-green)" }}
-                />
-                <div>
-                  <p
-                    className="text-2xl font-bold"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    {clients.length}
-                  </p>
-                  <p
-                    className="text-sm"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    Scheduled Clients
-                  </p>
+            <Card className="border-brand-green/30">
+              <CardContent className="p-4">
+                <div className="flex items-center">
+                  <Users className="w-8 h-8 mr-3 text-brand-green" />
+                  <div>
+                    <p className="text-2xl font-bold text-white">
+                      {clients.length}
+                    </p>
+                    <p className="text-sm text-gray-400">Scheduled Clients</p>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
         {/* Client List */}
         {clients.length === 0 ? (
-          <div
-            className="card p-8 text-center"
-            style={{ background: "var(--bg-card)" }}
-          >
-            <Calendar
-              className="w-16 h-16 mx-auto mb-4"
-              style={{ color: "var(--text-secondary)" }}
-            />
-            <h3
-              className="text-xl font-semibold mb-2"
-              style={{ color: "var(--text-primary)" }}
-            >
-              No Scheduled Clients
-            </h3>
-            <p style={{ color: "var(--text-secondary)" }}>
-              There are no clients with "Scheduled" status for this week's
-              coaching call.
-            </p>
-          </div>
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Calendar className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+              <h3 className="text-xl font-semibold mb-2 text-white">
+                No Scheduled Clients
+              </h3>
+              <p className="text-gray-400">
+                There are no clients with "Scheduled" status for this week's
+                coaching call.
+              </p>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-4">
             {clients.map((client) => (
-              <div
+              <Card
                 key={client.id}
-                className="card p-6 hover:shadow-xl transition-all duration-300"
-                style={{
-                  background: "var(--bg-card)",
-                  border: "2px solid var(--primary-green)",
-                  borderRadius: "12px",
-                  boxShadow:
-                    "0 4px 20px rgba(16, 185, 129, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1)",
-                  position: "relative",
-                  overflow: "hidden",
-                }}
+                className="hover:shadow-xl transition-all duration-300 border-2 border-brand-green/50 relative overflow-hidden"
               >
                 {/* Gradient Accent */}
-                <div
-                  className="absolute top-0 left-0 right-0 h-1"
-                  style={{
-                    background:
-                      "linear-gradient(90deg, var(--primary-green) 0%, #10b981 50%, var(--primary-green) 100%)",
-                  }}
-                />
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-green via-green-500 to-brand-green" />
 
-                {/* Client Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center mr-4"
-                      style={{ background: "var(--primary-green-light)" }}
-                    >
-                      <span
-                        className="text-lg font-bold"
-                        style={{ color: "var(--primary-green)" }}
+                <CardContent className="p-6">
+                  {/* Client Header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <div
+                        className="w-12 h-12 rounded-full flex items-center justify-center mr-4"
+                        style={{ background: "var(--primary-green-light)" }}
                       >
-                        {client.firstName[0]}
-                        {client.lastName[0]}
-                      </span>
-                    </div>
-                    <div>
-                      <h2
-                        className="text-xl font-bold mb-1"
-                        style={{ color: "var(--text-primary)" }}
-                      >
-                        {client.firstName} {client.lastName}
-                      </h2>
-                      <div className="flex items-center space-x-4 text-sm">
-                        {client.dateOfBirth && (
-                          <span style={{ color: "var(--text-secondary)" }}>
-                            Age: {calculateAge(client.dateOfBirth)}
-                            {client.gender && (
-                              <span
-                                className="ml-2 text-xs px-2 py-1 rounded-full"
-                                style={{
-                                  background:
-                                    client.gender === "male"
-                                      ? "rgba(59, 130, 246, 0.2)"
-                                      : "rgba(236, 72, 153, 0.2)",
-                                  color:
-                                    client.gender === "male"
-                                      ? "#3b82f6"
-                                      : "#ec4899",
-                                }}
-                              >
-                                {client.gender === "male" ? "M" : "F"}
-                              </span>
-                            )}
-                          </span>
-                        )}
-                        <div className="flex items-center">
-                          <Mail
-                            className="w-4 h-4 mr-2"
-                            style={{ color: "var(--text-secondary)" }}
-                          />
-                          <span style={{ color: "var(--text-primary)" }}>
-                            {client.email}
-                          </span>
-                        </div>
-                        {client.phone && (
+                        <span
+                          className="text-lg font-bold"
+                          style={{ color: "var(--primary-green)" }}
+                        >
+                          {client.firstName[0]}
+                          {client.lastName[0]}
+                        </span>
+                      </div>
+                      <div>
+                        <h2
+                          className="text-xl font-bold mb-1"
+                          style={{ color: "var(--text-primary)" }}
+                        >
+                          {client.firstName} {client.lastName}
+                        </h2>
+                        <div className="flex items-center space-x-4 text-sm">
+                          {client.dateOfBirth && (
+                            <span style={{ color: "var(--text-secondary)" }}>
+                              Age: {calculateAge(client.dateOfBirth)}
+                              {client.gender && (
+                                <span
+                                  className="ml-2 text-xs px-2 py-1 rounded-full"
+                                  style={{
+                                    background:
+                                      client.gender === "male"
+                                        ? "rgba(59, 130, 246, 0.2)"
+                                        : "rgba(236, 72, 153, 0.2)",
+                                    color:
+                                      client.gender === "male"
+                                        ? "#3b82f6"
+                                        : "#ec4899",
+                                  }}
+                                >
+                                  {client.gender === "male" ? "M" : "F"}
+                                </span>
+                              )}
+                            </span>
+                          )}
                           <div className="flex items-center">
-                            <Phone
+                            <Mail
                               className="w-4 h-4 mr-2"
                               style={{ color: "var(--text-secondary)" }}
                             />
                             <span style={{ color: "var(--text-primary)" }}>
-                              {formatPhoneNumber(client.phone)}
+                              {client.email}
                             </span>
                           </div>
+                          {client.phone && (
+                            <div className="flex items-center">
+                              <Phone
+                                className="w-4 h-4 mr-2"
+                                style={{ color: "var(--text-secondary)" }}
+                              />
+                              <span style={{ color: "var(--text-primary)" }}>
+                                {formatPhoneNumber(client.phone)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-4">
+                      <span
+                        className="px-3 py-1 rounded-full text-xs font-medium"
+                        style={{
+                          background: `${getStatusColor(
+                            client.status as StatusType
+                          )}20`,
+                          color: getStatusColor(client.status as StatusType),
+                        }}
+                      >
+                        {getStatusLabel(client.status as StatusType)}
+                      </span>
+                      <div
+                        className="text-right text-xs"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        <div>Client since: {formatDate(client.createdAt)}</div>
+                        {client.lastVisit && (
+                          <div>Last visit: {formatDate(client.lastVisit)}</div>
                         )}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-4">
-                    <span
-                      className="px-3 py-1 rounded-full text-xs font-medium"
-                      style={{
-                        background: `${getStatusColor(
-                          client.status as StatusType
-                        )}20`,
-                        color: getStatusColor(client.status as StatusType),
-                      }}
-                    >
-                      {getStatusLabel(client.status as StatusType)}
-                    </span>
-                    <div
-                      className="text-right text-xs"
-                      style={{ color: "var(--text-secondary)" }}
-                    >
-                      <div>Client since: {formatDate(client.createdAt)}</div>
-                      {client.lastVisit && (
-                        <div>Last visit: {formatDate(client.lastVisit)}</div>
+                  {/* Main Content Grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    {/* Health Goals - Left Column */}
+                    <div className="lg:col-span-1">
+                      <div className="flex items-center mb-3">
+                        <Target
+                          className="w-5 h-5 mr-2"
+                          style={{ color: "#10b981" }}
+                        />
+                        <h3
+                          className="text-lg font-semibold"
+                          style={{ color: "var(--text-primary)" }}
+                        >
+                          Health Goals
+                        </h3>
+                      </div>
+                      {client.healthGoals && client.healthGoals.length > 0 ? (
+                        <div className="space-y-3">
+                          {client.healthGoals.map((goal, index) => (
+                            <div
+                              key={index}
+                              className="p-4 rounded-lg"
+                              style={{
+                                background: "var(--bg-secondary)",
+                                border: "1px solid var(--border-primary)",
+                              }}
+                            >
+                              <p style={{ color: "var(--text-primary)" }}>
+                                {goal}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div
+                          className="p-6 rounded-lg text-center"
+                          style={{
+                            background: "var(--bg-secondary)",
+                            border: "1px solid var(--border-primary)",
+                          }}
+                        >
+                          <p style={{ color: "var(--text-secondary)" }}>
+                            No health goals recorded
+                          </p>
+                        </div>
                       )}
                     </div>
-                  </div>
-                </div>
 
-                {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  {/* Health Goals - Left Column */}
-                  <div className="lg:col-span-1">
-                    <div className="flex items-center mb-3">
-                      <Target
-                        className="w-5 h-5 mr-2"
-                        style={{ color: "#10b981" }}
-                      />
-                      <h3
-                        className="text-lg font-semibold"
-                        style={{ color: "var(--text-primary)" }}
-                      >
-                        Health Goals
-                      </h3>
-                    </div>
-                    {client.healthGoals && client.healthGoals.length > 0 ? (
-                      <div className="space-y-3">
-                        {client.healthGoals.map((goal, index) => (
-                          <div
-                            key={index}
-                            className="p-4 rounded-lg"
-                            style={{
-                              background: "var(--bg-secondary)",
-                              border: "1px solid var(--border-primary)",
-                            }}
-                          >
-                            <p style={{ color: "var(--text-primary)" }}>
-                              {goal}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div
-                        className="p-6 rounded-lg text-center"
-                        style={{
-                          background: "var(--bg-secondary)",
-                          border: "1px solid var(--border-primary)",
-                        }}
-                      >
-                        <p style={{ color: "var(--text-secondary)" }}>
-                          No health goals recorded
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Notes and Documents Section - Right Two Columns Side by Side */}
-                  <div className="lg:col-span-2">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Notes Section */}
-                      <div>
-                        <div className="flex items-center mb-3">
-                          <MessageSquare
-                            className="w-5 h-5 mr-2"
-                            style={{ color: "#3b82f6" }}
-                          />
-                          <h3
-                            className="text-lg font-semibold"
-                            style={{ color: "var(--text-primary)" }}
-                          >
-                            Notes
-                          </h3>
-                          {loadingNotes.has(client.id) && (
-                            <div
-                              className="ml-3 text-sm"
-                              style={{ color: "var(--text-secondary)" }}
+                    {/* Notes and Documents Section - Right Two Columns Side by Side */}
+                    <div className="lg:col-span-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Notes Section */}
+                        <div>
+                          <div className="flex items-center mb-3">
+                            <MessageSquare
+                              className="w-5 h-5 mr-2"
+                              style={{ color: "#3b82f6" }}
+                            />
+                            <h3
+                              className="text-lg font-semibold"
+                              style={{ color: "var(--text-primary)" }}
                             >
-                              Loading...
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="space-y-3 max-h-96 overflow-y-auto">
-                          {clientNotes[client.id]?.length > 0 ? (
-                            clientNotes[client.id].map((note) => (
+                              Notes
+                            </h3>
+                            {loadingNotes.has(client.id) && (
                               <div
-                                key={note.id}
-                                onClick={() => handleViewNote(note)}
-                                className="p-4 rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                                style={{
-                                  background: "var(--bg-secondary)",
-                                  border: "1px solid var(--border-primary)",
-                                }}
+                                className="ml-3 text-sm"
+                                style={{ color: "var(--text-secondary)" }}
                               >
-                                <div className="flex items-center justify-between mb-2">
-                                  <h4
-                                    className="font-medium"
-                                    style={{ color: "var(--text-primary)" }}
-                                  >
-                                    {note.title}
-                                  </h4>
-                                  <span
-                                    className="text-xs px-2 py-1 rounded-full"
-                                    style={{
-                                      background:
-                                        note.noteType === "INTERVIEW"
-                                          ? "#3b82f620"
-                                          : "#f59e0b20",
-                                      color:
-                                        note.noteType === "INTERVIEW"
-                                          ? "#3b82f6"
-                                          : "#f59e0b",
-                                    }}
-                                  >
-                                    {note.noteType === "INTERVIEW"
-                                      ? "Interview"
-                                      : "Coaching"}
-                                  </span>
-                                </div>
-                                <p
-                                  className="text-sm line-clamp-3"
-                                  style={{ color: "var(--text-secondary)" }}
-                                >
-                                  {note.generalNotes}
-                                </p>
+                                Loading...
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="space-y-3 max-h-96 overflow-y-auto">
+                            {clientNotes[client.id]?.length > 0 ? (
+                              clientNotes[client.id].map((note) => (
                                 <div
-                                  className="flex items-center justify-between mt-2 text-xs"
-                                  style={{ color: "var(--text-secondary)" }}
+                                  key={note.id}
+                                  onClick={() => handleViewNote(note)}
+                                  className="p-4 rounded-xl cursor-pointer hover:bg-gray-800/50 transition-all bg-gray-900/50 border border-gray-700"
                                 >
-                                  <span>{formatDate(note.createdAt)}</span>
-                                  <div className="flex space-x-2">
-                                    {note.isImportant && (
-                                      <span className="px-1 py-0.5 bg-red-100 text-red-600 rounded">
-                                        Important
-                                      </span>
-                                    )}
-                                    {note.followUpNeeded && (
-                                      <span className="px-1 py-0.5 bg-yellow-100 text-yellow-600 rounded">
-                                        Follow Up
-                                      </span>
-                                    )}
+                                  <div className="flex items-center justify-between mb-2">
+                                    <h4
+                                      className="font-medium"
+                                      style={{ color: "var(--text-primary)" }}
+                                    >
+                                      {note.title}
+                                    </h4>
+                                    <span
+                                      className="text-xs px-2 py-1 rounded-full"
+                                      style={{
+                                        background:
+                                          note.noteType === "INTERVIEW"
+                                            ? "#3b82f620"
+                                            : "#f59e0b20",
+                                        color:
+                                          note.noteType === "INTERVIEW"
+                                            ? "#3b82f6"
+                                            : "#f59e0b",
+                                      }}
+                                    >
+                                      {note.noteType === "INTERVIEW"
+                                        ? "Interview"
+                                        : "Coaching"}
+                                    </span>
+                                  </div>
+                                  <p
+                                    className="text-sm line-clamp-3"
+                                    style={{ color: "var(--text-secondary)" }}
+                                  >
+                                    {note.generalNotes}
+                                  </p>
+                                  <div
+                                    className="flex items-center justify-between mt-2 text-xs"
+                                    style={{ color: "var(--text-secondary)" }}
+                                  >
+                                    <span>{formatDate(note.createdAt)}</span>
+                                    <div className="flex space-x-2">
+                                      {note.isImportant && (
+                                        <span className="px-1 py-0.5 bg-red-100 text-red-600 rounded">
+                                          Important
+                                        </span>
+                                      )}
+                                      {note.followUpNeeded && (
+                                        <span className="px-1 py-0.5 bg-yellow-100 text-yellow-600 rounded">
+                                          Follow Up
+                                        </span>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            ))
-                          ) : clientNotes[client.id] !== undefined ? (
-                            <div
-                              className="p-6 rounded-lg text-center"
-                              style={{
-                                background: "var(--bg-secondary)",
-                                border: "1px solid var(--border-primary)",
-                              }}
-                            >
-                              <MessageSquare
-                                className="w-12 h-12 mx-auto mb-3 opacity-50"
-                                style={{ color: "var(--text-secondary)" }}
-                              />
-                              <p style={{ color: "var(--text-secondary)" }}>
-                                No notes available
-                              </p>
-                            </div>
-                          ) : (
-                            <div
-                              className="p-6 rounded-lg text-center animate-pulse"
-                              style={{
-                                background: "var(--bg-secondary)",
-                                border: "1px solid var(--border-primary)",
-                              }}
-                            >
-                              <p style={{ color: "var(--text-secondary)" }}>
-                                Loading notes...
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Documents Section */}
-                      <div>
-                        <div className="flex items-center mb-3">
-                          <FolderOpen
-                            className="w-5 h-5 mr-2"
-                            style={{ color: "#8b5cf6" }}
-                          />
-                          <h3
-                            className="text-lg font-semibold"
-                            style={{ color: "var(--text-primary)" }}
-                          >
-                            Documents
-                          </h3>
-                          {loadingDocuments.has(client.id) && (
-                            <div
-                              className="ml-3 text-sm"
-                              style={{ color: "var(--text-secondary)" }}
-                            >
-                              Loading...
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="space-y-2 max-h-80 overflow-y-auto">
-                          {clientDocuments[client.id]?.length > 0 ? (
-                            clientDocuments[client.id].map((document) => (
+                              ))
+                            ) : clientNotes[client.id] !== undefined ? (
                               <div
-                                key={document.id}
-                                onClick={() => handleViewDocument(document)}
-                                className="p-3 rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                                className="p-6 rounded-lg text-center"
                                 style={{
                                   background: "var(--bg-secondary)",
                                   border: "1px solid var(--border-primary)",
                                 }}
                               >
-                                <div className="flex items-center justify-between mb-2">
-                                  <h4
-                                    className="font-medium truncate"
-                                    style={{ color: "var(--text-primary)" }}
-                                  >
-                                    {document.fileName}
-                                  </h4>
-                                  <Eye
-                                    className="w-4 h-4"
-                                    style={{ color: "var(--text-secondary)" }}
-                                  />
-                                </div>
-                                <div className="flex items-center justify-between text-sm">
-                                  <span
-                                    className="px-2 py-1 rounded-full"
-                                    style={{
-                                      background: "#8b5cf620",
-                                      color: "#8b5cf6",
-                                    }}
-                                  >
-                                    {document.documentType}
-                                  </span>
-                                  <span
-                                    style={{ color: "var(--text-secondary)" }}
-                                  >
-                                    {(document.fileSize / 1024).toFixed(1)} KB
-                                  </span>
-                                </div>
-                                <div
-                                  className="mt-2 text-xs"
+                                <MessageSquare
+                                  className="w-12 h-12 mx-auto mb-3 opacity-50"
                                   style={{ color: "var(--text-secondary)" }}
-                                >
-                                  Uploaded: {formatDate(document.uploadedAt)}
-                                </div>
+                                />
+                                <p style={{ color: "var(--text-secondary)" }}>
+                                  No notes available
+                                </p>
                               </div>
-                            ))
-                          ) : clientDocuments[client.id] !== undefined ? (
-                            <div
-                              className="p-6 rounded-lg text-center"
-                              style={{
-                                background: "var(--bg-secondary)",
-                                border: "1px solid var(--border-primary)",
-                              }}
+                            ) : (
+                              <div
+                                className="p-6 rounded-lg text-center animate-pulse"
+                                style={{
+                                  background: "var(--bg-secondary)",
+                                  border: "1px solid var(--border-primary)",
+                                }}
+                              >
+                                <p style={{ color: "var(--text-secondary)" }}>
+                                  Loading notes...
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Documents Section */}
+                        <div>
+                          <div className="flex items-center mb-3">
+                            <FolderOpen
+                              className="w-5 h-5 mr-2"
+                              style={{ color: "#8b5cf6" }}
+                            />
+                            <h3
+                              className="text-lg font-semibold"
+                              style={{ color: "var(--text-primary)" }}
                             >
-                              <FolderOpen
-                                className="w-12 h-12 mx-auto mb-3 opacity-50"
+                              Documents
+                            </h3>
+                            {loadingDocuments.has(client.id) && (
+                              <div
+                                className="ml-3 text-sm"
                                 style={{ color: "var(--text-secondary)" }}
-                              />
-                              <p style={{ color: "var(--text-secondary)" }}>
-                                No documents available
-                              </p>
-                            </div>
-                          ) : (
-                            <div
-                              className="p-6 rounded-lg text-center animate-pulse"
-                              style={{
-                                background: "var(--bg-secondary)",
-                                border: "1px solid var(--border-primary)",
-                              }}
-                            >
-                              <p style={{ color: "var(--text-secondary)" }}>
-                                Loading documents...
-                              </p>
-                            </div>
-                          )}
+                              >
+                                Loading...
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="space-y-2 max-h-80 overflow-y-auto">
+                            {clientDocuments[client.id]?.length > 0 ? (
+                              clientDocuments[client.id].map((document) => (
+                                <div
+                                  key={document.id}
+                                  onClick={() => handleViewDocument(document)}
+                                  className="p-3 rounded-xl cursor-pointer hover:bg-gray-800/50 transition-all bg-gray-900/50 border border-gray-700"
+                                >
+                                  <div className="flex items-center justify-between mb-2">
+                                    <h4
+                                      className="font-medium truncate"
+                                      style={{ color: "var(--text-primary)" }}
+                                    >
+                                      {document.fileName}
+                                    </h4>
+                                    <Eye
+                                      className="w-4 h-4"
+                                      style={{ color: "var(--text-secondary)" }}
+                                    />
+                                  </div>
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span
+                                      className="px-2 py-1 rounded-full"
+                                      style={{
+                                        background: "#8b5cf620",
+                                        color: "#8b5cf6",
+                                      }}
+                                    >
+                                      {document.documentType}
+                                    </span>
+                                    <span
+                                      style={{ color: "var(--text-secondary)" }}
+                                    >
+                                      {(document.fileSize / 1024).toFixed(1)} KB
+                                    </span>
+                                  </div>
+                                  <div
+                                    className="mt-2 text-xs"
+                                    style={{ color: "var(--text-secondary)" }}
+                                  >
+                                    Uploaded: {formatDate(document.uploadedAt)}
+                                  </div>
+                                </div>
+                              ))
+                            ) : clientDocuments[client.id] !== undefined ? (
+                              <div
+                                className="p-6 rounded-lg text-center"
+                                style={{
+                                  background: "var(--bg-secondary)",
+                                  border: "1px solid var(--border-primary)",
+                                }}
+                              >
+                                <FolderOpen
+                                  className="w-12 h-12 mx-auto mb-3 opacity-50"
+                                  style={{ color: "var(--text-secondary)" }}
+                                />
+                                <p style={{ color: "var(--text-secondary)" }}>
+                                  No documents available
+                                </p>
+                              </div>
+                            ) : (
+                              <div
+                                className="p-6 rounded-lg text-center animate-pulse"
+                                style={{
+                                  background: "var(--bg-secondary)",
+                                  border: "1px solid var(--border-primary)",
+                                }}
+                              >
+                                <p style={{ color: "var(--text-secondary)" }}>
+                                  Loading documents...
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}

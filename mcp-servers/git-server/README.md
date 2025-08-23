@@ -64,3 +64,4 @@ This is a custom implementation created because:
 2. The Python version requires Python 3.10+ which may not be available
 
 This Node.js version provides the same core Git functionality using the git CLI.
+

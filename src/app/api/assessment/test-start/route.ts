@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getQuestionsByModule, questionBank } from "../../../../lib/assessment/questions";
-import { FunctionalModule, QuestionType } from "../../../../lib/assessment/types";
+import {
+  FunctionalModule,
+  QuestionType,
+} from "../../../../../lib/assessment/types";
 
 // Simple test questions for demonstrating all question types
 const testQuestions = [
@@ -13,7 +15,7 @@ const testQuestions = [
     scoringWeight: 1.5,
     clinicalRelevance: ["energy", "fatigue"],
     scaleMin: "No energy",
-    scaleMax: "Abundant energy"
+    scaleMax: "Abundant energy",
   },
   {
     id: "TEST_YN_01",
@@ -21,7 +23,7 @@ const testQuestions = [
     type: QuestionType.YES_NO,
     module: FunctionalModule.SCREENING,
     scoringWeight: 1.2,
-    clinicalRelevance: ["cognitive_function"]
+    clinicalRelevance: ["cognitive_function"],
   },
   {
     id: "TEST_MC_01",
@@ -35,7 +37,7 @@ const testQuestions = [
       { value: "vegetable", label: "Vegetable oil", score: 8 },
     ],
     scoringWeight: 2.0,
-    clinicalRelevance: ["seed_oil_exposure"]
+    clinicalRelevance: ["seed_oil_exposure"],
   },
   {
     id: "TEST_FREQ_01",
@@ -47,10 +49,10 @@ const testQuestions = [
       { value: "rarely", label: "Rarely (1-2 times/month)" },
       { value: "sometimes", label: "Sometimes (1-2 times/week)" },
       { value: "often", label: "Often (3-5 times/week)" },
-      { value: "always", label: "Always (Daily)" }
+      { value: "always", label: "Always (Daily)" },
     ],
     scoringWeight: 1.8,
-    clinicalRelevance: ["digestive_health"]
+    clinicalRelevance: ["digestive_health"],
   },
   {
     id: "TEST_MS_01",
@@ -61,11 +63,11 @@ const testQuestions = [
       { value: "fatigue", label: "Chronic fatigue" },
       { value: "headaches", label: "Frequent headaches" },
       { value: "joint_pain", label: "Joint pain or stiffness" },
-      { value: "digestive", label: "Digestive issues" }
+      { value: "digestive", label: "Digestive issues" },
     ],
     scoringWeight: 2.0,
-    clinicalRelevance: ["symptom_clustering"]
-  }
+    clinicalRelevance: ["symptom_clustering"],
+  },
 ];
 
 // TEST ENDPOINT - No authentication required
@@ -79,7 +81,7 @@ export async function POST(req: NextRequest) {
 
     // Create a test client if needed
     let testClient = await prisma.client.findFirst({
-      where: { email: "test@example.com" }
+      where: { email: "test@example.com" },
     });
 
     if (!testClient) {
@@ -89,7 +91,7 @@ export async function POST(req: NextRequest) {
           firstName: "Test",
           lastName: "User",
           password: "test123", // Not used for testing
-        }
+        },
       });
       console.log("Created test client:", testClient.id);
     }
@@ -104,32 +106,79 @@ export async function POST(req: NextRequest) {
 
     if (existingAssessment) {
       console.log("Found existing assessment:", existingAssessment.id);
-      
-      // Get questions for current module
-      let questions = useTestQuestions && existingAssessment.currentModule === "SCREENING"
-        ? [...testQuestions, ...getQuestionsByModule(existingAssessment.currentModule as FunctionalModule)]
-        : getQuestionsByModule(existingAssessment.currentModule as FunctionalModule);
-      
-      // If getQuestionsByModule returns empty, use all screening questions
-      if (!questions || questions.length === 0) {
-        console.log("No questions from getQuestionsByModule, using questionBank");
-        questions = questionBank.filter(q => q.module === existingAssessment.currentModule);
+
+      // Get the template
+      const template = await prisma.assessmentTemplate.findFirst({
+        where: { id: "default" },
+      });
+
+      if (!template) {
+        console.error("TEST: Default template not found");
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "Default template not found. Please ensure database is seeded.",
+          },
+          { status: 404 }
+        );
       }
-      
+
+      // Get questions for current module from template's questionBank
+      let questions;
+      if (
+        useTestQuestions &&
+        existingAssessment.currentModule === "SCREENING"
+      ) {
+        questions = testQuestions;
+      } else {
+        const questionBank = template.questionBank as any[];
+        if (!questionBank || !Array.isArray(questionBank)) {
+          console.error("TEST: Template questionBank is not an array");
+          return NextResponse.json(
+            {
+              success: false,
+              error: "Template questionBank is not properly formatted.",
+            },
+            { status: 500 }
+          );
+        }
+
+        // Filter questions for current module
+        questions = questionBank.filter(
+          (q: any) => q.module === existingAssessment.currentModule
+        );
+        console.log(
+          `TEST: Found ${questions.length} questions for module ${existingAssessment.currentModule}`
+        );
+      }
+
       if (!questions || questions.length === 0) {
-        console.log("Still no questions, using first question from bank");
-        questions = questionBank.filter(q => q.module === "SCREENING");
+        console.log(
+          "No questions found in database for module:",
+          existingAssessment.currentModule
+        );
+        return NextResponse.json(
+          {
+            success: false,
+            error: "No questions found for current module.",
+          },
+          { status: 404 }
+        );
       }
 
       const answeredQuestions = await prisma.clientResponse.findMany({
         where: { assessmentId: existingAssessment.id },
         select: { questionId: true },
       });
-      
-      const answeredIds = new Set(answeredQuestions.map(r => r.questionId));
-      const nextQuestion = questions.find(q => !answeredIds.has(q.id)) || questions[0];
 
-      console.log(`Returning existing assessment with question: ${nextQuestion?.id}`);
+      const answeredIds = new Set(answeredQuestions.map((r) => r.questionId));
+      const nextQuestion =
+        questions.find((q) => !answeredIds.has(q.id)) || questions[0];
+
+      console.log(
+        `Returning existing assessment with question: ${nextQuestion?.id}`
+      );
       console.log(`Using test questions: ${useTestQuestions}`);
 
       return NextResponse.json({
@@ -142,16 +191,33 @@ export async function POST(req: NextRequest) {
           firstQuestion: nextQuestion,
           totalQuestions: questions.length,
           answeredCount: answeredIds.size,
-          includesTestQuestions: useTestQuestions
-        }
+          includesTestQuestions: useTestQuestions,
+        },
       });
+    }
+
+    // Get the default template
+    const template = await prisma.assessmentTemplate.findFirst({
+      where: { id: "default" },
+    });
+
+    if (!template) {
+      console.error("TEST: Default template not found");
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Default template not found. Please ensure database is seeded.",
+        },
+        { status: 404 }
+      );
     }
 
     // Create new assessment
     const assessment = await prisma.clientAssessment.create({
       data: {
         clientId: testClient.id,
-        templateId: "default",
+        templateId: template.id,
         currentModule: "SCREENING",
         questionsAsked: 0,
         questionsSaved: 0,
@@ -162,29 +228,54 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Get first screening question - include test questions if requested
-    let screeningQuestions = useTestQuestions 
-      ? [...testQuestions, ...getQuestionsByModule("SCREENING" as FunctionalModule)]
-      : getQuestionsByModule("SCREENING" as FunctionalModule);
-    
-    // Fallback if getQuestionsByModule doesn't work
-    if (!screeningQuestions || screeningQuestions.length === 0) {
-      console.log("getQuestionsByModule returned empty, using questionBank filter");
-      screeningQuestions = questionBank.filter(q => q.module === "SCREENING");
-    }
-    
-    // Final fallback - just get first questions from bank
-    if (!screeningQuestions || screeningQuestions.length === 0) {
-      console.log("No screening questions found, using first 10 from questionBank");
-      screeningQuestions = questionBank.slice(0, 10);
+    // Get first screening question from database - include test questions if requested
+    let questions;
+    if (useTestQuestions) {
+      // If using test questions, we'll use the hardcoded ones
+      questions = testQuestions;
+    } else {
+      // Get questions from template's questionBank
+      const questionBank = template.questionBank as any[];
+      if (!questionBank || !Array.isArray(questionBank)) {
+        console.error("TEST: Template questionBank is not an array");
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Template questionBank is not properly formatted.",
+          },
+          { status: 500 }
+        );
+      }
+
+      // Filter questions for SCREENING module
+      questions = questionBank.filter((q: any) => q.module === "SCREENING");
+      console.log(
+        `TEST: Found ${questions.length} SCREENING questions out of ${questionBank.length} total`
+      );
     }
 
-    const firstQuestion = screeningQuestions[0];
+    if (!questions || questions.length === 0) {
+      console.error("TEST: No questions found in database");
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "No questions found in database. Please ensure database is seeded.",
+        },
+        { status: 500 }
+      );
+    }
+
+    const firstQuestion = questions[0];
 
     console.log(`TEST: Created assessment ${assessment.id}`);
     console.log(`TEST: Using test questions: ${useTestQuestions}`);
-    console.log(`TEST: Found ${screeningQuestions.length} screening questions`);
-    console.log(`TEST: First question: ${firstQuestion?.id} - ${firstQuestion?.text?.substring(0, 50)}`);
+    console.log(`TEST: Found ${questions.length} screening questions`);
+    console.log(
+      `TEST: First question: ${
+        firstQuestion?.id
+      } - ${firstQuestion?.text?.substring(0, 50)}`
+    );
 
     return NextResponse.json({
       success: true,
@@ -194,17 +285,17 @@ export async function POST(req: NextRequest) {
         currentModule: "SCREENING",
         questionsAsked: 0,
         firstQuestion,
-        totalQuestions: screeningQuestions.length,
-        includesTestQuestions: useTestQuestions
-      }
+        totalQuestions: questions.length,
+        includesTestQuestions: useTestQuestions,
+      },
     });
-
   } catch (error) {
     console.error("TEST: Assessment start error:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : "Failed to start assessment" 
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to start assessment",
       },
       { status: 500 }
     );

@@ -19,5 +19,24 @@
  ⚠ `experimental.serverComponentsExternalPackages` has been moved to `serverExternalPackages`. Please update your next.config.js file accordingly.
  ○ Compiling instrumentation Node.js ...
  ✓ Compiled instrumentation Node.js in 527ms
- ✓ Compiled instrumentation Edge in 126ms
- ✓ Ready in 1889ms
+ ✓ Compiled in ✓ Compiled instrumentation Node.js in 99ms
+ ✓ Compiled instrumentation Edge in 7ms
+ ⚠ Found a change in next.config.js. Restarting the server to apply the changes...
+   ▲ Next.js 15.4.6 (Turbopack)
+   - Local:        http://localhost:3006
+   - Network:      http://10.0.0.58:3006
+   - Environments: .env.local, .env
+   - Experiments (use with caution):
+     · clientTraceMetadata
+
+ ✓ Starting...
+ ○ Compiling instrumentation Node.js ...
+ ✓ Compiled instrumentation Node.js in 4.9s
+ ○ Compiling instrumentation Edge ...
+ ✓ Compiled instrumentation Edge in 877ms
+ ✓ Ready in 8.9s
+ ✓ Compiled instrumentation Node.js in 50ms
+ ✓ Compiled instrumentation Edge in 3ms
+ ✓ Compiled instrumentation Node.js in 30ms
+ ✓ Compiled instrumentation Edge in 15ms
+[?25h

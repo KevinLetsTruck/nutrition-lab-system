@@ -16,6 +16,10 @@ import {
   ChevronDown,
   ChevronsUpDown,
 } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 
 interface Client {
   id: string;
@@ -438,12 +442,11 @@ export default function ClientDashboard() {
         </div>
 
         {/* Small New Client Button */}
-        <Link
-          href="/dashboard/clients/new"
-          className="btn-primary flex items-center gap-2 px-4 py-2 text-sm rounded-lg hover:opacity-90 transition-opacity"
-        >
-          <Plus className="w-4 h-4" />
-          New Client
+        <Link href="/dashboard/clients/new">
+          <Button className="flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            New Client
+          </Button>
         </Link>
       </div>
 
@@ -451,89 +454,71 @@ export default function ClientDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         {/* Search Bar */}
         <div>
-          <div className="card p-4" style={{ background: "var(--bg-card)" }}>
-            <label
-              className="block text-sm font-medium mb-3"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              Search Clients
-            </label>
-            <div className="relative">
-              <Search
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5"
-                style={{ color: "var(--text-secondary)" }}
-              />
-              <input
-                type="text"
-                placeholder="Search by name or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="input w-full pl-10 pr-10 py-3 rounded-md"
-                style={{
-                  background: "var(--bg-secondary)",
-                  border: "1px solid var(--border-primary)",
-                  color: "var(--text-primary)",
-                }}
-              />
+          <Card>
+            <CardContent className="p-4">
+              <label className="block text-sm font-medium mb-3 text-gray-400">
+                Search Clients
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Search by name or email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-10"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-700 transition-colors text-gray-400"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
               {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  ×
-                </button>
+                <p className="text-sm mt-2 text-gray-400">
+                  {filteredAndSortedClients.length} client
+                  {filteredAndSortedClients.length !== 1 ? "s" : ""} found for "
+                  {searchTerm}"
+                </p>
               )}
-            </div>
-            {searchTerm && (
-              <p
-                className="text-sm mt-2"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                {filteredAndSortedClients.length} client
-                {filteredAndSortedClients.length !== 1 ? "s" : ""} found for "
-                {searchTerm}"
-              </p>
-            )}
-          </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Status Filter */}
         <div>
-          <div className="card p-4" style={{ background: "var(--bg-card)" }}>
-            <label
-              className="block text-sm font-medium mb-3"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              Filter by Status
-            </label>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="input w-full px-3 py-2 rounded-md cursor-pointer"
-              style={{
-                background: "var(--bg-secondary)",
-                border: "1px solid var(--border-primary)",
-                color: "var(--text-primary)",
-              }}
-            >
-              <option value="all">All Clients</option>
-              <option value="SIGNED_UP">Signed Up</option>
-              <option value="INITIAL_INTERVIEW_COMPLETED">
-                Interview Completed
-              </option>
-              <option value="ASSESSMENT_COMPLETED">Assessment Completed</option>
-              <option value="DOCS_UPLOADED">Docs Uploaded</option>
-              <option value="SCHEDULED">Scheduled</option>
-              <option value="ONGOING">Ongoing</option>
-              <option value="ARCHIVED">Archived</option>
-            </select>
-          </div>
+          <Card>
+            <CardContent className="p-4">
+              <label className="block text-sm font-medium mb-3 text-gray-400">
+                Filter by Status
+              </label>
+              <Select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+              >
+                <option value="all">All Clients</option>
+                <option value="SIGNED_UP">Signed Up</option>
+                <option value="INITIAL_INTERVIEW_COMPLETED">
+                  Interview Completed
+                </option>
+                <option value="ASSESSMENT_COMPLETED">
+                  Assessment Completed
+                </option>
+                <option value="DOCS_UPLOADED">Docs Uploaded</option>
+                <option value="SCHEDULED">Scheduled</option>
+                <option value="ONGOING">Ongoing</option>
+                <option value="ARCHIVED">Archived</option>
+              </Select>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
       {/* Client Table */}
-      <div className="card p-0 overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full table-dark">
             <thead>
@@ -631,7 +616,7 @@ export default function ClientDashboard() {
                             onChange={(e) =>
                               handleStatusUpdate(client.id, e.target.value)
                             }
-                            className={`input px-2 py-1 text-xs rounded-lg cursor-pointer min-w-[140px] ${
+                            className={`px-2 py-1 text-xs rounded-xl bg-gray-900/50 border border-gray-700 cursor-pointer min-w-[140px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all ${
                               getStatusVariant(client.status) === "default"
                                 ? "text-blue-400"
                                 : getStatusVariant(client.status) ===
@@ -673,7 +658,7 @@ export default function ClientDashboard() {
                       <div className="flex space-x-2">
                         <Link
                           href={`/dashboard/protocols/new?clientId=${client.id}`}
-                          className="text-[#4ade80] hover:text-[#22c55e] transition-colors duration-200"
+                          className="p-2 rounded-xl text-brand-green hover:text-brand-green/90 hover:bg-brand-green/10 transition-all duration-200 border border-transparent hover:border-brand-green/30"
                           title="Create Protocol"
                         >
                           <FlaskConical className="w-4 h-4" />
@@ -681,17 +666,17 @@ export default function ClientDashboard() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex space-x-3">
+                      <div className="flex space-x-2">
                         <Link
                           href={`/dashboard/clients/${client.id}`}
-                          className="text-[#94a3b8] hover:text-[#f1f5f9] transition-colors duration-200"
+                          className="p-2 rounded-xl text-[#94a3b8] hover:text-[#f1f5f9] hover:bg-gray-800 transition-all duration-200"
                           title="View Client"
                         >
                           <Eye className="w-4 h-4" />
                         </Link>
                         <Link
                           href={`/dashboard/clients/${client.id}/edit`}
-                          className="text-[#94a3b8] hover:text-[#f1f5f9] transition-colors duration-200"
+                          className="p-2 rounded-xl text-[#94a3b8] hover:text-[#f1f5f9] hover:bg-gray-800 transition-all duration-200"
                           title="Edit Client"
                         >
                           <Edit className="w-4 h-4" />
@@ -704,7 +689,7 @@ export default function ClientDashboard() {
                                 `${client.firstName} ${client.lastName}`
                               )
                             }
-                            className="text-amber-400 hover:text-amber-300 transition-colors duration-200"
+                            className="p-2 rounded-xl text-amber-400 hover:text-amber-300 hover:bg-gray-800 transition-all duration-200"
                             title="Archive Client"
                           >
                             <Archive className="w-4 h-4" />
@@ -717,7 +702,7 @@ export default function ClientDashboard() {
                                 `${client.firstName} ${client.lastName}`
                               )
                             }
-                            className="text-green-400 hover:text-green-300 transition-colors duration-200"
+                            className="p-2 rounded-xl text-green-400 hover:text-green-300 hover:bg-gray-800 transition-all duration-200"
                             title="Reactivate Client"
                           >
                             <RotateCcw className="w-4 h-4" />
@@ -730,7 +715,7 @@ export default function ClientDashboard() {
                               `${client.firstName} ${client.lastName}`
                             )
                           }
-                          className="text-red-400 hover:text-red-300 transition-colors duration-200"
+                          className="p-2 rounded-xl text-red-400 hover:text-red-300 hover:bg-gray-800 transition-all duration-200"
                           title="Delete Client"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -743,7 +728,7 @@ export default function ClientDashboard() {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

@@ -1,114 +1,143 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { assessmentService } from '@/lib/assessment/assessment-service';
-import { prisma } from '@/lib/db/prisma';
-
-interface APIResponse<T = any> {
-  success: boolean;
-  data?: T;
-  error?: {
-    code: string;
-    message: string;
-    details?: any;
-  };
-}
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db/prisma";
+import { auth } from "@/lib/auth-middleware";
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: assessmentId } = await params;
+    // Verify authentication
+    const authResult = await auth(req);
+    if (!authResult.authenticated) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    // Verify assessment exists and is active
+    const { id: assessmentId } = await context.params;
+
+    // Get assessment with template
     const assessment = await prisma.clientAssessment.findUnique({
-      where: { id: assessmentId }
+      where: { id: assessmentId },
+      include: {
+        template: true,
+        responses: {
+          select: { questionId: true },
+        },
+      },
     });
 
     if (!assessment) {
-      return NextResponse.json<APIResponse>({
-        success: false,
-        error: {
-          code: 'ASSESSMENT_NOT_FOUND',
-          message: 'Assessment not found'
-        }
-      }, { status: 404 });
+      return NextResponse.json(
+        { error: "Assessment not found" },
+        { status: 404 }
+      );
     }
 
-    if (assessment.status === 'COMPLETED') {
-      return NextResponse.json<APIResponse>({
+    // Verify user has access
+    if (
+      authResult.user.role === "CLIENT" &&
+      authResult.user.clientId !== assessment.clientId
+    ) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Check if assessment is already completed
+    if (assessment.status === "COMPLETED") {
+      return NextResponse.json({
         success: true,
-        data: {
-          completed: true,
-          message: 'Assessment is already completed'
-        }
+        completed: true,
+        message: "Assessment already completed",
       });
     }
 
-    if (assessment.status === 'ABANDONED') {
-      return NextResponse.json<APIResponse>({
-        success: false,
-        error: {
-          code: 'ASSESSMENT_ABANDONED',
-          message: 'This assessment has been abandoned'
+    // Get all questions from template
+    const allQuestions = assessment.template.questionBank as any[];
+
+    // Get answered question IDs
+    const answeredIds = new Set(assessment.responses.map((r) => r.questionId));
+
+    // Find questions for current module
+    const moduleQuestions = allQuestions.filter(
+      (q) => q.module === assessment.currentModule
+    );
+
+    // Find unanswered questions in current module
+    const unansweredInModule = moduleQuestions.filter(
+      (q) => !answeredIds.has(q.id)
+    );
+
+    let nextQuestion = null;
+    let nextModule = assessment.currentModule;
+
+    if (unansweredInModule.length > 0) {
+      // Still have questions in current module
+      nextQuestion = unansweredInModule[0];
+    } else {
+      // Current module complete, find next module
+      const modules = [
+        "SCREENING",
+        "ASSIMILATION",
+        "TRANSPORT",
+        "COMMUNICATION",
+        "STRUCTURAL",
+      ];
+      const currentIndex = modules.indexOf(assessment.currentModule);
+
+      // Find next module with unanswered questions
+      for (let i = currentIndex + 1; i < modules.length; i++) {
+        const moduleQuestions = allQuestions.filter(
+          (q) => q.module === modules[i] && !answeredIds.has(q.id)
+        );
+
+        if (moduleQuestions.length > 0) {
+          nextQuestion = moduleQuestions[0];
+          nextModule = modules[i];
+          break;
         }
-      }, { status: 400 });
-    }
-
-    // Get next question from AI service
-    const question = await assessmentService.getNextQuestion(assessmentId);
-
-    if (!question) {
-      // No more questions - assessment complete
-      await assessmentService.completeAssessment(assessmentId);
-      
-      return NextResponse.json<APIResponse>({
-        success: true,
-        data: {
-          completed: true,
-          message: 'Assessment completed successfully'
-        }
-      });
-    }
-
-    // Get module progress
-    const moduleQuestions = await prisma.clientResponse.findMany({
-      where: {
-        assessmentId,
-        questionModule: assessment.currentModule
       }
-    });
+    }
 
-    return NextResponse.json<APIResponse>({
-      success: true,
-      data: {
-        question: {
-          id: question.id,
-          text: question.text,
-          type: question.type,
-          module: question.module,
-          category: question.category,
-          options: question.options,
-          helpText: question.helpText,
-          required: question.required
+    if (!nextQuestion) {
+      // All questions answered, mark as complete
+      await prisma.clientAssessment.update({
+        where: { id: assessmentId },
+        data: {
+          status: "COMPLETED",
+          completedAt: new Date(),
+          completionRate: 100,
         },
-        progress: {
-          currentModule: assessment.currentModule,
-          moduleProgress: moduleQuestions.length,
-          overallProgress: assessment.completionRate,
-          questionsAsked: assessment.questionsAsked
-        }
-      }
-    });
+      });
 
+      return NextResponse.json({
+        success: true,
+        completed: true,
+        message: "Assessment completed successfully!",
+      });
+    }
+
+    // Update current module if changed
+    if (nextModule !== assessment.currentModule) {
+      await prisma.clientAssessment.update({
+        where: { id: assessmentId },
+        data: {
+          currentModule: nextModule,
+          lastActiveAt: new Date(),
+        },
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      question: nextQuestion,
+      questionsAsked: answeredIds.size,
+      totalQuestions: allQuestions.length,
+      currentModule: nextModule,
+    });
   } catch (error) {
-    console.error('Error getting next question:', error);
-    return NextResponse.json<APIResponse>({
-      success: false,
-      error: {
-        code: 'NEXT_QUESTION_ERROR',
-        message: 'Failed to get next question',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      }
-    }, { status: 500 });
+    console.error("Error getting next question:", error);
+    return NextResponse.json(
+      { error: "Failed to get next question" },
+      { status: 500 }
+    );
   }
 }

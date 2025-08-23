@@ -1,146 +1,161 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { ClaudeStatus } from '@/components/analysis/ClaudeStatus';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
+import { MainNav } from "@/components/navigation/MainNav";
 
 export default function Home() {
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            FNTP Nutrition System
-          </h1>
-          <p className="text-xl text-gray-600">
-            Comprehensive Nutritional Therapy Practice Management
-          </p>
+  const router = useRouter();
+  const { user, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      // User is already logged in, redirect based on role
+      if (user.role === "CLIENT") {
+        router.push("/assessment/welcome");
+      } else {
+        router.push("/dashboard/clients");
+      }
+    }
+  }, [user, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-brand-navy">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-green mx-auto"></div>
+          <p className="text-gray-400">Loading...</p>
         </div>
+      </div>
+    );
+  }
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {/* What's Built */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-blue-600">
-              ✅ What's Ready
-            </h2>
-            <ul className="space-y-2 text-gray-700">
-              <li>• PostgreSQL Database Running</li>
-              <li>• Authentication System (JWT)</li>
-              <li>• Client Management API</li>
-              <li>• Prisma ORM Configured</li>
-              <li>• TypeScript Setup</li>
-              <li>• Tailwind CSS Styling</li>
-            </ul>
-          </div>
+  return (
+    <div className="min-h-screen bg-brand-navy">
+      {/* Navigation */}
+      <MainNav />
 
-          {/* API Endpoints */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-green-600">
-              🚀 API Endpoints
-            </h2>
-            <ul className="space-y-2 text-gray-700">
-              <li className="font-mono text-sm">POST /api/auth/register</li>
-              <li className="font-mono text-sm">POST /api/auth/login</li>
-              <li className="font-mono text-sm">GET /api/clients</li>
-              <li className="font-mono text-sm">POST /api/clients</li>
-            </ul>
-          </div>
+      {/* Hero Section */}
+      <div className="relative">
+        <div className="container mx-auto px-4 py-24">
+          <div className="max-w-5xl mx-auto text-center space-y-8">
+            {/* Badge */}
+            <div className="inline-flex items-center px-6 py-2 bg-brand-green/20 text-brand-green rounded-full text-sm font-medium">
+              Personalized Nutrition & Wellness
+            </div>
 
-          {/* Database Models */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-purple-600">
-              📊 Database Models
-            </h2>
-            <ul className="space-y-2 text-gray-700">
-              <li>• User (Authentication)</li>
-              <li>• Client (Truck Drivers)</li>
-              <li>• Document (Lab Reports)</li>
-              <li>• Assessment (150 Questions)</li>
-              <li>• Protocol (Nutrition Plans)</li>
-              <li>• ClientNote (Session Notes)</li>
-            </ul>
-          </div>
+            {/* Main Heading */}
+            <h1 className="text-5xl md:text-7xl font-bold leading-tight">
+              <span className="text-brand-green">Transform Your Life</span>{" "}
+              <span className="text-brand-orange">Through</span>
+              <br />
+              <span className="text-white">Holistic Health Coaching</span>
+            </h1>
 
-          {/* Quick Actions */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-orange-600">
-              ⚡ Quick Actions
-            </h2>
-            <div className="space-y-3">
-              <Link 
-                href="/register"
-                className="block text-center bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
-              >
-                Create Admin Account
+            {/* Subheading */}
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+              Start your journey to optimal health with evidence-based
+              nutritional guidance and personalized wellness strategies designed
+              just for you
+            </p>
+
+            {/* CTA Button */}
+            <div className="pt-8">
+              <Link href="/register">
+                <Button size="lg" className="text-lg px-8 py-6">
+                  Begin Your Health Journey
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
               </Link>
-              <Link 
-                href="/login"
-                className="block text-center bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
-              >
-                Login
-              </Link>
-              <button
-                onClick={() => window.open('http://localhost:5555', '_blank')}
-                className="w-full bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition"
-              >
-                Open Prisma Studio
-              </button>
             </div>
           </div>
+        </div>
 
-          {/* Test API */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-red-600">
-              🧪 Test API
-            </h2>
-            <p className="text-sm text-gray-600 mb-3">
-              Run this in terminal to test:
+        {/* Decorative gradient */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-brand-navy/50 to-transparent"></div>
+      </div>
+
+      {/* Features Section - Optional */}
+      <div className="container mx-auto px-4 py-24">
+        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-8 hover:border-brand-green/50 transition-colors">
+            <div className="w-12 h-12 bg-brand-green/20 rounded-lg flex items-center justify-center mb-6">
+              <svg
+                className="w-6 h-6 text-brand-green"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-3">
+              Comprehensive Assessment
+            </h3>
+            <p className="text-gray-400">
+              400+ targeted questions to understand your unique health profile
+              and nutritional needs
             </p>
-            <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
-{`curl -X POST http://localhost:3000/api/auth/register \\
-  -H "Content-Type: application/json" \\
-  -d '{"email":"test@fntp.com",
-       "password":"secure123",
-       "name":"Test User"}'`}
-            </pre>
           </div>
 
-          {/* Project Info */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-indigo-600">
-              📁 Project Structure
-            </h2>
-            <ul className="space-y-1 text-sm text-gray-700">
-              <li>• /src/app - Pages & API</li>
-              <li>• /src/components - UI Components</li>
-              <li>• /src/lib - Utilities & Auth</li>
-              <li>• /src/types - TypeScript Types</li>
-              <li>• /prisma - Database Schema</li>
-              <li>• /docker - Docker Config</li>
-            </ul>
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-8 hover:border-brand-green/50 transition-colors">
+            <div className="w-12 h-12 bg-brand-green/20 rounded-lg flex items-center justify-center mb-6">
+              <svg
+                className="w-6 h-6 text-brand-green"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-3">
+              Personalized Plans
+            </h3>
+            <p className="text-gray-400">
+              Custom nutrition protocols based on your assessment results and
+              health goals
+            </p>
           </div>
-        </div>
 
-        {/* Claude AI Status */}
-        <div className="mt-12 max-w-4xl mx-auto">
-          <ClaudeStatus />
-        </div>
-        
-        {/* Next Steps */}
-        <div className="mt-8 bg-yellow-50 rounded-lg p-6 max-w-4xl mx-auto">
-          <h2 className="text-2xl font-semibold mb-4 text-yellow-800">
-            🎯 Ready to Build More!
-          </h2>
-          <p className="text-gray-700 mb-4">
-            The foundation is complete. Next features to implement:
-          </p>
-          <ul className="grid md:grid-cols-2 gap-2 text-gray-700">
-            <li>• Client Management Interface</li>
-            <li>• Document Upload System (AWS S3)</li>
-            <li>• 150-Question Assessment Form</li>
-            <li>• AI Analysis with Claude</li>
-            <li>• Protocol Generation</li>
-            <li>• Dashboard & Analytics</li>
-          </ul>
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-8 hover:border-brand-green/50 transition-colors">
+            <div className="w-12 h-12 bg-brand-green/20 rounded-lg flex items-center justify-center mb-6">
+              <svg
+                className="w-6 h-6 text-brand-green"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-3">
+              Track Progress
+            </h3>
+            <p className="text-gray-400">
+              Monitor your health improvements with regular check-ins and
+              adjustments
+            </p>
+          </div>
         </div>
       </div>
     </div>
