@@ -1,10 +1,10 @@
 // ASSIMILATION Module Questions - Chunk 2
 // Questions 16-32 of 61 total (after removing duplicate and direct seed oil questions)
 
-import { AssessmentQuestion } from '../types';
+import { AssessmentQuestion } from "../types";
 
 export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
-  // ========== FOOD SENSITIVITIES & REACTIONS (4 questions) ========== 
+  // ========== FOOD SENSITIVITIES & REACTIONS (4 questions) ==========
   {
     id: "ASM017",
     module: "ASSIMILATION",
@@ -15,11 +15,11 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
       { value: "mild", label: "Mild symptoms", score: 2 },
       { value: "moderate", label: "Moderate symptoms", score: 3 },
       { value: "severe", label: "Severe symptoms", score: 4 },
-      { value: "avoid", label: "I avoid them", score: 2 }
+      { value: "avoid", label: "I avoid them", score: 2 },
     ],
     scoringWeight: 1.8,
     clinicalRelevance: ["celiac", "NCGS", "intestinal_permeability"],
-    labCorrelations: ["celiac_panel", "gliadin_antibodies"]
+    labCorrelations: ["celiac_panel", "gliadin_antibodies"],
   },
   {
     id: "ASM018",
@@ -30,10 +30,10 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
       { value: "no_reaction", label: "No reaction", score: 0 },
       { value: "lactose_only", label: "Only milk (lactose)", score: 2 },
       { value: "all_dairy", label: "All dairy products", score: 3 },
-      { value: "avoid", label: "I avoid them", score: 2 }
+      { value: "avoid", label: "I avoid them", score: 2 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["lactose_intolerance", "casein_sensitivity"]
+    clinicalRelevance: ["lactose_intolerance", "casein_sensitivity"],
   },
 
   {
@@ -45,10 +45,10 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
       { value: "never", label: "Never", score: 0 },
       { value: "sometimes", label: "Sometimes", score: 2 },
       { value: "often", label: "Often", score: 3 },
-      { value: "always", label: "Always", score: 4 }
+      { value: "always", label: "Always", score: 4 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["SIBO", "carbohydrate_malabsorption"]
+    clinicalRelevance: ["SIBO", "carbohydrate_malabsorption"],
   },
   {
     id: "ASM020",
@@ -62,10 +62,10 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
       { value: "cheese", label: "Cheese/dairy", score: 1 },
       { value: "chocolate", label: "Chocolate", score: 1 },
       { value: "fried", label: "Fried foods", score: 2 },
-      { value: "none", label: "No specific cravings", score: 0 }
+      { value: "none", label: "No specific cravings", score: 0 },
     ],
     scoringWeight: 1.0,
-    clinicalRelevance: ["dysbiosis", "nutrient_deficiency", "blood_sugar"]
+    clinicalRelevance: ["dysbiosis", "nutrient_deficiency", "blood_sugar"],
   },
 
   // ========== NUTRIENT ABSORPTION (5 questions) ==========
@@ -82,11 +82,11 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
       { value: "folate", label: "Folate", score: 2 },
       { value: "magnesium", label: "Magnesium", score: 2 },
       { value: "zinc", label: "Zinc", score: 2 },
-      { value: "multiple", label: "Multiple deficiencies", score: 4 }
+      { value: "multiple", label: "Multiple deficiencies", score: 4 },
     ],
     scoringWeight: 2.0,
     clinicalRelevance: ["malabsorption", "intestinal_damage"],
-    labCorrelations: ["ferritin", "B12", "folate", "vitamin_D"]
+    labCorrelations: ["ferritin", "B12", "folate", "vitamin_D"],
   },
   {
     id: "ASM022",
@@ -95,11 +95,11 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
     type: "YES_NO",
     options: [
       { value: "yes", label: "Yes", score: 2 },
-      { value: "no", label: "No", score: 0 }
-    ,
-      { value: "unsure", label: "Unsure", score: 1 }],
+      { value: "no", label: "No", score: 0 },
+      { value: "unsure", label: "Unsure", score: 1 },
+    ],
     scoringWeight: 1.0,
-    clinicalRelevance: ["zinc_deficiency", "protein_malabsorption"]
+    clinicalRelevance: ["zinc_deficiency", "protein_malabsorption"],
   },
   {
     id: "ASM023",
@@ -110,10 +110,10 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
       { value: "never", label: "Never", score: 0 },
       { value: "sometimes", label: "Sometimes", score: 1 },
       { value: "often", label: "Often", score: 2 },
-      { value: "very_easily", label: "Very easily", score: 3 }
+      { value: "very_easily", label: "Very easily", score: 3 },
     ],
     scoringWeight: 1.2,
-    clinicalRelevance: ["vitamin_C_deficiency", "vitamin_K_deficiency"]
+    clinicalRelevance: ["vitamin_C_deficiency", "vitamin_K_deficiency"],
   },
   {
     id: "ASM024",
@@ -124,10 +124,10 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
       { value: "never", label: "Never", score: 0 },
       { value: "sometimes", label: "Sometimes", score: 1 },
       { value: "often", label: "Often", score: 2 },
-      { value: "always", label: "Always", score: 3 }
+      { value: "always", label: "Always", score: 3 },
     ],
     scoringWeight: 1.0,
-    clinicalRelevance: ["essential_fatty_acids", "vitamin_A"]
+    clinicalRelevance: ["essential_fatty_acids", "vitamin_A"],
   },
   {
     id: "ASM025",
@@ -139,11 +139,11 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
       { value: "rarely", label: "Rarely", score: 1 },
       { value: "sometimes", label: "Sometimes", score: 2 },
       { value: "often", label: "Often", score: 3 },
-      { value: "always", label: "Always", score: 4 }
+      { value: "always", label: "Always", score: 4 },
     ],
     scoringWeight: 2.0,
     clinicalRelevance: ["fat_malabsorption", "bile_insufficiency"],
-    labCorrelations: ["GGT", "alkaline_phosphatase"]
+    labCorrelations: ["GGT", "alkaline_phosphatase"],
   },
 
   // ========== ABDOMINAL PAIN & DISCOMFORT (5 questions) ==========
@@ -158,10 +158,10 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
       { value: "upper_right", label: "Upper right (liver/GB)", score: 2 },
       { value: "lower_left", label: "Lower left", score: 2 },
       { value: "lower_right", label: "Lower right", score: 2 },
-      { value: "all_over", label: "All over/varies", score: 3 }
+      { value: "all_over", label: "All over/varies", score: 3 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["organ_specific", "referred_pain"]
+    clinicalRelevance: ["organ_specific", "referred_pain"],
   },
   {
     id: "ASM027",
@@ -174,10 +174,10 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
       { value: "burning", label: "Burning", score: 2 },
       { value: "sharp", label: "Sharp/stabbing", score: 3 },
       { value: "dull", label: "Dull ache", score: 1 },
-      { value: "pressure", label: "Pressure/fullness", score: 2 }
+      { value: "pressure", label: "Pressure/fullness", score: 2 },
     ],
     scoringWeight: 1.3,
-    clinicalRelevance: ["pain_patterns", "differential_diagnosis"]
+    clinicalRelevance: ["pain_patterns", "differential_diagnosis"],
   },
   {
     id: "ASM028",
@@ -189,10 +189,10 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
       { value: "relieves", label: "Eating relieves it", score: 2 },
       { value: "worsens", label: "Eating worsens it", score: 3 },
       { value: "no_change", label: "No change", score: 1 },
-      { value: "depends", label: "Depends on food", score: 2 }
+      { value: "depends", label: "Depends on food", score: 2 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["ulcer_patterns", "functional_dyspepsia"]
+    clinicalRelevance: ["ulcer_patterns", "functional_dyspepsia"],
   },
   {
     id: "ASM029",
@@ -204,11 +204,11 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
       { value: "rarely", label: "Rarely", score: 1 },
       { value: "sometimes", label: "Sometimes", score: 2 },
       { value: "often", label: "Often", score: 3 },
-      { value: "always", label: "Always", score: 4 }
+      { value: "always", label: "Always", score: 4 },
     ],
     scoringWeight: 1.8,
     clinicalRelevance: ["duodenal_ulcer", "H_pylori"],
-    labCorrelations: ["H_pylori"]
+    labCorrelations: ["H_pylori"],
   },
   {
     id: "ASM030",
@@ -220,10 +220,10 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
       { value: "mild", label: "Mild tenderness", score: 1 },
       { value: "moderate", label: "Moderate tenderness", score: 2 },
       { value: "severe", label: "Severe tenderness", score: 3 },
-      { value: "cant_touch", label: "Can't tolerate touch", score: 4 }
+      { value: "cant_touch", label: "Can't tolerate touch", score: 4 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["inflammation", "visceral_hypersensitivity"]
+    clinicalRelevance: ["inflammation", "visceral_hypersensitivity"],
   },
 
   // ========== APPETITE & SATIETY (5 questions) ==========
@@ -237,10 +237,10 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
       { value: "low", label: "Low appetite", score: 2 },
       { value: "normal", label: "Normal appetite", score: 0 },
       { value: "high", label: "High appetite", score: 1 },
-      { value: "excessive", label: "Excessive/always hungry", score: 2 }
+      { value: "excessive", label: "Excessive/always hungry", score: 2 },
     ],
     scoringWeight: 1.3,
-    clinicalRelevance: ["digestive_capacity", "metabolic_state"]
+    clinicalRelevance: ["digestive_capacity", "metabolic_state"],
   },
   {
     id: "ASM032",
@@ -252,10 +252,10 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
       { value: "1_2hrs", label: "1-2 hours", score: 2 },
       { value: "2_3hrs", label: "2-3 hours", score: 1 },
       { value: "3_4hrs", label: "3-4 hours", score: 0 },
-      { value: "over_4hrs", label: "Over 4 hours", score: 1 }
+      { value: "over_4hrs", label: "Over 4 hours", score: 1 },
     ],
     scoringWeight: 1.2,
-    clinicalRelevance: ["gastric_emptying", "blood_sugar_regulation"]
+    clinicalRelevance: ["gastric_emptying", "blood_sugar_regulation"],
   },
   {
     id: "ASM033",
@@ -267,10 +267,10 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
       { value: "rarely", label: "Rarely", score: 1 },
       { value: "sometimes", label: "Sometimes", score: 2 },
       { value: "often", label: "Often", score: 3 },
-      { value: "daily", label: "Daily", score: 4 }
+      { value: "daily", label: "Daily", score: 4 },
     ],
     scoringWeight: 1.5,
-    clinicalRelevance: ["gastroparesis", "H_pylori", "gallbladder"]
+    clinicalRelevance: ["gastroparesis", "H_pylori", "gallbladder"],
   },
   {
     id: "ASM034",
@@ -281,7 +281,7 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
       { value: "no", label: "No weight loss", score: 0 },
       { value: "5_10lbs", label: "5-10 lbs", score: 2 },
       { value: "10_20lbs", label: "10-20 lbs", score: 3 },
-      { value: "over_20lbs", label: "Over 20 lbs", score: 4 }
+      { value: "over_20lbs", label: "Over 20 lbs", score: 4 },
     ],
     scoringWeight: 2.5,
     clinicalRelevance: ["malabsorption", "serious_pathology"],
@@ -290,9 +290,9 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
         threshold: 3,
         operator: "gte",
         alertLevel: "high",
-        requiresFollowup: true
-      }
-    ]
+        requiresFollowup: true,
+      },
+    ],
   },
   {
     id: "ASM035",
@@ -304,9 +304,9 @@ export const assimilationQuestionsChunk2: AssessmentQuestion[] = [
       { value: "rarely", label: "Rarely", score: 1 },
       { value: "sometimes", label: "Sometimes", score: 2 },
       { value: "often", label: "Often", score: 3 },
-      { value: "daily", label: "Daily", score: 4 }
+      { value: "daily", label: "Daily", score: 4 },
     ],
     scoringWeight: 1.8,
-    clinicalRelevance: ["symptom_severity", "nutritional_impact"]
-  }
+    clinicalRelevance: ["symptom_severity", "nutritional_impact"],
+  },
 ];
