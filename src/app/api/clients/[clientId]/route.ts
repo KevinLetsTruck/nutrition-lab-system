@@ -157,6 +157,8 @@ export async function PATCH(
       updateData.healthGoals = healthGoalsData;
     }
 
+    console.log("Update data to be saved:", JSON.stringify(updateData, null, 2));
+    
     const client = await prisma.client.update({
       where: { id: clientId },
       data: updateData,
@@ -164,6 +166,7 @@ export async function PATCH(
 
     return NextResponse.json(client);
   } catch (error) {
+    console.error("Error updating client:", error);
     if (error instanceof jwt.JsonWebTokenError) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }

@@ -47,6 +47,7 @@ export function Autocomplete({
 }: AutocompleteProps) {
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState("");
+  const [inputValue, setInputValue] = React.useState(value || "");
 
   const filteredOptions = React.useMemo(() => {
     if (!searchValue) return options;
@@ -60,6 +61,19 @@ export function Autocomplete({
   }, [options, searchValue]);
 
   const selectedOption = options.find((option) => option.value === value);
+
+  React.useEffect(() => {
+    setInputValue(selectedOption?.label || value || "");
+  }, [value, selectedOption]);
+
+  const handleInputKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && searchValue && filteredOptions.length === 0) {
+      // Allow custom value
+      onChange?.(searchValue, undefined);
+      setOpen(false);
+      setSearchValue("");
+    }
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -86,10 +100,18 @@ export function Autocomplete({
             placeholder={searchPlaceholder}
             value={searchValue}
             onValueChange={setSearchValue}
+            onKeyDown={handleInputKeyDown}
             className="border-gray-700"
           />
           <CommandEmpty className="text-gray-500 py-6 text-center">
-            {emptyText}
+            <div>
+              <p>{emptyText}</p>
+              {searchValue && (
+                <p className="mt-2 text-sm">
+                  Press Enter to add "{searchValue}"
+                </p>
+              )}
+            </div>
           </CommandEmpty>
           <CommandGroup className="max-h-[300px] overflow-auto">
             {filteredOptions.map((option) => (
