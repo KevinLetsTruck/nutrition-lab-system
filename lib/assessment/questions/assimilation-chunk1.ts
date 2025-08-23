@@ -1,10 +1,26 @@
 // ASSIMILATION Module Questions (Digestive System)
-// Total: 65 questions including 6 seed oil questions
-// This file contains questions 1-20
+// Total: 66 questions including 6 seed oil questions and 1 gateway question
+// This file contains questions 1-21 (including gateway)
 
 import { AssessmentQuestion } from '../types';
 
 export const assimilationQuestionsChunk1: AssessmentQuestion[] = [
+  // ========== GATEWAY QUESTION ==========
+  {
+    id: "ASM000",
+    module: "ASSIMILATION",
+    category: "DIGESTIVE",
+    text: "Do you experience any digestive issues or discomfort?",
+    type: "YES_NO",
+    options: [
+      { value: "yes", label: "Yes", score: 2 },
+      { value: "no", label: "No", score: 0 },
+      { value: "unsure", label: "Unsure", score: 1 }
+    ],
+    scoringWeight: 2.0,
+    clinicalRelevance: ["digestive_health", "GI_symptoms"]
+  },
+
   // ========== DIGESTIVE FUNCTION TIMELINE (5 questions) ==========
   {
     id: "ASM001",
@@ -17,7 +33,8 @@ export const assimilationQuestionsChunk1: AssessmentQuestion[] = [
       { value: "teens", label: "Teenage years", score: 3 },
       { value: "20s_30s", label: "20s-30s", score: 2 },
       { value: "40s_50s", label: "40s-50s", score: 1 },
-      { value: "recent", label: "Recently (last 2 years)", score: 1 }
+      { value: "recent", label: "Recently (last 2 years)", score: 1 },
+      { value: "na", label: "N/A - I don't have digestive issues", score: 0 }
     ],
     scoringWeight: 1.5,
     clinicalRelevance: ["chronicity", "developmental_factors"]
@@ -35,7 +52,8 @@ export const assimilationQuestionsChunk1: AssessmentQuestion[] = [
       { value: "stress", label: "Major stress/trauma", score: 2 },
       { value: "pregnancy", label: "Pregnancy", score: 1 },
       { value: "medication", label: "New medication", score: 2 },
-      { value: "none", label: "No specific trigger", score: 0 }
+      { value: "none", label: "No specific trigger", score: 0 },
+      { value: "na", label: "N/A - I don't have digestive issues", score: 0 }
     ],
     scoringWeight: 2.0,
     clinicalRelevance: ["post_infectious_IBS", "dysbiosis_triggers"],
