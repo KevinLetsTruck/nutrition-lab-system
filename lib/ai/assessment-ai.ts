@@ -1,6 +1,6 @@
 import { Anthropic } from '@anthropic-ai/sdk';
 import { AssessmentQuestion, ClientResponse, ModuleType, FunctionalModule } from '../assessment/types';
-import { getQuestionsByModule } from '../assessment/questions';
+import { getQuestionsByModule } from '../assessment/questions/index';
 // Import other modules when they are implemented
 // import { getAssimilationQuestions } from '@/lib/assessment/questions/assimilation-questions';
 // import { getDefenseRepairQuestions } from '@/lib/assessment/questions/defense-repair-questions';
