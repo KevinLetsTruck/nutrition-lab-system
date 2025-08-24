@@ -68,12 +68,15 @@ export default function Home() {
 
             {/* CTA Button */}
             <div className="pt-8">
-              <Link href="/register">
-                <Button size="lg" className="text-lg px-8 py-6">
-                  Begin Your Health Journey
+              <Link href="/assessment/start">
+                <Button size="lg" className="text-lg px-8 py-6 bg-brand-green text-brand-darkNavy hover:bg-brand-green/90">
+                  Start Your Free Health Assessment
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
+              <p className="text-sm text-gray-400 mt-3">
+                No login required • Takes 15-20 minutes
+              </p>
             </div>
           </div>
         </div>
@@ -105,7 +108,7 @@ export default function Home() {
               Comprehensive Assessment
             </h3>
             <p className="text-gray-400">
-              400+ targeted questions to understand your unique health profile
+              246 body-system focused questions to understand your unique health profile
               and nutritional needs
             </p>
           </div>
