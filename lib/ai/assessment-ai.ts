@@ -198,6 +198,16 @@ export async function getNextQuestionWithAI(
     return true;
   });
 
+  // Prioritize gateway questions (questions with conditional logic)
+  const gatewayQuestions = remainingQuestions.filter(q => q.conditionalLogic && q.conditionalLogic.length > 0);
+  const nonGatewayQuestions = remainingQuestions.filter(q => !q.conditionalLogic || q.conditionalLogic.length === 0);
+  
+  // If there are unanswered gateway questions, prioritize them
+  if (gatewayQuestions.length > 0) {
+    console.log(`Prioritizing ${gatewayQuestions.length} gateway questions in ${currentModule}`);
+    remainingQuestions = [...gatewayQuestions, ...nonGatewayQuestions];
+  }
+
   // If no questions remain in current module, move to next
   if (remainingQuestions.length === 0) {
     const currentModuleIndex = MODULE_SEQUENCE.indexOf(currentModule);
@@ -310,10 +320,13 @@ ${availableQuestions
   .join("\n")}
 
 Select based on:
-1. Maximum diagnostic value
-2. Avoid redundancy
-3. Prioritize severe symptoms
-4. Consider client demographics
+1. ALWAYS prioritize gateway questions (questions with conditionalLogic that skip other questions)
+2. Maximum diagnostic value
+3. Avoid redundancy
+4. Prioritize severe symptoms
+5. Consider client demographics
+
+Important: Questions with conditionalLogic MUST be asked before their dependent questions.
 
 Return only: {"selectedQuestionId": "ID", "reasoning": "one sentence"}`;
 
@@ -488,7 +501,16 @@ function fallbackQuestionSelection(
   let nextQuestion = trulyAvailableQuestions[0];
   let reasoning = "Sequential selection (fallback mode)";
 
-  if (hasHighSeverity && trulyAvailableQuestions.length > 5) {
+  // Prioritize gateway questions (questions with conditional logic) 
+  const gatewayQuestions = trulyAvailableQuestions.filter(q => q.conditionalLogic && q.conditionalLogic.length > 0);
+  const nonGatewayQuestions = trulyAvailableQuestions.filter(q => !q.conditionalLogic || q.conditionalLogic.length === 0);
+  
+  if (gatewayQuestions.length > 0) {
+    // Select first gateway question
+    nextQuestion = gatewayQuestions[0];
+    reasoning = `Gateway question selected (${gatewayQuestions.length} gateway questions prioritized)`;
+    console.log(`[Fallback] Selecting gateway question: ${nextQuestion.id}`);
+  } else if (hasHighSeverity && trulyAvailableQuestions.length > 5) {
     // Skip some basic questions if high severity exists
     const skipCount = Math.min(
       3,
