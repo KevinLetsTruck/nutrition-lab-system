@@ -80,9 +80,13 @@ export default function AssessmentIntakePage() {
 
           // Pre-fill form if data exists
           if (data.dateOfBirth) {
+            // Format date for HTML date input (yyyy-MM-dd)
+            const date = new Date(data.dateOfBirth);
+            const formattedDate = date.toISOString().split('T')[0];
+            
             setFormData((prev) => ({
               ...prev,
-              dateOfBirth: data.dateOfBirth,
+              dateOfBirth: formattedDate,
               gender: data.gender || "",
             }));
           }
