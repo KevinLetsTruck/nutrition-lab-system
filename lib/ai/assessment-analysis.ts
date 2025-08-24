@@ -23,6 +23,11 @@ interface AnalysisResult {
     priorityLevel: 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL';
     recommendations: string[];
   };
+  protocolPriority: {
+    primary: string;
+    secondary: string;
+    urgency: string;
+  };
 }
 
 export async function generateAssessmentAnalysis(params: {

@@ -5,12 +5,14 @@ To enable real AI-powered health assessment analysis, you need to add your Anthr
 ## Steps:
 
 1. **Get your API key from Anthropic:**
+
    - Go to https://console.anthropic.com/
    - Create an account or log in
    - Navigate to API Keys
    - Create a new API key
 
 2. **Add to your .env.local file:**
+
    ```bash
    # Add this line to your .env.local file
    ANTHROPIC_API_KEY=your-actual-api-key-here
@@ -34,6 +36,7 @@ To enable real AI-powered health assessment analysis, you need to add your Anthr
 ## Testing:
 
 Once configured, the AI analysis will automatically run when:
+
 1. A client completes an assessment
 2. An admin views assessment details
 3. You manually trigger analysis for existing assessments

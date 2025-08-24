@@ -7,11 +7,15 @@ export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-    try {
+  try {
     // Check if user is authenticated and is admin
     const session = await auth(req);
-    
-    if (!session?.authenticated || !session?.user?.userId || session.user.role !== "admin") {
+
+    if (
+      !session?.authenticated ||
+      !session?.user?.userId ||
+      session.user.role !== "admin"
+    ) {
       return NextResponse.json(
         { success: false, error: "Unauthorized - Admin access required" },
         { status: 401 }
