@@ -1,7 +1,7 @@
 // Core Assessment Types
 export interface AssessmentQuestion {
   id: string;
-  module: FunctionalModule;
+  module: BodySystemType;
   bodySystem?: string; // Body system categorization
   category?: QuestionCategory;
   text: string;
@@ -37,16 +37,18 @@ export interface AssessmentQuestion {
   genderSpecific?: "male" | "female"; // Only show to specific gender
 }
 
-export enum FunctionalModule {
-  SCREENING = "SCREENING",
-  ASSIMILATION = "ASSIMILATION",
-  DEFENSE_REPAIR = "DEFENSE_REPAIR",
-  ENERGY = "ENERGY",
-  BIOTRANSFORMATION = "BIOTRANSFORMATION",
-  TRANSPORT = "TRANSPORT",
-  COMMUNICATION = "COMMUNICATION",
-  STRUCTURAL = "STRUCTURAL",
-}
+// Body System Types (replaced FunctionalModule)
+export type BodySystemType = 
+  | "NEUROLOGICAL"
+  | "DIGESTIVE"
+  | "CARDIOVASCULAR"
+  | "RESPIRATORY"
+  | "IMMUNE"
+  | "MUSCULOSKELETAL"
+  | "ENDOCRINE"
+  | "INTEGUMENTARY"
+  | "GENITOURINARY"
+  | "SPECIAL_TOPICS";
 
 export enum QuestionCategory {
   SEED_OIL = "SEED_OIL",
@@ -130,7 +132,7 @@ export interface MultiSelectOptions {
 export interface TriggerCondition {
   threshold: number;
   operator: "gt" | "gte" | "lt" | "lte" | "eq" | "contains";
-  triggersModule?: FunctionalModule;
+  triggersModule?: BodySystemType;
   triggersQuestions?: string[];
   priority?: "high" | "medium" | "low";
 }
@@ -142,13 +144,13 @@ export interface ValidationRule {
 }
 
 export interface AssessmentModule {
-  id: FunctionalModule;
+  id: BodySystemType;
   name: string;
   description: string;
   questionCount: number;
   activationThreshold: number;
   questions: string[];
-  dependencies?: FunctionalModule[];
+  dependencies?: BodySystemType[];
   seedOilIntegration?: boolean;
 }
 
@@ -161,7 +163,7 @@ export interface SeedOilAssessment {
 }
 
 // Type aliases for compatibility
-export type ModuleType = FunctionalModule;
+export type ModuleType = BodySystemType;
 
 // Client Response interface for assessment responses
 export interface ClientResponse {

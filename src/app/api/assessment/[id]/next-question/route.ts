@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { auth } from "@/lib/auth-middleware";
 import { getNextQuestionWithAI } from "@/../lib/ai/assessment-ai";
-import { FunctionalModule } from "@/../lib/assessment/types";
+// FunctionalModule removed - using body system strings directly
 
 export async function GET(
   req: NextRequest,

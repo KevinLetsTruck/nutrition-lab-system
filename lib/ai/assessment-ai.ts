@@ -3,17 +3,8 @@ import {
   AssessmentQuestion,
   ClientResponse,
   ModuleType,
-  FunctionalModule,
 } from "../assessment/types";
-import { getQuestionsByModule, getQuestionsByBodySystem, allQuestions as getAllQuestions } from "../assessment/questions/index";
-// Import other modules when they are implemented
-// import { getAssimilationQuestions } from '@/lib/assessment/questions/assimilation-questions';
-// import { getDefenseRepairQuestions } from '@/lib/assessment/questions/defense-repair-questions';
-// import { getEnergyQuestions } from '@/lib/assessment/questions/energy-questions';
-// import { getBiotransformationQuestions } from '@/lib/assessment/questions/biotransformation-questions';
-// import { getTransportQuestions } from '@/lib/assessment/questions/transport-questions';
-// import { getCommunicationQuestions } from '@/lib/assessment/questions/communication-questions';
-// import { getStructuralQuestions } from '@/lib/assessment/questions/structural-questions';
+import { getQuestionsByBodySystem, allQuestions as getAllQuestions } from "../assessment/questions/index";
 
 // Initialize Claude client
 const anthropic = new Anthropic({
