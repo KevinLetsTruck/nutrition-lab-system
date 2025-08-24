@@ -473,6 +473,7 @@ model ClientResponse {
   responseType    String
   responseValue   Json
   responseText    String?
+  score           Int              @default(0)
   aiReasoning     String?
   confidenceScore Float?
   clinicalFlags   Json?
