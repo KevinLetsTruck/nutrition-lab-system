@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       data: {
         clientId,
         templateId: template.id,
-        currentModule: "SCREENING",
+        currentModule: "NEUROLOGICAL", // Start with first body system
         status: "IN_PROGRESS",
         startedAt: new Date(),
         lastActiveAt: new Date(),
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
 
     // Get first question
     const questions = template.questionBank as any[];
-    const firstQuestion = questions.find((q) => q.module === "SCREENING");
+    const firstQuestion = questions.find((q) => q.module === "NEUROLOGICAL");
 
     return NextResponse.json({
       success: true,

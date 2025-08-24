@@ -214,14 +214,16 @@ export async function GET(
       } else {
         // Current module complete, find next module
         const modules = [
-          "SCREENING",
-          "ENERGY",
-          "TRANSPORT",
-          "DEFENSE_REPAIR",
-          "ASSIMILATION",
-          "BIOTRANSFORMATION",
-          "COMMUNICATION",
-          "STRUCTURAL",
+          "NEUROLOGICAL",
+          "DIGESTIVE",
+          "CARDIOVASCULAR",
+          "RESPIRATORY",
+          "IMMUNE",
+          "MUSCULOSKELETAL",
+          "ENDOCRINE",
+          "INTEGUMENTARY",
+          "GENITOURINARY",
+          "SPECIAL_TOPICS",
         ];
         const currentIndex = modules.indexOf(assessment.currentModule);
 

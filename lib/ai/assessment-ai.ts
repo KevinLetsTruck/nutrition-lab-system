@@ -5,7 +5,7 @@ import {
   ModuleType,
   FunctionalModule,
 } from "../assessment/types";
-import { getQuestionsByModule, allQuestions as getAllQuestions } from "../assessment/questions/index";
+import { getQuestionsByModule, getQuestionsByBodySystem, allQuestions as getAllQuestions } from "../assessment/questions/index";
 // Import other modules when they are implemented
 // import { getAssimilationQuestions } from '@/lib/assessment/questions/assimilation-questions';
 // import { getDefenseRepairQuestions } from '@/lib/assessment/questions/defense-repair-questions';
@@ -42,20 +42,21 @@ interface AIDecision {
 }
 
 const MODULE_SEQUENCE: ModuleType[] = [
-  "SCREENING",
-  "ASSIMILATION",
-  "DEFENSE_REPAIR",
-  "ENERGY",
-  "BIOTRANSFORMATION",
-  "TRANSPORT",
-  "COMMUNICATION",
-  "STRUCTURAL",
+  "NEUROLOGICAL",
+  "DIGESTIVE",
+  "CARDIOVASCULAR",
+  "RESPIRATORY",
+  "IMMUNE",
+  "MUSCULOSKELETAL",
+  "ENDOCRINE",
+  "INTEGUMENTARY",
+  "GENITOURINARY",
+  "SPECIAL_TOPICS",
 ];
 
 function getQuestionsForModule(module: ModuleType): AssessmentQuestion[] {
-  // Convert Prisma ModuleType to FunctionalModule enum
-  const functionalModule = module as unknown as FunctionalModule;
-  return getQuestionsByModule(functionalModule);
+  // Use body system questions now
+  return getQuestionsByBodySystem(module);
 }
 
 // Cache for AI decisions to avoid repeated calls

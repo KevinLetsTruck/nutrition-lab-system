@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { allQuestions as questionBank } from "@/../lib/assessment/questions";
-import { assessmentModules } from "@/../lib/assessment/modules";
+import { assessmentModules } from "@/../lib/assessment/body-system-modules";
 
 export async function POST() {
   try {
