@@ -197,6 +197,13 @@ export const cardiovascularQuestions: AssessmentQuestion[] = [
     ],
     scoringWeight: 2.0,
     clinicalRelevance: ["edema", "heart_failure", "venous_insufficiency"],
+    conditionalLogic: [
+      {
+        condition: "never",
+        action: "skip",
+        skipQuestions: ["CARDIO013"],
+      },
+    ],
   },
   {
     id: "CARDIO013",
@@ -207,17 +214,10 @@ export const cardiovascularQuestions: AssessmentQuestion[] = [
     options: [
       { value: "yes", label: "Yes", score: 2 },
       { value: "no", label: "No", score: 0 },
-      { value: "na", label: "No swelling", score: 0 },
+      { value: "unsure", label: "Unsure", score: 1 },
     ],
     scoringWeight: 1.0,
     clinicalRelevance: ["dependent_edema", "venous_return"],
-    conditionalLogic: [
-      {
-        condition: "never",
-        action: "skip",
-        skipQuestions: ["CARDIO013"],
-      },
-    ],
   },
 
   // Exercise Tolerance
