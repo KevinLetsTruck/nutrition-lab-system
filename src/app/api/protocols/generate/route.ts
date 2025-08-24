@@ -8,17 +8,17 @@ export async function POST(request: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
+
     const body = await request.json();
     const { clientId, assessmentId } = body;
-    
+
     if (!clientId) {
       return NextResponse.json(
         { error: 'Client ID is required' },
         { status: 400 }
       );
     }
-    
+
     // Fetch client data
     const client = await prisma.client.findUnique({
       where: { id: clientId },
@@ -40,23 +40,23 @@ export async function POST(request: NextRequest) {
         },
       },
     });
-    
+
     if (!client) {
       return NextResponse.json(
         { error: 'Client not found' },
         { status: 404 }
       );
     }
-    
+
     // Extract lab results from analyzed documents
     const labResults = client.documents.map(doc => ({
       date: doc.uploadedAt,
       type: doc.labType,
       analysis: doc.aiAnalysis,
     }));
-    
+
     const assessmentData = client.assessments[0] || null;
-    
+
     // Generate protocol with Claude
     const protocolData = await claudeService.generateProtocol(
       {
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       labResults,
       assessmentData
     );
-    
+
     // Create protocol in database
     const protocol = await prisma.protocol.create({
       data: {
@@ -87,12 +87,12 @@ export async function POST(request: NextRequest) {
         metrics: protocolData.metrics || {},
       },
     });
-    
+
     return NextResponse.json({
       protocol,
       generatedData: protocolData,
     });
-    
+
   } catch (error) {
     console.error('Protocol Generation Error:', error);
     return NextResponse.json(

@@ -137,7 +137,7 @@ export default function AssessmentsPage() {
         : score >= 40
         ? "bg-orange-100 text-orange-800"
         : "bg-red-100 text-red-800";
-    
+
     return <Badge className={color}>{score}/100</Badge>;
   };
 

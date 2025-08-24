@@ -44,7 +44,7 @@ export function getRedisConfig() {
     };
   } catch (error) {
     // Fallback for non-URL format
-    console.warn("Invalid Redis URL, using default configuration");
+
     return {
       host: "localhost",
       port: 6379,
@@ -69,11 +69,11 @@ export function getRedisConnection(): Redis {
     });
 
     redisConnection.on("connect", () => {
-      console.log("✅ Redis connected successfully");
+
     });
 
     redisConnection.on("reconnecting", () => {
-      console.log("🔄 Redis reconnecting...");
+
     });
   }
 

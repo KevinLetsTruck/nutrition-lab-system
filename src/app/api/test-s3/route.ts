@@ -3,7 +3,6 @@ import { medicalDocStorage } from "@/lib/medical/s3-storage";
 
 export async function GET() {
   try {
-    console.log("🧪 Testing S3 connection...");
 
     // Test basic connection
     const isConnected = await medicalDocStorage.testConnection();

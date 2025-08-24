@@ -38,7 +38,6 @@ export async function POST(request: NextRequest) {
   try {
     // Authenticate user
     user = await verifyAuthToken(request);
-    console.log("Authenticated user uploading document:", user.email);
 
     // Parse form data
     const formData = await request.formData();
@@ -140,9 +139,6 @@ export async function POST(request: NextRequest) {
     });
 
     // Log the upload (simplified audit log can be added later if needed)
-    console.log(`Document uploaded by ${user.email}: ${document.id}`);
-
-    console.log(`✅ Document uploaded successfully: ${document.id}`);
 
     return NextResponse.json(
       {
@@ -247,9 +243,6 @@ export async function GET(request: NextRequest) {
     const total = await prisma.document.count({ where });
 
     // Log document list access (simplified)
-    console.log(
-      `User ${user.email} accessed document list: ${documents.length} results`
-    );
 
     return NextResponse.json({
       success: true,

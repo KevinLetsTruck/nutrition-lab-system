@@ -381,7 +381,6 @@ export class LabValueExtractor {
     testMode = false
   ): Promise<LabExtractionResult> {
     const startTime = Date.now();
-    console.log(`🧪 Starting lab value extraction for document: ${documentId}`);
 
     try {
       // Clean and prepare text for processing
@@ -389,24 +388,20 @@ export class LabValueExtractor {
 
       // Detect document type first
       const documentType = this.detectDocumentType(cleanedText);
-      console.log(`📋 Detected document type: ${documentType}`);
 
       // Detect document structure patterns
       const patterns = this.detectStructurePatterns(cleanedText);
-      console.log(`📊 Detected patterns:`, patterns);
 
       // Extract lab values using multiple strategies
       const extractedValues: ExtractedLabValue[] = [];
 
       if (patterns.tableStructure) {
-        console.log("🔍 Table structure detected, extracting table values...");
+
         const tableValues = this.extractFromTableStructure(cleanedText);
-        console.log(
-          `📊 Extracted ${tableValues.length} values from table structure`
-        );
+
         extractedValues.push(...tableValues);
       } else {
-        console.log("❌ No table structure detected");
+
       }
 
       const patternValues = this.extractWithPatternMatching(cleanedText);
@@ -430,15 +425,11 @@ export class LabValueExtractor {
 
       // Save to database (unless in test mode)
       if (!testMode) {
-        console.log(
-          `💾 Saving ${validatedValues.length} lab values to database...`
-        );
+
         await this.saveLabValues(documentId, validatedValues);
-        console.log(`✅ Lab values saved successfully`);
+
       } else {
-        console.log(
-          `💾 Test mode: Skipping database save for ${validatedValues.length} lab values`
-        );
+
       }
 
       const result: LabExtractionResult = {
@@ -450,45 +441,33 @@ export class LabValueExtractor {
         patterns,
       };
 
-      console.log(
-        `✅ Lab extraction complete: ${result.totalFound} values found (${result.highConfidenceCount} high confidence)`
+      `
       );
 
       // Debug: Log all extracted values
       if (result.totalFound > 0) {
-        console.log("📋 Extracted values:");
+
         result.extractedValues.forEach((value, index) => {
-          console.log(
-            `  ${index + 1}. ${value.testName}: ${value.value} ${value.unit} (${
-              value.flag || "normal"
-            })`
+          `
           );
         });
       } else {
-        console.log("❌ No values extracted - checking extraction steps...");
-        console.log(
-          `  - Table values: ${
-            extractedValues.filter(
-              (v) => v.rawText.includes("mg/dL") || v.rawText.includes("mmol/L")
+
+         => v.rawText.includes("mg/dL") || v.rawText.includes("mmol/L")
             ).length
           }`
         );
-        console.log(`  - Pattern values: ${patternValues.length}`);
-        console.log(`  - Functional values: ${functionalValues.length}`);
-        console.log(`  - Merged values: ${mergedValues.length}`);
-        console.log(`  - Validated values: ${validatedValues.length}`);
+
       }
 
       // Automatically trigger functional medicine analysis
       if (validatedValues.length > 0) {
-        console.log("🔬 Triggering functional medicine analysis...");
+
         try {
           const analysisResult = await functionalAnalyzer.analyzeDocument(
             documentId
           );
-          console.log(
-            `🎯 Functional analysis complete: Grade ${analysisResult.overallHealth.grade}, ${analysisResult.patterns.length} patterns detected`
-          );
+
         } catch (analysisError) {
           console.error("⚠️ Functional analysis failed:", analysisError);
           // Don't fail lab extraction if analysis fails
@@ -1100,11 +1079,10 @@ export class LabValueExtractor {
   }
 
   private extractFromTableStructure(text: string): ExtractedLabValue[] {
-    console.log("🔍 Starting table structure extraction...");
+
     this.lastProcessedText = text; // Store for context inference
     const values: ExtractedLabValue[] = [];
     const lines = text.split("\n");
-    console.log(`📄 Processing ${lines.length} lines of text`);
 
     // First pass: collect all potential test names and their positions
     const testNames = [];
@@ -1125,9 +1103,7 @@ export class LabValueExtractor {
       }
     }
 
-    console.log(
-      `📋 Found ${testNames.length} potential test names:`,
-      testNames.map((t) => t.name)
+     => t.name)
     );
 
     // Second pass: find lab value lines and match with test names
@@ -1304,7 +1280,6 @@ export class LabValueExtractor {
       }
     }
 
-    console.log(`📊 Extracted ${values.length} values from table structure`);
     return values;
   }
 
@@ -1499,7 +1474,7 @@ export class LabValueExtractor {
   }
 
   private extractTraditionalLabValues(text: string): ExtractedLabValue[] {
-    console.log("🔍 Starting traditional lab value extraction...");
+
     const values: ExtractedLabValue[] = [];
 
     // Traditional lab format: TestName + Number + Unit + Optional Flag
@@ -1980,7 +1955,6 @@ export class LabValueExtractor {
     documentId: string,
     values: ExtractedLabValue[]
   ): Promise<void> {
-    console.log(`💾 Saving ${values.length} lab values to database...`);
 
     try {
       // Get document to retrieve clientId
@@ -2045,7 +2019,6 @@ export class LabValueExtractor {
         });
       }
 
-      console.log(`✅ Lab values saved successfully`);
     } catch (error) {
       console.error("❌ Failed to save lab values:", error);
       throw error;

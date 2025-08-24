@@ -25,16 +25,13 @@ export class GoogleVisionOCRService {
    */
   async processPDFDocument(s3Key: string): Promise<VisionOCRResult> {
     try {
-      console.log(`🔍 Starting Google Vision OCR for PDF: ${s3Key}`);
 
       // Generate signed URL for Cloudinary to access the PDF
       const signedUrl = await storageService.generateSignedUrl(s3Key, 60 * 15); // 15 minutes
-      console.log(`🔐 Generated signed URL for PDF access`);
 
       // Convert PDF to images using Cloudinary
-      console.log(`📄 Converting PDF to images via Cloudinary...`);
+
       const imageUrls = await cloudinaryService.convertPdfToImages(signedUrl);
-      console.log(`✅ PDF converted to ${imageUrls.length} images`);
 
       // Process each image with Google Vision API
       const allText: string[] = [];
@@ -43,11 +40,6 @@ export class GoogleVisionOCRService {
 
       for (let i = 0; i < imageUrls.length; i++) {
         try {
-          console.log(
-            `🔍 Processing page ${i + 1}/${
-              imageUrls.length
-            } with Google Vision...`
-          );
 
           const result = await this.processImageUrl(imageUrls[i]);
           if (result.text.trim()) {
@@ -56,16 +48,10 @@ export class GoogleVisionOCRService {
             validPages++;
           }
 
-          console.log(
-            `✅ Page ${i + 1} processed, confidence: ${Math.round(
-              result.confidence
-            )}%`
+          }%`
           );
         } catch (pageError: any) {
-          console.warn(
-            `⚠️ Failed to process page ${i + 1}:`,
-            pageError.message
-          );
+
           // Continue with other pages
         }
       }
@@ -81,9 +67,9 @@ export class GoogleVisionOCRService {
             })
             .filter(Boolean)
         );
-        console.log(`🧹 Cleaned up ${imageUrls.length} temporary images`);
+
       } catch (cleanupError: any) {
-        console.warn(`⚠️ Cleanup warning:`, cleanupError.message);
+
       }
 
       // Calculate average confidence
@@ -91,11 +77,7 @@ export class GoogleVisionOCRService {
         validPages > 0 ? totalConfidence / validPages : 0;
       const combinedText = allText.join("\n\n");
 
-      console.log(
-        `🎉 Google Vision OCR complete: ${validPages}/${imageUrls.length} pages processed`
-      );
-      console.log(`📊 Average confidence: ${Math.round(averageConfidence)}%`);
-      console.log(`📝 Extracted ${combinedText.length} characters`);
+      }%`);
 
       return {
         text: combinedText,
@@ -169,18 +151,14 @@ export class GoogleVisionOCRService {
    */
   async processImageDocument(s3Key: string): Promise<VisionOCRResult> {
     try {
-      console.log(`🖼️ Starting Google Vision OCR for image: ${s3Key}`);
 
       // Generate signed URL for the image
       const signedUrl = await storageService.generateSignedUrl(s3Key, 60 * 15); // 15 minutes
-      console.log(`🔐 Generated signed URL for image access`);
 
       // Process the image directly
       const result = await this.processImageUrl(signedUrl);
 
-      console.log(`🎉 Google Vision OCR complete for image`);
-      console.log(`📊 Confidence: ${Math.round(result.confidence)}%`);
-      console.log(`📝 Extracted ${result.text.length} characters`);
+      }%`);
 
       return {
         text: result.text,

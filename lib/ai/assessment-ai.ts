@@ -102,13 +102,13 @@ export async function getNextQuestionWithAI(
     const question = getAllQuestions.find(q => q.id === r.questionId);
     return question?.module === currentModule;
   });
-  
+
   const moduleContext = analyzeModuleContext(currentModule, moduleResponses);
   const exitDecision = shouldExitModule(moduleContext);
-  
+
   // If we should exit this module, move to next
   if (exitDecision.shouldExit) {
-    console.log(`Module ${currentModule}: ${exitDecision.reason}`);
+
     const currentModuleIndex = MODULE_SEQUENCE.indexOf(currentModule);
     if (currentModuleIndex < MODULE_SEQUENCE.length - 1) {
       const nextModule = MODULE_SEQUENCE[currentModuleIndex + 1];
@@ -134,7 +134,7 @@ export async function getNextQuestionWithAI(
   // Check if we have a cached decision
   if (decisionCache.has(cacheKey)) {
     const cachedDecision = decisionCache.get(cacheKey)!;
-    
+
     // Get already answered question IDs
     const answeredQuestionIds = new Set(responses.map((r) => r.questionId));
 
@@ -143,9 +143,7 @@ export async function getNextQuestionWithAI(
       cachedDecision.nextQuestion?.id === lastSelectedQuestionId ||
       (cachedDecision.nextQuestion?.id && answeredQuestionIds.has(cachedDecision.nextQuestion.id))
     ) {
-      console.warn(
-        `Detected repeated/duplicate question selection: ${cachedDecision.nextQuestion?.id}. Clearing cache.`
-      );
+
       decisionCache.clear();
       lastSelectedQuestionId = null;
     } else {
@@ -168,13 +166,13 @@ export async function getNextQuestionWithAI(
 
   // Filter out gender-specific questions if gender is known
   if (clientInfo?.gender) {
-    console.log(`Filtering questions for gender: ${clientInfo.gender}`);
+
     const beforeCount = remainingQuestions.length;
-    
+
     remainingQuestions = remainingQuestions.filter((q) => {
       // Check genderSpecific property first
       if (q.genderSpecific && q.genderSpecific !== clientInfo.gender) {
-        console.log(`Filtering out ${q.genderSpecific}-specific question for ${clientInfo.gender} user: ${q.id} - ${q.text}`);
+
         return false;
       }
 
@@ -189,7 +187,7 @@ export async function getNextQuestionWithAI(
           questionText.includes("menopause") ||
           questionText.includes("for women:"))
       ) {
-        console.log(`Filtering out female question for male user: ${q.id} - ${q.text}`);
+
         return false;
       }
 
@@ -200,16 +198,15 @@ export async function getNextQuestionWithAI(
           questionText.includes("prostate") ||
           questionText.includes("for men:"))
       ) {
-        console.log(`Filtering out male question for female user: ${q.id} - ${q.text}`);
+
         return false;
       }
 
       return true;
     });
-    
-    console.log(`Gender filtering: ${beforeCount} → ${remainingQuestions.length} questions`);
+
   } else {
-    console.log("No gender info available for filtering");
+
   }
 
   // Filter out questions based on conditional logic
@@ -224,7 +221,7 @@ export async function getNextQuestionWithAI(
           if (logic.action === "skip" && 
               logic.condition === response.responseValue &&
               logic.skipQuestions?.includes(q.id)) {
-            console.log(`Skipping question ${q.id} based on conditional logic from ${answeredQuestion.id}`);
+
             return false; // Skip this question
           }
         }
@@ -236,10 +233,10 @@ export async function getNextQuestionWithAI(
   // Prioritize gateway questions (questions with conditional logic)
   const gatewayQuestions = remainingQuestions.filter(q => q.conditionalLogic && q.conditionalLogic.length > 0);
   const nonGatewayQuestions = remainingQuestions.filter(q => !q.conditionalLogic || q.conditionalLogic.length === 0);
-  
+
   // If there are unanswered gateway questions, prioritize them
   if (gatewayQuestions.length > 0) {
-    console.log(`Prioritizing ${gatewayQuestions.length} gateway questions in ${currentModule}`);
+
     remainingQuestions = [...gatewayQuestions, ...nonGatewayQuestions];
   }
 
@@ -332,9 +329,9 @@ async function selectQuestionWithClaude(
       const question = getAllQuestions.find(q => q.id === r.questionId);
       return question?.module === module;
     });
-    
+
     const moduleContext = analyzeModuleContext(module, moduleResponses);
-    
+
     // Use smart context-aware prompt
     const prompt = generateSmartAIPrompt(
       moduleContext,
@@ -455,16 +452,16 @@ function fallbackQuestionSelection(
 
   // Apply gender filtering in fallback too
   if (clientInfo?.gender) {
-    console.log(`[Fallback] Filtering questions for gender: ${clientInfo.gender}`);
+
     trulyAvailableQuestions = trulyAvailableQuestions.filter((q) => {
       // Check genderSpecific property first
       if (q.genderSpecific && q.genderSpecific !== clientInfo.gender) {
-        console.log(`[Fallback] Filtering out ${q.genderSpecific}-specific question: ${q.id}`);
+
         return false;
       }
 
       const questionText = q.text.toLowerCase();
-      
+
       if (
         clientInfo.gender === "male" &&
         (questionText.includes("menstrual") ||
@@ -473,10 +470,10 @@ function fallbackQuestionSelection(
           questionText.includes("menopause") ||
           questionText.includes("for women:"))
       ) {
-        console.log(`[Fallback] Filtering out female question: ${q.id}`);
+
         return false;
       }
-      
+
       if (
         clientInfo.gender === "female" &&
         (questionText.includes("erectile") ||
@@ -485,7 +482,7 @@ function fallbackQuestionSelection(
       ) {
         return false;
       }
-      
+
       return true;
     });
   }
@@ -501,7 +498,7 @@ function fallbackQuestionSelection(
           if (logic.action === "skip" && 
               logic.condition === response.responseValue &&
               logic.skipQuestions?.includes(q.id)) {
-            console.log(`[Fallback] Skipping question ${q.id} based on conditional logic from ${answeredQuestion.id}`);
+
             return false; // Skip this question
           }
         }
@@ -535,12 +532,12 @@ function fallbackQuestionSelection(
   // Prioritize gateway questions (questions with conditional logic) 
   const gatewayQuestions = trulyAvailableQuestions.filter(q => q.conditionalLogic && q.conditionalLogic.length > 0);
   const nonGatewayQuestions = trulyAvailableQuestions.filter(q => !q.conditionalLogic || q.conditionalLogic.length === 0);
-  
+
   if (gatewayQuestions.length > 0) {
     // Select first gateway question
     nextQuestion = gatewayQuestions[0];
     reasoning = `Gateway question selected (${gatewayQuestions.length} gateway questions prioritized)`;
-    console.log(`[Fallback] Selecting gateway question: ${nextQuestion.id}`);
+
   } else if (hasHighSeverity && trulyAvailableQuestions.length > 5) {
     // Skip some basic questions if high severity exists
     const skipCount = Math.min(

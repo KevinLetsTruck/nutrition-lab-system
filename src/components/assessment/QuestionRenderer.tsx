@@ -29,7 +29,7 @@ export function QuestionRenderer({
   // Auto-advance for certain question types
   const handleChange = React.useCallback((newValue: any) => {
     onChange(newValue);
-    
+
     // Auto-advance for multiple choice and yes/no questions
     if (question.type === 'MULTIPLE_CHOICE' || question.type === 'YES_NO') {
       // Small delay to show selection before advancing
@@ -50,7 +50,7 @@ export function QuestionRenderer({
             disabled={disabled}
           />
         );
-      
+
       case 'MULTIPLE_CHOICE':
         return (
           <MultipleChoice
@@ -60,7 +60,7 @@ export function QuestionRenderer({
             disabled={disabled}
           />
         );
-      
+
       case 'YES_NO':
         return (
           <YesNo
@@ -70,7 +70,7 @@ export function QuestionRenderer({
             disabled={disabled}
           />
         );
-      
+
       case 'FREQUENCY':
         return (
           <Frequency
@@ -80,7 +80,7 @@ export function QuestionRenderer({
             disabled={disabled}
           />
         );
-      
+
       case 'DURATION':
         return (
           <Duration
@@ -90,7 +90,7 @@ export function QuestionRenderer({
             disabled={disabled}
           />
         );
-      
+
       case 'TEXT':
         return (
           <TextInput
@@ -100,7 +100,7 @@ export function QuestionRenderer({
             disabled={disabled}
           />
         );
-      
+
       case 'MULTI_SELECT':
         return (
           <MultiSelect
@@ -110,7 +110,7 @@ export function QuestionRenderer({
             disabled={disabled}
           />
         );
-      
+
       case 'NUMBER':
         return (
           <NumberInput
@@ -120,10 +120,10 @@ export function QuestionRenderer({
             disabled={disabled}
           />
         );
-      
+
       default:
         // Default to text input for unknown types
-        console.warn('Unknown question type:', question.type);
+
         return (
           <TextInput
             question={question}
@@ -137,8 +137,7 @@ export function QuestionRenderer({
 
   // Debug logging
   React.useEffect(() => {
-    console.log('QuestionRenderer - question type:', question.type);
-    console.log('QuestionRenderer - question:', question);
+
   }, [question]);
 
   return (
@@ -147,13 +146,13 @@ export function QuestionRenderer({
         <h3 className="text-xl font-semibold text-gray-900 leading-tight">
           {question.text}
         </h3>
-        
+
         {question.helpText && (
           <p className="text-base text-gray-700 mt-2">
             {question.helpText}
           </p>
         )}
-        
+
         {question.category === 'SEED_OIL' && (
           <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-900">
             Seed Oil Assessment
@@ -171,7 +170,7 @@ export function QuestionRenderer({
             <span className="text-red-500">* Required</span>
           )}
         </div>
-        
+
         <button
           onClick={onSubmit}
           disabled={disabled || (question.required && !value)}

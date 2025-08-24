@@ -51,7 +51,7 @@ export default function AssessmentWelcomePage() {
         <span className="font-semibold text-xl gradient-text">
           DestinationHealth
         </span>
-        
+
         {/* MetabolX Logo - Center */}
         <div className="absolute left-1/2 transform -translate-x-1/2">
           <div className="flex flex-col items-center">

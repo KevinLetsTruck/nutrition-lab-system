@@ -99,7 +99,7 @@ export async function PATCH(
   { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
-    console.log("PATCH request received");
+
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
@@ -112,7 +112,7 @@ export async function PATCH(
     const user = verifyToken(token);
     const { clientId } = await params;
     const body = await request.json();
-    console.log("Request body:", JSON.stringify(body, null, 2));
+    );
 
     // Allow updating more fields for intake form
     const allowedFields = [
@@ -156,9 +156,6 @@ export async function PATCH(
       updateData.healthGoals = healthGoalsData;
     }
 
-    console.log(
-      "Update data to be saved:",
-      JSON.stringify(updateData, null, 2)
     );
 
     const client = await prisma.client.update({
@@ -258,7 +255,7 @@ export async function DELETE(
     return NextResponse.json({ message: "Client deleted successfully" });
   } catch (error) {
     console.error("Error deleting client:", error);
-    
+
     if (error instanceof jwt.JsonWebTokenError) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }

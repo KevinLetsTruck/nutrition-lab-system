@@ -58,9 +58,6 @@ export interface FunctionalAnalysisResult {
 
 export class FunctionalMedicineAnalyzer {
   async analyzeDocument(documentId: string): Promise<FunctionalAnalysisResult> {
-    console.log(
-      `🔬 Starting functional medicine analysis for document: ${documentId}`
-    );
 
     try {
       // Get lab values for this document
@@ -72,8 +69,6 @@ export class FunctionalMedicineAnalyzer {
       if (labValues.length === 0) {
         throw new Error("No lab values found for analysis");
       }
-
-      console.log(`📊 Analyzing ${labValues.length} lab values...`);
 
       // Assess each lab value against functional ranges
       const assessments = labValues.map((lab) => this.assessLabValue(lab));
@@ -118,9 +113,6 @@ export class FunctionalMedicineAnalyzer {
       // Save analysis to database
       await this.saveAnalysis(documentId, result);
 
-      console.log(
-        `✅ Functional analysis complete: Grade ${overallHealth.grade}, ${patterns.length} patterns detected`
-      );
       return result;
     } catch (error) {
       console.error("❌ Functional analysis error:", error);
@@ -689,7 +681,6 @@ export class FunctionalMedicineAnalyzer {
         },
       });
 
-      console.log("💾 Functional analysis metadata saved to document");
     } catch (error) {
       console.error("❌ Failed to save analysis:", error);
       throw error;

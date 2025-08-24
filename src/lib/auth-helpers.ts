@@ -21,7 +21,7 @@ export async function auth(request?: NextRequest): Promise<AuthSession | null> {
 
   try {
     const authHeader = request.headers.get("authorization");
-    
+
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return null;
     }
@@ -35,7 +35,7 @@ export async function auth(request?: NextRequest): Promise<AuthSession | null> {
     }
 
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    
+
       return {
     user: {
       id: payload.clientId || payload.userId, // Use clientId if available, otherwise userId

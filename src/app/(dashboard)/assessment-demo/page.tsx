@@ -21,7 +21,7 @@ export default function AssessmentDemoPage() {
           <p className="text-lg text-gray-600 mb-6">
             Interactive demonstration of question components with keyboard shortcuts
           </p>
-          
+
           <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1">
             <button
               onClick={() => setActiveDemo('likert')}

@@ -51,7 +51,7 @@ export function Autocomplete({
 
   const filteredOptions = React.useMemo(() => {
     if (!searchValue) return options;
-    
+
     const search = searchValue.toLowerCase();
     return options.filter(
       (option) =>

@@ -78,8 +78,6 @@ export async function POST(req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
 
-    console.log(`🔄 Regenerating FNTP protocol for document: ${id}`);
-
     // Check if document exists and has functional analysis
     const document = await prisma.medicalDocument.findUnique({
       where: { id },

@@ -133,9 +133,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     }
 
     // Generate new master protocol (force regeneration)
-    console.log(
-      `🔄 Force regenerating FNTP Master Protocol for document: ${id}`
-    );
+
     const masterProtocol =
       await fntpMasterProtocolGenerator.generateMasterProtocol(id);
 

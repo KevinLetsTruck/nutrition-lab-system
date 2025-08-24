@@ -95,7 +95,7 @@ export default function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
           </button>
         </div>
       </div>
-      
+
       <div className="note-content space-y-4">
         {note.noteType === 'INTERVIEW' ? (
           <>

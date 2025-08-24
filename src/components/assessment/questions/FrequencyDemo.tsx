@@ -61,7 +61,7 @@ export function FrequencyDemo() {
 
   const getAnalysis = () => {
     const analysis = [];
-    
+
     if (values.bowel === 'weekly_less') {
       analysis.push({ type: 'warning', text: 'Infrequent bowel movements may indicate digestive issues' });
     }
@@ -77,7 +77,7 @@ export function FrequencyDemo() {
     if (values.exercise === 'never' || values.exercise === 'rarely') {
       analysis.push({ type: 'warning', text: 'Regular exercise is crucial for metabolic health' });
     }
-    
+
     return analysis;
   };
 

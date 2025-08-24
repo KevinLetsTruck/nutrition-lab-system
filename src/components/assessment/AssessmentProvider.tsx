@@ -14,20 +14,20 @@ interface AssessmentContextType {
   isLoading: boolean;
   isAutoAdvance: boolean;
   isSaving: boolean;
-  
+
   // Stats
   questionsAsked: number;
   questionsSaved: number;
   questionsInCurrentModule: number;
   questionsAnsweredInModule: number;
-  
+
   // Actions
   startAssessment: () => Promise<void>;
   submitResponse: (value: any) => Promise<void>;
   pauseAssessment: () => Promise<void>;
   resumeAssessment: (id: string) => Promise<void>;
   goToPreviousQuestion: () => Promise<void>;
-  
+
   // Settings
   setAutoAdvance: (value: boolean) => void;
 }
@@ -36,7 +36,7 @@ const AssessmentContext = createContext<AssessmentContextType | undefined>(undef
 
 export function AssessmentProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  
+
   // Core state
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<AssessmentQuestion | null>(null);
@@ -45,7 +45,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isAutoAdvance, setAutoAdvance] = useState(true);
-  
+
   // Stats
   const [questionsAsked, setQuestionsAsked] = useState(0);
   const [questionsSaved, setQuestionsSaved] = useState(0);
@@ -83,11 +83,11 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
         method: 'POST',
         headers: getAuthHeaders()
       });
-      
+
       if (!response.ok) throw new Error('Failed to start assessment');
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         setAssessmentId(data.data.assessmentId);
         setCurrentQuestion(data.data.firstQuestion);
@@ -96,7 +96,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
         setQuestionsSaved(0);
         setQuestionsAnsweredInModule(0);
         setQuestionsInCurrentModule(75); // Screening module
-        
+
         toast.success('Assessment started successfully');
       }
     } catch (error) {
@@ -109,7 +109,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
 
   const submitResponse = useCallback(async (value: any) => {
     if (!assessmentId || !currentQuestion) return;
-    
+
     setIsSaving(true);
     try {
       const response = await fetch(`/api/assessment/${assessmentId}/response`, {
@@ -121,11 +121,11 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
           module: currentModule
         }),
       });
-      
+
       if (!response.ok) throw new Error('Failed to submit response');
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         // Update local state
         setResponses(prev => [...prev, {
@@ -137,14 +137,14 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
           responseValue: value,
           answeredAt: new Date()
         } as ClientResponse]);
-        
+
         // Update stats
         setQuestionsAnsweredInModule(prev => prev + 1);
-        
+
         if (data.data.nextQuestion) {
           setCurrentQuestion(data.data.nextQuestion);
           setQuestionsAsked(prev => prev + 1);
-          
+
           // Check if module changed
           if (data.data.module && data.data.module !== currentModule) {
             setCurrentModule(data.data.module);
@@ -158,7 +158,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
           toast.success('Assessment completed! Generating your analysis...');
           router.push(`/assessment/${assessmentId}/results`);
         }
-        
+
         // Update questions saved by AI
         if (data.data.questionsSaved) {
           setQuestionsSaved(data.data.questionsSaved);
@@ -174,16 +174,16 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
 
   const pauseAssessment = useCallback(async () => {
     if (!assessmentId) return;
-    
+
     setIsLoading(true);
     try {
       const response = await fetch(`/api/assessment/${assessmentId}/pause`, {
         method: 'POST',
         headers: getAuthHeaders()
       });
-      
+
       if (!response.ok) throw new Error('Failed to pause assessment');
-      
+
       toast.success('Assessment saved. You can resume anytime.');
       router.push('/assessments');
     } catch (error) {
@@ -201,11 +201,11 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
         method: 'POST',
         headers: getAuthHeaders()
       });
-      
+
       if (!response.ok) throw new Error('Failed to resume assessment');
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         setAssessmentId(id);
         setCurrentQuestion(data.data.currentQuestion);
@@ -215,7 +215,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
         setQuestionsSaved(data.data.questionsSaved || 0);
         setQuestionsAnsweredInModule(data.data.questionsAnsweredInModule || 0);
         setQuestionsInCurrentModule(data.data.questionsInCurrentModule || 75);
-        
+
         toast.success('Assessment resumed');
       }
     } catch (error) {
@@ -228,12 +228,12 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
 
   const goToPreviousQuestion = useCallback(async () => {
     if (!assessmentId || responses.length === 0) return;
-    
+
     setIsLoading(true);
     try {
       // Get the last response
       const lastResponse = responses[responses.length - 1];
-      
+
       const response = await fetch(`/api/assessment/${assessmentId}/previous`, {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -241,11 +241,11 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
           lastQuestionId: lastResponse.questionId
         }),
       });
-      
+
       if (!response.ok) throw new Error('Failed to go to previous question');
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         // Remove last response
         setResponses(prev => prev.slice(0, -1));
@@ -269,20 +269,20 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
     isLoading,
     isAutoAdvance,
     isSaving,
-    
+
     // Stats
     questionsAsked,
     questionsSaved,
     questionsInCurrentModule,
     questionsAnsweredInModule,
-    
+
     // Actions
     startAssessment,
     submitResponse,
     pauseAssessment,
     resumeAssessment,
     goToPreviousQuestion,
-    
+
     // Settings
     setAutoAdvance,
   };

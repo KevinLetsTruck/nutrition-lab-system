@@ -69,7 +69,6 @@ export async function POST(
     });
 
     // Log the pause action
-    console.log(`Assessment ${assessmentId} paused by user ${session.user.id}`);
 
     return NextResponse.json({
       success: true,

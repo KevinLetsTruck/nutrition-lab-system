@@ -34,7 +34,6 @@ export class CloudinaryService {
     const { quality = 95, format = "jpg", dpi = 200, maxPages = 10 } = options;
 
     try {
-      console.log("📄 Converting PDF to images via Cloudinary...");
 
       // Upload PDF to Cloudinary
       const uploadResult = await cloudinary.uploader.upload(pdfUrl, {
@@ -44,8 +43,6 @@ export class CloudinaryService {
         use_filename: true,
         unique_filename: true,
       });
-
-      console.log(`✅ PDF uploaded to Cloudinary: ${uploadResult.public_id}`);
 
       // Convert each page to images
       const images: CloudinaryImageResult[] = [];
@@ -57,7 +54,6 @@ export class CloudinaryService {
       });
 
       const pageCount = Math.min(pdfInfo.pages || 1, maxPages);
-      console.log(`📖 Converting ${pageCount} pages to images...`);
 
       for (let page = 1; page <= pageCount; page++) {
         try {
@@ -98,11 +94,8 @@ export class CloudinaryService {
             bytes: optimizedResult.bytes,
           });
 
-          console.log(
-            `✅ Page ${page} converted: ${optimizedResult.secure_url}`
-          );
         } catch (pageError: any) {
-          console.warn(`⚠️ Failed to convert page ${page}:`, pageError.message);
+
         }
       }
 
@@ -111,12 +104,11 @@ export class CloudinaryService {
         await cloudinary.uploader.destroy(uploadResult.public_id, {
           resource_type: "image",
         });
-        console.log("🗑️ Cleaned up original PDF from Cloudinary");
+
       } catch (cleanupError) {
-        console.warn("⚠️ Failed to clean up original PDF:", cleanupError);
+
       }
 
-      console.log(`🎯 Successfully converted PDF to ${images.length} images`);
       return images;
     } catch (error: any) {
       console.error("❌ PDF to image conversion failed:", error);
@@ -135,12 +127,9 @@ export class CloudinaryService {
           resource_type: "image",
         });
       }
-      console.log(`🗑️ Deleted ${publicIds.length} images from Cloudinary`);
+
     } catch (error: any) {
-      console.warn(
-        "⚠️ Failed to delete some images from Cloudinary:",
-        error.message
-      );
+
     }
   }
 
@@ -150,7 +139,7 @@ export class CloudinaryService {
   async testConnection(): Promise<boolean> {
     try {
       await cloudinary.api.ping();
-      console.log("✅ Cloudinary connection successful");
+
       return true;
     } catch (error: any) {
       console.error("❌ Cloudinary connection failed:", error.message);

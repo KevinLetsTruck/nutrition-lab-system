@@ -31,8 +31,6 @@ export class MedicalDocumentStorage {
       const cleanFilename = filename.replace(/[^a-zA-Z0-9.-]/g, "_"); // Clean filename
       const key = `medical-docs/${folder}/${timestamp}/${uniqueId}-${cleanFilename}`;
 
-      console.log(`🔄 Uploading to S3: ${key}`);
-
       const command = new PutObjectCommand({
         Bucket: this.bucketName,
         Key: key,
@@ -48,8 +46,6 @@ export class MedicalDocumentStorage {
       await s3Client.send(command);
 
       const url = `https://${this.bucketName}.s3.${process.env.S3_REGION}.amazonaws.com/${key}`;
-
-      console.log(`✅ Upload successful: ${url}`);
 
       return { key, url, size: file.length, optimized: false };
     } catch (error) {
@@ -116,7 +112,7 @@ export class MedicalDocumentStorage {
       });
 
       await s3Client.send(command);
-      console.log(`🗑️ Deleted from S3: ${key}`);
+
     } catch (error) {
       console.error("❌ S3 Delete Error:", error);
       throw new Error(
@@ -139,7 +135,6 @@ export class MedicalDocumentStorage {
   // Test connection
   async testConnection(): Promise<boolean> {
     try {
-      console.log(`🧪 Testing S3 connection to bucket: ${this.bucketName}`);
 
       // First, try a simple list objects call to see if bucket exists
       const { ListObjectsV2Command } = await import("@aws-sdk/client-s3");
@@ -149,7 +144,6 @@ export class MedicalDocumentStorage {
       });
 
       await s3Client.send(listCommand);
-      console.log("✅ S3 bucket access confirmed");
 
       // Now try uploading a test file
       const testKey = `test-connection-${Date.now()}.txt`;
@@ -161,13 +155,10 @@ export class MedicalDocumentStorage {
         "test.txt",
         "text/plain"
       );
-      console.log(`✅ Test upload successful: ${result.key}`);
 
       // Delete test file
       await this.deleteDocument(result.key);
-      console.log("✅ Test file cleanup successful");
 
-      console.log("✅ S3 connection test successful");
       return true;
     } catch (error) {
       console.error("❌ S3 connection test failed:", error);

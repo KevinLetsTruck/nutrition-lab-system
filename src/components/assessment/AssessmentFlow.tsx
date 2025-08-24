@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { assessmentAPI } from '@/lib/api/assessment-client';
-import { AssessmentQuestion } from '@/lib/assessment/types';
+import { AssessmentQuestion } from '../../../lib/assessment/types';
 import { QuestionRenderer } from './QuestionRenderer';
 import { ProgressBar } from './progress/ProgressBar';
 import { AssessmentProgress } from './progress/AssessmentProgress';
@@ -40,7 +40,7 @@ export function AssessmentFlow({
     try {
       setLoading(true);
       const result = await assessmentAPI.getNextQuestion(assessmentId);
-      
+
       if (result.success) {
         if (result.data?.completed) {
           // Assessment completed
@@ -53,7 +53,7 @@ export function AssessmentFlow({
         } else if (result.data?.question) {
           setCurrentQuestion(result.data.question);
           setCurrentValue(null);
-          
+
           // Update progress
           if (result.data.progress) {
             setProgress({
@@ -102,7 +102,7 @@ export function AssessmentFlow({
             completionRate: result.data.progress.completionRate
           }));
         }
-        
+
         // Load next question
         await loadNextQuestion();
       } else {
@@ -221,7 +221,7 @@ export function AssessmentFlow({
         onPause={handlePauseResume}
         isPaused={isPaused}
       />
-      
+
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -241,7 +241,7 @@ export function AssessmentFlow({
                 </div>
               )}
             </div>
-            
+
             {/* Mobile Progress Toggle */}
             <div className="lg:hidden mt-4">
               <button
@@ -250,7 +250,7 @@ export function AssessmentFlow({
               >
                 {showProgress ? 'Hide' : 'Show'} Progress Details
               </button>
-              
+
               {showProgress && (
                 <div className="mt-4">
                   <AssessmentProgress {...progress} />
@@ -258,7 +258,7 @@ export function AssessmentFlow({
               )}
             </div>
           </div>
-          
+
           {/* Sidebar Progress - Desktop */}
           <div className="hidden lg:block">
             <AssessmentProgress {...progress} />

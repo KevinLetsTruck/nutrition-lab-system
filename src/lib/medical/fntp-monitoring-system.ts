@@ -82,7 +82,6 @@ export class FNTPMonitoringSystem {
     protocolId: string,
     phases: any[]
   ): Promise<FollowUpSchedule> {
-    console.log(`📊 Initializing FNTP monitoring for client: ${clientId}`);
 
     const followUpSchedule: FollowUpSchedule = {
       clientId,
@@ -192,9 +191,6 @@ export class FNTPMonitoringSystem {
   async recordProgressEntry(
     entry: Omit<ProgressEntry, "id">
   ): Promise<ProgressEntry> {
-    console.log(
-      `📝 Recording progress entry for client: ${entry.clientId}, week: ${entry.week}`
-    );
 
     // Calculate overall compliance
     entry.compliance.overallCompliance =
@@ -382,7 +378,6 @@ export class FNTPMonitoringSystem {
     alerts: SafetyAlert[];
     nextSteps: string[];
   }> {
-    console.log(`📈 Generating progress report for client: ${clientId}`);
 
     // Get all progress entries
     const progressEntries = await this.getProgressEntries(clientId, protocolId);
@@ -519,7 +514,7 @@ export class FNTPMonitoringSystem {
     schedule: FollowUpSchedule
   ): Promise<void> {
     // Implementation would save to database
-    console.log("💾 Saving follow-up schedule");
+
   }
 
   private async saveProgressEntry(
@@ -531,9 +526,7 @@ export class FNTPMonitoringSystem {
 
   private async saveSafetyAlert(alert: SafetyAlert): Promise<void> {
     // Implementation would save to database
-    console.log(
-      `🚨 Safety alert created: ${alert.alertType} - ${alert.severity}`
-    );
+
   }
 
   private async updateFollowUpStatus(
@@ -541,7 +534,7 @@ export class FNTPMonitoringSystem {
     week: number
   ): Promise<void> {
     // Implementation would update follow-up status
-    console.log(`✅ Updated follow-up status for week ${week}`);
+
   }
 
   private async getProgressEntries(

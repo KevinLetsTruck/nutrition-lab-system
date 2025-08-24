@@ -164,7 +164,7 @@ class ClaudeService {
       this.client = new Anthropic({
         apiKey: apiKey,
       });
-      console.log("Claude AI service initialized successfully");
+
     } catch (error) {
       console.error("Failed to initialize Claude:", error);
     }
@@ -640,7 +640,7 @@ RESPOND WITH THIS JSON STRUCTURE:
 
     try {
       const prompt = `You are Kevin Rutherford, FNTP, analyzing a ${documentType} lab report for a truck driver client.
-      
+
       ${
         clientInfo
           ? `Client Information:
@@ -652,23 +652,23 @@ RESPOND WITH THIS JSON STRUCTURE:
       `
           : ""
       }
-      
+
       Lab Document Text:
       ${text}
-      
+
       Please analyze and provide:
       1. Extract all lab values with results and reference ranges
       2. Identify values outside optimal functional medicine ranges (not just standard ranges)
       3. Identify patterns suggesting root causes (gut dysfunction, inflammation, HPA axis, etc.)
       4. Flag any DOT medical concerns that could affect CDL
       5. Provide truck-driver specific recommendations
-      
+
       Important considerations:
       - Use functional medicine optimal ranges, not just lab ranges
       - Consider how trucking lifestyle impacts these markers
       - Flag urgent issues that need immediate attention
       - Suggest practical interventions compatible with OTR lifestyle
-      
+
       Format your response as JSON with these sections:
       {
         "summary": "Brief overview of main findings",
@@ -778,44 +778,44 @@ RESPOND WITH THIS JSON STRUCTURE:
 
     try {
       const prompt = `As Kevin Rutherford, FNTP specializing in truck driver health, create a comprehensive functional medicine protocol.
-      
+
       Client Information:
       ${JSON.stringify(clientData, null, 2)}
-      
+
       Lab Results Summary:
       ${JSON.stringify(labResults, null, 2)}
-      
+
       ${
         assessmentData
           ? `Assessment Data:
       ${JSON.stringify(assessmentData, null, 2)}`
           : ""
       }
-      
+
       Create a detailed protocol that includes:
-      
+
       1. PHASE 1: IMMEDIATE (Week 1-2)
          - Address urgent issues and symptoms
          - Foundation support
          - Quick wins for motivation
-      
+
       2. PHASE 2: SHORT-TERM (Week 3-6)
          - Root cause interventions
          - Gut restoration if needed
          - Metabolic support
-      
+
       3. PHASE 3: LONG-TERM (Week 7-12)
          - Optimization protocols
          - Hormone balancing if needed
          - Maintenance planning
-      
+
       For each phase provide:
       - Specific supplements with dosing (prioritize algae-based omega-3 from LetsTruck.com)
       - Dietary modifications (truck-stop compatible)
       - Lifestyle interventions (realistic for OTR lifestyle)
       - Success metrics
       - Red flags to watch
-      
+
       Format as JSON with clear, actionable steps.`;
 
       const response = await this.client.messages.create({

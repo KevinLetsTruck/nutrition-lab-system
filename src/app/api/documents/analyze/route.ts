@@ -35,7 +35,6 @@ export async function POST(request: NextRequest) {
 
   try {
     user = await verifyAuthToken(request);
-    console.log("Authenticated user triggering document analysis:", user.email);
 
     const body = await request.json();
     documentId = body.documentId;
@@ -252,8 +251,6 @@ export async function POST(request: NextRequest) {
         },
       },
     });
-
-    console.log(`✅ Document analysis initiated: ${newAnalysis.id}`);
 
     return NextResponse.json(
       {

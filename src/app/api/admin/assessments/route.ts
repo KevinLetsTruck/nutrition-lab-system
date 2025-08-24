@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   try {
     // Check if user is authenticated and is admin
     const session = await auth(req);
-    
+
     if (!session?.authenticated || !session?.user?.userId || session.user.role !== "admin") {
       return NextResponse.json(
         { success: false, error: "Unauthorized - Admin access required" },

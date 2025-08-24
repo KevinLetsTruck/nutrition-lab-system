@@ -14,7 +14,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ChevronRight, ChevronLeft, Save, LogOut } from "lucide-react";
 
-
 interface Question {
   id: string;
   text: string;
@@ -275,7 +274,7 @@ export default function AssessmentPage() {
         // Get labels from question options or scale properties
         const lowLabel = currentQuestion.scaleMin || currentQuestion.options?.[0]?.label || "Strongly Disagree";
         const highLabel = currentQuestion.scaleMax || currentQuestion.options?.[1]?.label || "Strongly Agree";
-        
+
         return (
           <div className="space-y-6">
             <div className="flex justify-between text-sm text-muted-foreground">
@@ -438,7 +437,6 @@ export default function AssessmentPage() {
 
               {/* Divider */}
               <div className="h-8 w-px bg-gray-700"></div>
-
 
             </div>
 

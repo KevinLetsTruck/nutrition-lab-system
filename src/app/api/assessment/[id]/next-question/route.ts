@@ -108,13 +108,13 @@ export async function GET(
         return true;
       });
     }
-    
+
     // Apply conditional logic filtering
     const allResponses = await prisma.clientResponse.findMany({
       where: { assessmentId },
       select: { questionId: true, responseValue: true },
     });
-    
+
     unansweredInModule = unansweredInModule.filter((q) => {
       // Check if this question should be skipped based on previous answers
       for (const response of allResponses) {
@@ -124,7 +124,7 @@ export async function GET(
             if (logic.action === "skip" && 
                 logic.condition === response.responseValue &&
                 logic.skipQuestions?.includes(q.id)) {
-              console.log(`Skipping question ${q.id} based on conditional logic from ${answeredQuestion.id}`);
+
               return false; // Skip this question
             }
           }
@@ -193,8 +193,7 @@ export async function GET(
             // Fallback to linear selection
             nextQuestion = null;
           } else {
-            console.log(
-              `AI selected question: ${nextQuestion.id} - Reasoning: ${aiDecision.reasoning} (${aiTime}ms)`
+            `
             );
           }
         }
@@ -269,7 +268,7 @@ export async function GET(
               return true;
             });
           }
-          
+
           // Apply conditional logic filtering to next module questions
           moduleQuestions = moduleQuestions.filter((q) => {
             // Check if this question should be skipped based on previous answers
@@ -280,7 +279,7 @@ export async function GET(
                   if (logic.action === "skip" && 
                       logic.condition === response.responseValue &&
                       logic.skipQuestions?.includes(q.id)) {
-                    console.log(`Skipping question ${q.id} in module ${modules[i]} based on conditional logic from ${answeredQuestion.id}`);
+
                     return false; // Skip this question
                   }
                 }

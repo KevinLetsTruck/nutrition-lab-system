@@ -5,11 +5,11 @@ import { useEffect, useState } from 'react';
 export function ClaudeStatus() {
   const [status, setStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     checkClaudeStatus();
   }, []);
-  
+
   async function checkClaudeStatus() {
     try {
       const response = await fetch('/api/test-claude');
@@ -24,7 +24,7 @@ export function ClaudeStatus() {
       setLoading(false);
     }
   }
-  
+
   if (loading) {
     return (
       <div className="bg-gray-100 rounded-lg p-4">
@@ -32,7 +32,7 @@ export function ClaudeStatus() {
       </div>
     );
   }
-  
+
   return (
     <div className={`rounded-lg p-4 ${
       status?.connected 
@@ -42,7 +42,7 @@ export function ClaudeStatus() {
       <h3 className="font-semibold text-lg mb-2">
         🤖 Claude AI Integration
       </h3>
-      
+
       {status?.connected ? (
         <div className="space-y-2">
           <p className="text-green-700">

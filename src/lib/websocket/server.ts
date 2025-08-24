@@ -70,18 +70,14 @@ export class MedicalDocumentSocketServer {
 
       await subClient.connect();
       this.io.adapter(createAdapter(pubClient, subClient));
-      console.log("✅ Socket.IO Redis adapter configured");
+
     } catch (error) {
-      console.warn(
-        "⚠️ Failed to configure Redis adapter, using memory adapter:",
-        error
-      );
+
     }
 
     this.setupMiddleware();
     this.setupConnectionHandlers();
 
-    console.log("✅ Medical Document Socket Server initialized");
   }
 
   private setupMiddleware(): void {
@@ -153,7 +149,7 @@ export class MedicalDocumentSocketServer {
 
     this.io.on("connection", (socket) => {
       const user = socket.data.user as SocketUser;
-      console.log(`👤 User ${user.userEmail} connected (${socket.id})`);
+      `);
 
       // Join user to their own room
       socket.join(`user:${user.userId}`);
@@ -171,8 +167,7 @@ export class MedicalDocumentSocketServer {
 
       // Handle disconnection
       socket.on("disconnect", (reason) => {
-        console.log(
-          `👤 User ${user.userEmail} disconnected (${socket.id}): ${reason}`
+        : ${reason}`
         );
         this.handleDisconnection(socket, user);
       });
@@ -188,9 +183,7 @@ export class MedicalDocumentSocketServer {
     // Unsubscribe from document updates
     socket.on("unsubscribe:document", (documentId: string) => {
       socket.leave(`document:${documentId}`);
-      console.log(
-        `📄 User ${user.userEmail} unsubscribed from document ${documentId}`
-      );
+
     });
 
     // Request document status
@@ -228,9 +221,6 @@ export class MedicalDocumentSocketServer {
 
       // Join document room
       socket.join(`document:${documentId}`);
-      console.log(
-        `📄 User ${user.userEmail} subscribed to document ${documentId}`
-      );
 
       // Send current document status
       await this.sendDocumentStatus(socket, user, documentId);
@@ -375,12 +365,12 @@ export class MedicalDocumentSocketServer {
   private setupEventHandlers(): void {
     // Handle process events for graceful shutdown
     process.on("SIGTERM", () => {
-      console.log("📡 Gracefully shutting down Socket.IO server...");
+
       this.shutdown();
     });
 
     process.on("SIGINT", () => {
-      console.log("📡 Gracefully shutting down Socket.IO server...");
+
       this.shutdown();
     });
   }
@@ -399,9 +389,6 @@ export class MedicalDocumentSocketServer {
     // Also broadcast to client room
     this.io.to(`client:${update.clientId}`).emit("document:progress", update);
 
-    console.log(
-      `📡 Broadcast document progress: ${update.documentId} - ${update.progress}%`
-    );
   }
 
   async broadcastAnalysisUpdate(update: AnalysisUpdate): Promise<void> {
@@ -410,9 +397,6 @@ export class MedicalDocumentSocketServer {
     this.io.to(`document:${update.documentId}`).emit("analysis:update", update);
     this.io.to(`client:${update.clientId}`).emit("analysis:update", update);
 
-    console.log(
-      `📡 Broadcast analysis update: ${update.documentId} - ${update.status}`
-    );
   }
 
   async sendNotificationToUser(
@@ -423,9 +407,6 @@ export class MedicalDocumentSocketServer {
 
     this.io.to(`user:${userId}`).emit("notification", notification);
 
-    console.log(
-      `📡 Sent notification to user ${userId}: ${notification.title}`
-    );
   }
 
   async sendNotificationToClient(
@@ -436,9 +417,6 @@ export class MedicalDocumentSocketServer {
 
     this.io.to(`client:${clientId}`).emit("notification", notification);
 
-    console.log(
-      `📡 Sent notification to client ${clientId}: ${notification.title}`
-    );
   }
 
   async broadcastSystemAlert(alert: NotificationUpdate): Promise<void> {
@@ -446,7 +424,6 @@ export class MedicalDocumentSocketServer {
 
     this.io.emit("system:alert", alert);
 
-    console.log(`📡 Broadcast system alert: ${alert.title}`);
   }
 
   // Administrative methods
@@ -476,11 +453,7 @@ export class MedicalDocumentSocketServer {
         const socket = this.io.sockets.sockets.get(socketId);
         if (socket) {
           socket.disconnect(true);
-          console.log(
-            `👤 Disconnected user ${userId} socket ${socketId}: ${
-              reason || "Admin action"
-            }`
-          );
+
         }
       }
     }
@@ -496,7 +469,7 @@ export class MedicalDocumentSocketServer {
 
       // Close all connections
       this.io.close();
-      console.log("📡 Socket.IO server shut down");
+
     }
   }
 

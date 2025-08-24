@@ -93,13 +93,13 @@ export const getNextBodySystem = (
 ): BodySystem | null => {
   const systemOrder = getBodySystemOrder();
   const currentIndex = systemOrder.indexOf(currentSystem);
-  
+
   for (let i = currentIndex + 1; i < systemOrder.length; i++) {
     if (!completedSystems.has(systemOrder[i])) {
       return systemOrder[i];
     }
   }
-  
+
   return null;
 };
 

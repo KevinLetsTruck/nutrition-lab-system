@@ -148,9 +148,6 @@ export class FNTPMasterProtocolGenerator {
     clientEducation: ClientEducationHandout;
     dotOptimization?: DOTOptimizationPlan;
   }> {
-    console.log(
-      "🎯 Generating FNTP Master Protocol with root cause analysis..."
-    );
 
     try {
       // Get comprehensive analysis data
@@ -189,7 +186,6 @@ export class FNTPMasterProtocolGenerator {
         dotOptimization,
       });
 
-      console.log("✅ FNTP Master Protocol generated successfully");
       return { rootCauseAnalysis, phases, clientEducation, dotOptimization };
     } catch (error) {
       console.error("❌ Master protocol generation error:", error);
@@ -765,7 +761,6 @@ export class FNTPMasterProtocolGenerator {
         },
       });
 
-      console.log("💾 FNTP Master Protocol saved successfully");
     } catch (error) {
       console.error("❌ Failed to save master protocol:", error);
       throw error;
@@ -1433,11 +1428,11 @@ export class FNTPMasterProtocolGenerator {
         rootCause.confidence * 100
       ).toFixed(0)}%.`,
       phaseOverview: `Your protocol is divided into 3 phases over 12 weeks:
-      
+
       **Phase 1 (Weeks 1-2):** Foundation support with ${phase1.supplements.length} key supplements
       **Phase 2 (Weeks 3-6):** Targeted interventions for your specific dysfunctions  
       **Phase 3 (Weeks 7-12):** Optimization and long-term maintenance
-      
+
       We NEVER exceed 4 supplements per phase to ensure compliance and effectiveness.`,
       supplementInstructions,
       truckingSchedule: {

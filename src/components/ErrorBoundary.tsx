@@ -30,7 +30,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   static getDerivedStateFromError(error: Error): State {
     const errorId = `error-${Date.now()}`;
-    
+
     // Automatically log to issue tracker
     const issue = {
       id: errorId,
@@ -43,12 +43,12 @@ export class ErrorBoundary extends Component<Props, State> {
       createdAt: new Date(),
       updatedAt: new Date()
     };
-    
+
     // Temporarily disabled - issue tracking coming soon
     // const existingIssues = JSON.parse(localStorage.getItem('assessment-issues') || '[]');
     // existingIssues.unshift(issue);
     // localStorage.setItem('assessment-issues', JSON.stringify(existingIssues));
-    
+
     return {
       hasError: true,
       error,
@@ -71,7 +71,7 @@ Component Stack: ${errorInfo?.componentStack}
 Time: ${new Date().toISOString()}
 URL: ${window.location.href}
     `.trim();
-    
+
     navigator.clipboard.writeText(errorText);
     toast.success('Error details copied to clipboard');
   };
@@ -94,21 +94,21 @@ URL: ${window.location.href}
                 <p className="text-sm text-red-600">Error ID: {this.state.errorId}</p>
               </div>
             </div>
-            
+
             <div className="bg-gray-900 text-green-400 p-4 rounded-lg mb-4 font-mono text-sm overflow-x-auto">
               <div className="text-red-400 mb-2">{this.state.error?.message}</div>
               <div className="text-gray-400 text-xs whitespace-pre-wrap">
                 {this.state.error?.stack?.split('\n').slice(0, 5).join('\n')}
               </div>
             </div>
-            
+
             <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg mb-4">
               <p className="text-sm text-yellow-800">
                 <strong>This error has been automatically logged</strong> to the issue tracker. 
                 Copy the error details and share with the development team.
               </p>
             </div>
-            
+
             <div className="flex gap-3">
               <Button onClick={this.copyError} variant="outline">
                 <Copy className="mr-2 h-4 w-4" />

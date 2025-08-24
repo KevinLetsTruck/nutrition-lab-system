@@ -59,24 +59,12 @@ export async function POST(request: Request) {
       medications: "Metformin, Lisinopril",
     };
 
-    console.log("🔬 Testing Functional Medicine Analysis...");
-    console.log(`📊 Analyzing ${testLabValues.length} lab values`);
-    console.log(
-      `👤 Client: ${testClientInfo.firstName} ${testClientInfo.lastName}`
-    );
-
     const startTime = Date.now();
     const analysis = await claudeService.analyzeFunctionalPatterns(
       testLabValues,
       testClientInfo
     );
     const processingTime = Date.now() - startTime;
-
-    console.log("✅ Functional analysis completed successfully");
-    console.log(`⏱️  Processing time: ${processingTime}ms`);
-    console.log(`🎯 Overall Health: ${analysis.summary.overallHealth}`);
-    console.log(`📋 Patterns Found: ${analysis.patterns.length}`);
-    console.log(`🔍 Root Causes: ${analysis.rootCauses.length}`);
 
     return NextResponse.json({
       success: true,

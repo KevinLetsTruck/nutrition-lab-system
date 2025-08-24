@@ -18,7 +18,7 @@ export default function AssessmentStartPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [date, setDate] = useState<Date>();
-  
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -76,7 +76,7 @@ export default function AssessmentStartPage() {
       }));
 
       // Redirect to assessment
-      router.push(`/assessment/${assessmentData.assessment.id}`);
+      router.push(`/assessment-public/${assessmentData.assessment.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setLoading(false);

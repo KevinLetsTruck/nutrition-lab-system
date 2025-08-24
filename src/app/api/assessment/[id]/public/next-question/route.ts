@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
-import { selectNextQuestion } from "@/lib/ai/assessment-ai";
-import { getAllQuestions, getQuestionsByBodySystem } from "@/lib/assessment/questions";
-import { bodySystemOrder } from "@/lib/assessment/body-system-modules";
+import { getNextQuestionWithAI } from "../../../../../../../lib/ai/assessment-ai";
+import {
+  allQuestions as getAllQuestions,
+  getQuestionsByBodySystem,
+} from "../../../../../../../lib/assessment/questions";
+import { bodySystemOrder } from "../../../../../../../lib/assessment/body-systems";
 
 export async function GET(
   req: NextRequest,
@@ -55,12 +58,13 @@ export async function GET(
       try {
         const clientInfo = {
           age: assessment.client.dateOfBirth
-            ? new Date().getFullYear() - new Date(assessment.client.dateOfBirth).getFullYear()
+            ? new Date().getFullYear() -
+              new Date(assessment.client.dateOfBirth).getFullYear()
             : undefined,
           gender: assessment.client.gender,
         };
 
-        const nextQuestion = await selectNextQuestion({
+        const nextQuestion = await getNextQuestionWithAI({
           assessmentId,
           currentModule: assessment.currentModule,
           responses: allResponses,
@@ -83,27 +87,36 @@ export async function GET(
     }
 
     // Fallback: Sequential selection
-    const currentModuleIndex = bodySystemOrder.indexOf(assessment.currentModule);
+    const currentModuleIndex = bodySystemOrder.indexOf(
+      assessment.currentModule
+    );
     const moduleQuestions = getQuestionsByBodySystem(assessment.currentModule);
-    
+
     // Filter questions
     const availableQuestions = moduleQuestions.filter((q) => {
       if (answeredQuestionIds.has(q.id)) return false;
-      
+
       // Gender filtering
-      if (q.genderSpecific && q.genderSpecific !== assessment.client.gender) return false;
-      
+      if (q.genderSpecific && q.genderSpecific !== assessment.client.gender)
+        return false;
+
       // Conditional logic
       for (const response of allResponses) {
-        const answeredQuestion = getAllQuestions().find(aq => aq.id === response.questionId);
+        const answeredQuestion = getAllQuestions.find(
+          (aq) => aq.id === response.questionId
+        );
         if (answeredQuestion?.conditionalLogic) {
-          const { condition, skipQuestions } = answeredQuestion.conditionalLogic;
-          if (response.responseValue === condition && skipQuestions.includes(q.id)) {
+          const { condition, skipQuestions } =
+            answeredQuestion.conditionalLogic;
+          if (
+            response.responseValue === condition &&
+            skipQuestions.includes(q.id)
+          ) {
             return false;
           }
         }
       }
-      
+
       return true;
     });
 
@@ -113,10 +126,11 @@ export async function GET(
     if (!nextQuestion && currentModuleIndex < bodySystemOrder.length - 1) {
       const nextModule = bodySystemOrder[currentModuleIndex + 1];
       const nextModuleQuestions = getQuestionsByBodySystem(nextModule);
-      
+
       nextQuestion = nextModuleQuestions.filter((q) => {
         if (answeredQuestionIds.has(q.id)) return false;
-        if (q.genderSpecific && q.genderSpecific !== assessment.client.gender) return false;
+        if (q.genderSpecific && q.genderSpecific !== assessment.client.gender)
+          return false;
         return true;
       })[0];
 

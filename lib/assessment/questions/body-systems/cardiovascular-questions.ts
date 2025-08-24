@@ -270,7 +270,6 @@ export const cardiovascularQuestions: AssessmentQuestion[] = [
     clinicalRelevance: ["genetic_risk", "family_history"],
   },
 
-
   // Leg Symptoms
   {
     id: "CARDIO018",

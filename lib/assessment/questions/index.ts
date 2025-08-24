@@ -134,8 +134,6 @@ export function getQuestionStats() {
   };
 }
 
-console.log(
-  "📊 Body System Questions Loaded:",
-  getQuestionStats().total,
+.total,
   "total questions"
 );

@@ -406,7 +406,7 @@ export default function ClientDashboard() {
       });
 
       if (response.ok) {
-        console.log(`✅ Status updated to: ${newStatus}`);
+
         // Status is already updated in state above
       } else {
         // Revert on error

@@ -229,8 +229,7 @@ significant improvements in how you feel and perform on the road.
    * Initialize Google Vision API (no initialization needed - using singleton)
    */
   async initializeOCR(): Promise<void> {
-    console.log(
-      "✅ Google Vision OCR service ready (no initialization required)"
+    "
     );
     return Promise.resolve();
   }
@@ -240,7 +239,6 @@ significant improvements in how you feel and perform on the road.
    */
   async processDocument(documentId: string): Promise<DocumentProcessingResult> {
     const startTime = Date.now();
-    console.log(`🔍 Starting OCR processing for document: ${documentId}`);
 
     try {
       // Set processing timeout (10 minutes)
@@ -294,10 +292,7 @@ significant improvements in how you feel and perform on the road.
       throw new Error(`Document not found: ${documentId}`);
     }
 
-    console.log(
-      `📄 Processing: ${document.originalFileName || document.fileName} (${
-        document.documentType
-      })`
+    `
     );
 
     // Update status to processing
@@ -311,12 +306,12 @@ significant improvements in how you feel and perform on the road.
     let ocrResult: OCRResult;
 
     if (mimeType === "application/pdf") {
-      console.log("📑 Processing PDF document with Google Vision API...");
+
       ocrResult = await this.processPDFWithGoogleVision(
         document.storageKey || (document.metadata?.s3Key as string)
       );
     } else if (mimeType?.startsWith("image/")) {
-      console.log("🖼️ Processing image document with Google Vision API...");
+
       ocrResult = await this.processImageWithGoogleVision(
         document.storageKey || (document.metadata?.s3Key as string)
       );
@@ -327,8 +322,7 @@ significant improvements in how you feel and perform on the road.
     // Classify document type and detect lab source
     const classification = this.classifyDocument(ocrResult.text);
 
-    console.log(
-      `📋 Document type detected: ${classification.type} (was: ${document.documentType})`
+    `
     );
 
     // Update document with OCR results and detected type
@@ -359,22 +353,13 @@ significant improvements in how you feel and perform on the road.
       classification.type === "nutriq_assessment" ||
       classification.type === "symptom_assessment"
     ) {
-      console.log("🧪 Extracting values from OCR text...");
 
       // NEW: Analyze document structure first with Claude
       let structureAnalysis = null;
       try {
-        console.log("🔍 Analyzing document structure with Claude...");
+
         structureAnalysis = await claudeService.analyzeDocumentStructure(
           ocrResult.text
-        );
-
-        console.log("✅ Document structure analysis complete");
-        console.log("📊 OCR Quality:", structureAnalysis.ocrQuality.overall);
-        console.log("📄 Document Type:", structureAnalysis.documentType);
-        console.log(
-          "🎯 Extraction Strategy:",
-          structureAnalysis.extractionStrategy.recommendedApproach
         );
 
         // Update document metadata with structure analysis
@@ -399,14 +384,13 @@ significant improvements in how you feel and perform on the road.
           },
         });
       } catch (structureError: any) {
-        console.warn("⚠️ Structure analysis failed:", structureError.message);
+
         // Continue with extraction as fallback
       }
 
       try {
         // Use AI-powered extraction with structure awareness if available
         if (structureAnalysis) {
-          console.log("🤖 Using AI-powered extraction with structure analysis");
 
           try {
             const aiExtraction =
@@ -414,13 +398,6 @@ significant improvements in how you feel and perform on the road.
                 ocrResult.text,
                 structureAnalysis
               );
-
-            console.log(
-              `✅ AI extracted ${aiExtraction.labValues.length} lab values`
-            );
-            console.log(
-              `📊 Extraction confidence: ${aiExtraction.extractionSummary.confidence}`
-            );
 
             // Get document to retrieve clientId
             const docForClient = await prisma.medicalDocument.findUnique({
@@ -487,14 +464,9 @@ significant improvements in how you feel and perform on the road.
               },
             });
 
-            console.log("✅ AI extraction completed and saved successfully");
-
             // Automatic Functional Medicine Analysis
             if (aiExtraction.labValues.length > 0) {
               try {
-                console.log(
-                  "🔬 Running Functional Medicine Pattern Analysis..."
-                );
 
                 // Get client information if available
                 const client = docForClient?.clientId
@@ -517,17 +489,6 @@ significant improvements in how you feel and perform on the road.
                     aiExtraction.labValues,
                     client
                   );
-
-                console.log(`✅ Functional analysis complete`);
-                console.log(
-                  `📊 Overall Health: ${functionalAnalysis.summary.overallHealth}`
-                );
-                console.log(
-                  `🎯 Patterns Found: ${functionalAnalysis.patterns.length}`
-                );
-                console.log(
-                  `🔍 Root Causes Identified: ${functionalAnalysis.rootCauses.length}`
-                );
 
                 // Generate human-readable report
                 const reportContent =
@@ -574,23 +535,16 @@ significant improvements in how you feel and perform on the road.
                   },
                 });
 
-                console.log(
-                  "📄 Functional Medicine report generated and saved"
-                );
               } catch (analysisError: any) {
                 console.error("❌ Functional analysis failed:", analysisError);
                 // Continue processing even if analysis fails
-                console.log(
-                  "📝 Document processing will continue without functional analysis"
-                );
+
               }
             }
 
             // If confidence is low, still run regex as backup
             if (aiExtraction.extractionSummary.confidence < 0.8) {
-              console.log(
-                "⚠️ Low AI confidence, running regex extraction as backup"
-              );
+
               await labValueExtractor.extractLabValues(
                 documentId,
                 ocrResult.text
@@ -609,19 +563,15 @@ significant improvements in how you feel and perform on the road.
           }
         } else {
           // No structure analysis available, use existing regex extraction
-          console.log(
-            "📝 Using regex extraction (no structure analysis available)"
+          "
           );
           await labValueExtractor.extractLabValues(documentId, ocrResult.text);
         }
 
-        console.log("✅ Values extracted successfully");
       } catch (labError: any) {
-        console.warn("⚠️ Value extraction failed:", labError.message);
+
       }
     }
-
-    console.log(`🎉 Document processing completed successfully`);
 
     return {
       ocrResult,
@@ -638,7 +588,6 @@ significant improvements in how you feel and perform on the road.
     const startTime = Date.now();
 
     try {
-      console.log(`🔍 Processing PDF with Google Vision: ${s3Key}`);
 
       const visionResult = await googleVisionHTTPService.processPDFDocument(
         s3Key
@@ -655,10 +604,7 @@ significant improvements in how you feel and perform on the road.
         .split(/\s+/)
         .filter((word) => word.length > 0).length;
 
-      console.log(
-        `✅ PDF processed successfully: ${wordCount} words, ${Math.round(
-          visionResult.confidence
-        )}% confidence`
+      }% confidence`
       );
 
       return {
@@ -684,7 +630,6 @@ significant improvements in how you feel and perform on the road.
     const startTime = Date.now();
 
     try {
-      console.log(`🔍 Processing image with Google Vision: ${s3Key}`);
 
       const visionResult = await googleVisionHTTPService.processImageDocument(
         s3Key
@@ -701,10 +646,7 @@ significant improvements in how you feel and perform on the road.
         .split(/\s+/)
         .filter((word) => word.length > 0).length;
 
-      console.log(
-        `✅ Image processed successfully: ${wordCount} words, ${Math.round(
-          visionResult.confidence
-        )}% confidence`
+      }% confidence`
       );
 
       return {
@@ -836,8 +778,7 @@ significant improvements in how you feel and perform on the road.
    * Cleanup resources (Google Vision requires no cleanup)
    */
   async cleanup(): Promise<void> {
-    console.log(
-      "✅ Google Vision OCR service cleanup complete (no resources to clean)"
+    "
     );
   }
 

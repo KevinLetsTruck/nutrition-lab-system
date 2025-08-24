@@ -40,7 +40,7 @@ export function ProgressBar({
               Question {questionsAsked + 1}
             </span>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             <span className="text-sm font-bold text-blue-600">
               {Math.round(completionRate)}%
@@ -55,7 +55,7 @@ export function ProgressBar({
             )}
           </div>
         </div>
-        
+
         <div className="relative">
           <div className="overflow-hidden h-2 text-xs flex rounded-full bg-gray-200">
             <div

@@ -20,7 +20,6 @@ interface Params {
 export async function GET(req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
-    console.log("🧪 GET test endpoint called for document:", id);
 
     return NextResponse.json({
       message: "FNTP Complete Analysis endpoint is working",
@@ -41,17 +40,11 @@ export async function GET(req: NextRequest, { params }: Params) {
 
 export async function POST(req: NextRequest, { params }: Params) {
   try {
-    console.log("🚀 FNTP Complete Analysis endpoint called");
 
     const { id } = await params;
-    console.log("📋 Document ID from params:", id);
 
     const body = await req.json();
     const { generateComplete = true, includeMonitoring = true } = body;
-    console.log("📋 Request body:", { generateComplete, includeMonitoring });
-
-    console.log("🎯 Starting FNTP Complete Analysis for document:", id);
-    console.log("🔍 Searching for document with ID:", id);
 
     // Get document with all related data
     const document = await prisma.document.findUnique({
@@ -72,17 +65,12 @@ export async function POST(req: NextRequest, { params }: Params) {
       },
     });
 
-    console.log("📄 Document found:", document ? "Yes" : "No");
     if (document) {
-      console.log("📄 Document details:", {
-        id: document.id,
-        fileName: document.fileName,
-        clientId: document.clientId,
-      });
+
     }
 
     if (!document) {
-      console.log("❌ Document not found in database");
+
       return NextResponse.json(
         { error: "Document not found" },
         { status: 404 }
@@ -96,25 +84,22 @@ export async function POST(req: NextRequest, { params }: Params) {
     // For now, allow analysis even without prior functional analysis
     // This will be enhanced later when we have the full OCR pipeline working
     if (!hasAnalysis) {
-      console.log(
-        "⚠️ No prior functional analysis found, proceeding with basic analysis"
-      );
+
     }
 
     const clientName = `${document.client?.firstName || ""} ${
       document.client?.lastName || ""
     }`.trim();
-    console.log(
-      `👤 Processing for client: ${clientName} (Trucker: ${document.client?.isTruckDriver})`
+    `
     );
 
     // STEP 1: Generate Master Protocol with Root Cause Analysis
-    console.log("🧬 Step 1: Generating FNTP Master Protocol...");
+
     const masterProtocol =
       await fntpMasterProtocolGenerator.generateMasterProtocol(id);
 
     // STEP 2: Run Decision Tree Analysis
-    console.log("🌳 Step 2: Processing decision trees...");
+
     const symptoms = metadata?.symptoms || [];
     const complaints = metadata?.complaints || [];
 
@@ -126,13 +111,13 @@ export async function POST(req: NextRequest, { params }: Params) {
       );
 
     // STEP 3: Analyze Lab Value Triggers
-    console.log("🔬 Step 3: Analyzing lab triggers...");
+
     const labTriggerAnalysis = await analyzeCriticalLabTriggers(
       document.LabValue || []
     );
 
     // STEP 4: Generate Supplement Product Analysis
-    console.log("💊 Step 4: Analyzing supplement products...");
+
     const supplementAnalysis = analyzeSupplementRecommendations(
       masterProtocol.phases
     );
@@ -140,7 +125,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     // STEP 5: Initialize Monitoring System (if requested)
     let monitoringSetup = null;
     if (includeMonitoring) {
-      console.log("📊 Step 5: Setting up monitoring system...");
+
       monitoringSetup = await fntpMonitoringSystem.initializeMonitoring(
         document.client!.id,
         `protocol_${id}`,
@@ -151,7 +136,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     // STEP 6: Generate DOT Medical Optimization (for truckers)
     let dotOptimization = null;
     if (document.client?.isTruckDriver && masterProtocol.dotOptimization) {
-      console.log("🚛 Step 6: DOT medical optimization...");
+
       dotOptimization = {
         ...masterProtocol.dotOptimization,
         criticalFindings: labTriggerAnalysis.criticalFindings,
@@ -213,8 +198,6 @@ export async function POST(req: NextRequest, { params }: Params) {
         },
       },
     });
-
-    console.log("✅ FNTP Complete Analysis completed successfully");
 
     return NextResponse.json({
       success: true,

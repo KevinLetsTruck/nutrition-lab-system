@@ -40,7 +40,7 @@ export class QueueManager {
       }
 
       this.isInitialized = true;
-      console.log("✅ Queue Manager initialized successfully");
+
     } catch (error) {
       console.error("❌ Failed to initialize Queue Manager:", error);
       throw new QueueError("Queue Manager initialization failed", "system");
@@ -53,15 +53,15 @@ export class QueueManager {
     });
 
     queue.on("waiting", (job) => {
-      console.log(`Job ${job.id} is waiting in queue ${queueName}`);
+
     });
 
     queue.on("active", (job) => {
-      console.log(`Job ${job.id} started processing in queue ${queueName}`);
+
     });
 
     queue.on("completed", (job, result) => {
-      console.log(`Job ${job.id} completed in queue ${queueName}`);
+
       this.updateJobStatus(job.id!, "COMPLETED", result);
     });
 
@@ -71,7 +71,7 @@ export class QueueManager {
     });
 
     queue.on("stalled", (job) => {
-      console.warn(`Job ${job.id} stalled in queue ${queueName}`);
+
     });
   }
 
@@ -154,7 +154,6 @@ export class QueueManager {
         },
       });
 
-      console.log(`✅ Job ${job.id} added to queue ${queueName}`);
       return job;
     } catch (error) {
       console.error(`Failed to add job to queue ${queueName}:`, error);
@@ -299,7 +298,7 @@ export class QueueManager {
     }
 
     await queue.pause();
-    console.log(`Queue ${queueName} paused`);
+
   }
 
   async resumeQueue(queueName: string): Promise<void> {
@@ -309,7 +308,7 @@ export class QueueManager {
     }
 
     await queue.resume();
-    console.log(`Queue ${queueName} resumed`);
+
   }
 
   async drainQueue(queueName: string): Promise<void> {
@@ -319,7 +318,7 @@ export class QueueManager {
     }
 
     await queue.drain();
-    console.log(`Queue ${queueName} drained`);
+
   }
 
   async cleanQueue(
@@ -333,7 +332,7 @@ export class QueueManager {
     }
 
     const cleaned = await queue.clean(gracePeriod, limit, "completed");
-    console.log(`Cleaned ${cleaned.length} jobs from queue ${queueName}`);
+
   }
 
   // Job management
@@ -355,7 +354,7 @@ export class QueueManager {
     const job = await queue.getJob(jobId);
     if (job) {
       await job.remove();
-      console.log(`Job ${jobId} removed from queue ${queueName}`);
+
     }
   }
 
@@ -368,7 +367,7 @@ export class QueueManager {
     const job = await queue.getJob(jobId);
     if (job && job.isFailed()) {
       await job.retry();
-      console.log(`Job ${jobId} retried in queue ${queueName}`);
+
     }
   }
 
@@ -490,13 +489,12 @@ export class QueueManager {
 
   // Cleanup and shutdown
   async cleanup(): Promise<void> {
-    console.log("🧹 Cleaning up Queue Manager...");
 
     // Close all workers
     for (const [name, worker] of this.workers) {
       try {
         await worker.close();
-        console.log(`Worker ${name} closed`);
+
       } catch (error) {
         console.error(`Failed to close worker ${name}:`, error);
       }
@@ -506,7 +504,7 @@ export class QueueManager {
     for (const [name, queue] of this.queues) {
       try {
         await queue.close();
-        console.log(`Queue ${name} closed`);
+
       } catch (error) {
         console.error(`Failed to close queue ${name}:`, error);
       }
@@ -516,7 +514,7 @@ export class QueueManager {
     try {
       const redis = getRedisConnection();
       await redis.quit();
-      console.log("Redis connection closed");
+
     } catch (error) {
       console.error("Failed to close Redis connection:", error);
     }
@@ -525,7 +523,6 @@ export class QueueManager {
     this.workers.clear();
     this.isInitialized = false;
 
-    console.log("✅ Queue Manager cleanup completed");
   }
 }
 

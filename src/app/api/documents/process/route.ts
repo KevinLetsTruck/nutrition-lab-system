@@ -35,10 +35,6 @@ export async function POST(request: NextRequest) {
 
   try {
     user = await verifyAuthToken(request);
-    console.log(
-      "Authenticated user triggering document processing:",
-      user.email
-    );
 
     const body = await request.json();
     documentId = body.documentId;
@@ -183,11 +179,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Log processing initiation
-    console.log(
-      `User ${user.email} initiated processing for document ${documentId}: ${jobs.length} jobs created`
-    );
-
-    console.log(`✅ Document processing initiated: ${documentId}`);
 
     return NextResponse.json(
       {

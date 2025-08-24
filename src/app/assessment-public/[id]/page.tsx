@@ -38,7 +38,7 @@ export default function PublicAssessmentPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [sessionData, setSessionData] = useState<any>(null);
-  
+
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [response, setResponse] = useState<any>("");
   const [questionsAnswered, setQuestionsAnswered] = useState(0);
@@ -49,16 +49,16 @@ export default function PublicAssessmentPage() {
     // Get session data
     const session = localStorage.getItem("assessmentSession");
     if (!session) {
-      router.push("/assessment/start");
+      router.push("/assessment-public/start");
       return;
     }
-    
+
     const data = JSON.parse(session);
     if (data.assessmentId !== assessmentId) {
-      router.push("/assessment/start");
+      router.push("/assessment-public/start");
       return;
     }
-    
+
     setSessionData(data);
     fetchNextQuestion();
   }, [assessmentId]);
@@ -130,7 +130,7 @@ export default function PublicAssessmentPage() {
   const handleCompletion = () => {
     // Clear session
     localStorage.removeItem("assessmentSession");
-    
+
     // Celebrate!
     confetti({
       particleCount: 100,

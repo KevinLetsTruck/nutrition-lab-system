@@ -17,22 +17,21 @@ export default function TestQuestionRendering() {
         if (data.success) {
           setQuestion(data.data.question);
           setDebug(data.data.debug);
-          console.log("Test question loaded:", data.data.question);
-          console.log("Debug info:", data.data.debug);
+
         }
       })
       .catch((err) => console.error("Error loading test question:", err));
   }, []);
 
   const handleSubmit = () => {
-    console.log("Submit clicked with value:", value);
+
   };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold mb-8 text-gray-900">Question Rendering Test</h1>
-        
+
         {debug && (
           <div className="mb-8 p-4 bg-blue-50 rounded-lg">
             <h2 className="font-semibold mb-2">Debug Information:</h2>

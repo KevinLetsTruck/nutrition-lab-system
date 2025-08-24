@@ -43,7 +43,7 @@ export default function TestAuthPage() {
       });
 
       const data = await response.json();
-      
+
       if (response.ok) {
         setTestResult(`Client created successfully! ID: ${data.id}`);
       } else {
@@ -58,7 +58,7 @@ export default function TestAuthPage() {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Authentication Test</h1>
-        
+
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Current Status</h2>
           <div className="space-y-2">

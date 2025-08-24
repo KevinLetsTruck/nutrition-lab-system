@@ -82,7 +82,7 @@ export default function AssessmentCompletePage() {
           </div>
         </div>
       </div>
-      
+
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-2xl w-full text-center bg-gray-900/50 border-gray-800">
           <CardHeader className="space-y-4 pb-8">

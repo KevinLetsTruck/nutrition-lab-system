@@ -152,8 +152,6 @@ export default function AssessmentIntakePage() {
         },
       };
 
-      console.log("Sending update data:", updateData);
-
       const response = await fetch(`/api/clients/${user?.clientId}`, {
         method: "PATCH",
         headers: {

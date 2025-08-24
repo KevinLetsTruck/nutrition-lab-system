@@ -12,7 +12,7 @@ function AssessmentContent() {
   const router = useRouter();
   const params = useParams();
   const assessmentId = params.id as string;
-  
+
   const {
     currentQuestion,
     currentModule,
@@ -51,7 +51,7 @@ function AssessmentContent() {
   const handleSubmit = async () => {
     if (currentValue !== null && currentValue !== '') {
       await submitResponse(currentValue);
-      
+
       // Auto-advance for certain question types
       if (isAutoAdvance && currentQuestion) {
         const autoAdvanceTypes = ['YES_NO', 'MULTIPLE_CHOICE'];
@@ -67,7 +67,7 @@ function AssessmentContent() {
 
   const handleValueChange = (value: any) => {
     setCurrentValue(value);
-    
+
     // Auto-submit for certain question types when auto-advance is enabled
     if (isAutoAdvance && currentQuestion) {
       const autoSubmitTypes = ['YES_NO', 'MULTIPLE_CHOICE'];
@@ -118,7 +118,7 @@ function AssessmentContent() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Assessments
           </button>
-          
+
           <div className="flex items-center gap-4">
             <label className="flex items-center gap-2 text-sm">
               <input
@@ -129,7 +129,7 @@ function AssessmentContent() {
               />
               Auto-advance
             </label>
-            
+
             <Button
               variant="outline"
               size="sm"
@@ -184,7 +184,7 @@ function AssessmentContent() {
             >
               Previous Question
             </Button>
-            
+
             {!['YES_NO', 'MULTIPLE_CHOICE'].includes(currentQuestion.type) && (
               <Button
                 onClick={handleSubmit}

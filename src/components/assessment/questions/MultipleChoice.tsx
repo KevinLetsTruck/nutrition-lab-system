@@ -18,7 +18,7 @@ export function MultipleChoice({
   disabled = false
 }: MultipleChoiceProps) {
   const options = question.options || [];
-  
+
   // Auto-advance after selection
   const handleSelect = (optionValue: string) => {
     onChange(optionValue);
@@ -78,7 +78,7 @@ export function MultipleChoice({
           </button>
         );
       })}
-      
+
       <p className="text-xs text-gray-500 text-center mt-4">
         Tip: Press A-{String.fromCharCode(97 + options.length - 1).toUpperCase()} for quick selection
       </p>

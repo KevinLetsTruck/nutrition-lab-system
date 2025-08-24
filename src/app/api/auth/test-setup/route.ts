@@ -22,7 +22,6 @@ export async function GET() {
         },
       });
 
-      console.log("Created test user:", user.id);
     }
 
     // Check if client record exists
@@ -41,7 +40,6 @@ export async function GET() {
         },
       });
 
-      console.log("Created client record:", client.id);
     }
 
     // Generate a valid JWT token

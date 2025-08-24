@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     // Test without authentication for setup purposes
     const isConnected = await claudeService.testConnection();
-    
+
     if (isConnected) {
       // Try a sample analysis
       const sampleText = `
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
         HDL: 38 mg/dL (Range: >40)
         Triglycerides: 185 mg/dL (Range: <150)
       `;
-      
+
       const analysis = await claudeService.analyzeLabDocument(
         sampleText,
         'Basic Metabolic Panel',
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
           isTruckDriver: true,
         }
       );
-      
+
       return NextResponse.json({
         status: 'success',
         connected: true,

@@ -61,7 +61,7 @@ export function YesNoDemo() {
   const handleAnswer = (value: boolean) => {
     const question = questions[currentQuestion];
     setAnswers(prev => ({ ...prev, [question.id]: value }));
-    
+
     // Auto-advance to next question after a delay
     setTimeout(() => {
       if (currentQuestion < questions.length - 1) {
@@ -93,7 +93,7 @@ export function YesNoDemo() {
                 </span>
               </div>
             ))}
-            
+
             <div className="mt-6 p-4 bg-blue-50 rounded-lg">
               <h4 className="font-semibold mb-2">Quick Analysis:</h4>
               <ul className="text-sm space-y-1">
@@ -144,11 +144,11 @@ export function YesNoDemo() {
 
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold mb-2">{question.text}</h3>
-        
+
         {question.helpText && (
           <p className="text-sm text-gray-600 mb-4">{question.helpText}</p>
         )}
-        
+
         {question.seedOilRelevant && (
           <div className="mb-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
             🌻 Seed Oil Related

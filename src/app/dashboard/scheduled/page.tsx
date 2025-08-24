@@ -226,7 +226,7 @@ export default function ScheduledClientsPage() {
 
   const handleViewDocument = (document: ClientDocument) => {
     // Temporarily disabled - PDF viewer causing issues
-    console.log("Document viewing temporarily disabled:", document.fileName);
+
     alert(
       `Document viewing is temporarily disabled. Document: ${document.fileName}`
     );

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
-import { getAllQuestions } from "@/lib/assessment/questions";
+import { allQuestions as getAllQuestions } from "../../../../../../../lib/assessment/questions";
 
 export async function POST(
   req: NextRequest,
@@ -40,7 +40,7 @@ export async function POST(
     }
 
     // Get question details
-    const question = getAllQuestions().find((q) => q.id === questionId);
+    const question = getAllQuestions.find((q) => q.id === questionId);
     if (!question) {
       return NextResponse.json(
         { success: false, error: "Invalid question" },

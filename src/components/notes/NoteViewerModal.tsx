@@ -55,7 +55,7 @@ export default function NoteViewerModal({
 
   const renderField = (label: string, content: string | undefined) => {
     if (!content || content.trim() === "") return null;
-    
+
     return (
       <div className="mb-6">
         <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--primary-green)' }}>
@@ -109,7 +109,7 @@ export default function NoteViewerModal({
               )}
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             {onEdit && (
               <button

@@ -112,32 +112,32 @@ export async function GET(
       startedAt: assessment.startedAt,
       lastActiveAt: assessment.lastActiveAt,
       completedAt: assessment.completedAt,
-      
+
       // Current state
       currentModule: assessment.currentModule,
       currentModuleProgress: moduleProgress[assessment.currentModule],
-      
+
       // Overall progress
       questionsAsked: assessment.questionsAsked,
       questionsSaved: assessment.questionsSaved || 0,
       totalQuestions,
       overallPercentage,
-      
+
       // Module breakdown
       moduleProgress,
-      
+
       // Time estimates
       estimatedMinutesRemaining,
       sessionDuration: assessment.startedAt 
         ? Math.round((new Date().getTime() - new Date(assessment.startedAt).getTime()) / 1000 / 60)
         : 0,
-      
+
       // AI efficiency
       efficiencyRate,
       efficiencyMessage: efficiencyRate > 0 
         ? `AI has saved you ${assessment.questionsSaved} questions (${efficiencyRate}% reduction)`
         : 'AI is analyzing your responses to optimize the assessment',
-      
+
       // Response history
       totalResponses: assessment.responses.length,
       lastResponseAt: assessment.responses.length > 0 

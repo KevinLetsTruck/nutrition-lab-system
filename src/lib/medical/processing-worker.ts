@@ -12,12 +12,11 @@ export class DocumentProcessingWorker {
   private queue: ProcessingJob[] = []
 
   async addToQueue(job: ProcessingJob): Promise<void> {
-    console.log(`📋 Adding document to processing queue: ${job.documentId}`)
-    
+
     // Add to in-memory queue (sorted by priority)
     this.queue.push(job)
     this.queue.sort((a, b) => b.priority - a.priority)
-    
+
     // Also add to database queue for persistence
     await prisma.medicalProcessingQueue.create({
       data: {
@@ -38,14 +37,13 @@ export class DocumentProcessingWorker {
     if (this.isProcessing || this.queue.length === 0) return
 
     this.isProcessing = true
-    console.log(`🔄 Starting queue processing: ${this.queue.length} jobs pending`)
 
     while (this.queue.length > 0) {
       const job = this.queue.shift()!
-      
+
       try {
-        console.log(`⚡ Processing document: ${job.documentId} (priority: ${job.priority})`)
-        
+        `)
+
         // Update queue status
         await prisma.medicalProcessingQueue.updateMany({
           where: {
@@ -60,7 +58,7 @@ export class DocumentProcessingWorker {
 
         // Process the document
         const result = await medicalOCRService.processDocument(job.documentId)
-        
+
         // Update queue status
         await prisma.medicalProcessingQueue.updateMany({
           where: {
@@ -73,16 +71,14 @@ export class DocumentProcessingWorker {
           }
         })
 
-        console.log(`✅ Document processed successfully: ${job.documentId}`)
-        
         // For radio show, log quick results
         if (job.isRadioShow) {
-          console.log(`📻 RADIO SHOW RESULT: ${result.documentType} from ${result.labSource || 'unknown'} (${result.ocrResult.wordCount} words, ${(result.ocrResult.confidence * 100).toFixed(1)}% confidence)`)
+          .toFixed(1)}% confidence)`)
         }
 
       } catch (error) {
         console.error(`❌ Processing failed for document: ${job.documentId}`, error)
-        
+
         // Update queue status
         await prisma.medicalProcessingQueue.updateMany({
           where: {
@@ -98,7 +94,7 @@ export class DocumentProcessingWorker {
     }
 
     this.isProcessing = false
-    console.log('🏁 Queue processing complete')
+
   }
 
   async getQueueStatus(): Promise<{

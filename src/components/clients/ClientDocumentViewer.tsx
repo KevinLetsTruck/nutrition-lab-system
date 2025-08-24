@@ -156,9 +156,9 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
 
   // Debug component lifecycle
   React.useEffect(() => {
-    console.log("🏗️ ClientDocumentViewer mounted for client:", clientId);
+
     return () => {
-      console.log("💥 ClientDocumentViewer unmounted for client:", clientId);
+
     };
   }, [clientId]);
 
@@ -209,7 +209,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
     });
 
   const handleDocumentClick = (doc: ClientDocument) => {
-    console.log("Document clicked:", doc); // Debug log
+     // Debug log
 
     // Check if document has a URL (try fileUrl first, then url as fallback)
     let documentUrl = doc.fileUrl || doc.url;
@@ -218,11 +218,11 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
     if (!documentUrl) {
       // For local development, assume documents are served from /uploads
       documentUrl = `/uploads/${doc.fileName}`;
-      console.log("No URL found, using constructed URL:", documentUrl);
+
     }
 
     if (documentUrl) {
-      console.log("Opening document:", documentUrl);
+
       setSelectedDocument({
         id: doc.id,
         name: doc.fileName,
@@ -234,7 +234,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
       });
       setViewerOpen(true);
     } else {
-      console.log("Cannot open document: No URL available");
+
       alert(
         "Document file not available. Please check if the file was uploaded correctly."
       );
@@ -255,7 +255,6 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
 
       if (response.ok) {
         const result = await response.json();
-        console.log("Reclassification result:", result);
 
         // Refresh the documents list
         if (onRefresh) {
@@ -293,7 +292,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
       }
 
       const result = await response.json();
-      console.log("Processing started:", result);
+
       alert("Document processing started. This may take a few minutes.");
 
       // Refresh the documents list
@@ -309,14 +308,9 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
   };
 
   const handleDeleteClick = (doc: ClientDocument) => {
-    console.log(
-      "🗑️ Delete button clicked for document:",
-      doc.fileName,
-      "ID:",
-      doc.id
-    );
+
     if (onDelete) {
-      console.log("📞 Calling parent onDelete handler");
+
       onDelete(doc.id);
     } else {
       console.error("❌ No onDelete handler provided");

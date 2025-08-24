@@ -34,10 +34,6 @@ export async function POST(request: NextRequest) {
 
   try {
     user = await verifyAuthToken(request);
-    console.log(
-      "Authenticated user triggering medical document processing:",
-      user.email
-    );
 
     const body = await request.json();
     documentId = body.documentId;
@@ -182,9 +178,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Log processing initiation
-    console.log(
-      `User ${user.email} initiated medical processing for document ${documentId}: ${jobs.length} jobs created`
-    );
 
     return NextResponse.json(
       {
@@ -279,10 +272,6 @@ export async function GET(request: NextRequest) {
         .length,
       failed: processingJobs.filter((job) => job.status === "FAILED").length,
     };
-
-    console.log(
-      `User ${user.email} accessed medical processing queue: ${processingJobs.length} jobs`
-    );
 
     return NextResponse.json({
       success: true,

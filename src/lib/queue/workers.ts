@@ -71,12 +71,12 @@ export class WorkerManager {
     });
 
     worker.on("completed", (job, result) => {
-      console.log(`Job ${job.id} completed in ${queueName}`);
+
       this.handleJobCompletion(job, result);
     });
 
     worker.on("active", (job) => {
-      console.log(`Job ${job.id} started in ${queueName}`);
+
       this.handleJobStart(job);
     });
 
@@ -139,7 +139,6 @@ export class WorkerManager {
     const { documentId, fileUrl, fileName, ocrProvider, options } = job.data;
 
     try {
-      console.log(`🔍 Starting OCR extraction for document ${documentId}`);
 
       // Download file from storage
       const fileData = await this.downloadFile(fileUrl);
@@ -242,7 +241,6 @@ export class WorkerManager {
     const { documentId, clientId, labValues, analysisType, options } = job.data;
 
     try {
-      console.log(`🧠 Starting analysis for document ${documentId}`);
 
       // Perform analysis based on type
       let analysisResult: any = {};
@@ -348,9 +346,6 @@ export class WorkerManager {
     const { notificationType, recipient, subject, message, data } = job.data;
 
     try {
-      console.log(
-        `📧 Sending ${notificationType} notification to ${recipient}`
-      );
 
       switch (notificationType) {
         case "EMAIL":
@@ -410,9 +405,6 @@ export class WorkerManager {
     const { targetType, olderThan, batchSize } = job.data;
 
     try {
-      console.log(
-        `🧹 Starting cleanup of ${targetType} older than ${olderThan}`
-      );
 
       let cleanedCount = 0;
       const cutoffDate = new Date(olderThan);
@@ -576,7 +568,7 @@ export class WorkerManager {
     message: string,
     data?: any
   ): Promise<void> {
-    console.log(`📧 Email sent to ${recipient}: ${subject}`);
+
     // Implementation would use nodemailer or similar
   }
 
@@ -584,7 +576,7 @@ export class WorkerManager {
     recipient: string,
     message: string
   ): Promise<void> {
-    console.log(`📱 SMS sent to ${recipient}: ${message}`);
+
     // Implementation would use Twilio or similar
   }
 
@@ -593,7 +585,7 @@ export class WorkerManager {
     message: string,
     data?: any
   ): Promise<void> {
-    console.log(`🔌 WebSocket notification sent to ${recipient}`);
+
     // Implementation would use Socket.IO
   }
 
@@ -602,7 +594,7 @@ export class WorkerManager {
     message: string,
     data?: any
   ): Promise<void> {
-    console.log(`📱 Push notification sent to ${recipient}`);
+
     // Implementation would use Firebase or similar
   }
 
@@ -666,23 +658,18 @@ export class WorkerManager {
   async start(): Promise<void> {
     if (this.isStarted) return;
 
-    console.log("🚀 Starting document processing workers...");
-
     // Workers start automatically when created
     this.isStarted = true;
 
-    console.log(`✅ ${this.workers.size} workers started successfully`);
   }
 
   async stop(): Promise<void> {
     if (!this.isStarted) return;
 
-    console.log("🛑 Stopping document processing workers...");
-
     for (const [queueName, worker] of this.workers) {
       try {
         await worker.close();
-        console.log(`Worker ${queueName} stopped`);
+
       } catch (error) {
         console.error(`Failed to stop worker ${queueName}:`, error);
       }
@@ -691,7 +678,6 @@ export class WorkerManager {
     this.workers.clear();
     this.isStarted = false;
 
-    console.log("✅ All workers stopped");
   }
 
   async pause(queueName?: string): Promise<void> {
@@ -699,12 +685,12 @@ export class WorkerManager {
       const worker = this.workers.get(queueName);
       if (worker) {
         await worker.pause();
-        console.log(`Worker ${queueName} paused`);
+
       }
     } else {
       for (const [name, worker] of this.workers) {
         await worker.pause();
-        console.log(`Worker ${name} paused`);
+
       }
     }
   }
@@ -714,12 +700,12 @@ export class WorkerManager {
       const worker = this.workers.get(queueName);
       if (worker) {
         await worker.resume();
-        console.log(`Worker ${queueName} resumed`);
+
       }
     } else {
       for (const [name, worker] of this.workers) {
         await worker.resume();
-        console.log(`Worker ${name} resumed`);
+
       }
     }
   }

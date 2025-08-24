@@ -92,8 +92,6 @@ export async function POST(req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
 
-    console.log(`🔄 Forcing re-analysis for document: ${id}`);
-
     // Check if document exists and has lab values
     const document = await prisma.medicalDocument.findUnique({
       where: { id },

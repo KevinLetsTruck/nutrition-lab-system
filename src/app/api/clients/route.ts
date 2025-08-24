@@ -24,7 +24,7 @@ function verifyAuthToken(request: NextRequest) {
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as any;
     return payload;
   } catch (error) {
-    console.log("Token verification failed in API route:", error);
+
     if (error instanceof jwt.JsonWebTokenError) {
       throw new Error("Invalid or expired token");
     }
@@ -36,7 +36,6 @@ export async function GET(request: NextRequest) {
   try {
     // Verify authentication
     const user = verifyAuthToken(request);
-    console.log("Authenticated user:", user.email);
 
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get("status");
@@ -77,7 +76,6 @@ export async function POST(request: NextRequest) {
   try {
     // Verify authentication
     const user = verifyAuthToken(request);
-    console.log("Authenticated user creating client:", user.email);
 
     const body = await request.json();
     const validatedData = createClientSchema.parse(body);

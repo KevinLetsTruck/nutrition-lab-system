@@ -44,7 +44,7 @@ export function DevToolbar() {
     // const existing = JSON.parse(localStorage.getItem('assessment-issues') || '[]');
     // existing.unshift(issue);
     // localStorage.setItem('assessment-issues', JSON.stringify(existing));
-    
+
     toast.success('Issue logged!');
     setQuickNote('');
   };

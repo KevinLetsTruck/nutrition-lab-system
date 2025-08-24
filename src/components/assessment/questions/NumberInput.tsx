@@ -18,7 +18,7 @@ export function NumberInput({
   disabled = false
 }: NumberInputProps) {
   const [inputValue, setInputValue] = useState(value?.toString() || '');
-  
+
   const min = question.min ?? 0;
   const max = question.max ?? 999;
   const step = question.step ?? 1;
@@ -27,7 +27,7 @@ export function NumberInput({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
-    
+
     const parsed = parseFloat(newValue);
     if (!isNaN(parsed) && parsed >= min && parsed <= max) {
       onChange(parsed);

@@ -28,7 +28,6 @@ export class MedicalDocumentStorage {
         process.env.S3_MEDICAL_BUCKET_NAME!
       : process.env.S3_MEDICAL_BUCKET_NAME!;
 
-    console.log(`🪣 Using S3 bucket: ${this.bucketName}`);
   }
 
   async uploadDocument(
@@ -38,19 +37,17 @@ export class MedicalDocumentStorage {
     clientId?: string
   ): Promise<{ key: string; url: string; size: number; optimized: boolean }> {
     try {
-      console.log(`📤 Starting upload: ${filename} (${file.length} bytes)`);
+      `);
 
       // Optimize images before upload
       let processedFile = file;
       let optimized = false;
 
       if (mimeType.startsWith("image/") && mimeType !== "application/pdf") {
-        console.log(`🖼️ Optimizing image: ${filename}`);
+
         processedFile = await this.optimizeImage(file);
         optimized = true;
-        console.log(
-          `✨ Image optimized: ${file.length} → ${processedFile.length} bytes`
-        );
+
       }
 
       const folder = clientId ? `clients/${clientId}` : "standalone";
@@ -77,8 +74,6 @@ export class MedicalDocumentStorage {
       await s3Client.send(command);
 
       const url = `https://${this.bucketName}.s3.${process.env.S3_REGION}.amazonaws.com/${key}`;
-
-      console.log(`✅ Upload successful: ${key}`);
 
       return {
         key,
@@ -120,9 +115,6 @@ export class MedicalDocumentStorage {
     try {
       // First, get image metadata
       const metadata = await sharp(buffer).metadata();
-      console.log(
-        `📊 Original image: ${metadata.width}x${metadata.height}, ${metadata.format}`
-      );
 
       // Optimize based on image characteristics
       let sharpInstance = sharp(buffer);
@@ -146,7 +138,7 @@ export class MedicalDocumentStorage {
 
       return await sharpInstance.toBuffer();
     } catch (error) {
-      console.warn("⚠️ Image optimization failed, using original:", error);
+
       return buffer;
     }
   }
@@ -195,7 +187,7 @@ export class MedicalDocumentStorage {
       });
 
       await s3Client.send(command);
-      console.log(`🗑️ Deleted document: ${key}`);
+
     } catch (error) {
       console.error("❌ Failed to delete document:", error);
       throw new Error("Failed to delete document");
@@ -226,7 +218,6 @@ export class MedicalDocumentStorage {
         })
       );
 
-      console.log("✅ S3 connection test successful");
       return true;
     } catch (error) {
       console.error("❌ S3 connection test failed:", error);

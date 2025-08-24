@@ -110,19 +110,17 @@ Please provide the analysis with this exact structure:
     // Parse Claude's response
     const analysisText = message.content[0].type === 'text' ? message.content[0].text : '';
     const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
-    
+
     if (!jsonMatch) {
       throw new Error("Failed to parse AI response");
     }
 
     const analysis = JSON.parse(jsonMatch[0]) as AnalysisResult;
-    
-    console.log(`Generated AI analysis for assessment ${assessmentId}`);
-    
+
     return analysis;
   } catch (error) {
     console.error("Claude AI analysis failed, using enhanced fallback:", error);
-    
+
     // Enhanced fallback analysis based on actual responses
     const likertResponses = responses.filter(r => r.responseType === 'LIKERT_SCALE');
     const averageSeverity = likertResponses.length > 0
@@ -171,7 +169,7 @@ Please provide the analysis with this exact structure:
       overallScore >= 40 ? "Several systems show signs of dysfunction that should be addressed." :
       "Multiple systems are showing significant stress and require immediate attention."
     }`,
-    
+
     keyFindings: [
       averageSeverity > 6 ? "High symptom severity across multiple systems" : "Moderate symptom burden",
       hasHighSeedOilExposure ? "Significant seed oil exposure detected" : "Low inflammatory oil exposure",
@@ -179,18 +177,18 @@ Please provide the analysis with this exact structure:
       moduleScores.DIGESTIVE < 60 ? "Digestive system requires support" : "Healthy digestive function",
       moduleScores.IMMUNE < 60 ? "Immune system showing signs of dysregulation" : "Strong immune function"
     ].filter(finding => finding.includes("High") || finding.includes("dysfunction") || finding.includes("requires") || finding.includes("dysregulation")),
-    
+
     riskFactors: [
       hasHighSeedOilExposure && "Chronic inflammatory oil consumption",
       moduleScores.ENDOCRINE < 50 && "Metabolic dysfunction risk",
       moduleScores.DIGESTIVE < 60 && "Impaired nutrient absorption",
       averageSeverity > 7 && "Multiple system dysfunction"
     ].filter(Boolean) as string[],
-    
+
     strengths: Object.entries(moduleScores)
       .filter(([_, score]) => score >= 80)
       .map(([module, score]) => `Strong ${module.toLowerCase().replace('_', ' ')} function (${score}/100)`),
-    
+
     primaryConcerns: [
       ...Object.entries(moduleScores)
         .filter(([_, score]) => score < 60)
@@ -199,7 +197,7 @@ Please provide the analysis with this exact structure:
         .map(([module, score]) => `${module.replace('_', ' ')} dysfunction (${score}/100)`),
       hasHighSeedOilExposure && "Seed oil-induced inflammation"
     ].filter(Boolean) as string[],
-    
+
     suggestedLabs: {
       essential: [
         "Comprehensive Metabolic Panel (CMP)",
@@ -209,7 +207,7 @@ Please provide the analysis with this exact structure:
         moduleScores.ENDOCRINE < 60 && "Comprehensive Hormone Panel",
         moduleScores.DIGESTIVE < 60 && "GI-MAP Stool Test"
       ].filter(Boolean) as string[],
-      
+
       recommended: [
         "hs-CRP (inflammation)",
         "Vitamin D",
@@ -217,21 +215,21 @@ Please provide the analysis with this exact structure:
         moduleScores.NEUROLOGICAL < 60 && "Neurotransmitter Panel",
         moduleScores.IMMUNE < 60 && "Immune Function Panel"
       ].filter(Boolean) as string[],
-      
+
       optional: [
         "Food Sensitivity Panel",
         "Micronutrient Testing",
         "Genetic Testing (MTHFR, etc.)"
       ]
     },
-    
+
     labPredictions: {
       "hs-CRP": hasHighSeedOilExposure ? "Likely elevated (>3.0)" : "Normal range expected",
       "Omega-6:Omega-3": hasHighSeedOilExposure ? "Likely imbalanced (>10:1)" : "Acceptable range",
       "TSH": moduleScores.ENDOCRINE < 60 ? "May show subclinical hypothyroid" : "Normal range expected",
       "Vitamin D": averageSeverity > 6 ? "Likely suboptimal (<40 ng/mL)" : "Variable"
     },
-    
+
     seedOilAssessment: {
       exposureLevel: hasHighSeedOilExposure ? 8 : 3,
       damageIndicators: hasHighSeedOilExposure && moduleScores.CARDIOVASCULAR < 70 ? 7 : 3,
@@ -256,7 +254,6 @@ Please provide the analysis with this exact structure:
     };
 
     // Log analysis generation
-    console.log(`Generated analysis for assessment ${assessmentId}`);
 
     return analysis;
   }

@@ -37,7 +37,6 @@ export async function GET(
 
   try {
     user = await verifyAuthToken(request);
-    console.log(`Authenticated user checking status for document ${documentId}:`, user.email);
 
     if (!documentId) {
       return NextResponse.json(

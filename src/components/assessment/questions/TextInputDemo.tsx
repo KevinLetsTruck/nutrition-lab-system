@@ -70,7 +70,7 @@ export function TextInputDemo() {
 
   const analyzeResponses = () => {
     const analysis = [];
-    
+
     // Check for seed oil mentions in diet
     if (values.diet && /fried|canola|vegetable oil|seed oil/i.test(values.diet)) {
       analysis.push({
@@ -116,7 +116,7 @@ export function TextInputDemo() {
 
       {questions.map((question, index) => {
         const key = ['symptoms', 'diet', 'medications', 'goals'][index];
-        
+
         return (
           <div key={question.id} className="bg-white rounded-lg shadow-md p-6">
             <div className="mb-4">

@@ -39,7 +39,6 @@ export class GoogleVisionHTTPService {
    */
   async processPDFDocument(s3Key: string): Promise<VisionOCRResult> {
     try {
-      console.log(`🔍 Processing PDF with Google Vision HTTP: ${s3Key}`);
 
       // Generate signed URL for the PDF
       const { storageService } = await import("@/lib/storage");
@@ -60,8 +59,7 @@ export class GoogleVisionHTTPService {
         throw new Error("No images generated from PDF");
       }
 
-      console.log(
-        `📖 Processing ${images.length} page(s) with Google Vision HTTP...`
+       with Google Vision HTTP...`
       );
 
       let allText: string[] = [];
@@ -71,9 +69,6 @@ export class GoogleVisionHTTPService {
       // Process each page
       for (let i = 0; i < images.length; i++) {
         try {
-          console.log(
-            `🔍 Processing page ${i + 1}/${images.length} with Google Vision...`
-          );
 
           const result = await this.processImageUrl(images[i].url);
           if (result.text.trim()) {
@@ -82,16 +77,10 @@ export class GoogleVisionHTTPService {
             validPages++;
           }
 
-          console.log(
-            `✅ Page ${i + 1} processed, confidence: ${Math.round(
-              result.confidence
-            )}%`
+          }%`
           );
         } catch (pageError: any) {
-          console.warn(
-            `⚠️ Failed to process page ${i + 1}:`,
-            pageError.message
-          );
+
         }
       }
 
@@ -100,9 +89,9 @@ export class GoogleVisionHTTPService {
         await cloudinaryService.deleteImages(
           images.map((img) => img.publicId).filter(Boolean)
         );
-        console.log(`🧹 Cleaned up ${images.length} temporary images`);
+
       } catch (cleanupError: any) {
-        console.warn("⚠️ Cleanup failed:", cleanupError.message);
+
       }
 
       // Calculate average confidence
@@ -110,11 +99,7 @@ export class GoogleVisionHTTPService {
         validPages > 0 ? totalConfidence / validPages : 0;
       const combinedText = allText.join("\n\n");
 
-      console.log(
-        `🎉 Google Vision HTTP OCR complete: ${validPages}/${images.length} pages processed`
-      );
-      console.log(`📊 Average confidence: ${Math.round(averageConfidence)}%`);
-      console.log(`📝 Extracted ${combinedText.length} characters`);
+      }%`);
 
       return {
         text: combinedText,
@@ -139,7 +124,6 @@ export class GoogleVisionHTTPService {
    */
   async processImageDocument(s3Key: string): Promise<VisionOCRResult> {
     try {
-      console.log(`🔍 Processing image with Google Vision HTTP: ${s3Key}`);
 
       // Generate signed URL for the image
       const { storageService } = await import("@/lib/storage");
@@ -148,9 +132,7 @@ export class GoogleVisionHTTPService {
       // Process the image directly
       const result = await this.processImageUrl(signedUrl);
 
-      console.log(`🎉 Google Vision HTTP OCR complete for image`);
-      console.log(`📊 Confidence: ${Math.round(result.confidence)}%`);
-      console.log(`📝 Extracted ${result.text.length} characters`);
+      }%`);
 
       return {
         text: result.text,

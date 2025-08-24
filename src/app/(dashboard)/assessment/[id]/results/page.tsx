@@ -50,7 +50,7 @@ export default function AssessmentResultsPage() {
   const router = useRouter();
   const params = useParams();
   const assessmentId = params.id as string;
-  
+
   const [data, setData] = useState<AnalysisData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +63,7 @@ export default function AssessmentResultsPage() {
     try {
       const response = await fetch(`/api/assessment/${assessmentId}/analysis`);
       if (!response.ok) throw new Error('Failed to fetch results');
-      
+
       const result = await response.json();
       if (result.success) {
         setData(result.data);
@@ -121,7 +121,7 @@ export default function AssessmentResultsPage() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Assessments
           </button>
-          
+
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Download Report
@@ -135,7 +135,7 @@ export default function AssessmentResultsPage() {
             {analysis.overallScore}/100
           </div>
           <p className="text-gray-600 text-lg">{analysis.aiSummary}</p>
-          
+
           <div className="mt-6 flex justify-center gap-8 text-sm">
             <div>
               <span className="text-gray-500">Questions Asked:</span>
@@ -238,7 +238,7 @@ export default function AssessmentResultsPage() {
         {/* Suggested Labs */}
         <Card className="p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Recommended Laboratory Tests</h2>
-          
+
           <div className="space-y-4">
             <div>
               <h3 className="font-semibold text-red-600 mb-2">Essential Tests</h3>
@@ -248,7 +248,7 @@ export default function AssessmentResultsPage() {
                 ))}
               </ul>
             </div>
-            
+
             <div>
               <h3 className="font-semibold text-yellow-600 mb-2">Recommended Tests</h3>
               <ul className="list-disc list-inside space-y-1">
@@ -257,7 +257,7 @@ export default function AssessmentResultsPage() {
                 ))}
               </ul>
             </div>
-            
+
             <div>
               <h3 className="font-semibold text-gray-600 mb-2">Optional Tests</h3>
               <ul className="list-disc list-inside space-y-1">

@@ -20,7 +20,7 @@ export async function GET() {
     // Count questions from the database
     const questions = template.questionBank as any[];
     const moduleCount: Record<string, number> = {};
-    
+
     if (Array.isArray(questions)) {
       questions.forEach((q: any) => {
         if (q.module) {
@@ -28,7 +28,7 @@ export async function GET() {
         }
       });
     }
-    
+
     return NextResponse.json({
       success: true,
       totalQuestions: questions?.length || 0,

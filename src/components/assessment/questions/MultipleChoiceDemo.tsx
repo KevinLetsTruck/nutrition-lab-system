@@ -66,7 +66,7 @@ export function MultipleChoiceDemo() {
   const handleAnswer = (value: string) => {
     const question = questions[currentQuestion];
     setAnswers(prev => ({ ...prev, [question.id]: value }));
-    
+
     // Auto-advance to next question after a delay
     setTimeout(() => {
       if (currentQuestion < questions.length - 1) {
@@ -131,7 +131,7 @@ export function MultipleChoiceDemo() {
 
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold mb-4">{question.text}</h3>
-        
+
         {question.seedOilRelevant && (
           <div className="mb-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
             🌻 Seed Oil Assessment

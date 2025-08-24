@@ -89,7 +89,7 @@ export function AssessmentProgress({
             const count = moduleProgress[key] || 0;
             const isActive = key === currentModule;
             const isCompleted = count > 0 && key !== currentModule;
-            
+
             return (
               <div key={key} className="flex items-center space-x-3">
                 <div className={`

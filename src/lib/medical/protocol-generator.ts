@@ -87,7 +87,6 @@ export interface ClientProtocol {
 
 export class FNTPProtocolGenerator {
   async generateProtocol(documentId: string): Promise<ClientProtocol> {
-    console.log(`📋 Generating FNTP protocol for document: ${documentId}`);
 
     try {
       // Get analysis data
@@ -131,7 +130,6 @@ export class FNTPProtocolGenerator {
       // Save protocol to database
       await this.saveProtocol(documentId, protocol);
 
-      console.log(`✅ FNTP protocol generated successfully`);
       return protocol;
     } catch (error) {
       console.error("❌ Protocol generation error:", error);
@@ -805,7 +803,6 @@ export class FNTPProtocolGenerator {
         },
       });
 
-      console.log("💾 FNTP protocol metadata saved to document");
     } catch (error) {
       console.error("❌ Failed to save protocol:", error);
       throw error;

@@ -17,7 +17,7 @@ function verifyAuthToken(request: NextRequest) {
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as any;
     return payload;
   } catch (error) {
-    console.log("Token verification failed in API route:", error);
+
     throw new Error("Invalid token");
   }
 }
@@ -45,7 +45,6 @@ export async function GET(
   try {
     // Verify authentication
     const user = verifyAuthToken(request);
-    console.log("Authenticated user fetching note:", user.email);
 
     const { id } = await params;
     const note = await prisma.note.findUnique({
@@ -90,7 +89,6 @@ export async function PUT(
   try {
     // Verify authentication
     const user = verifyAuthToken(request);
-    console.log("Authenticated user updating note:", user.email);
 
     const { id } = await params;
     const body = await request.json();
@@ -149,7 +147,6 @@ export async function DELETE(
   try {
     // Verify authentication
     const user = verifyAuthToken(request);
-    console.log("Authenticated user deleting note:", user.email);
 
     const { id } = await params;
     await prisma.note.delete({

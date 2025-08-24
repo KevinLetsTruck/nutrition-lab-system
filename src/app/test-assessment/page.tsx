@@ -34,7 +34,7 @@ export default function TestAssessmentPage() {
         localStorage.setItem("token", data.token);
         setIsLoggedIn(true);
         setMessage(`Login successful! You can now start an assessment. ClientId: ${data.user?.clientId || 'N/A'}`);
-        console.log("Login response:", data);
+
       } else {
         setMessage(`Login failed: ${data.error || "Unknown error"}`);
         console.error("Login error:", data);
@@ -63,14 +63,14 @@ export default function TestAssessmentPage() {
   const runTestSetup = async () => {
     setLoading(true);
     setMessage("");
-    
+
     try {
       const response = await fetch("/api/auth/test-setup");
       const data = await response.json();
-      
+
       if (response.ok && data.success) {
         setMessage(`Test setup complete! Token: ${data.data.token.substring(0, 20)}...`);
-        console.log("Test setup data:", data.data);
+
         // Automatically set the token
         localStorage.setItem("token", data.data.token);
         setIsLoggedIn(true);
@@ -106,7 +106,7 @@ export default function TestAssessmentPage() {
             >
               {loading ? "Setting up..." : "🔧 Run Test Setup (Create User & Client)"}
             </button>
-            
+
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />

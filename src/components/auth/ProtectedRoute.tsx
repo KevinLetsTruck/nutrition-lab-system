@@ -7,13 +7,13 @@ import { useAuth } from '@/lib/auth-context';
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { token, isLoading } = useAuth();
-  
+
   useEffect(() => {
     if (!isLoading && !token) {
       router.push('/login');
     }
   }, [token, isLoading, router]);
-  
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -21,10 +21,10 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-  
+
   if (!token) {
     return null;
   }
-  
+
   return <>{children}</>;
 }

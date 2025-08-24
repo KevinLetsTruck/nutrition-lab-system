@@ -9,21 +9,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No text provided" }, { status: 400 });
     }
 
-    console.log("🔍 Step 1: Analyzing document structure...");
     const structureAnalysis = await claudeService.analyzeDocumentStructure(
       text
     );
 
-    console.log("🧪 Step 2: Extracting lab values with structure awareness...");
     const extraction = await claudeService.extractLabValuesWithStructure(
       text,
       structureAnalysis
     );
-
-    console.log("✅ Extraction completed successfully");
-    console.log(`📊 Values extracted: ${extraction.labValues.length}`);
-    console.log(`🎯 Confidence: ${extraction.extractionSummary.confidence}`);
-    console.log(`✓ Valid: ${extraction.isValid}`);
 
     return NextResponse.json({
       success: true,

@@ -77,7 +77,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
     // Connection events
     socket.on("connect", () => {
-      console.log("📡 Connected to medical document socket server");
+
       setState((prev) => ({
         ...prev,
         isConnected: true,
@@ -88,7 +88,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     });
 
     socket.on("disconnect", (reason) => {
-      console.log("📡 Disconnected from socket server:", reason);
+
       setState((prev) => ({
         ...prev,
         isConnected: false,
@@ -110,7 +110,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
     // Reconnection events
     socket.on("reconnect", (attemptNumber) => {
-      console.log(`📡 Reconnected after ${attemptNumber} attempts`);
+
     });
 
     socket.on("reconnect_error", (error) => {
@@ -171,7 +171,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     });
 
     socket.on("system:shutdown", (data) => {
-      console.warn("📡 Server is shutting down:", data.message);
+
       socket.disconnect();
     });
 
@@ -203,7 +203,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   // Subscribe to document updates
   const subscribeToDocument = useCallback((documentId: string) => {
     if (!socketRef.current?.connected) {
-      console.warn("Cannot subscribe to document: not connected");
+
       return;
     }
 
@@ -218,13 +218,12 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       return newSubs;
     });
 
-    console.log(`📄 Subscribed to document updates: ${documentId}`);
   }, []);
 
   // Unsubscribe from document updates
   const unsubscribeFromDocument = useCallback((documentId: string) => {
     if (!socketRef.current?.connected) {
-      console.warn("Cannot unsubscribe from document: not connected");
+
       return;
     }
 
@@ -236,13 +235,12 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       return newSubs;
     });
 
-    console.log(`📄 Unsubscribed from document updates: ${documentId}`);
   }, []);
 
   // Request document status
   const requestDocumentStatus = useCallback((documentId: string) => {
     if (!socketRef.current?.connected) {
-      console.warn("Cannot request document status: not connected");
+
       return;
     }
 
@@ -252,7 +250,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   // Request queue status
   const requestQueueStatus = useCallback(() => {
     if (!socketRef.current?.connected) {
-      console.warn("Cannot request queue status: not connected");
+
       return;
     }
 

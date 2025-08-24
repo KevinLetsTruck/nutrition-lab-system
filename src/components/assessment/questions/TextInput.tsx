@@ -63,7 +63,7 @@ export function TextInput({
           </div>
         )}
       </div>
-      
+
       <div className="flex justify-between text-sm text-gray-500">
         <span>
           {question.required ? 'Required' : 'Optional'}

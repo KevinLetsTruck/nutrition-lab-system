@@ -64,7 +64,7 @@ export class PDFPerformanceOptimizer {
     const cached = documentCache.get(cacheKey);
 
     if (cached) {
-      console.log("PDF loaded from cache:", url);
+
       return cached.pdf;
     }
 
@@ -85,7 +85,7 @@ export class PDFPerformanceOptimizer {
       });
 
       const loadTime = performance.now() - startTime;
-      console.log(`PDF loaded in ${loadTime.toFixed(2)}ms:`, url);
+      }ms:`, url);
 
       return pdf;
     } catch (error) {
@@ -112,7 +112,7 @@ export class PDFPerformanceOptimizer {
         canvas.width = cached.canvas.width;
         canvas.height = cached.canvas.height;
         context.drawImage(cached.canvas, 0, 0);
-        console.log("Page rendered from cache:", pageNumber);
+
         return;
       }
     }
@@ -149,7 +149,7 @@ export class PDFPerformanceOptimizer {
       }
 
       const renderTime = performance.now() - startTime;
-      console.log(`Page ${pageNumber} rendered in ${renderTime.toFixed(2)}ms`);
+      }ms`);
     } catch (error) {
       console.error("Error rendering page:", error);
       throw error;
@@ -181,7 +181,7 @@ export class PDFPerformanceOptimizer {
     try {
       await Promise.all(promises);
     } catch (error) {
-      console.warn("Error preloading pages:", error);
+
     }
   }
 
@@ -200,7 +200,7 @@ export class PDFPerformanceOptimizer {
       const offscreenCanvas = document.createElement("canvas");
       await this.renderPage(pdf, pageNumber, scale, offscreenCanvas);
     } catch (error) {
-      console.warn(`Error preloading page ${pageNumber}:`, error);
+
     }
   }
 
@@ -228,7 +228,7 @@ export class PDFPerformanceOptimizer {
   clearCache() {
     pageCache.clear();
     documentCache.clear();
-    console.log("PDF cache cleared");
+
   }
 
   // Record performance metrics
@@ -271,7 +271,7 @@ export async function extractTextFromPDF(pdf: any): Promise<string> {
       const pageText = text.items.map((item: any) => item.str).join(" ");
       textContent.push(pageText);
     } catch (error) {
-      console.warn(`Error extracting text from page ${i}:`, error);
+
     }
   }
 
@@ -311,7 +311,7 @@ export async function searchInPDF(
         });
       }
     } catch (error) {
-      console.warn(`Error searching page ${i}:`, error);
+
     }
   }
 
@@ -350,7 +350,7 @@ export async function getPDFMetadata(pdf: any) {
       fingerprint: pdf.fingerprint,
     };
   } catch (error) {
-    console.warn("Error extracting PDF metadata:", error);
+
     return {
       title: "Untitled",
       author: "Unknown",

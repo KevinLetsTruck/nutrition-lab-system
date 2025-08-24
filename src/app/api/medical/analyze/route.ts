@@ -34,7 +34,6 @@ export async function POST(request: NextRequest) {
 
   try {
     user = await verifyAuthToken(request);
-    console.log("Authenticated user triggering medical document analysis:", user.email);
 
     const body = await request.json();
     documentId = body.documentId;
@@ -250,8 +249,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log(`Medical document analysis initiated: ${analysis.id}`);
-
     return NextResponse.json(
       {
         success: true,
@@ -340,8 +337,6 @@ export async function GET(request: NextRequest) {
     });
 
     const total = await prisma.medicalDocAnalysis.count({ where });
-
-    console.log(`User ${user.email} accessed medical document analyses: ${analyses.length} results`);
 
     return NextResponse.json({
       success: true,

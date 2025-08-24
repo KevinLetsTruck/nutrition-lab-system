@@ -48,7 +48,7 @@ export function AssessmentProgress({
             {questionsAnswered} / {questionsInModule} questions
           </span>
         </div>
-        
+
         <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden">
           <div
             className={cn(

@@ -4,7 +4,6 @@ import { medicalOCRService } from "@/lib/medical/ocr-service";
 
 export async function POST(req: NextRequest) {
   try {
-    console.log("🧪 Manual PDF processing test triggered...");
 
     // Find a PDF document that needs processing
     const pendingDoc = await prisma.medicalDocument.findFirst({
@@ -28,20 +27,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log(`📄 Found PDF document: ${pendingDoc.originalFileName}`);
-    console.log(`📍 Document ID: ${pendingDoc.id}`);
-    console.log(`🔗 S3 URL: ${pendingDoc.s3Url}`);
-
     // Process the document directly
-    console.log("🔄 Starting PDF processing...");
+
     const result = await medicalOCRService.processDocument(pendingDoc.id);
 
-    console.log("✅ PDF processing completed!");
-    console.log(`📝 Extracted ${result.ocrResult.text.length} characters`);
-    console.log(
-      `🎯 Confidence: ${(result.ocrResult.confidence * 100).toFixed(1)}%`
+    .toFixed(1)}%`
     );
-    console.log(`⏱️ Processing time: ${result.ocrResult.processingTime}ms`);
 
     return NextResponse.json({
       success: true,

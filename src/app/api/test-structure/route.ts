@@ -9,18 +9,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No text provided" }, { status: 400 });
     }
 
-    console.log("🔍 Testing document structure analysis...");
-    console.log("📄 Text length:", text.length, "characters");
-
     const analysis = await claudeService.analyzeDocumentStructure(text);
-
-    console.log("✅ Structure analysis completed successfully");
-    console.log("📊 OCR Quality:", analysis.ocrQuality.overall);
-    console.log("📄 Document Type:", analysis.documentType);
-    console.log(
-      "🎯 Extraction Strategy:",
-      analysis.extractionStrategy.recommendedApproach
-    );
 
     return NextResponse.json({
       success: true,

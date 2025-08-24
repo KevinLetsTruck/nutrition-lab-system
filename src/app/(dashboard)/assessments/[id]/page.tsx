@@ -8,7 +8,7 @@ export default function AssessmentPage() {
   const params = useParams();
   const router = useRouter();
   const assessmentId = params.id as string;
-  
+
   // In a real app, you'd get the clientId from the assessment or session
   // For now, we'll use a placeholder
   const clientId = 'placeholder-client-id';

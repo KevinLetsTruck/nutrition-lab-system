@@ -123,7 +123,7 @@ export default function ClientDetailPage() {
   useEffect(() => {
     const fetchClientAndDocuments = async () => {
       try {
-        console.log("Fetching client data for ID:", params.id);
+
         const token = localStorage.getItem("token");
         if (!token) {
           router.push("/login");
@@ -156,7 +156,7 @@ export default function ClientDetailPage() {
 
         if (documentsResponse.ok) {
           const documentsData = await documentsResponse.json();
-          console.log("📄 Documents fetched:", documentsData);
+
           setDocuments(documentsData);
         } else {
           console.error(
@@ -168,7 +168,7 @@ export default function ClientDetailPage() {
 
         // Fetch notes for this client and note counts
         if (params.id) {
-          console.log("Fetching notes for client ID:", params.id);
+
           await Promise.all([fetchAllNotes(), fetchNoteCounts()]);
         }
       } catch (err) {
@@ -296,13 +296,13 @@ export default function ClientDetailPage() {
   // Handle delete button click - just show the modal
   const handleDeleteDocumentClick = useCallback(
     (documentId: string) => {
-      console.log("🗑️ handleDeleteDocumentClick called with ID:", documentId);
+
       const docToDelete = documents.find((doc) => doc.id === documentId);
       if (docToDelete) {
-        console.log("📄 Found document to delete:", docToDelete.fileName);
+
         setDocumentToDelete(docToDelete);
         setShowDeleteConfirm(true);
-        console.log("✅ Modal state set - showDeleteConfirm: true");
+
       } else {
         console.error("❌ Document not found with ID:", documentId);
       }
@@ -317,11 +317,6 @@ export default function ClientDetailPage() {
       return;
     }
 
-    console.log(
-      "🔥 Confirming delete for document:",
-      documentToDelete.fileName
-    );
-
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -331,11 +326,6 @@ export default function ClientDetailPage() {
         return;
       }
 
-      console.log(
-        "🔐 Token found, making DELETE request to:",
-        `/api/documents?id=${documentToDelete.id}`
-      );
-
       const response = await fetch(`/api/documents?id=${documentToDelete.id}`, {
         method: "DELETE",
         headers: {
@@ -343,10 +333,8 @@ export default function ClientDetailPage() {
         },
       });
 
-      console.log("📡 Delete response status:", response.status);
-
       if (response.ok) {
-        console.log("✅ Document deleted successfully, updating local state");
+
         setDocuments((prev) =>
           prev.filter((doc) => doc.id !== documentToDelete.id)
         );
@@ -376,7 +364,7 @@ export default function ClientDetailPage() {
   // Memoized refresh handler to prevent unnecessary component remounting
   const handleRefresh = useCallback(async () => {
     try {
-      console.log("Refreshing client data for ID:", params.id);
+
       const token = localStorage.getItem("token");
       if (!token) {
         router.push("/login");
@@ -409,7 +397,7 @@ export default function ClientDetailPage() {
 
       if (documentsResponse.ok) {
         const documentsData = await documentsResponse.json();
-        console.log("📄 Documents refreshed:", documentsData);
+
         setDocuments(documentsData);
       } else {
         console.error(
@@ -465,7 +453,7 @@ export default function ClientDetailPage() {
   const handleAnalyzeDocuments = useCallback(async () => {
     // Safety checks
     if (!client || !documents || documents.length === 0) {
-      console.warn("⚠️ No client or documents available for analysis");
+
       return;
     }
 
@@ -482,16 +470,14 @@ export default function ClientDetailPage() {
     const results: any[] = [];
 
     try {
-      console.log(`🔬 Starting analysis for ${documents.length} documents`);
 
       for (const document of documents) {
         if (!document?.id || !document?.fileName) {
-          console.warn("⚠️ Skipping invalid document:", document);
+
           continue;
         }
 
         try {
-          console.log(`📄 Analyzing document: ${document.fileName}`);
 
           // First, ensure the document is processed (OCR completed)
           const processResponse = await fetch(`/api/medical/process`, {
@@ -507,7 +493,7 @@ export default function ClientDetailPage() {
           });
 
           if (!processResponse.ok) {
-            console.warn(`⚠️ Processing failed for ${document.fileName}`);
+
           }
 
           // Then run FNTP complete analysis
@@ -534,7 +520,7 @@ export default function ClientDetailPage() {
               status: "success",
               analysis: analysisResult,
             });
-            console.log(`✅ Analysis completed for ${document.fileName}`);
+
           } else {
             const errorData = await analysisResponse
               .json()
@@ -545,9 +531,7 @@ export default function ClientDetailPage() {
               status: "error",
               error: errorData.error || "Analysis failed",
             });
-            console.warn(
-              `❌ Analysis failed for ${document.fileName}: ${errorData.error}`
-            );
+
           }
         } catch (docError) {
           results.push({
@@ -567,7 +551,7 @@ export default function ClientDetailPage() {
       try {
         await handleRefresh();
       } catch (refreshError) {
-        console.warn("⚠️ Failed to refresh documents:", refreshError);
+
       }
 
       // Show summary
@@ -1419,7 +1403,7 @@ export default function ClientDetailPage() {
             className="rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
             style={{ background: "var(--bg-card)" }}
             onClick={(e) => {
-              console.log("🎯 Modal content clicked", e.target);
+
               e.stopPropagation();
             }}
           >
@@ -1453,7 +1437,7 @@ export default function ClientDetailPage() {
             <div className="flex justify-end gap-3">
               <button
                 onClick={(e) => {
-                  console.log("❌ Cancel button clicked");
+
                   e.stopPropagation();
                   setShowDeleteConfirm(false);
                   setDocumentToDelete(null);
@@ -1469,7 +1453,7 @@ export default function ClientDetailPage() {
               </button>
               <button
                 onClick={(e) => {
-                  console.log("🔥 DELETE BUTTON CLICKED IN MODAL");
+
                   e.stopPropagation();
                   confirmDeleteDocument();
                 }}

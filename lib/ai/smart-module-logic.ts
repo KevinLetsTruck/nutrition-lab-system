@@ -90,7 +90,7 @@ export function analyzeModuleContext(
   let positiveResponses = 0;
   let severitySum = 0;
   let severityCount = 0;
-  
+
   responses.forEach(response => {
     // Count negative/positive responses
     if (response.responseType === "YES_NO") {
@@ -118,7 +118,7 @@ export function analyzeModuleContext(
       const value = Number(response.responseValue) || 0;
       severitySum += value;
       severityCount++;
-      
+
       // On 5-point scale: 1-2 is negative, 3 is neutral, 4-5 is positive
       if (value <= 2) {
         negativeResponses++;
@@ -127,11 +127,11 @@ export function analyzeModuleContext(
       }
     }
   });
-  
+
   const questionsAsked = responses.length;
   const averageSeverity = severityCount > 0 ? severitySum / severityCount : 0;
   const negativePercentage = questionsAsked > 0 ? (negativeResponses / questionsAsked) * 100 : 0;
-  
+
   return {
     module,
     responses,
@@ -155,7 +155,7 @@ export function shouldExitModule(context: ModuleContext): ModuleExitDecision {
       questionsRemaining: 999
     };
   }
-  
+
   // Have we asked enough questions?
   if (context.questionsAsked < 3) {
     return {
@@ -164,11 +164,11 @@ export function shouldExitModule(context: ModuleContext): ModuleExitDecision {
       questionsRemaining: criteria.maxQuestionsNoIssues - context.questionsAsked
     };
   }
-  
+
   // Check if we've hit the max questions for no issues
   if (context.questionsAsked >= criteria.maxQuestionsNoIssues) {
     const negativeRatio = context.negativeResponses / context.questionsAsked;
-    
+
     if (negativeRatio >= criteria.exitThreshold) {
       return {
         shouldExit: true,
@@ -177,7 +177,7 @@ export function shouldExitModule(context: ModuleContext): ModuleExitDecision {
       };
     }
   }
-  
+
   // If average severity is very low after several questions
   if (context.questionsAsked >= 4 && context.averageSeverity < 1.5) {
     return {
@@ -186,7 +186,7 @@ export function shouldExitModule(context: ModuleContext): ModuleExitDecision {
       questionsRemaining: 0
     };
   }
-  
+
   // If ALL responses are negative after critical questions
   if (context.questionsAsked >= 3 && context.negativePercentage === 100) {
     return {
@@ -195,13 +195,13 @@ export function shouldExitModule(context: ModuleContext): ModuleExitDecision {
       questionsRemaining: 0
     };
   }
-  
+
   // Calculate remaining questions
   const questionsRemaining = Math.max(
     0,
     criteria.maxQuestionsNoIssues - context.questionsAsked
   );
-  
+
   return {
     shouldExit: false,
     reason: `Continue assessment (${context.positiveResponses} positive indicators)`,
@@ -225,7 +225,7 @@ export function generateSmartAIPrompt(
   clientInfo: any
 ): string {
   const exitDecision = shouldExitModule(context);
-  
+
   return `You are selecting the next question for a ${clientInfo.age || "unknown"}-year-old ${clientInfo.gender || "person"} in the ${context.module} module.
 
 MODULE CONTEXT:

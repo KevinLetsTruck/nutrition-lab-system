@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { auth } from '@/lib/auth-helpers';
-import { generateAssessmentAnalysis } from '@/lib/ai/assessment-analysis';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { auth } from "@/lib/auth-helpers";
+import { generateAssessmentAnalysis } from "../../../../../../lib/ai/assessment-analysis";
 
 export async function GET(
   req: NextRequest,
@@ -12,7 +12,7 @@ export async function GET(
     const session = await auth(req);
     if (!session?.user?.id) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
+        { success: false, error: "Unauthorized" },
         { status: 401 }
       );
     }
@@ -24,19 +24,19 @@ export async function GET(
       where: {
         id: assessmentId,
         clientId: session.user.id,
-        status: 'COMPLETED'
+        status: "COMPLETED",
       },
       include: {
         responses: {
-          orderBy: { answeredAt: 'asc' }
+          orderBy: { answeredAt: "asc" },
         },
-        analysis: true
-      }
+        analysis: true,
+      },
     });
 
     if (!assessment) {
       return NextResponse.json(
-        { success: false, error: 'Completed assessment not found' },
+        { success: false, error: "Completed assessment not found" },
         { status: 404 }
       );
     }
@@ -50,11 +50,11 @@ export async function GET(
             id: assessment.id,
             completedAt: assessment.completedAt,
             questionsAsked: assessment.questionsAsked,
-            questionsSaved: assessment.questionsSaved
+            questionsSaved: assessment.questionsSaved,
           },
           analysis: assessment.analysis,
-          responses: assessment.responses
-        }
+          responses: assessment.responses,
+        },
       });
     }
 
@@ -63,7 +63,7 @@ export async function GET(
       assessmentId,
       responses: assessment.responses,
       symptomProfile: assessment.symptomProfile as any,
-      aiContext: assessment.aiContext as any
+      aiContext: assessment.aiContext as any,
     });
 
     // Save the analysis
@@ -79,8 +79,8 @@ export async function GET(
         primaryConcerns: analysisResult.primaryConcerns,
         suggestedLabs: analysisResult.suggestedLabs,
         labPredictions: analysisResult.labPredictions,
-        seedOilScore: analysisResult.seedOilAssessment
-      }
+        seedOilScore: analysisResult.seedOilAssessment,
+      },
     });
 
     return NextResponse.json({
@@ -90,20 +90,19 @@ export async function GET(
           id: assessment.id,
           completedAt: assessment.completedAt,
           questionsAsked: assessment.questionsAsked,
-          questionsSaved: assessment.questionsSaved
+          questionsSaved: assessment.questionsSaved,
         },
         analysis: savedAnalysis,
-        responses: assessment.responses
-      }
+        responses: assessment.responses,
+      },
     });
-
   } catch (error) {
-    console.error('Error fetching assessment results:', error);
+    console.error("Error fetching assessment results:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to fetch assessment results',
-        details: error instanceof Error ? error.message : 'Unknown error'
+      {
+        success: false,
+        error: "Failed to fetch assessment results",
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );

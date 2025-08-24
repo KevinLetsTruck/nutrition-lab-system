@@ -18,7 +18,7 @@ function verifyAuthToken(request: NextRequest) {
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as any;
     return payload;
   } catch (error) {
-    console.log("Token verification failed in API route:", error);
+
     throw new Error("Invalid token");
   }
 }
@@ -27,7 +27,6 @@ export async function GET(request: NextRequest) {
   try {
     // Verify authentication
     const user = verifyAuthToken(request);
-    console.log("Authenticated user fetching documents:", user.email);
 
     const searchParams = request.nextUrl.searchParams;
     const clientId = searchParams.get("clientId");
@@ -72,7 +71,6 @@ export async function POST(request: NextRequest) {
   try {
     // Verify authentication
     const user = verifyAuthToken(request);
-    console.log("Authenticated user creating document:", user.email);
 
     const formData = await request.formData();
     const clientId = formData.get("clientId") as string;
@@ -133,8 +131,6 @@ export async function POST(request: NextRequest) {
     const fileBuffer = await file.arrayBuffer();
     await fs.writeFile(filePath, Buffer.from(fileBuffer));
 
-    console.log(`✅ File saved: ${filePath}`);
-
     const document = await prisma.document.create({
       data: {
         clientId,
@@ -185,7 +181,6 @@ export async function DELETE(request: NextRequest) {
   try {
     // Verify authentication
     const user = verifyAuthToken(request);
-    console.log("Authenticated user deleting document:", user.email);
 
     const searchParams = request.nextUrl.searchParams;
     const documentId = searchParams.get("id");
@@ -214,9 +209,9 @@ export async function DELETE(request: NextRequest) {
       const filePath = path.join(process.cwd(), "public", document.fileUrl);
       try {
         await fs.unlink(filePath);
-        console.log(`✅ File deleted: ${filePath}`);
+
       } catch (error) {
-        console.log(`⚠️ Could not delete file: ${filePath}`, error);
+
         // Continue with database deletion even if file deletion fails
       }
     }

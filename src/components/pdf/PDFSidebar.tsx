@@ -47,33 +47,28 @@ const PDFThumbnail: React.FC<ThumbnailProps> = ({
   useEffect(() => {
     const generateThumbnail = async () => {
       if (!pdf) {
-        console.log(`Thumbnail ${pageNumber}: No PDF available`);
+
         return;
       }
 
       try {
         setIsLoading(true);
         setError(null);
-        
-        console.log(`Thumbnail ${pageNumber}: Starting thumbnail generation`);
-        
+
         const page = await pdf.getPage(pageNumber);
-        console.log(`Thumbnail ${pageNumber}: Got page`);
-        
+
         const viewport = page.getViewport({ scale: 0.2 });
-        
+
         // Create a completely separate canvas for this thumbnail
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
-        
+
         if (!context) {
           throw new Error('Could not get canvas context');
         }
 
         canvas.height = viewport.height;
         canvas.width = viewport.width;
-
-        console.log(`Thumbnail ${pageNumber}: Canvas created, starting render`);
 
         const renderContext = {
           canvasContext: context,
@@ -82,16 +77,14 @@ const PDFThumbnail: React.FC<ThumbnailProps> = ({
 
         // Render the page to our isolated canvas
         await page.render(renderContext).promise;
-        
-        console.log(`Thumbnail ${pageNumber}: Render complete, converting to blob`);
-        
+
         // Convert canvas to blob URL for display
         canvas.toBlob((blob) => {
           if (blob) {
             const url = URL.createObjectURL(blob);
             setThumbnailUrl(url);
             setIsLoading(false);
-            console.log(`Thumbnail ${pageNumber}: Blob URL created successfully`);
+
           } else {
             throw new Error('Failed to create blob from canvas');
           }

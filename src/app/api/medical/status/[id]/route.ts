@@ -37,7 +37,6 @@ export async function GET(
 
   try {
     user = await verifyAuthToken(request);
-    console.log(`Authenticated user checking status for medical document ${documentId}:`, user.email);
 
     if (!documentId) {
       return NextResponse.json(
@@ -141,7 +140,7 @@ export async function GET(
       const activeJobs = processingJobs.filter(
         (job) => job.status === "PROCESSING"
       );
-      
+
       if (activeJobs.length > 0) {
         progress = Math.max(progress, 60); // If actively processing
       }
@@ -230,8 +229,6 @@ export async function GET(
         lastUpdated: new Date(),
       },
     };
-
-    console.log(`Medical document status retrieved for ${document.id}: ${statusData.progress.percentage}% complete`);
 
     return NextResponse.json({
       success: true,
@@ -339,8 +336,6 @@ export async function PATCH(
         uploadDate: true,
       },
     });
-
-    console.log(`Medical document updated by ${user.email}: ${documentId}`);
 
     return NextResponse.json({
       success: true,

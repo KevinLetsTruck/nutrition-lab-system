@@ -12,8 +12,8 @@ export async function GET() {
 export async function POST() {
   try {
     // Log to help debug
-    console.log("TEST-START: Endpoint called at", new Date().toISOString());
-    
+    .toISOString());
+
     // First, just return a simple success to test if the endpoint works
     return NextResponse.json({
       success: true,
