@@ -120,7 +120,7 @@ export default function AdminAssessmentDetailPage() {
       const token = localStorage.getItem("token");
       const response = await fetch(`/api/admin/assessments/${assessmentId}`, {
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       if (!response.ok) throw new Error("Failed to fetch assessment details");
@@ -141,15 +141,18 @@ export default function AdminAssessmentDetailPage() {
 
   const generateReport = async () => {
     try {
-      const response = await fetch(`/api/admin/assessments/${assessmentId}/report`, {
-        method: "POST",
-      });
-      
+      const response = await fetch(
+        `/api/admin/assessments/${assessmentId}/report`,
+        {
+          method: "POST",
+        }
+      );
+
       if (!response.ok) throw new Error("Failed to generate report");
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `assessment-${assessmentId}-report.pdf`;
       document.body.appendChild(a);
@@ -177,8 +180,12 @@ export default function AdminAssessmentDetailPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Error Loading Assessment</h2>
-          <p className="text-gray-400 mb-4">{error || "Unable to load assessment"}</p>
+          <h2 className="text-xl font-semibold mb-2">
+            Error Loading Assessment
+          </h2>
+          <p className="text-gray-400 mb-4">
+            {error || "Unable to load assessment"}
+          </p>
           <Button onClick={() => router.push("/dashboard/assessments")}>
             Back to Assessments
           </Button>
@@ -213,7 +220,9 @@ export default function AdminAssessmentDetailPage() {
 
           <div className="flex gap-2">
             <Button
-              onClick={() => router.push(`/dashboard/clients/${assessment.client.id}`)}
+              onClick={() =>
+                router.push(`/dashboard/clients/${assessment.client.id}`)
+              }
               variant="outline"
               size="sm"
               className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700"
@@ -221,7 +230,12 @@ export default function AdminAssessmentDetailPage() {
               <User className="h-4 w-4 mr-2" />
               View Client
             </Button>
-            <Button onClick={generateReport} variant="outline" size="sm" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700">
+            <Button
+              onClick={generateReport}
+              variant="outline"
+              size="sm"
+              className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700"
+            >
               <Download className="h-4 w-4 mr-2" />
               Download Report
             </Button>
@@ -244,7 +258,9 @@ export default function AdminAssessmentDetailPage() {
                   <p>
                     Age:{" "}
                     {new Date().getFullYear() -
-                      new Date(assessment.client.dateOfBirth).getFullYear()}{" "}
+                      new Date(
+                        assessment.client.dateOfBirth
+                      ).getFullYear()}{" "}
                     years
                   </p>
                 )}
@@ -258,7 +274,8 @@ export default function AdminAssessmentDetailPage() {
               </p>
               {assessment.completedAt && (
                 <p className="text-sm text-gray-400">
-                  Completed: {format(new Date(assessment.completedAt), "MMM d, yyyy")}
+                  Completed:{" "}
+                  {format(new Date(assessment.completedAt), "MMM d, yyyy")}
                 </p>
               )}
             </div>
@@ -269,7 +286,9 @@ export default function AdminAssessmentDetailPage() {
         {analysis && (
           <>
             <Card className="p-8 mb-6 text-center bg-gray-800 border-gray-700">
-              <h2 className="text-xl font-semibold mb-4 text-white">Overall Health Score</h2>
+              <h2 className="text-xl font-semibold mb-4 text-white">
+                Overall Health Score
+              </h2>
               <div className={`text-6xl font-bold ${scoreColor} mb-4`}>
                 {analysis.overallScore}/100
               </div>
@@ -280,7 +299,9 @@ export default function AdminAssessmentDetailPage() {
               <div className="mt-6 flex justify-center gap-8 text-sm">
                 <div>
                   <span className="text-gray-400">Questions Asked:</span>
-                  <span className="ml-2 font-semibold text-white">{assessment.questionsAsked}</span>
+                  <span className="ml-2 font-semibold text-white">
+                    {assessment.questionsAsked}
+                  </span>
                 </div>
                 <div>
                   <span className="text-gray-400">Questions Saved by AI:</span>
@@ -293,7 +314,9 @@ export default function AdminAssessmentDetailPage() {
 
             {/* Body System Scores */}
             <Card className="p-6 mb-6 bg-gray-800 border-gray-700">
-              <h2 className="text-xl font-semibold mb-4 text-white">Body System Analysis</h2>
+              <h2 className="text-xl font-semibold mb-4 text-white">
+                Body System Analysis
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {Object.entries(analysis.nodeScores).map(([system, score]) => {
                   const Icon = BODY_SYSTEM_ICONS[system] || Activity;
@@ -323,7 +346,9 @@ export default function AdminAssessmentDetailPage() {
                             style={{ width: `${score}%` }}
                           />
                         </div>
-                        <span className="font-semibold w-12 text-right text-white">{score}</span>
+                        <span className="font-semibold w-12 text-right text-white">
+                          {score}
+                        </span>
                       </div>
                     </div>
                   );
@@ -348,7 +373,9 @@ export default function AdminAssessmentDetailPage() {
               </Card>
 
               <Card className="p-6 bg-gray-800 border-gray-700">
-                <h2 className="text-xl font-semibold mb-4 text-green-500">Strengths</h2>
+                <h2 className="text-xl font-semibold mb-4 text-green-500">
+                  Strengths
+                </h2>
                 <ul className="space-y-2">
                   {analysis.strengths.map((strength, i) => (
                     <li key={i} className="flex items-start">
@@ -362,11 +389,15 @@ export default function AdminAssessmentDetailPage() {
 
             {/* Suggested Labs */}
             <Card className="p-6 mb-6 bg-gray-800 border-gray-700">
-              <h2 className="text-xl font-semibold mb-4 text-white">Recommended Laboratory Tests</h2>
+              <h2 className="text-xl font-semibold mb-4 text-white">
+                Recommended Laboratory Tests
+              </h2>
 
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-semibold text-red-500 mb-2">Essential Tests</h3>
+                  <h3 className="font-semibold text-red-500 mb-2">
+                    Essential Tests
+                  </h3>
                   <ul className="list-disc list-inside space-y-1">
                     {analysis.suggestedLabs.essential.map((lab, i) => (
                       <li key={i} className="text-gray-300">
@@ -391,7 +422,9 @@ export default function AdminAssessmentDetailPage() {
 
                 {analysis.suggestedLabs.optional.length > 0 && (
                   <div>
-                    <h3 className="font-semibold text-gray-400 mb-2">Optional Tests</h3>
+                    <h3 className="font-semibold text-gray-400 mb-2">
+                      Optional Tests
+                    </h3>
                     <ul className="list-disc list-inside space-y-1">
                       {analysis.suggestedLabs.optional.map((lab, i) => (
                         <li key={i} className="text-gray-300">
@@ -409,13 +442,16 @@ export default function AdminAssessmentDetailPage() {
         {/* Response Details */}
         <Card className="p-6 mb-6 bg-gray-800 border-gray-700">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-white">Assessment Responses</h2>
+            <h2 className="text-xl font-semibold text-white">
+              Assessment Responses
+            </h2>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowResponses(!showResponses)}
             >
-              {showResponses ? "Hide" : "Show"} All Responses ({responses.length})
+              {showResponses ? "Hide" : "Show"} All Responses (
+              {responses.length})
             </Button>
           </div>
 
@@ -432,12 +468,18 @@ export default function AdminAssessmentDetailPage() {
                         {index + 1}. {response.questionText}
                       </p>
                       <p className="text-sm text-gray-400 mt-1">
-                        Module: {BODY_SYSTEM_NAMES[response.questionModule] || response.questionModule}
+                        Module:{" "}
+                        {BODY_SYSTEM_NAMES[response.questionModule] ||
+                          response.questionModule}
                       </p>
                     </div>
                     <div className="text-right ml-4">
-                      <p className="font-semibold text-white">{response.responseText || response.responseValue}</p>
-                      <p className="text-sm text-gray-400">Score: {response.score}</p>
+                      <p className="font-semibold text-white">
+                        {response.responseText || response.responseValue}
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        Score: {response.score}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -450,7 +492,11 @@ export default function AdminAssessmentDetailPage() {
         <div className="flex justify-center gap-4">
           <Button
             size="lg"
-            onClick={() => router.push(`/dashboard/clients/${assessment.client.id}/protocols`)}
+            onClick={() =>
+              router.push(
+                `/dashboard/clients/${assessment.client.id}/protocols`
+              )
+            }
             className="bg-brand-green text-brand-darkNavy hover:bg-brand-green/90"
           >
             Generate Treatment Protocol

@@ -7,18 +7,15 @@ export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  try {
-    // Temporarily bypass auth to verify assessments exist
-    const BYPASS_AUTH = true;
+    try {
+    // Check if user is authenticated and is admin
+    const session = await auth(req);
     
-    if (!BYPASS_AUTH) {
-      const session = await auth(req);
-      if (!session?.user?.id || session.user.role !== "admin") {
-        return NextResponse.json(
-          { success: false, error: "Unauthorized" },
-          { status: 401 }
-        );
-      }
+    if (!session?.authenticated || !session?.user?.userId || session.user.role !== "admin") {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized - Admin access required" },
+        { status: 401 }
+      );
     }
 
     const { id: assessmentId } = await context.params;

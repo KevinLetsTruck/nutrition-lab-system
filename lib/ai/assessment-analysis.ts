@@ -39,11 +39,13 @@ export async function generateAssessmentAnalysis(params: {
   // Calculate basic scores from responses
   const likertResponses = responses.filter(r => r.responseType === 'LIKERT_SCALE');
   const averageSeverity = likertResponses.length > 0
-    ? likertResponses.reduce((sum, r) => sum + (r.responseValue as number), 0) / likertResponses.length
+    ? likertResponses.reduce((sum, r) => sum + (Number(r.responseValue) || 5), 0) / likertResponses.length
     : 5;
 
   // Determine overall health score (inverse of severity)
-  const overallScore = Math.round((10 - averageSeverity) * 10);
+  // Ensure score is between 0 and 100, and handle NaN cases
+  const rawScore = (10 - averageSeverity) * 10;
+  const overallScore = Math.round(Math.max(0, Math.min(100, isNaN(rawScore) ? 50 : rawScore)));
 
   // Calculate body system scores based on symptom profile
   const moduleScores: Record<string, number> = {
@@ -158,6 +160,11 @@ export async function generateAssessmentAnalysis(params: {
         "Continue avoiding seed oils",
         "Maintain healthy omega-3 intake"
       ]
+    },
+    protocolPriority: {
+      primary: overallScore < 60 ? "Anti-inflammatory" : "Maintenance",
+      secondary: hasHighSeedOilExposure ? "Detoxification" : "Optimization",
+      urgency: overallScore < 40 ? "HIGH" : overallScore < 70 ? "MEDIUM" : "LOW"
     }
   };
 
