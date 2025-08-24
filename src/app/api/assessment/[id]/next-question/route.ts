@@ -74,7 +74,7 @@ export async function GET(
     let unansweredInModule = moduleQuestions.filter(
       (q) => !answeredIds.has(q.id)
     );
-    
+
     // Apply gender filtering if client has gender specified
     if (assessment.client.gender) {
       unansweredInModule = unansweredInModule.filter((q) => {
@@ -82,32 +82,56 @@ export async function GET(
         if (q.genderSpecific && q.genderSpecific !== assessment.client.gender) {
           return false;
         }
-        
+
         // Check text-based gender filtering
         const questionText = q.text?.toLowerCase() || "";
         if (
           assessment.client.gender === "male" &&
           (questionText.includes("menstrual") ||
-           questionText.includes("period") ||
-           questionText.includes("pregnant") ||
-           questionText.includes("menopause") ||
-           questionText.includes("for women:"))
+            questionText.includes("period") ||
+            questionText.includes("pregnant") ||
+            questionText.includes("menopause") ||
+            questionText.includes("for women:"))
         ) {
           return false;
         }
-        
+
         if (
           assessment.client.gender === "female" &&
           (questionText.includes("erectile") ||
-           questionText.includes("prostate") ||
-           questionText.includes("for men:"))
+            questionText.includes("prostate") ||
+            questionText.includes("for men:"))
         ) {
           return false;
         }
-        
+
         return true;
       });
     }
+    
+    // Apply conditional logic filtering
+    const allResponses = await prisma.clientResponse.findMany({
+      where: { assessmentId },
+      select: { questionId: true, responseValue: true },
+    });
+    
+    unansweredInModule = unansweredInModule.filter((q) => {
+      // Check if this question should be skipped based on previous answers
+      for (const response of allResponses) {
+        const answeredQuestion = allQuestions.find(aq => aq.id === response.questionId);
+        if (answeredQuestion?.conditionalLogic) {
+          for (const logic of answeredQuestion.conditionalLogic) {
+            if (logic.action === "skip" && 
+                logic.condition === response.responseValue &&
+                logic.skipQuestions?.includes(q.id)) {
+              console.log(`Skipping question ${q.id} based on conditional logic from ${answeredQuestion.id}`);
+              return false; // Skip this question
+            }
+          }
+        }
+      }
+      return true;
+    });
 
     let nextQuestion = null;
     let nextModule = assessment.currentModule;
@@ -157,13 +181,15 @@ export async function GET(
 
         if (aiDecision.nextQuestion) {
           nextQuestion = aiDecision.nextQuestion;
-          
+
           // Check if this question was already answered
           if (answeredIds.has(nextQuestion.id)) {
             console.error(
               `WARNING: AI selected already answered question ${nextQuestion.id}! Total answered: ${answeredIds.size}`
             );
-            console.error(`Answered IDs: ${Array.from(answeredIds).join(', ')}`);
+            console.error(
+              `Answered IDs: ${Array.from(answeredIds).join(", ")}`
+            );
             // Fallback to linear selection
             nextQuestion = null;
           } else {
@@ -204,40 +230,62 @@ export async function GET(
           let moduleQuestions = allQuestions.filter(
             (q) => q.module === modules[i] && !answeredIds.has(q.id)
           );
-          
+
           // Apply gender filtering to next module questions
           if (assessment.client.gender) {
             moduleQuestions = moduleQuestions.filter((q) => {
               // Check genderSpecific property
-              if (q.genderSpecific && q.genderSpecific !== assessment.client.gender) {
+              if (
+                q.genderSpecific &&
+                q.genderSpecific !== assessment.client.gender
+              ) {
                 return false;
               }
-              
+
               // Check text-based gender filtering
               const questionText = q.text?.toLowerCase() || "";
               if (
                 assessment.client.gender === "male" &&
                 (questionText.includes("menstrual") ||
-                 questionText.includes("period") ||
-                 questionText.includes("pregnant") ||
-                 questionText.includes("menopause") ||
-                 questionText.includes("for women:"))
+                  questionText.includes("period") ||
+                  questionText.includes("pregnant") ||
+                  questionText.includes("menopause") ||
+                  questionText.includes("for women:"))
               ) {
                 return false;
               }
-              
+
               if (
                 assessment.client.gender === "female" &&
                 (questionText.includes("erectile") ||
-                 questionText.includes("prostate") ||
-                 questionText.includes("for men:"))
+                  questionText.includes("prostate") ||
+                  questionText.includes("for men:"))
               ) {
                 return false;
               }
-              
+
               return true;
             });
           }
+          
+          // Apply conditional logic filtering to next module questions
+          moduleQuestions = moduleQuestions.filter((q) => {
+            // Check if this question should be skipped based on previous answers
+            for (const response of allResponses) {
+              const answeredQuestion = allQuestions.find(aq => aq.id === response.questionId);
+              if (answeredQuestion?.conditionalLogic) {
+                for (const logic of answeredQuestion.conditionalLogic) {
+                  if (logic.action === "skip" && 
+                      logic.condition === response.responseValue &&
+                      logic.skipQuestions?.includes(q.id)) {
+                    console.log(`Skipping question ${q.id} in module ${modules[i]} based on conditional logic from ${answeredQuestion.id}`);
+                    return false; // Skip this question
+                  }
+                }
+              }
+            }
+            return true;
+          });
 
           if (moduleQuestions.length > 0) {
             nextQuestion = moduleQuestions[0];

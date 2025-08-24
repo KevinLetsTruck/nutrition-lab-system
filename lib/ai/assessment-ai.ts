@@ -5,7 +5,7 @@ import {
   ModuleType,
   FunctionalModule,
 } from "../assessment/types";
-import { getQuestionsByModule } from "../assessment/questions/index";
+import { getQuestionsByModule, allQuestions as getAllQuestions } from "../assessment/questions/index";
 // Import other modules when they are implemented
 // import { getAssimilationQuestions } from '@/lib/assessment/questions/assimilation-questions';
 // import { getDefenseRepairQuestions } from '@/lib/assessment/questions/defense-repair-questions';
@@ -189,12 +189,15 @@ export async function getNextQuestionWithAI(
   remainingQuestions = remainingQuestions.filter((q) => {
     // Check if this question should be skipped based on previous answers
     for (const response of responses) {
-      const answeredQuestion = moduleQuestions.find(mq => mq.id === response.questionId);
+      // Need to check ALL questions, not just current module, for conditional logic
+      const allQuestions = getAllQuestions;
+      const answeredQuestion = allQuestions.find(aq => aq.id === response.questionId);
       if (answeredQuestion?.conditionalLogic) {
         for (const logic of answeredQuestion.conditionalLogic) {
           if (logic.action === "skip" && 
               logic.condition === response.responseValue &&
               logic.skipQuestions?.includes(q.id)) {
+            console.log(`Skipping question ${q.id} based on conditional logic from ${answeredQuestion.id}`);
             return false; // Skip this question
           }
         }
@@ -450,6 +453,26 @@ function fallbackQuestionSelection(
       return true;
     });
   }
+
+  // Apply conditional logic filtering in fallback too
+  trulyAvailableQuestions = trulyAvailableQuestions.filter((q) => {
+    // Check if this question should be skipped based on previous answers
+    for (const response of responses) {
+      const allQuestions = getAllQuestions;
+      const answeredQuestion = allQuestions.find(aq => aq.id === response.questionId);
+      if (answeredQuestion?.conditionalLogic) {
+        for (const logic of answeredQuestion.conditionalLogic) {
+          if (logic.action === "skip" && 
+              logic.condition === response.responseValue &&
+              logic.skipQuestions?.includes(q.id)) {
+            console.log(`[Fallback] Skipping question ${q.id} based on conditional logic from ${answeredQuestion.id}`);
+            return false; // Skip this question
+          }
+        }
+      }
+    }
+    return true;
+  });
 
   if (trulyAvailableQuestions.length === 0) {
     return {
