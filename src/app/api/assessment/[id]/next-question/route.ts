@@ -71,9 +71,43 @@ export async function GET(
     );
 
     // Find unanswered questions in current module
-    const unansweredInModule = moduleQuestions.filter(
+    let unansweredInModule = moduleQuestions.filter(
       (q) => !answeredIds.has(q.id)
     );
+    
+    // Apply gender filtering if client has gender specified
+    if (assessment.client.gender) {
+      unansweredInModule = unansweredInModule.filter((q) => {
+        // Check genderSpecific property
+        if (q.genderSpecific && q.genderSpecific !== assessment.client.gender) {
+          return false;
+        }
+        
+        // Check text-based gender filtering
+        const questionText = q.text?.toLowerCase() || "";
+        if (
+          assessment.client.gender === "male" &&
+          (questionText.includes("menstrual") ||
+           questionText.includes("period") ||
+           questionText.includes("pregnant") ||
+           questionText.includes("menopause") ||
+           questionText.includes("for women:"))
+        ) {
+          return false;
+        }
+        
+        if (
+          assessment.client.gender === "female" &&
+          (questionText.includes("erectile") ||
+           questionText.includes("prostate") ||
+           questionText.includes("for men:"))
+        ) {
+          return false;
+        }
+        
+        return true;
+      });
+    }
 
     let nextQuestion = null;
     let nextModule = assessment.currentModule;
@@ -167,9 +201,43 @@ export async function GET(
 
         // Find next module with unanswered questions
         for (let i = currentIndex + 1; i < modules.length; i++) {
-          const moduleQuestions = allQuestions.filter(
+          let moduleQuestions = allQuestions.filter(
             (q) => q.module === modules[i] && !answeredIds.has(q.id)
           );
+          
+          // Apply gender filtering to next module questions
+          if (assessment.client.gender) {
+            moduleQuestions = moduleQuestions.filter((q) => {
+              // Check genderSpecific property
+              if (q.genderSpecific && q.genderSpecific !== assessment.client.gender) {
+                return false;
+              }
+              
+              // Check text-based gender filtering
+              const questionText = q.text?.toLowerCase() || "";
+              if (
+                assessment.client.gender === "male" &&
+                (questionText.includes("menstrual") ||
+                 questionText.includes("period") ||
+                 questionText.includes("pregnant") ||
+                 questionText.includes("menopause") ||
+                 questionText.includes("for women:"))
+              ) {
+                return false;
+              }
+              
+              if (
+                assessment.client.gender === "female" &&
+                (questionText.includes("erectile") ||
+                 questionText.includes("prostate") ||
+                 questionText.includes("for men:"))
+              ) {
+                return false;
+              }
+              
+              return true;
+            });
+          }
 
           if (moduleQuestions.length > 0) {
             nextQuestion = moduleQuestions[0];
