@@ -87,6 +87,18 @@ export const respiratoryQuestions: AssessmentQuestion[] = [
     ],
     scoringWeight: 1.0,
     clinicalRelevance: ["bronchitis", "infection", "COPD"],
+    conditionalLogic: [
+      {
+        condition: "no",
+        action: "skip",
+        skipQuestions: ["RESP006"],
+      },
+      {
+        condition: "unsure",
+        action: "skip",
+        skipQuestions: ["RESP006"],
+      },
+    ],
   },
   {
     id: "RESP006",
