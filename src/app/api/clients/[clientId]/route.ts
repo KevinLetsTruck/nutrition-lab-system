@@ -207,12 +207,58 @@ export async function DELETE(
     const user = verifyToken(token);
     const { clientId } = await params;
 
-    await prisma.client.delete({
-      where: { id: clientId },
+    // Delete all related records first to avoid foreign key constraints
+    await prisma.$transaction(async (tx) => {
+      // Delete assessments and their responses
+      const assessments = await tx.clientAssessment.findMany({
+        where: { clientId },
+        select: { id: true },
+      });
+
+      for (const assessment of assessments) {
+        await tx.clientResponse.deleteMany({
+          where: { assessmentId: assessment.id },
+        });
+        await tx.assessmentAnalysis.deleteMany({
+          where: { assessmentId: assessment.id },
+        });
+      }
+
+      await tx.clientAssessment.deleteMany({
+        where: { clientId },
+      });
+
+      // Delete other related records
+      await tx.clientStatus.deleteMany({
+        where: { clientId },
+      });
+
+      await tx.note.deleteMany({
+        where: { clientId },
+      });
+
+      await tx.document.deleteMany({
+        where: { clientId },
+      });
+
+      await tx.protocol.deleteMany({
+        where: { clientId },
+      });
+
+      await tx.medicalDocument.deleteMany({
+        where: { clientId },
+      });
+
+      // Finally delete the client
+      await tx.client.delete({
+        where: { id: clientId },
+      });
     });
 
     return NextResponse.json({ message: "Client deleted successfully" });
   } catch (error) {
+    console.error("Error deleting client:", error);
+    
     if (error instanceof jwt.JsonWebTokenError) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
@@ -225,7 +271,10 @@ export async function DELETE(
     }
 
     return NextResponse.json(
-      { error: "Failed to delete client" },
+      { 
+        error: "Failed to delete client",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
       { status: 500 }
     );
   }

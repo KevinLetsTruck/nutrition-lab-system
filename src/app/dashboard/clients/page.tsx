@@ -19,7 +19,13 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Client {
   id: string;
@@ -497,20 +503,25 @@ export default function ClientDashboard() {
               </label>
               <Select
                 value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
+                onValueChange={(value) => setFilterStatus(value)}
               >
-                <option value="all">All Clients</option>
-                <option value="SIGNED_UP">Signed Up</option>
-                <option value="INITIAL_INTERVIEW_COMPLETED">
-                  Interview Completed
-                </option>
-                <option value="ASSESSMENT_COMPLETED">
-                  Assessment Completed
-                </option>
-                <option value="DOCS_UPLOADED">Docs Uploaded</option>
-                <option value="SCHEDULED">Scheduled</option>
-                <option value="ONGOING">Ongoing</option>
-                <option value="ARCHIVED">Archived</option>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Clients</SelectItem>
+                  <SelectItem value="SIGNED_UP">Signed Up</SelectItem>
+                  <SelectItem value="INITIAL_INTERVIEW_COMPLETED">
+                    Interview Completed
+                  </SelectItem>
+                  <SelectItem value="ASSESSMENT_COMPLETED">
+                    Assessment Completed
+                  </SelectItem>
+                  <SelectItem value="DOCS_UPLOADED">Docs Uploaded</SelectItem>
+                  <SelectItem value="SCHEDULED">Scheduled</SelectItem>
+                  <SelectItem value="ONGOING">Ongoing</SelectItem>
+                  <SelectItem value="ARCHIVED">Archived</SelectItem>
+                </SelectContent>
               </Select>
             </CardContent>
           </Card>
