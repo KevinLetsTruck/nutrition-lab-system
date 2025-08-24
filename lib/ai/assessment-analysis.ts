@@ -1,5 +1,5 @@
 import { Anthropic } from "@anthropic-ai/sdk";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "../src/lib/db/prisma";
 
 // Initialize Anthropic client
 const anthropic = new Anthropic({
