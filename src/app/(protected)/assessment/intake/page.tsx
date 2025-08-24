@@ -82,8 +82,8 @@ export default function AssessmentIntakePage() {
           if (data.dateOfBirth) {
             // Format date for HTML date input (yyyy-MM-dd)
             const date = new Date(data.dateOfBirth);
-            const formattedDate = date.toISOString().split('T')[0];
-            
+            const formattedDate = date.toISOString().split("T")[0];
+
             setFormData((prev) => ({
               ...prev,
               dateOfBirth: formattedDate,
