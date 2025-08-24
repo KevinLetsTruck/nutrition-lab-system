@@ -8,9 +8,7 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // For now, skip auth check to test
-    // TODO: Fix JWT auth issue
-    /*
+    // Check if user is authenticated and is admin
     const session = await auth(req);
     if (!session?.user?.id || session.user.role !== "admin") {
       return NextResponse.json(
@@ -18,7 +16,6 @@ export async function GET(
         { status: 401 }
       );
     }
-    */
 
     const { id: assessmentId } = await context.params;
 
