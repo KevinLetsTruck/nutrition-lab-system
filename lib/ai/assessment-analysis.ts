@@ -1,5 +1,5 @@
 import { Anthropic } from "@anthropic-ai/sdk";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/db/prisma";
 
 // Initialize Anthropic client
 const anthropic = new Anthropic({
@@ -45,15 +45,18 @@ export async function generateAssessmentAnalysis(params: {
   // Determine overall health score (inverse of severity)
   const overallScore = Math.round((10 - averageSeverity) * 10);
 
-  // Calculate module scores based on symptom profile
+  // Calculate body system scores based on symptom profile
   const moduleScores: Record<string, number> = {
-    ASSIMILATION: 75,
-    DEFENSE_REPAIR: 65,
-    ENERGY: 70,
-    BIOTRANSFORMATION: 80,
-    TRANSPORT: 85,
-    COMMUNICATION: 75,
-    STRUCTURAL: 90
+    NEUROLOGICAL: 75,
+    DIGESTIVE: 70,
+    CARDIOVASCULAR: 85,
+    RESPIRATORY: 80,
+    IMMUNE: 65,
+    MUSCULOSKELETAL: 90,
+    ENDOCRINE: 75,
+    INTEGUMENTARY: 85,
+    GENITOURINARY: 80,
+    SPECIAL_TOPICS: 70
   };
 
   // Adjust scores based on symptom severity in each module
@@ -83,15 +86,15 @@ export async function generateAssessmentAnalysis(params: {
     keyFindings: [
       averageSeverity > 6 ? "High symptom severity across multiple systems" : "Moderate symptom burden",
       hasHighSeedOilExposure ? "Significant seed oil exposure detected" : "Low inflammatory oil exposure",
-      moduleScores.ENERGY < 60 ? "Energy production system showing dysfunction" : "Good energy metabolism",
-      moduleScores.ASSIMILATION < 60 ? "Digestive system requires support" : "Healthy digestive function",
-      moduleScores.DEFENSE_REPAIR < 60 ? "Immune system showing signs of dysregulation" : "Strong immune function"
+      moduleScores.ENDOCRINE < 60 ? "Endocrine system showing dysfunction" : "Good hormonal balance",
+      moduleScores.DIGESTIVE < 60 ? "Digestive system requires support" : "Healthy digestive function",
+      moduleScores.IMMUNE < 60 ? "Immune system showing signs of dysregulation" : "Strong immune function"
     ].filter(finding => finding.includes("High") || finding.includes("dysfunction") || finding.includes("requires") || finding.includes("dysregulation")),
     
     riskFactors: [
       hasHighSeedOilExposure && "Chronic inflammatory oil consumption",
-      moduleScores.ENERGY < 50 && "Mitochondrial dysfunction risk",
-      moduleScores.BIOTRANSFORMATION < 60 && "Impaired detoxification capacity",
+      moduleScores.ENDOCRINE < 50 && "Metabolic dysfunction risk",
+      moduleScores.DIGESTIVE < 60 && "Impaired nutrient absorption",
       averageSeverity > 7 && "Multiple system dysfunction"
     ].filter(Boolean) as string[],
     
@@ -114,16 +117,16 @@ export async function generateAssessmentAnalysis(params: {
         "Complete Blood Count (CBC)",
         "Thyroid Panel (TSH, Free T3, Free T4)",
         hasHighSeedOilExposure && "Omega-6:Omega-3 Ratio",
-        moduleScores.ENERGY < 60 && "Organic Acids Test",
-        moduleScores.ASSIMILATION < 60 && "GI-MAP Stool Test"
+        moduleScores.ENDOCRINE < 60 && "Comprehensive Hormone Panel",
+        moduleScores.DIGESTIVE < 60 && "GI-MAP Stool Test"
       ].filter(Boolean) as string[],
       
       recommended: [
         "hs-CRP (inflammation)",
         "Vitamin D",
         "B12 and Folate",
-        moduleScores.COMMUNICATION < 60 && "DUTCH Hormone Test",
-        moduleScores.BIOTRANSFORMATION < 60 && "Heavy Metals Panel"
+        moduleScores.NEUROLOGICAL < 60 && "Neurotransmitter Panel",
+        moduleScores.IMMUNE < 60 && "Immune Function Panel"
       ].filter(Boolean) as string[],
       
       optional: [
@@ -136,13 +139,13 @@ export async function generateAssessmentAnalysis(params: {
     labPredictions: {
       "hs-CRP": hasHighSeedOilExposure ? "Likely elevated (>3.0)" : "Normal range expected",
       "Omega-6:Omega-3": hasHighSeedOilExposure ? "Likely imbalanced (>10:1)" : "Acceptable range",
-      "TSH": moduleScores.ENERGY < 60 ? "May show subclinical hypothyroid" : "Normal range expected",
+      "TSH": moduleScores.ENDOCRINE < 60 ? "May show subclinical hypothyroid" : "Normal range expected",
       "Vitamin D": averageSeverity > 6 ? "Likely suboptimal (<40 ng/mL)" : "Variable"
     },
     
     seedOilAssessment: {
       exposureLevel: hasHighSeedOilExposure ? 8 : 3,
-      damageIndicators: hasHighSeedOilExposure && moduleScores.ENERGY < 70 ? 7 : 3,
+      damageIndicators: hasHighSeedOilExposure && moduleScores.CARDIOVASCULAR < 70 ? 7 : 3,
       recoveryPotential: 8, // Most people can recover well
       priorityLevel: hasHighSeedOilExposure ? 'HIGH' : 'LOW',
       recommendations: hasHighSeedOilExposure ? [
