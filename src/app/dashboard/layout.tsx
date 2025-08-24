@@ -4,7 +4,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { usePathname } from "next/navigation";
-import { Users, LogOut, Leaf, Calendar } from "lucide-react";
+import { Users, LogOut, Leaf, Calendar, ClipboardList } from "lucide-react";
 
 export default function DashboardLayout({
   children,
@@ -90,6 +90,17 @@ export default function DashboardLayout({
                 <Calendar className="h-5 w-5 mr-3" />
                 Thursday Calls
               </Link>
+              <Link
+                href="/dashboard/assessments"
+                className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium rounded-xl transition-all ${
+                  isActive("/dashboard/assessments")
+                    ? "text-brand-green bg-brand-green/10 border border-brand-green/30"
+                    : "text-gray-300 hover:text-white hover:bg-gray-800"
+                }`}
+              >
+                <ClipboardList className="h-5 w-5 mr-3" />
+                Assessments
+              </Link>
             </div>
           </div>
 
@@ -117,6 +128,17 @@ export default function DashboardLayout({
               >
                 <Calendar className="h-5 w-5 mr-3 inline" />
                 Thursday Calls
+              </Link>
+              <Link
+                href="/dashboard/assessments"
+                className={`nav-link-large block px-4 py-3 text-base font-medium rounded-xl transition-all ${
+                  isActive("/dashboard/assessments")
+                    ? "text-brand-green bg-brand-green/10 border border-brand-green/30"
+                    : "text-gray-300 hover:text-white hover:bg-gray-800"
+                }`}
+              >
+                <ClipboardList className="h-5 w-5 mr-3 inline" />
+                Assessments
               </Link>
             </div>
           </div>
