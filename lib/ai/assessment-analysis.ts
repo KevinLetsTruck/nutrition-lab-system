@@ -134,8 +134,8 @@ Please provide the analysis with this exact structure:
     const rawScore = (10 - averageSeverity) * 10;
     const overallScore = Math.round(Math.max(0, Math.min(100, isNaN(rawScore) ? 50 : rawScore)));
 
-  // Calculate body system scores based on symptom profile
-  const moduleScores: Record<string, number> = {
+    // Calculate body system scores based on symptom profile
+    const moduleScores: Record<string, number> = {
     NEUROLOGICAL: 75,
     DIGESTIVE: 70,
     CARDIOVASCULAR: 85,
@@ -146,26 +146,26 @@ Please provide the analysis with this exact structure:
     INTEGUMENTARY: 85,
     GENITOURINARY: 80,
     SPECIAL_TOPICS: 70
-  };
+    };
 
-  // Adjust scores based on symptom severity in each module
-  Object.entries(symptomProfile || {}).forEach(([module, symptoms]) => {
-    const moduleSymptoms = Object.values(symptoms as Record<string, number>);
-    if (moduleSymptoms.length > 0) {
-      const avgModuleSeverity = moduleSymptoms.reduce((a, b) => a + b, 0) / moduleSymptoms.length;
-      moduleScores[module] = Math.round((10 - avgModuleSeverity) * 10);
-    }
-  });
+    // Adjust scores based on symptom severity in each module
+    Object.entries(symptomProfile || {}).forEach(([module, symptoms]) => {
+      const moduleSymptoms = Object.values(symptoms as Record<string, number>);
+      if (moduleSymptoms.length > 0) {
+        const avgModuleSeverity = moduleSymptoms.reduce((a, b) => a + b, 0) / moduleSymptoms.length;
+        moduleScores[module] = Math.round((10 - avgModuleSeverity) * 10);
+      }
+    });
 
-  // Check for seed oil exposure
-  const seedOilResponses = aiContext?.seedOilExposure || [];
-  const hasHighSeedOilExposure = seedOilResponses.length > 0;
+    // Check for seed oil exposure
+    const seedOilResponses = aiContext?.seedOilExposure || [];
+    const hasHighSeedOilExposure = seedOilResponses.length > 0;
 
-  // Generate comprehensive analysis
-  const analysis: AnalysisResult = {
-    overallScore,
-    nodeScores: moduleScores,
-    summary: `Based on your comprehensive assessment of ${responses.length} responses, your overall health score is ${overallScore}/100. ${
+    // Generate comprehensive analysis
+    const analysis: AnalysisResult = {
+      overallScore,
+      nodeScores: moduleScores,
+      summary: `Based on your comprehensive assessment of ${responses.length} responses, your overall health score is ${overallScore}/100. ${
       overallScore >= 80 ? "You're showing strong health indicators across most systems." :
       overallScore >= 60 ? "You have some areas that need attention but overall good health foundation." :
       overallScore >= 40 ? "Several systems show signs of dysfunction that should be addressed." :
@@ -253,10 +253,11 @@ Please provide the analysis with this exact structure:
       secondary: hasHighSeedOilExposure ? "Detoxification" : "Optimization",
       urgency: overallScore < 40 ? "HIGH" : overallScore < 70 ? "MEDIUM" : "LOW"
     }
-  };
+    };
 
-  // Log analysis generation
-  console.log(`Generated analysis for assessment ${assessmentId}`);
+    // Log analysis generation
+    console.log(`Generated analysis for assessment ${assessmentId}`);
 
-  return analysis;
+    return analysis;
+  }
 }
