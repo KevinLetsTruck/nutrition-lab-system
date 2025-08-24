@@ -33,19 +33,101 @@ export async function generateAssessmentAnalysis(params: {
 }): Promise<AnalysisResult> {
   const { assessmentId, responses, symptomProfile, aiContext } = params;
 
-  // For now, return a comprehensive mock analysis
-  // TODO: Integrate with Claude AI for real analysis when ready
-  
-  // Calculate basic scores from responses
-  const likertResponses = responses.filter(r => r.responseType === 'LIKERT_SCALE');
-  const averageSeverity = likertResponses.length > 0
-    ? likertResponses.reduce((sum, r) => sum + (Number(r.responseValue) || 5), 0) / likertResponses.length
-    : 5;
+  // Prepare response data for Claude
+  const formattedResponses = responses.map(r => ({
+    question: r.questionText,
+    module: r.questionModule,
+    answer: r.responseValue,
+    type: r.responseType
+  }));
 
-  // Determine overall health score (inverse of severity)
-  // Ensure score is between 0 and 100, and handle NaN cases
-  const rawScore = (10 - averageSeverity) * 10;
-  const overallScore = Math.round(Math.max(0, Math.min(100, isNaN(rawScore) ? 50 : rawScore)));
+  try {
+    // Call Claude AI for comprehensive analysis
+    const message = await anthropic.messages.create({
+      model: "claude-3-haiku-20240307",
+      max_tokens: 2000,
+      temperature: 0.7,
+      system: `You are an expert functional medicine practitioner analyzing patient health assessments. 
+      Generate a comprehensive health analysis based on the assessment responses provided.
+      Focus on identifying patterns, root causes, and providing actionable recommendations.
+      Be specific about lab recommendations and protocol priorities.`,
+      messages: [{
+        role: "user",
+        content: `Analyze this health assessment and provide a detailed analysis in JSON format:
+
+Assessment Responses:
+${JSON.stringify(formattedResponses, null, 2)}
+
+Please provide the analysis with this exact structure:
+{
+  "overallScore": <0-100 based on overall health status>,
+  "nodeScores": {
+    "NEUROLOGICAL": <0-100>,
+    "DIGESTIVE": <0-100>,
+    "CARDIOVASCULAR": <0-100>,
+    "RESPIRATORY": <0-100>,
+    "IMMUNE": <0-100>,
+    "MUSCULOSKELETAL": <0-100>,
+    "ENDOCRINE": <0-100>,
+    "INTEGUMENTARY": <0-100>,
+    "GENITOURINARY": <0-100>,
+    "SPECIAL_TOPICS": <0-100>
+  },
+  "summary": "<comprehensive summary of findings>",
+  "keyFindings": ["<finding 1>", "<finding 2>", ...],
+  "riskFactors": ["<risk 1>", "<risk 2>", ...],
+  "strengths": ["<strength 1>", "<strength 2>", ...],
+  "primaryConcerns": ["<concern 1>", "<concern 2>", ...],
+  "suggestedLabs": {
+    "essential": ["<lab test 1>", "<lab test 2>", ...],
+    "recommended": ["<lab test 1>", "<lab test 2>", ...],
+    "optional": ["<lab test 1>", "<lab test 2>", ...]
+  },
+  "labPredictions": {
+    "<lab marker>": "<expected result/range>"
+  },
+  "seedOilAssessment": {
+    "exposureLevel": <1-10>,
+    "damageIndicators": <1-10>,
+    "recoveryPotential": <1-10>,
+    "priorityLevel": "<LOW|MODERATE|HIGH|CRITICAL>",
+    "recommendations": ["<recommendation 1>", "<recommendation 2>", ...]
+  },
+  "protocolPriority": {
+    "primary": "<primary protocol focus>",
+    "secondary": "<secondary protocol focus>",
+    "urgency": "<LOW|MEDIUM|HIGH>"
+  }
+}`
+      }]
+    });
+
+    // Parse Claude's response
+    const analysisText = message.content[0].type === 'text' ? message.content[0].text : '';
+    const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+    
+    if (!jsonMatch) {
+      throw new Error("Failed to parse AI response");
+    }
+
+    const analysis = JSON.parse(jsonMatch[0]) as AnalysisResult;
+    
+    console.log(`Generated AI analysis for assessment ${assessmentId}`);
+    
+    return analysis;
+  } catch (error) {
+    console.error("Claude AI analysis failed, using enhanced fallback:", error);
+    
+    // Enhanced fallback analysis based on actual responses
+    const likertResponses = responses.filter(r => r.responseType === 'LIKERT_SCALE');
+    const averageSeverity = likertResponses.length > 0
+      ? likertResponses.reduce((sum, r) => sum + (Number(r.responseValue) || 5), 0) / likertResponses.length
+      : 5;
+
+    // Determine overall health score (inverse of severity)
+    // Ensure score is between 0 and 100, and handle NaN cases
+    const rawScore = (10 - averageSeverity) * 10;
+    const overallScore = Math.round(Math.max(0, Math.min(100, isNaN(rawScore) ? 50 : rawScore)));
 
   // Calculate body system scores based on symptom profile
   const moduleScores: Record<string, number> = {

@@ -72,6 +72,7 @@ export async function GET(
             suggestedLabs: analysisResult.suggestedLabs,
             labPredictions: analysisResult.labPredictions,
             seedOilScore: analysisResult.seedOilAssessment,
+            protocolPriority: analysisResult.protocolPriority,
           },
         });
 
