@@ -66,6 +66,13 @@ export const respiratoryQuestions: AssessmentQuestion[] = [
     ],
     scoringWeight: 1.5,
     clinicalRelevance: ["chronic_cough", "GERD", "post_nasal_drip"],
+    conditionalLogic: [
+      {
+        condition: "no",
+        action: "skip",
+        skipQuestions: ["RESP005"],
+      },
+    ],
   },
   {
     id: "RESP005",
@@ -76,17 +83,10 @@ export const respiratoryQuestions: AssessmentQuestion[] = [
     options: [
       { value: "yes", label: "Yes", score: 2 },
       { value: "no", label: "No/Dry cough", score: 0 },
-      { value: "na", label: "No cough", score: 0 },
+      { value: "unsure", label: "Unsure", score: 1 },
     ],
     scoringWeight: 1.0,
     clinicalRelevance: ["bronchitis", "infection", "COPD"],
-    conditionalLogic: [
-      {
-        condition: "no",
-        action: "skip",
-        skipQuestions: ["RESP005", "RESP006"],
-      },
-    ],
   },
   {
     id: "RESP006",
