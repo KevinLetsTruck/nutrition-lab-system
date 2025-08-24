@@ -1,7 +1,7 @@
 // This script creates an HTML page that clears authentication tokens from localStorage
 
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 const htmlContent = `<!DOCTYPE html>
 <html lang="en">
@@ -130,20 +130,20 @@ const htmlContent = `<!DOCTYPE html>
 </body>
 </html>`;
 
-const outputPath = path.join(process.cwd(), 'public', 'clear-auth.html');
+const outputPath = path.join(process.cwd(), "public", "clear-auth.html");
 
 // Ensure public directory exists
-const publicDir = path.join(process.cwd(), 'public');
+const publicDir = path.join(process.cwd(), "public");
 if (!fs.existsSync(publicDir)) {
-    fs.mkdirSync(publicDir, { recursive: true });
+  fs.mkdirSync(publicDir, { recursive: true });
 }
 
 // Write the HTML file
 fs.writeFileSync(outputPath, htmlContent);
 
-console.log('✅ Created auth clearing page at: public/clear-auth.html');
-console.log('\n📝 Instructions:');
-console.log('   1. Open http://localhost:3001/clear-auth.html in your browser');
+console.log("✅ Created auth clearing page at: public/clear-auth.html");
+console.log("\n📝 Instructions:");
+console.log("   1. Open http://localhost:3001/clear-auth.html in your browser");
 console.log('   2. Click "Clear Auth Tokens"');
 console.log('   3. Click "Go to Login" to log in again');
 console.log('\n💡 This will fix the JWT "invalid signature" errors.');

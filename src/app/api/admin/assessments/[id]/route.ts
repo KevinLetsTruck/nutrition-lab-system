@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { auth } from "@/lib/auth-middleware";
-import { generateAssessmentAnalysis } from "../../../../../lib/ai/assessment-analysis";
+import { generateAssessmentAnalysis } from "../../../../../../lib/ai/assessment-analysis";
 
 export async function GET(
   req: NextRequest,
