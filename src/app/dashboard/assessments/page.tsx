@@ -67,10 +67,17 @@ export default function AssessmentsPage() {
 
   const fetchAssessments = async () => {
     try {
-      const response = await fetch("/api/admin/assessments");
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/admin/assessments", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
       const data = await response.json();
       if (data.success) {
         setAssessments(data.assessments);
+      } else {
+        console.error("Failed to fetch assessments:", data.error);
       }
     } catch (error) {
       console.error("Error fetching assessments:", error);
