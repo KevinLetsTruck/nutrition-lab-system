@@ -288,6 +288,34 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
     clinicalRelevance: ["post_covid", "cognitive_dysfunction", "long_covid"],
   },
 
+  // COVID Vaccination Status - Ask First
+  {
+    id: "NEURO017_VAX_STATUS",
+    module: "SCREENING",
+    bodySystem: BodySystems.NEUROLOGICAL,
+    text: "Have you received any COVID-19 vaccinations?",
+    type: "YES_NO",
+    options: [
+      { value: "yes", label: "Yes", score: 0 },
+      { value: "no", label: "No", score: 0 },
+      { value: "unsure", label: "Unsure", score: 0 },
+    ],
+    scoringWeight: 0.5,
+    clinicalRelevance: ["vaccine_status", "exposure_history"],
+    conditionalLogic: [
+      {
+        condition: "no",
+        action: "skip",
+        skipQuestions: ["NEURO018"],
+      },
+      {
+        condition: "unsure",
+        action: "skip",
+        skipQuestions: ["NEURO018"],
+      },
+    ],
+  },
+
   // Vaccine-Related Neurological
   {
     id: "NEURO018",
@@ -298,7 +326,7 @@ export const neurologicalQuestions: AssessmentQuestion[] = [
     options: [
       { value: "yes", label: "Yes", score: 3 },
       { value: "no", label: "No", score: 0 },
-      { value: "na", label: "Not vaccinated", score: 0 },
+      { value: "unsure", label: "Unsure", score: 1 },
     ],
     scoringWeight: 2.0,
     clinicalRelevance: ["vaccine_adverse_events", "neurological_inflammation"],
