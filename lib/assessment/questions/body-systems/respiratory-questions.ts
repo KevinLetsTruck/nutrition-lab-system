@@ -147,6 +147,13 @@ export const respiratoryQuestions: AssessmentQuestion[] = [
     ],
     scoringWeight: 1.5,
     clinicalRelevance: ["asthma", "airway_disease"],
+    conditionalLogic: [
+      {
+        condition: "no",
+        action: "skip",
+        skipQuestions: ["RESP009", "RESP015"],
+      },
+    ],
   },
   {
     id: "RESP009",
