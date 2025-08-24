@@ -5,6 +5,12 @@ import {
   ModuleType,
 } from "../assessment/types";
 import { getQuestionsByBodySystem, allQuestions as getAllQuestions } from "../assessment/questions/index";
+import {
+  analyzeModuleContext,
+  shouldExitModule,
+  generateSmartAIPrompt,
+  getCriticalQuestions
+} from "./smart-module-logic";
 
 // Initialize Claude client
 const anthropic = new Anthropic({
@@ -90,6 +96,35 @@ export async function getNextQuestionWithAI(
     questionsAsked,
     clientInfo,
   } = context;
+
+  // Analyze module context to determine if we should exit
+  const moduleResponses = responses.filter(r => {
+    const question = getAllQuestions.find(q => q.id === r.questionId);
+    return question?.module === currentModule;
+  });
+  
+  const moduleContext = analyzeModuleContext(currentModule, moduleResponses);
+  const exitDecision = shouldExitModule(moduleContext);
+  
+  // If we should exit this module, move to next
+  if (exitDecision.shouldExit) {
+    console.log(`Module ${currentModule}: ${exitDecision.reason}`);
+    const currentModuleIndex = MODULE_SEQUENCE.indexOf(currentModule);
+    if (currentModuleIndex < MODULE_SEQUENCE.length - 1) {
+      const nextModule = MODULE_SEQUENCE[currentModuleIndex + 1];
+      return {
+        nextModule,
+        reasoning: exitDecision.reason,
+        questionsSaved: 0,
+      };
+    } else {
+      return {
+        nextQuestion: undefined,
+        reasoning: "Assessment complete - all modules finished",
+        questionsSaved: 0,
+      };
+    }
+  }
 
   // Check cache first (include gender in cache key for accurate caching)
   const cacheKey = `${currentModule}-${questionsAsked}-${responses.length}-${
@@ -292,43 +327,20 @@ async function selectQuestionWithClaude(
         severity: r.responseValue,
       }));
 
-    // Simplified, focused prompt for faster processing
-    const prompt = `Select the most diagnostic question from these options:
-
-Module: ${module}
-Questions asked: ${responses.length}
-Key symptoms: ${highSeveritySymptoms.map((s) => s.symptom).join(", ") || "none"}
-${
-  symptomProfile.clientInfo
-    ? `Client: ${symptomProfile.clientInfo.age || "Unknown age"}yo ${
-        symptomProfile.clientInfo.gender || "unknown gender"
-      }`
-    : ""
-}
-${
-  symptomProfile.clientInfo?.medications
-    ? `On medications: ${JSON.stringify(
-        symptomProfile.clientInfo.medications.current || []
-      )}`
-    : ""
-}
-
-Available questions (first 10):
-${availableQuestions
-  .slice(0, 10)
-  .map((q) => `${q.id}: ${q.text}`)
-  .join("\n")}
-
-Select based on:
-1. ALWAYS prioritize gateway questions (questions with conditionalLogic that skip other questions)
-2. Maximum diagnostic value
-3. Avoid redundancy
-4. Prioritize severe symptoms
-5. Consider client demographics
-
-Important: Questions with conditionalLogic MUST be asked before their dependent questions.
-
-Return only: {"selectedQuestionId": "ID", "reasoning": "one sentence"}`;
+    // Get module context for smart prompt
+    const moduleResponses = responses.filter(r => {
+      const question = getAllQuestions.find(q => q.id === r.questionId);
+      return question?.module === module;
+    });
+    
+    const moduleContext = analyzeModuleContext(module, moduleResponses);
+    
+    // Use smart context-aware prompt
+    const prompt = generateSmartAIPrompt(
+      moduleContext,
+      availableQuestions,
+      symptomProfile.clientInfo || {}
+    );
 
     const response = await anthropic.messages.create({
       model: "claude-3-haiku-20240307", // Much faster model (5-10x speed improvement)
@@ -353,6 +365,25 @@ Return only: {"selectedQuestionId": "ID", "reasoning": "one sentence"}`;
     }
 
     const aiResponse = JSON.parse(jsonMatch[0]);
+
+    // Check if AI wants to skip to next module
+    if (aiResponse.skipToNextModule) {
+      const currentModuleIndex = MODULE_SEQUENCE.indexOf(module);
+      if (currentModuleIndex < MODULE_SEQUENCE.length - 1) {
+        const nextModule = MODULE_SEQUENCE[currentModuleIndex + 1];
+        return {
+          nextModule,
+          reasoning: aiResponse.reasoning || "Module complete - no issues detected",
+          questionsSaved: 0,
+        };
+      } else {
+        return {
+          nextQuestion: undefined,
+          reasoning: "Assessment complete",
+          questionsSaved: 0,
+        };
+      }
+    }
 
     // Find the selected question
     const selectedQuestion = availableQuestions.find(
