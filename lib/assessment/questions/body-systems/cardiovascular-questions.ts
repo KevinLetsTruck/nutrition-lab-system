@@ -269,20 +269,7 @@ export const cardiovascularQuestions: AssessmentQuestion[] = [
     scoringWeight: 1.5,
     clinicalRelevance: ["genetic_risk", "family_history"],
   },
-  {
-    id: "CARDIO017",
-    module: "SCREENING",
-    bodySystem: BodySystems.CARDIOVASCULAR,
-    text: "Have you been told you have high cholesterol?",
-    type: "YES_NO",
-    options: [
-      { value: "yes", label: "Yes", score: 2 },
-      { value: "no", label: "No", score: 0 },
-      { value: "borderline", label: "Borderline", score: 1 },
-    ],
-    scoringWeight: 1.5,
-    clinicalRelevance: ["lipid_metabolism", "cardiovascular_risk"],
-  },
+
 
   // Leg Symptoms
   {
