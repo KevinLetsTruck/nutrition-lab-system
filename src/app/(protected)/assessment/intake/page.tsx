@@ -6,7 +6,13 @@ import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -156,7 +162,9 @@ export default function AssessmentIntakePage() {
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Update failed:", errorData);
-        throw new Error(errorData.details || "Failed to update client information");
+        throw new Error(
+          errorData.details || "Failed to update client information"
+        );
       }
 
       // Navigate to assessment

@@ -10,12 +10,12 @@ import { assimilationQuestionsChunk1 } from './assimilation-chunk1';
 import { assimilationQuestionsChunk2 } from './assimilation-chunk2';
 import { assimilationQuestionsChunk3 } from './assimilation-chunk3';
 import { assimilationQuestionsChunk4 } from './assimilation-chunk4';
-import { defenseRepairQuestions } from './defense-repair-questions';
+import { defenserepairQuestions } from './defense-repair-questions';
 import { energyQuestions } from './energy-questions';
 import { biotransformationQuestions } from './biotransformation-questions';
 import { transportQuestions } from './transport-questions';
 import { communicationQuestions } from './communication-questions';
-import { communicationQuestionsAdditional } from './communication-questions-additional';
+import { additionalCommunicationQuestions } from './communication-questions-additional';
 import { structuralQuestions } from './structural-questions';
 
 // New body system modules
@@ -47,7 +47,7 @@ const assimilationQuestions = [
 // Combine communication questions
 const allCommunicationQuestions = [
   ...communicationQuestions,
-  ...communicationQuestionsAdditional
+  ...additionalCommunicationQuestions
 ];
 
 // Export all questions combined - NEW BODY SYSTEMS APPROACH
@@ -69,7 +69,7 @@ export const allQuestions: AssessmentQuestion[] = [
 export const legacyQuestions: AssessmentQuestion[] = [
   ...allScreeningQuestions,       // ~100 questions
   ...assimilationQuestions,       // ~80 questions  
-  ...defenseRepairQuestions,      // 40 questions
+  ...defenserepairQuestions,      // 40 questions
   ...energyQuestions,             // 49 questions
   ...biotransformationQuestions, // 37 questions
   ...transportQuestions,          // 27 questions
@@ -94,12 +94,12 @@ export {
   screeningQuestions,
   additionalScreeningQuestionsPart2,
   assimilationQuestions,
-  defenseRepairQuestions,
+  defenserepairQuestions,
   energyQuestions,
   biotransformationQuestions,
   transportQuestions,
   communicationQuestions,
-  communicationQuestionsAdditional,
+  additionalCommunicationQuestions,
   structuralQuestions
 };
 
@@ -165,7 +165,7 @@ export function getQuestionsByModule(module: string): AssessmentQuestion[] {
     case 'ASSIMILATION':
       return assimilationQuestions;
     case 'DEFENSE_REPAIR':
-      return defenseRepairQuestions;
+      return defenserepairQuestions;
     case 'ENERGY':
       return energyQuestions;
     case 'BIOTRANSFORMATION':
