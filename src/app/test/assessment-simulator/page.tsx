@@ -9,14 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Brain, Heart, Lungs, Shield, Dumbbell, Zap, Droplet, Stethoscope, Activity } from "lucide-react";
+import { AlertCircle, Brain, Heart, Wind, Shield, Dumbbell, Zap, Droplet, Stethoscope, Activity } from "lucide-react";
 
 // Body systems with icons
 const bodySystems = [
   { id: "NEUROLOGICAL", name: "Neurological", icon: Brain, color: "text-purple-500" },
   { id: "DIGESTIVE", name: "Digestive", icon: Droplet, color: "text-orange-500" },
   { id: "CARDIOVASCULAR", name: "Cardiovascular", icon: Heart, color: "text-red-500" },
-  { id: "RESPIRATORY", name: "Respiratory", icon: Lungs, color: "text-blue-500" },
+  { id: "RESPIRATORY", name: "Respiratory", icon: Wind, color: "text-blue-500" },
   { id: "IMMUNE", name: "Immune", icon: Shield, color: "text-green-500" },
   { id: "MUSCULOSKELETAL", name: "Musculoskeletal", icon: Dumbbell, color: "text-indigo-500" },
   { id: "ENDOCRINE", name: "Endocrine", icon: Zap, color: "text-yellow-500" },
