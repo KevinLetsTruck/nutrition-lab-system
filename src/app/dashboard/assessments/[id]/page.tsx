@@ -117,7 +117,12 @@ export default function AdminAssessmentDetailPage() {
 
   const fetchAssessmentDetails = async () => {
     try {
-      const response = await fetch(`/api/admin/assessments/${assessmentId}`);
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/admin/assessments/${assessmentId}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
       if (!response.ok) throw new Error("Failed to fetch assessment details");
 
       const result = await response.json();
