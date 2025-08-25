@@ -16,6 +16,7 @@ import { useAuth } from "@/lib/auth-context";
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/clients", label: "Clients" },
+  { href: "/assessments", label: "Assessments" },
   { href: "/onboarding", label: "Onboarding" },
   { href: "/protocols", label: "Protocols" },
   { href: "/analytics", label: "Analytics" },
@@ -26,6 +27,11 @@ const navItems = [
 export function MainNav() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+
+  // Don't render navigation if no user
+  if (!user) {
+    return null;
+  }
 
   return (
     <nav className="bg-brand-darkNavy border-b border-gray-800">

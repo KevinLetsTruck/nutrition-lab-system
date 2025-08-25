@@ -4,13 +4,20 @@ import {
   ClientResponse,
   ModuleType,
 } from "../assessment/types";
-import { getQuestionsByBodySystem, allQuestions as getAllQuestions } from "../assessment/questions/index";
+import {
+  getQuestionsByBodySystem,
+  allQuestions as getAllQuestions,
+} from "../assessment/questions/index";
 import {
   analyzeModuleContext,
   shouldExitModule,
   generateSmartAIPrompt,
-  getCriticalQuestions
+  getCriticalQuestions,
 } from "./smart-module-logic";
+import {
+  getEssentialQuestions,
+  isEssentialMode,
+} from "../assessment/essential-questions";
 
 // Initialize Claude client
 const anthropic = new Anthropic({
@@ -52,7 +59,15 @@ const MODULE_SEQUENCE: ModuleType[] = [
 ];
 
 function getQuestionsForModule(module: ModuleType): AssessmentQuestion[] {
-  // Use body system questions now
+  // Use essential questions if in essential mode
+  if (isEssentialMode()) {
+    const essentialQuestions = getEssentialQuestions();
+    return essentialQuestions.filter(
+      (q: any) =>
+        q.module === module || q.category === module || q.node === module
+    );
+  }
+  // Otherwise use body system questions
   return getQuestionsByBodySystem(module);
 }
 
@@ -86,216 +101,175 @@ function shouldUseAI(
   return hasHighSeverity || concerningResponses >= 3;
 }
 
+// SIMPLE SEQUENTIAL QUESTION SELECTION (temporarily replacing AI logic)
 export async function getNextQuestionWithAI(
   context: AssessmentContext
 ): Promise<AIDecision> {
-  const {
-    currentModule,
-    responses,
-    symptomProfile,
-    questionsAsked,
-    clientInfo,
-  } = context;
+  console.log("=== SIMPLE QUESTION SELECTION MODE ===");
 
-  // Analyze module context to determine if we should exit
-  const moduleResponses = responses.filter(r => {
-    const question = getAllQuestions.find(q => q.id === r.questionId);
-    return question?.module === currentModule;
-  });
+  const { currentModule, responses, clientInfo } = context;
 
-  const moduleContext = analyzeModuleContext(currentModule, moduleResponses);
-  const exitDecision = shouldExitModule(moduleContext);
+  // Define logical module order
+  const moduleOrder: ModuleType[] = [
+    "NEUROLOGICAL", // Start with screening/general
+    "DIGESTIVE", // Common issues
+    "IMMUNE", // Immune/inflammation
+    "CARDIOVASCULAR", // Heart health
+    "RESPIRATORY", // Breathing
+    "MUSCULOSKELETAL", // Structural
+    "ENDOCRINE", // Hormonal
+    "GENITOURINARY", // Urinary/reproductive
+    "INTEGUMENTARY", // Skin
+    "SPECIAL_TOPICS", // Miscellaneous
+  ];
 
-  // If we should exit this module, move to next
-  if (exitDecision.shouldExit) {
+  // Get all available questions - use essential questions if in essential mode
+  const allAvailableQuestions = isEssentialMode()
+    ? getEssentialQuestions()
+    : getAllQuestions;
 
-    const currentModuleIndex = MODULE_SEQUENCE.indexOf(currentModule);
-    if (currentModuleIndex < MODULE_SEQUENCE.length - 1) {
-      const nextModule = MODULE_SEQUENCE[currentModuleIndex + 1];
-      return {
-        nextModule,
-        reasoning: exitDecision.reason,
-        questionsSaved: 0,
-      };
-    } else {
-      return {
-        nextQuestion: undefined,
-        reasoning: "Assessment complete - all modules finished",
-        questionsSaved: 0,
-      };
-    }
+  if (isEssentialMode()) {
+    console.log("📝 Using ESSENTIAL questions mode (30 questions)");
   }
 
-  // Check cache first (include gender in cache key for accurate caching)
-  const cacheKey = `${currentModule}-${questionsAsked}-${responses.length}-${
-    clientInfo?.gender || "unknown"
-  }`;
+  // Get answered question IDs
+  const answeredIds = responses.map((r) => r.questionId);
+  console.log("Already answered:", answeredIds.length, "questions");
 
-  // Check if we have a cached decision
-  if (decisionCache.has(cacheKey)) {
-    const cachedDecision = decisionCache.get(cacheKey)!;
+  // Process modules in order
+  for (const module of moduleOrder) {
+    // Skip if we haven't reached this module yet
+    const moduleIndex = moduleOrder.indexOf(module);
+    const currentModuleIndex = moduleOrder.indexOf(currentModule);
 
-    // Get already answered question IDs
-    const answeredQuestionIds = new Set(responses.map((r) => r.questionId));
-
-    // Detect if we're about to return the same question as last time OR an already answered question
-    if (
-      cachedDecision.nextQuestion?.id === lastSelectedQuestionId ||
-      (cachedDecision.nextQuestion?.id && answeredQuestionIds.has(cachedDecision.nextQuestion.id))
-    ) {
-
-      decisionCache.clear();
-      lastSelectedQuestionId = null;
-    } else {
-      // Update last selected question and return cached decision
-      lastSelectedQuestionId = cachedDecision.nextQuestion?.id || null;
-      return cachedDecision;
+    if (moduleIndex < currentModuleIndex) {
+      continue; // Skip modules we've already completed
     }
-  }
 
-  // Get available questions for current module
-  const moduleQuestions = getQuestionsForModule(currentModule);
-
-  // Get already answered question IDs
-  const answeredQuestionIds = responses.map((r) => r.questionId);
-
-  // Filter to get remaining unanswered questions
-  let remainingQuestions = moduleQuestions.filter(
-    (q) => !answeredQuestionIds.includes(q.id)
-  );
-
-  // Filter out gender-specific questions if gender is known
-  if (clientInfo?.gender) {
-
-    const beforeCount = remainingQuestions.length;
-
-    remainingQuestions = remainingQuestions.filter((q) => {
-      // Check genderSpecific property first
-      if (q.genderSpecific && q.genderSpecific !== clientInfo.gender) {
-
-        return false;
-      }
-
-      const questionText = q.text.toLowerCase();
-
-      // Skip female-specific questions for males
-      if (
-        clientInfo.gender === "male" &&
-        (questionText.includes("menstrual") ||
-          questionText.includes("period") ||
-          questionText.includes("pregnant") ||
-          questionText.includes("menopause") ||
-          questionText.includes("for women:"))
-      ) {
-
-        return false;
-      }
-
-      // Skip male-specific questions for females
-      if (
-        clientInfo.gender === "female" &&
-        (questionText.includes("erectile") ||
-          questionText.includes("prostate") ||
-          questionText.includes("for men:"))
-      ) {
-
-        return false;
-      }
-
-      return true;
+    // Get questions for this module
+    let moduleQuestions = allAvailableQuestions.filter((q) => {
+      const belongsToModule =
+        q.module === module || q.category === module || q.node === module;
+      return belongsToModule && !answeredIds.includes(q.id);
     });
 
-  } else {
+    // Apply gender filtering
+    if (clientInfo?.gender) {
+      moduleQuestions = moduleQuestions.filter((q) => {
+        if (q.genderSpecific && q.genderSpecific !== clientInfo.gender) {
+          return false;
+        }
 
-  }
+        const questionText = q.text.toLowerCase();
 
-  // Filter out questions based on conditional logic
-  remainingQuestions = remainingQuestions.filter((q) => {
-    // Check if this question should be skipped based on previous answers
-    for (const response of responses) {
-      // Need to check ALL questions, not just current module, for conditional logic
-      const allQuestions = getAllQuestions;
-      const answeredQuestion = allQuestions.find(aq => aq.id === response.questionId);
-      if (answeredQuestion?.conditionalLogic) {
-        for (const logic of answeredQuestion.conditionalLogic) {
-          if (logic.action === "skip" && 
+        // Skip female-specific questions for males
+        if (
+          clientInfo.gender === "male" &&
+          (questionText.includes("menstrual") ||
+            questionText.includes("period") ||
+            questionText.includes("pregnant") ||
+            questionText.includes("menopause") ||
+            questionText.includes("for women:"))
+        ) {
+          return false;
+        }
+
+        // Skip male-specific questions for females
+        if (
+          clientInfo.gender === "female" &&
+          (questionText.includes("erectile") ||
+            questionText.includes("prostate") ||
+            questionText.includes("for men:"))
+        ) {
+          return false;
+        }
+
+        return true;
+      });
+    }
+
+    // Apply conditional logic filtering
+    moduleQuestions = moduleQuestions.filter((q) => {
+      // Check if this question has conditional logic
+      if (q.conditionalLogic) {
+        const dependentResponse = responses.find(
+          (r) => r.questionId === q.conditionalLogic.dependsOn
+        );
+
+        if (!dependentResponse) return false; // Don't show if dependent question not answered
+
+        // Check if the condition is met
+        if (q.conditionalLogic.showIf !== dependentResponse.responseValue) {
+          return false; // Skip this question
+        }
+      }
+
+      // Also check old format for backward compatibility
+      for (const response of responses) {
+        const answeredQuestion = allAvailableQuestions.find(
+          (aq) => aq.id === response.questionId
+        );
+        if (answeredQuestion?.conditionalLogic) {
+          for (const logic of answeredQuestion.conditionalLogic) {
+            if (
+              logic.action === "skip" &&
               logic.condition === response.responseValue &&
-              logic.skipQuestions?.includes(q.id)) {
-
-            return false; // Skip this question
+              logic.skipQuestions?.includes(q.id)
+            ) {
+              return false; // Skip this question
+            }
           }
         }
       }
-    }
-    return true;
-  });
+      return true;
+    });
 
-  // Prioritize gateway questions (questions with conditional logic)
-  const gatewayQuestions = remainingQuestions.filter(q => q.conditionalLogic && q.conditionalLogic.length > 0);
-  const nonGatewayQuestions = remainingQuestions.filter(q => !q.conditionalLogic || q.conditionalLogic.length === 0);
+    // Sort questions within module
+    moduleQuestions.sort((a, b) => {
+      // Prioritize gateway questions
+      const aIsGateway = a.conditionalLogic && a.conditionalLogic.length > 0;
+      const bIsGateway = b.conditionalLogic && b.conditionalLogic.length > 0;
 
-  // If there are unanswered gateway questions, prioritize them
-  if (gatewayQuestions.length > 0) {
+      if (aIsGateway && !bIsGateway) return -1;
+      if (!aIsGateway && bIsGateway) return 1;
 
-    remainingQuestions = [...gatewayQuestions, ...nonGatewayQuestions];
-  }
+      // Then by order if available
+      if (a.order !== undefined && b.order !== undefined) {
+        return a.order - b.order;
+      }
 
-  // If no questions remain in current module, move to next
-  if (remainingQuestions.length === 0) {
-    const currentModuleIndex = MODULE_SEQUENCE.indexOf(currentModule);
-    if (currentModuleIndex < MODULE_SEQUENCE.length - 1) {
-      const nextModule = MODULE_SEQUENCE[currentModuleIndex + 1];
-      const nextModuleQuestions = getQuestionsForModule(nextModule);
+      // Finally by ID
+      return a.id.localeCompare(b.id);
+    });
 
-      // Use Claude to select first question of new module
-      return selectQuestionWithClaude(
-        nextModuleQuestions,
-        responses,
-        symptomProfile,
-        nextModule,
-        true // isNewModule
-      );
-    } else {
-      // Assessment complete
+    if (moduleQuestions.length > 0) {
+      const selected = moduleQuestions[0];
+      console.log(`Selected question from ${module}:`, {
+        id: selected.id,
+        text: selected.text?.substring(0, 50) + "...",
+      });
+
+      // Return in the expected format
       return {
-        nextQuestion: undefined,
-        reasoning: "All modules completed",
+        nextQuestion: selected,
+        nextModule: module !== currentModule ? module : undefined,
+        questionsInModule: getQuestionsForModule(module).length,
         questionsSaved: 0,
+        reasoning: `Sequential selection: ${module} module, question ${selected.id}`,
       };
     }
   }
 
-  // Check if we should use AI for this decision
-  if (!shouldUseAI(responses, questionsAsked)) {
-    // Use simple algorithm for faster response
-    const decision = fallbackQuestionSelection(
-      remainingQuestions,
-      responses,
-      currentModule,
-      false,
-      clientInfo
-    );
-    decisionCache.set(cacheKey, decision);
-    lastSelectedQuestionId = decision.nextQuestion?.id || null;
-    return decision;
-  }
-
-  // Use Claude to intelligently select next question
-  const aiDecision = await selectQuestionWithClaude(
-    remainingQuestions,
-    responses,
-    { ...symptomProfile, clientInfo },
-    currentModule,
-    false
-  );
-
-  // Cache the decision and track last selected question
-  decisionCache.set(cacheKey, aiDecision);
-  lastSelectedQuestionId = aiDecision.nextQuestion?.id || null;
-
-  return aiDecision;
+  // All questions answered
+  console.log("All questions have been answered");
+  return {
+    nextQuestion: undefined,
+    reasoning: "Assessment complete - all questions answered",
+    questionsSaved: 0,
+  };
 }
 
+// Copy the rest of the original file unchanged...
 async function selectQuestionWithClaude(
   availableQuestions: AssessmentQuestion[],
   responses: ClientResponse[],
@@ -325,8 +299,11 @@ async function selectQuestionWithClaude(
       }));
 
     // Get module context for smart prompt
-    const moduleResponses = responses.filter(r => {
-      const question = getAllQuestions.find(q => q.id === r.questionId);
+    const moduleResponses = responses.filter((r) => {
+      const allQuestions = isEssentialMode()
+        ? getEssentialQuestions()
+        : getAllQuestions;
+      const question = allQuestions.find((q: any) => q.id === r.questionId);
       return question?.module === module;
     });
 
@@ -370,7 +347,8 @@ async function selectQuestionWithClaude(
         const nextModule = MODULE_SEQUENCE[currentModuleIndex + 1];
         return {
           nextModule,
-          reasoning: aiResponse.reasoning || "Module complete - no issues detected",
+          reasoning:
+            aiResponse.reasoning || "Module complete - no issues detected",
           questionsSaved: 0,
         };
       } else {
@@ -452,11 +430,9 @@ function fallbackQuestionSelection(
 
   // Apply gender filtering in fallback too
   if (clientInfo?.gender) {
-
     trulyAvailableQuestions = trulyAvailableQuestions.filter((q) => {
       // Check genderSpecific property first
       if (q.genderSpecific && q.genderSpecific !== clientInfo.gender) {
-
         return false;
       }
 
@@ -470,7 +446,6 @@ function fallbackQuestionSelection(
           questionText.includes("menopause") ||
           questionText.includes("for women:"))
       ) {
-
         return false;
       }
 
@@ -491,14 +466,19 @@ function fallbackQuestionSelection(
   trulyAvailableQuestions = trulyAvailableQuestions.filter((q) => {
     // Check if this question should be skipped based on previous answers
     for (const response of responses) {
-      const allQuestions = getAllQuestions;
-      const answeredQuestion = allQuestions.find(aq => aq.id === response.questionId);
+      const allQuestions = isEssentialMode()
+        ? getEssentialQuestions()
+        : getAllQuestions;
+      const answeredQuestion = allQuestions.find(
+        (aq: any) => aq.id === response.questionId
+      );
       if (answeredQuestion?.conditionalLogic) {
         for (const logic of answeredQuestion.conditionalLogic) {
-          if (logic.action === "skip" && 
-              logic.condition === response.responseValue &&
-              logic.skipQuestions?.includes(q.id)) {
-
+          if (
+            logic.action === "skip" &&
+            logic.condition === response.responseValue &&
+            logic.skipQuestions?.includes(q.id)
+          ) {
             return false; // Skip this question
           }
         }
@@ -529,15 +509,18 @@ function fallbackQuestionSelection(
   let nextQuestion = trulyAvailableQuestions[0];
   let reasoning = "Sequential selection (fallback mode)";
 
-  // Prioritize gateway questions (questions with conditional logic) 
-  const gatewayQuestions = trulyAvailableQuestions.filter(q => q.conditionalLogic && q.conditionalLogic.length > 0);
-  const nonGatewayQuestions = trulyAvailableQuestions.filter(q => !q.conditionalLogic || q.conditionalLogic.length === 0);
+  // Prioritize gateway questions (questions with conditional logic)
+  const gatewayQuestions = trulyAvailableQuestions.filter(
+    (q) => q.conditionalLogic && q.conditionalLogic.length > 0
+  );
+  const nonGatewayQuestions = trulyAvailableQuestions.filter(
+    (q) => !q.conditionalLogic || q.conditionalLogic.length === 0
+  );
 
   if (gatewayQuestions.length > 0) {
     // Select first gateway question
     nextQuestion = gatewayQuestions[0];
     reasoning = `Gateway question selected (${gatewayQuestions.length} gateway questions prioritized)`;
-
   } else if (hasHighSeverity && trulyAvailableQuestions.length > 5) {
     // Skip some basic questions if high severity exists
     const skipCount = Math.min(

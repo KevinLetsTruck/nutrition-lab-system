@@ -25,12 +25,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const storedUser = localStorage.getItem("user");
 
     if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      try {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        // If parsing fails, clear everything
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        setToken(null);
+        setUser(null);
+      }
+    } else {
+      // Explicitly set to null if no token/user found
+      setToken(null);
+      setUser(null);
     }
 
     setIsLoading(false);
   }, []);
+
+  // Listen for storage changes (e.g., logout in another tab)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "token" || e.key === "user") {
+        if (!e.newValue) {
+          // Token or user was removed
+          setToken(null);
+          setUser(null);
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // Also check periodically in case storage event doesn't fire
+    const interval = setInterval(() => {
+      const currentToken = localStorage.getItem("token");
+      const currentUser = localStorage.getItem("user");
+
+      if (!currentToken || !currentUser) {
+        if (token || user) {
+          // Storage was cleared but state still has auth
+          setToken(null);
+          setUser(null);
+        }
+      }
+    }, 1000); // Check every second
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [token, user]);
 
   const login = async (email: string, password: string) => {
     const response = await fetch("/api/auth/login", {
@@ -61,10 +107,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
+    // Clear state first
     setToken(null);
     setUser(null);
+
+    // Clear localStorage
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+
+    // Clear sessionStorage
+    sessionStorage.clear();
+
+    // Navigate to home page
     router.push("/");
   };
 

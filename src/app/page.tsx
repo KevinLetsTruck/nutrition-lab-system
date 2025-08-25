@@ -12,16 +12,7 @@ export default function Home() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
 
-  useEffect(() => {
-    if (!isLoading && user) {
-      // User is already logged in, redirect based on role
-      if (user.role === "CLIENT") {
-        router.push("/assessment/welcome");
-      } else {
-        router.push("/dashboard/clients");
-      }
-    }
-  }, [user, isLoading, router]);
+  // No automatic redirects - let user navigate manually
 
   if (isLoading) {
     return (

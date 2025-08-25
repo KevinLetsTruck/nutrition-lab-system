@@ -1,5 +1,148 @@
 # FNTP Nutrition System - Automation Rules
 
+## 🚨 CRITICAL UI DESIGN RULES - MUST READ FIRST
+
+**NEVER CREATE UI WITH WHITE TEXT ON WHITE BACKGROUNDS**
+
+See [UI_DESIGN_RULES.md](./UI_DESIGN_RULES.md) for complete text visibility standards.
+
+### MANDATORY TEXT VISIBILITY STANDARDS FOR ALL NEW PAGES
+
+**Problem**: Every new test page created has white text on white background issues, wasting hours fixing the same bug repeatedly.
+
+### 1. Always Set Explicit Text Colors
+
+```tsx
+// ❌ NEVER DO THIS:
+<div>Some text</div>
+<Card>Content here</Card>
+
+// ✅ ALWAYS DO THIS:
+<div className="text-gray-900 dark:text-gray-100">Some text</div>
+<Card className="text-gray-900 dark:text-gray-100">Content here</Card>
+```
+
+### 2. Required Base Page Template
+
+Every new page MUST start with this template:
+
+```tsx
+export default function PageName() {
+  return (
+    <div className="min-h-screen bg-white dark:bg-gray-900">
+      <div className="container mx-auto p-4 text-gray-900 dark:text-gray-100">
+        {/* Page content here */}
+      </div>
+    </div>
+  );
+}
+```
+
+### 3. Component Color Classes
+
+For all UI components, include these classes:
+
+```tsx
+// Cards
+<Card className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+
+// Buttons (if not using shadcn defaults)
+<Button className="text-white dark:text-gray-900">
+
+// Inputs
+<Input className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800">
+
+// Labels
+<Label className="text-gray-700 dark:text-gray-300">
+
+// Headers
+<h1 className="text-gray-900 dark:text-gray-100">
+<h2 className="text-gray-800 dark:text-gray-200">
+<h3 className="text-gray-700 dark:text-gray-300">
+
+// Descriptions/Secondary text
+<p className="text-gray-600 dark:text-gray-400">
+
+// Error messages
+<div className="text-red-600 dark:text-red-400">
+
+// Success messages
+<div className="text-green-600 dark:text-green-400">
+
+// Warning messages
+<div className="text-yellow-600 dark:text-yellow-400">
+```
+
+### 4. Table and List Styling
+
+```tsx
+// Tables
+<table className="text-gray-900 dark:text-gray-100">
+  <thead className="text-gray-700 dark:text-gray-300">
+  <tbody className="text-gray-900 dark:text-gray-100">
+
+// Lists
+<ul className="text-gray-900 dark:text-gray-100">
+<ol className="text-gray-900 dark:text-gray-100">
+```
+
+### 5. Background and Border Colors
+
+```tsx
+// Backgrounds
+"bg-white dark:bg-gray-900"; // Main background
+"bg-gray-50 dark:bg-gray-800"; // Secondary background
+"bg-gray-100 dark:bg-gray-700"; // Tertiary background
+
+// Borders
+"border-gray-200 dark:border-gray-700";
+"border-gray-300 dark:border-gray-600";
+```
+
+### 6. Testing Checklist
+
+Before considering any page complete:
+
+- [ ] Test in light mode
+- [ ] Test in dark mode
+- [ ] All text is visible in both modes
+- [ ] No white text on white background
+- [ ] No black text on black background
+- [ ] Hover states have proper contrast
+- [ ] Disabled states are visible but dimmed
+
+### 7. Quick Fix for Existing Pages
+
+If a page has visibility issues, add this to the top-level container:
+
+```tsx
+className = "text-gray-900 dark:text-gray-100 [&_*]:text-inherit";
+```
+
+### ENFORCEMENT
+
+**Every Cursor prompt for new pages MUST include:**
+
+1. Explicit text color classes on ALL text elements
+2. Both light and dark mode classes
+3. The base page template above
+4. A reminder to test in both modes
+
+### EXAMPLE CURSOR PROMPT ADDITION
+
+Add this to EVERY new page creation prompt:
+
+```
+IMPORTANT: Apply text visibility standards:
+- Set explicit text colors: text-gray-900 dark:text-gray-100
+- Include dark mode classes on ALL elements
+- Use bg-white dark:bg-gray-900 for backgrounds
+- Test visibility in both light and dark modes
+- NO white text on white backgrounds
+```
+
+**This rule is NON-NEGOTIABLE and must be applied to EVERY new page, component, or UI element created in this project.**
+
 ## Core Automation Principles
 
 ### 1. **Maximum Automation**
@@ -343,15 +486,18 @@ Unless explicitly told to stop or wait, continue building and implementing. Make
 ### BEFORE Trying to Fix "Broken" Things:
 
 1. **ALWAYS verify the server/service is actually broken:**
+
    ```bash
    # For Next.js apps
    curl http://localhost:3000/api/[endpoint]
    # Check if process is running
    lsof -i :3000
    ```
+
    If it returns data, IT'S WORKING - don't try to "fix" it.
 
 2. **Browser showing errors? Check for CACHE issues first:**
+
    - The error might be from old/cached code
    - Try: Hard refresh (Cmd+Shift+R or Ctrl+Shift+R)
    - Try: Open in incognito/private window
@@ -359,6 +505,7 @@ Unless explicitly told to stop or wait, continue building and implementing. Make
    - The actual code might already be fixed!
 
 3. **Import/Module errors:**
+
    - Check if file actually exists where import expects
    - Look for duplicate directories (e.g., /lib vs /src/lib)
    - Verify if error is current or cached
@@ -373,11 +520,13 @@ Unless explicitly told to stop or wait, continue building and implementing. Make
 ### Time-Wasting Patterns to AVOID:
 
 1. **DON'T add complexity to fix simple problems:**
+
    - Embed test data inline instead of creating new imports
    - Fix issues in place rather than restructuring
    - Make minimal changes to solve problems
 
 2. **DON'T trust browser error messages blindly:**
+
    - They might be cached/old
    - Verify with direct API calls first
    - Check server logs for actual current errors
@@ -390,7 +539,7 @@ Unless explicitly told to stop or wait, continue building and implementing. Make
 ### Debugging Priority Order:
 
 1. **First:** Check if it's actually broken (curl/direct test)
-2. **Second:** Clear cache/use fresh browser session  
+2. **Second:** Clear cache/use fresh browser session
 3. **Third:** Check for simple typos/path issues
 4. **Fourth:** Make minimal code fix
 5. **Last:** Only restart/rebuild if truly necessary
@@ -415,7 +564,8 @@ ls -la [path]
 ```
 
 ### Remember:
+
 - **Most "broken" things are actually working** - it's usually a cache/display issue
-- **Minimal changes are better** - don't restructure to fix simple problems  
+- **Minimal changes are better** - don't restructure to fix simple problems
 - **Verify first, fix second** - don't fix what isn't broken
 - **Time is valuable** - don't spend an hour on a 1-minute problem

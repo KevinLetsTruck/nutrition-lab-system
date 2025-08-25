@@ -66,10 +66,16 @@ export default function AssessmentPage() {
       if (response.ok) {
         const data = await response.json();
 
-        if (data.assessment && data.assessment.status !== "COMPLETED") {
-          // Resume existing assessment
-          setAssessment(data.assessment);
-          await loadNextQuestion(data.assessment.id);
+        if (data.assessment) {
+          if (data.assessment.status === "COMPLETED") {
+            // Redirect to completed page if assessment is already complete
+            router.push("/assessment/complete");
+            return;
+          } else {
+            // Resume existing assessment
+            setAssessment(data.assessment);
+            await loadNextQuestion(data.assessment.id);
+          }
         } else {
           // Create new assessment
           await createNewAssessment();
@@ -272,8 +278,14 @@ export default function AssessmentPage() {
     switch (currentQuestion.type) {
       case "LIKERT_SCALE":
         // Get labels from question options or scale properties
-        const lowLabel = currentQuestion.scaleMin || currentQuestion.options?.[0]?.label || "Strongly Disagree";
-        const highLabel = currentQuestion.scaleMax || currentQuestion.options?.[1]?.label || "Strongly Agree";
+        const lowLabel =
+          currentQuestion.scaleMin ||
+          currentQuestion.options?.[0]?.label ||
+          "Strongly Disagree";
+        const highLabel =
+          currentQuestion.scaleMax ||
+          currentQuestion.options?.[1]?.label ||
+          "Strongly Agree";
 
         return (
           <div className="space-y-6">
@@ -287,7 +299,10 @@ export default function AssessmentPage() {
             >
               <div className="grid grid-cols-5 gap-4">
                 {[1, 2, 3, 4, 5].map((value) => (
-                  <div key={value} className="flex flex-col items-center space-y-2">
+                  <div
+                    key={value}
+                    className="flex flex-col items-center space-y-2"
+                  >
                     <RadioGroupItem
                       value={value.toString()}
                       id={`scale-${value}`}
@@ -437,7 +452,6 @@ export default function AssessmentPage() {
 
               {/* Divider */}
               <div className="h-8 w-px bg-gray-700"></div>
-
             </div>
 
             {/* Center Section - MetabolX Logo */}
@@ -452,7 +466,13 @@ export default function AssessmentPage() {
                   >
                     {/* Define gradient */}
                     <defs>
-                      <linearGradient id="metabolx-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <linearGradient
+                        id="metabolx-gradient"
+                        x1="0%"
+                        y1="0%"
+                        x2="100%"
+                        y2="100%"
+                      >
                         <stop offset="0%" stopColor="#10b981" />
                         <stop offset="50%" stopColor="#84cc16" />
                         <stop offset="100%" stopColor="#f97316" />
@@ -461,20 +481,34 @@ export default function AssessmentPage() {
                     {/* X shape with gradient - modern stylized design */}
                     <g>
                       {/* Top-left to bottom-right diagonal */}
-                      <rect x="15" y="25" width="70" height="15" rx="7.5" 
-                            transform="rotate(45 50 50)" 
-                            fill="url(#metabolx-gradient)" />
+                      <rect
+                        x="15"
+                        y="25"
+                        width="70"
+                        height="15"
+                        rx="7.5"
+                        transform="rotate(45 50 50)"
+                        fill="url(#metabolx-gradient)"
+                      />
                       {/* Top-right to bottom-left diagonal */}
-                      <rect x="15" y="25" width="70" height="15" rx="7.5" 
-                            transform="rotate(-45 50 50)" 
-                            fill="url(#metabolx-gradient)" />
+                      <rect
+                        x="15"
+                        y="25"
+                        width="70"
+                        height="15"
+                        rx="7.5"
+                        transform="rotate(-45 50 50)"
+                        fill="url(#metabolx-gradient)"
+                      />
                     </g>
                   </svg>
                 </div>
                 {/* MetabolX Text */}
                 <div className="text-center">
                   <div className="font-bold text-white text-sm">MetabolX</div>
-                  <div className="text-xs text-gray-400 uppercase tracking-wider">Assessment</div>
+                  <div className="text-xs text-gray-400 uppercase tracking-wider">
+                    Assessment
+                  </div>
                 </div>
               </div>
             </div>
@@ -490,7 +524,12 @@ export default function AssessmentPage() {
                       "Are you sure you want to exit? Your progress is saved."
                     )
                   ) {
-                    logout();
+                    // Clear everything immediately
+                    localStorage.clear();
+                    sessionStorage.clear();
+
+                    // Navigate to logout page
+                    window.location.href = "/logout";
                   }
                 }}
               >
@@ -506,13 +545,20 @@ export default function AssessmentPage() {
       <div className="container mx-auto px-4 py-6">
         <div className="space-y-3">
           <div className="text-gray-300 text-sm">
-            <span className="font-medium">Question {(assessment?.questionsAsked || 0) + 1}</span>
+            <span className="font-medium">
+              Question {(assessment?.questionsAsked || 0) + 1}
+            </span>
           </div>
           {/* Simple progress indicator without specific numbers */}
           <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-gradient-to-r from-brand-green to-brand-orange transition-all duration-500"
-              style={{ width: `${Math.min((assessment?.questionsAsked || 0) * 2, 95)}%` }}
+              style={{
+                width: `${Math.min(
+                  (assessment?.questionsAsked || 0) * 2,
+                  95
+                )}%`,
+              }}
             />
           </div>
         </div>
@@ -523,9 +569,7 @@ export default function AssessmentPage() {
         <Card className="max-w-3xl mx-auto bg-gray-900/50 border-gray-800">
           <CardHeader>
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold">
-                {currentQuestion?.text}
-              </h2>
+              <h2 className="text-xl font-semibold">{currentQuestion?.text}</h2>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">

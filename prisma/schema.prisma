@@ -473,11 +473,11 @@ model ClientResponse {
   responseType    String
   responseValue   Json
   responseText    String?
-  score           Int              @default(0)
   aiReasoning     String?
   confidenceScore Float?
   clinicalFlags   Json?
   answeredAt      DateTime         @default(now())
+  score           Int              @default(0)
   assessment      ClientAssessment @relation(fields: [assessmentId], references: [id])
 
   @@index([assessmentId])
@@ -485,22 +485,41 @@ model ClientResponse {
 }
 
 model AssessmentAnalysis {
-  id               String           @id @default(cuid())
-  assessmentId     String           @unique
-  overallScore     Float
-  nodeScores       Json
-  seedOilScore     Json
-  aiSummary        String
-  keyFindings      Json
-  riskFactors      Json
-  strengths        Json
-  primaryConcerns  Json
-  suggestedLabs    Json
-  labPredictions   Json
-  protocolPriority Json
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  assessment       ClientAssessment @relation(fields: [assessmentId], references: [id])
+  id              String   @id @default(cuid())
+  assessmentId    String   @unique
+  assessment      ClientAssessment @relation(fields: [assessmentId], references: [id])
+  
+  // Analysis results
+  primaryPatterns Json     // Array of identified patterns
+  rootCauses      Json     // Root cause analysis
+  systemPriorities Json    // Ranked body systems
+  keyFindings     Json     // Concerning symptoms, strengths, risks
+  
+  // Recommendations
+  labRecommendations Json  // Essential and additional labs
+  supplementProtocol Json  // Supplements with dosing
+  lifestyleModifications Json // Diet, sleep, stress, exercise
+  treatmentPhases Json     // Phased treatment approach
+  
+  // Legacy fields (keeping for compatibility)
+  overallScore     Float?
+  nodeScores       Json?
+  seedOilScore     Json?
+  aiSummary        String?
+  primaryConcerns  Json?
+  suggestedLabs    Json?
+  labPredictions   Json?
+  protocolPriority Json?
+  riskFactors      Json?
+  strengths        Json?
+  
+  // Metadata
+  analysisVersion String   @default("1.0")
+  analyzedBy      String   @default("claude-3-opus")
+  confidence      Float?   // Overall confidence score
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 enum NoteType {

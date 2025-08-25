@@ -2,9 +2,25 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { allQuestions as questionBank } from "@/../lib/assessment/questions";
 import { assessmentModules } from "@/../lib/assessment/body-system-modules";
+import {
+  getEssentialQuestions,
+  isEssentialMode,
+} from "@/../lib/assessment/essential-questions";
 
 export async function POST() {
   try {
+    // Determine which questions to use based on mode
+    const questionsToUse = isEssentialMode()
+      ? getEssentialQuestions()
+      : questionBank;
+    const templateName = isEssentialMode()
+      ? "Essential Questions Assessment (30 Questions)"
+      : "Functional Medicine Assessment with Seed Oil Integration";
+
+    if (isEssentialMode()) {
+      console.log("📝 Seeding with ESSENTIAL questions mode (30 questions)");
+    }
+
     // Check if template already exists
     const existingTemplate = await prisma.assessmentTemplate.findFirst({
       where: { isActive: true },
@@ -15,7 +31,8 @@ export async function POST() {
       const updated = await prisma.assessmentTemplate.update({
         where: { id: existingTemplate.id },
         data: {
-          questionBank: questionBank,
+          name: templateName,
+          questionBank: questionsToUse,
           modules: assessmentModules,
           scoringRules: {
             seedOilThresholds: {
@@ -38,11 +55,12 @@ export async function POST() {
         success: true,
         message: "Assessment template updated",
         stats: {
-          totalQuestions: questionBank.length,
+          totalQuestions: questionsToUse.length,
           modules: assessmentModules.length,
-          seedOilQuestions: questionBank.filter(
-            (q) => q.category === "SEED_OIL"
+          seedOilQuestions: questionsToUse.filter(
+            (q: any) => q.category === "SEED_OIL"
           ).length,
+          mode: isEssentialMode() ? "essential" : "full",
           templateId: updated.id,
         },
       });
@@ -51,9 +69,9 @@ export async function POST() {
     // Create new assessment template
     const template = await prisma.assessmentTemplate.create({
       data: {
-        name: "Functional Medicine Assessment with Seed Oil Integration",
+        name: templateName,
         version: "1.0.0",
-        questionBank: questionBank,
+        questionBank: questionsToUse,
         modules: assessmentModules,
         scoringRules: {
           seedOilThresholds: {
@@ -75,10 +93,12 @@ export async function POST() {
       success: true,
       message: "Assessment template created successfully",
       stats: {
-        totalQuestions: questionBank.length,
+        totalQuestions: questionsToUse.length,
         modules: assessmentModules.length,
-        seedOilQuestions: questionBank.filter((q) => q.category === "SEED_OIL")
-          .length,
+        seedOilQuestions: questionsToUse.filter(
+          (q: any) => q.category === "SEED_OIL"
+        ).length,
+        mode: isEssentialMode() ? "essential" : "full",
         templateId: template.id,
       },
     });

@@ -20,13 +20,11 @@ export const tokenUtils = {
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("token");
       if (!token) {
-
         return false;
       }
 
       const tokenParts = token.split(".");
       if (tokenParts.length !== 3) {
-        ");
         return false;
       }
 
@@ -39,7 +37,6 @@ export const tokenUtils = {
 
         return true;
       } catch (error) {
-
         return false;
       }
     }

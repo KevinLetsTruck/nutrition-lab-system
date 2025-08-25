@@ -99,7 +99,6 @@ export async function PATCH(
   { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
-
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
@@ -112,7 +111,6 @@ export async function PATCH(
     const user = verifyToken(token);
     const { clientId } = await params;
     const body = await request.json();
-    );
 
     // Allow updating more fields for intake form
     const allowedFields = [
@@ -155,8 +153,6 @@ export async function PATCH(
 
       updateData.healthGoals = healthGoalsData;
     }
-
-    );
 
     const client = await prisma.client.update({
       where: { id: clientId },
@@ -268,9 +264,9 @@ export async function DELETE(
     }
 
     return NextResponse.json(
-      { 
+      {
         error: "Failed to delete client",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );

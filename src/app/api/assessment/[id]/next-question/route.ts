@@ -118,13 +118,16 @@ export async function GET(
     unansweredInModule = unansweredInModule.filter((q) => {
       // Check if this question should be skipped based on previous answers
       for (const response of allResponses) {
-        const answeredQuestion = allQuestions.find(aq => aq.id === response.questionId);
+        const answeredQuestion = allQuestions.find(
+          (aq) => aq.id === response.questionId
+        );
         if (answeredQuestion?.conditionalLogic) {
           for (const logic of answeredQuestion.conditionalLogic) {
-            if (logic.action === "skip" && 
-                logic.condition === response.responseValue &&
-                logic.skipQuestions?.includes(q.id)) {
-
+            if (
+              logic.action === "skip" &&
+              logic.condition === response.responseValue &&
+              logic.skipQuestions?.includes(q.id)
+            ) {
               return false; // Skip this question
             }
           }
@@ -192,9 +195,6 @@ export async function GET(
             );
             // Fallback to linear selection
             nextQuestion = null;
-          } else {
-            `
-            );
           }
         }
       } catch (error) {
@@ -273,13 +273,16 @@ export async function GET(
           moduleQuestions = moduleQuestions.filter((q) => {
             // Check if this question should be skipped based on previous answers
             for (const response of allResponses) {
-              const answeredQuestion = allQuestions.find(aq => aq.id === response.questionId);
+              const answeredQuestion = allQuestions.find(
+                (aq) => aq.id === response.questionId
+              );
               if (answeredQuestion?.conditionalLogic) {
                 for (const logic of answeredQuestion.conditionalLogic) {
-                  if (logic.action === "skip" && 
-                      logic.condition === response.responseValue &&
-                      logic.skipQuestions?.includes(q.id)) {
-
+                  if (
+                    logic.action === "skip" &&
+                    logic.condition === response.responseValue &&
+                    logic.skipQuestions?.includes(q.id)
+                  ) {
                     return false; // Skip this question
                   }
                 }

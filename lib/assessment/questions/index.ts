@@ -17,16 +17,16 @@ import { specialTopicsQuestions } from "./body-systems/special-topics-questions"
 
 // Export all questions combined - BODY SYSTEMS ONLY
 export const allQuestions: AssessmentQuestion[] = [
-  ...neurologicalQuestions,      // 20 questions
-  ...digestiveQuestions,          // 20 questions
-  ...cardiovascularQuestions,    // 28 questions
-  ...respiratoryQuestions,        // 26 questions
-  ...immuneQuestions,             // 29 questions
-  ...musculoskeletalQuestions,   // 28 questions
-  ...endocrineQuestions,          // 30 questions
-  ...integumentaryQuestions,      // 20 questions
-  ...genitourinaryQuestions,      // 25 questions
-  ...specialTopicsQuestions,      // 20 questions
+  ...neurologicalQuestions, // 20 questions
+  ...digestiveQuestions, // 20 questions
+  ...cardiovascularQuestions, // 28 questions
+  ...respiratoryQuestions, // 26 questions
+  ...immuneQuestions, // 29 questions
+  ...musculoskeletalQuestions, // 28 questions
+  ...endocrineQuestions, // 30 questions
+  ...integumentaryQuestions, // 20 questions
+  ...genitourinaryQuestions, // 25 questions
+  ...specialTopicsQuestions, // 20 questions
 ];
 
 // Export modules individually
@@ -55,7 +55,7 @@ export const questionCounts = {
   INTEGUMENTARY: 20,
   GENITOURINARY: 25,
   SPECIAL_TOPICS: 20,
-  TOTAL: 246
+  TOTAL: 246,
 };
 
 // Get questions by body system
@@ -133,7 +133,3 @@ export function getQuestionStats() {
     seedOilCount,
   };
 }
-
-.total,
-  "total questions"
-);

@@ -1,9 +1,19 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { AssessmentQuestion, ClientResponse, ModuleType } from '@/lib/assessment/types';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
+import {
+  AssessmentQuestion,
+  ClientResponse,
+  ModuleType,
+} from "@/lib/assessment/types";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface AssessmentContextType {
   // State
@@ -32,15 +42,22 @@ interface AssessmentContextType {
   setAutoAdvance: (value: boolean) => void;
 }
 
-const AssessmentContext = createContext<AssessmentContextType | undefined>(undefined);
+const AssessmentContext = createContext<AssessmentContextType | undefined>(
+  undefined
+);
 
-export function AssessmentProvider({ children }: { children: React.ReactNode }) {
+export function AssessmentProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const router = useRouter();
 
   // Core state
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
-  const [currentQuestion, setCurrentQuestion] = useState<AssessmentQuestion | null>(null);
-  const [currentModule, setCurrentModule] = useState<ModuleType>('SCREENING');
+  const [currentQuestion, setCurrentQuestion] =
+    useState<AssessmentQuestion | null>(null);
+  const [currentModule, setCurrentModule] = useState<ModuleType>("SCREENING");
   const [responses, setResponses] = useState<ClientResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -54,10 +71,10 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
 
   // Helper to get auth headers
   const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     return {
-      'Content-Type': 'application/json',
-      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
   };
 
@@ -70,107 +87,154 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
         questionsAsked,
         questionsSaved,
         questionsAnsweredInModule,
-        questionsInCurrentModule
+        questionsInCurrentModule,
       };
-      localStorage.setItem('assessment-state', JSON.stringify(state));
+      localStorage.setItem("assessment-state", JSON.stringify(state));
     }
-  }, [assessmentId, currentModule, questionsAsked, questionsSaved, questionsAnsweredInModule, questionsInCurrentModule]);
+  }, [
+    assessmentId,
+    currentModule,
+    questionsAsked,
+    questionsSaved,
+    questionsAnsweredInModule,
+    questionsInCurrentModule,
+  ]);
 
   const startAssessment = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/assessment/start', {
-        method: 'POST',
-        headers: getAuthHeaders()
+      const response = await fetch("/api/assessment/start", {
+        method: "POST",
+        headers: getAuthHeaders(),
       });
 
-      if (!response.ok) throw new Error('Failed to start assessment');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to start assessment");
+      }
 
       const data = await response.json();
 
-      if (data.success) {
-        setAssessmentId(data.data.assessmentId);
-        setCurrentQuestion(data.data.firstQuestion);
-        setCurrentModule(data.data.module || 'SCREENING');
-        setQuestionsAsked(1);
-        setQuestionsSaved(0);
-        setQuestionsAnsweredInModule(0);
-        setQuestionsInCurrentModule(75); // Screening module
+      if (data.success && data.data) {
+        const {
+          assessmentId,
+          firstQuestion,
+          module,
+          questionsAnswered,
+          totalQuestions,
+          resuming,
+        } = data.data;
 
-        toast.success('Assessment started successfully');
+        // Check if assessment is complete
+        if (data.data.complete) {
+          setAssessmentId(assessmentId);
+          setCurrentQuestion(null); // No more questions
+          toast.info("Assessment already completed");
+          return;
+        }
+
+        setAssessmentId(assessmentId);
+        setCurrentQuestion(firstQuestion);
+        setCurrentModule(module || "SCREENING");
+        setQuestionsAsked(questionsAnswered + 1);
+        setQuestionsSaved(questionsAnswered);
+        setQuestionsAnsweredInModule(0);
+        setQuestionsInCurrentModule(totalQuestions);
+
+        if (resuming) {
+          toast.info("Resuming previous assessment");
+        } else {
+          toast.success("Assessment started successfully");
+        }
+
+        // Navigate to the assessment page with the ID
+        if (window.location.pathname.includes("/new")) {
+          router.push(`/assessment/${assessmentId}`);
+        }
       }
     } catch (error) {
-      console.error('Error starting assessment:', error);
-      toast.error('Failed to start assessment');
+      console.error("Error starting assessment:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to start assessment"
+      );
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [router]);
 
-  const submitResponse = useCallback(async (value: any) => {
-    if (!assessmentId || !currentQuestion) return;
+  const submitResponse = useCallback(
+    async (value: any) => {
+      if (!assessmentId || !currentQuestion) return;
 
-    setIsSaving(true);
-    try {
-      const response = await fetch(`/api/assessment/${assessmentId}/response`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          questionId: currentQuestion.id,
-          value,
-          module: currentModule
-        }),
-      });
-
-      if (!response.ok) throw new Error('Failed to submit response');
-
-      const data = await response.json();
-
-      if (data.success) {
-        // Update local state
-        setResponses(prev => [...prev, {
-          id: `response-${Date.now()}`,
-          questionId: currentQuestion.id,
-          questionText: currentQuestion.text,
-          questionModule: currentModule,
-          responseType: currentQuestion.type,
-          responseValue: value,
-          answeredAt: new Date()
-        } as ClientResponse]);
-
-        // Update stats
-        setQuestionsAnsweredInModule(prev => prev + 1);
-
-        if (data.data.nextQuestion) {
-          setCurrentQuestion(data.data.nextQuestion);
-          setQuestionsAsked(prev => prev + 1);
-
-          // Check if module changed
-          if (data.data.module && data.data.module !== currentModule) {
-            setCurrentModule(data.data.module);
-            setQuestionsInCurrentModule(data.data.questionsInModule || 50);
-            setQuestionsAnsweredInModule(0);
-            toast.info(`Moving to ${data.data.module} module`);
+      setIsSaving(true);
+      try {
+        const response = await fetch(
+          `/api/assessment/${assessmentId}/response`,
+          {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({
+              questionId: currentQuestion.id,
+              value,
+              module: currentModule,
+            }),
           }
-        } else {
-          // Assessment complete
-          setCurrentQuestion(null);
-          toast.success('Assessment completed! Generating your analysis...');
-          router.push(`/assessment/${assessmentId}/results`);
-        }
+        );
 
-        // Update questions saved by AI
-        if (data.data.questionsSaved) {
-          setQuestionsSaved(data.data.questionsSaved);
+        if (!response.ok) throw new Error("Failed to submit response");
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Update local state
+          setResponses((prev) => [
+            ...prev,
+            {
+              id: `response-${Date.now()}`,
+              questionId: currentQuestion.id,
+              questionText: currentQuestion.text,
+              questionModule: currentModule,
+              responseType: currentQuestion.type,
+              responseValue: value,
+              answeredAt: new Date(),
+            } as ClientResponse,
+          ]);
+
+          // Update stats
+          setQuestionsAnsweredInModule((prev) => prev + 1);
+
+          if (data.data.nextQuestion) {
+            setCurrentQuestion(data.data.nextQuestion);
+            setQuestionsAsked((prev) => prev + 1);
+
+            // Check if module changed
+            if (data.data.module && data.data.module !== currentModule) {
+              setCurrentModule(data.data.module);
+              setQuestionsInCurrentModule(data.data.questionsInModule || 50);
+              setQuestionsAnsweredInModule(0);
+              toast.info(`Moving to ${data.data.module} module`);
+            }
+          } else {
+            // Assessment complete
+            setCurrentQuestion(null);
+            toast.success("Assessment completed! Generating your analysis...");
+            router.push(`/assessment/${assessmentId}/results`);
+          }
+
+          // Update questions saved by AI
+          if (data.data.questionsSaved) {
+            setQuestionsSaved(data.data.questionsSaved);
+          }
         }
+      } catch (error) {
+        console.error("Error submitting response:", error);
+        toast.error("Failed to save response");
+      } finally {
+        setIsSaving(false);
       }
-    } catch (error) {
-      console.error('Error submitting response:', error);
-      toast.error('Failed to save response');
-    } finally {
-      setIsSaving(false);
-    }
-  }, [assessmentId, currentQuestion, currentModule, router]);
+    },
+    [assessmentId, currentQuestion, currentModule, router]
+  );
 
   const pauseAssessment = useCallback(async () => {
     if (!assessmentId) return;
@@ -178,17 +242,17 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
     setIsLoading(true);
     try {
       const response = await fetch(`/api/assessment/${assessmentId}/pause`, {
-        method: 'POST',
-        headers: getAuthHeaders()
+        method: "POST",
+        headers: getAuthHeaders(),
       });
 
-      if (!response.ok) throw new Error('Failed to pause assessment');
+      if (!response.ok) throw new Error("Failed to pause assessment");
 
-      toast.success('Assessment saved. You can resume anytime.');
-      router.push('/assessments');
+      toast.success("Assessment saved. You can resume anytime.");
+      router.push("/assessments");
     } catch (error) {
-      console.error('Error pausing assessment:', error);
-      toast.error('Failed to pause assessment');
+      console.error("Error pausing assessment:", error);
+      toast.error("Failed to pause assessment");
     } finally {
       setIsLoading(false);
     }
@@ -198,11 +262,11 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
     setIsLoading(true);
     try {
       const response = await fetch(`/api/assessment/${id}/resume`, {
-        method: 'POST',
-        headers: getAuthHeaders()
+        method: "POST",
+        headers: getAuthHeaders(),
       });
 
-      if (!response.ok) throw new Error('Failed to resume assessment');
+      if (!response.ok) throw new Error("Failed to resume assessment");
 
       const data = await response.json();
 
@@ -216,11 +280,11 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
         setQuestionsAnsweredInModule(data.data.questionsAnsweredInModule || 0);
         setQuestionsInCurrentModule(data.data.questionsInCurrentModule || 75);
 
-        toast.success('Assessment resumed');
+        toast.success("Assessment resumed");
       }
     } catch (error) {
-      console.error('Error resuming assessment:', error);
-      toast.error('Failed to resume assessment');
+      console.error("Error resuming assessment:", error);
+      toast.error("Failed to resume assessment");
     } finally {
       setIsLoading(false);
     }
@@ -235,26 +299,26 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
       const lastResponse = responses[responses.length - 1];
 
       const response = await fetch(`/api/assessment/${assessmentId}/previous`, {
-        method: 'POST',
+        method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({
-          lastQuestionId: lastResponse.questionId
+          lastQuestionId: lastResponse.questionId,
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to go to previous question');
+      if (!response.ok) throw new Error("Failed to go to previous question");
 
       const data = await response.json();
 
       if (data.success) {
         // Remove last response
-        setResponses(prev => prev.slice(0, -1));
+        setResponses((prev) => prev.slice(0, -1));
         setCurrentQuestion(data.data.previousQuestion);
-        setQuestionsAnsweredInModule(prev => Math.max(0, prev - 1));
+        setQuestionsAnsweredInModule((prev) => Math.max(0, prev - 1));
       }
     } catch (error) {
-      console.error('Error going to previous question:', error);
-      toast.error('Unable to go back');
+      console.error("Error going to previous question:", error);
+      toast.error("Unable to go back");
     } finally {
       setIsLoading(false);
     }
@@ -297,7 +361,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
 export function useAssessment() {
   const context = useContext(AssessmentContext);
   if (context === undefined) {
-    throw new Error('useAssessment must be used within an AssessmentProvider');
+    throw new Error("useAssessment must be used within an AssessmentProvider");
   }
   return context;
 }
