@@ -45,13 +45,40 @@ model Client {
   lastLoginAt            DateTime?
   password               String?
   rememberToken          String?
-  assessments            Assessment[]
-  clientAssessments      ClientAssessment[]
+  simpleAssessments      SimpleAssessment[]
   statuses               ClientStatus[]
   documents              Document[]
   notes                  Note[]
   protocols              Protocol[]
   medicalDocuments       MedicalDocument[]
+}
+
+model SimpleAssessment {
+  id        String @id @default(cuid())
+  clientId  String
+  status    String @default("in_progress") // "in_progress", "completed"
+  startedAt DateTime @default(now())
+  completedAt DateTime?
+  
+  client    Client @relation(fields: [clientId], references: [id])
+  responses SimpleResponse[]
+  
+  @@index([clientId])
+}
+
+model SimpleResponse {
+  id           String @id @default(cuid())
+  assessmentId String
+  questionId   Int
+  questionText String
+  category     String
+  score        Int    // 1-5 scale
+  answeredAt   DateTime @default(now())
+  
+  assessment   SimpleAssessment @relation(fields: [assessmentId], references: [id])
+  
+  @@index([assessmentId])
+  @@unique([assessmentId, questionId])
 }
 
 model Document {
@@ -97,29 +124,9 @@ model Document {
   @@index([uploadedAt])
 }
 
-model Assessment {
-  id              String     @id @default(cuid())
-  clientId        String
-  assessmentType  String     @default("comprehensive")
-  status          String     @default("in_progress")
-  responses       Json
-  symptomBurden   Json?
-  rootCauses      Json?
-  aiAnalysis      Json?
-  recommendations Json?
-  startedAt       DateTime   @default(now())
-  completedAt     DateTime?
-  client          Client     @relation(fields: [clientId], references: [id])
-  protocols       Protocol[]
-
-  @@index([clientId])
-  @@index([status])
-}
-
 model Protocol {
   id           String      @id @default(cuid())
   clientId     String
-  assessmentId String?
   protocolName String
   status       String      @default("active")
   supplements  Json
@@ -130,7 +137,6 @@ model Protocol {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   completedAt  DateTime?
-  assessment   Assessment? @relation(fields: [assessmentId], references: [id])
   client       Client      @relation(fields: [clientId], references: [id])
 
   @@index([clientId])
@@ -426,102 +432,6 @@ model MedicalProcessingQueue {
   @@map("medical_processing_queue")
 }
 
-model AssessmentTemplate {
-  id                String             @id @default(cuid())
-  name              String             @default("Functional Medicine Assessment v1.0")
-  version           String             @default("1.0.0")
-  questionBank      Json
-  modules           Json
-  scoringRules      Json
-  isActive          Boolean            @default(true)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  clientAssessments ClientAssessment[]
-}
-
-model ClientAssessment {
-  id             String              @id @default(cuid())
-  clientId       String
-  templateId     String
-  currentModule  String              @default("SCREENING")
-  questionsAsked Int                 @default(0)
-  questionsSaved Int                 @default(0)
-  completionRate Float               @default(0)
-  aiContext      Json?
-  symptomProfile Json?
-  seedOilRisk    Json?
-  status         AssessmentStatus    @default(NOT_STARTED)
-  startedAt      DateTime?
-  lastActiveAt   DateTime?
-  completedAt    DateTime?
-  pausedAt       DateTime?
-  analysis       AssessmentAnalysis?
-  client         Client              @relation(fields: [clientId], references: [id])
-  template       AssessmentTemplate  @relation(fields: [templateId], references: [id])
-  responses      ClientResponse[]
-
-  @@index([clientId])
-  @@index([status])
-}
-
-model ClientResponse {
-  id              String           @id @default(cuid())
-  assessmentId    String
-  questionId      String
-  questionText    String
-  questionModule  String
-  responseType    String
-  responseValue   Json
-  responseText    String?
-  aiReasoning     String?
-  confidenceScore Float?
-  clinicalFlags   Json?
-  answeredAt      DateTime         @default(now())
-  score           Int              @default(0)
-  assessment      ClientAssessment @relation(fields: [assessmentId], references: [id])
-
-  @@index([assessmentId])
-  @@index([questionId])
-}
-
-model AssessmentAnalysis {
-  id              String   @id @default(cuid())
-  assessmentId    String   @unique
-  assessment      ClientAssessment @relation(fields: [assessmentId], references: [id])
-  
-  // Analysis results
-  primaryPatterns Json     // Array of identified patterns
-  rootCauses      Json     // Root cause analysis
-  systemPriorities Json    // Ranked body systems
-  keyFindings     Json     // Concerning symptoms, strengths, risks
-  
-  // Recommendations
-  labRecommendations Json  // Essential and additional labs
-  supplementProtocol Json  // Supplements with dosing
-  lifestyleModifications Json // Diet, sleep, stress, exercise
-  treatmentPhases Json     // Phased treatment approach
-  
-  // Legacy fields (keeping for compatibility)
-  overallScore     Float?
-  nodeScores       Json?
-  seedOilScore     Json?
-  aiSummary        String?
-  primaryConcerns  Json?
-  suggestedLabs    Json?
-  labPredictions   Json?
-  protocolPriority Json?
-  riskFactors      Json?
-  strengths        Json?
-  
-  // Metadata
-  analysisVersion String   @default("1.0")
-  analyzedBy      String   @default("claude-3-opus")
-  confidence      Float?   // Overall confidence score
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
 enum NoteType {
   INTERVIEW
   COACHING
@@ -695,12 +605,4 @@ enum MedicalJobStatus {
   COMPLETED
   FAILED
   RETRY
-}
-
-enum AssessmentStatus {
-  NOT_STARTED
-  IN_PROGRESS
-  PAUSED
-  COMPLETED
-  ABANDONED
 }

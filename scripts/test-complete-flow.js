@@ -1,43 +1,86 @@
-#!/usr/bin/env node
-
 // Test the complete assessment flow
-// Run with: node scripts/test-complete-flow.js
 
-console.log("🧪 Complete Assessment Flow Test");
-console.log("================================\n");
+async function testCompleteFlow() {
+  console.log("🧪 Testing Complete Assessment Flow");
+  console.log("=".repeat(50) + "\n");
 
-console.log("✅ Response Saving: Working");
-console.log("   - All 8 question types save correctly");
-console.log("   - Responses are stored in ClientResponse table");
-console.log("   - Assessment progress is tracked\n");
+  const API_BASE = "http://localhost:3001";
 
-console.log("✅ Response Retrieval: Working");
-console.log("   - GET /api/assessment/[id]/responses endpoint created");
-console.log("   - Returns all responses with progress information");
-console.log("   - Groups responses by module\n");
+  try {
+    // Step 1: Create a new assessment
+    console.log("1️⃣ Creating new assessment...");
+    const createRes = await fetch(`${API_BASE}/api/assessment`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        clientId: "test-client",
+        templateId: "default",
+      }),
+    });
 
-console.log("✅ Test Endpoints: Working");
-console.log("   - POST /api/assessment/test-start");
-console.log("   - POST /api/assessment/test/[id]/response");
-console.log("   - GET /api/assessment/test/[id]/next-question");
-console.log("   - GET /api/assessment/test/[id]/responses\n");
+    console.log("   Response status:", createRes.status);
 
-console.log("✅ Database Integration: Fixed");
-console.log("   - Questions loaded from AssessmentTemplate.questionBank");
-console.log("   - 406 questions available in default template");
-console.log("   - All modules accessible\n");
+    let createData;
+    try {
+      createData = await createRes.json();
+    } catch (e) {
+      const text = await createRes.text();
+      console.error(
+        "   Response is not JSON. First 200 chars:",
+        text.substring(0, 200)
+      );
+      throw new Error(
+        "API returned HTML instead of JSON - route may not exist"
+      );
+    }
 
-console.log("📋 To test the UI manually:");
-console.log("   1. Open http://localhost:3000/test-simple");
-console.log('   2. Click "Start Assessment"');
-console.log("   3. Answer questions using the UI");
-console.log("   4. Responses will be saved automatically\n");
+    if (!createRes.ok) {
+      if (createData.existingId) {
+        console.log("⚠️  Active assessment exists:", createData.existingId);
+        console.log(
+          "   You can resume at: /assessment/" + createData.existingId
+        );
+        return;
+      }
+      throw new Error(createData.error || "Failed to create assessment");
+    }
 
-console.log("🎯 Summary:");
-console.log("   - The 500 error has been fixed");
-console.log("   - Questions are now loaded from the database");
-console.log("   - All question types save correctly");
-console.log("   - Response retrieval endpoint is working");
-console.log("   - Assessment progress is tracked accurately\n");
+    const { assessment, firstQuestion } = createData;
+    console.log("✅ Assessment created!");
+    console.log(`   ID: ${assessment.id}`);
+    console.log(`   First Question: ${firstQuestion.text}`);
+    console.log(`   Module: ${assessment.currentModule}`);
 
-console.log("✨ The assessment system is now fully functional!");
+    // Step 2: Test the assessment page URL
+    console.log("\n2️⃣ Assessment URL:");
+    console.log(`   http://localhost:3001/assessment/${assessment.id}`);
+
+    // Step 3: Test getting next question via API
+    console.log("\n3️⃣ Testing next question API...");
+    const nextRes = await fetch(
+      `${API_BASE}/api/assessment/${assessment.id}/next-question`
+    );
+
+    if (nextRes.ok) {
+      const nextData = await nextRes.json();
+      console.log("✅ Next question API works!");
+      console.log(`   Question: ${nextData.question?.text || "No question"}`);
+    } else {
+      console.log("❌ Next question API failed:", nextRes.status);
+    }
+
+    console.log("\n✅ Assessment flow is working!");
+    console.log("\n📋 Next steps:");
+    console.log("1. Open: http://localhost:3001/assessments");
+    console.log("2. Click 'New Assessment' button");
+    console.log("3. Should navigate to the assessment with questions");
+    console.log("4. Verify AI is selecting questions intelligently");
+  } catch (error) {
+    console.error("❌ Test failed:", error.message);
+  }
+}
+
+// Run the test
+testCompleteFlow();

@@ -16,7 +16,7 @@ export default function AuthLayout({
     if (!isLoading && user) {
       // User is already logged in, redirect based on role
       if (user.role === "CLIENT") {
-        router.push("/assessment/welcome");
+        router.push("/dashboard");
       } else {
         router.push("/dashboard/clients");
       }

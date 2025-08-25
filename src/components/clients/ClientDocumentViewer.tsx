@@ -156,10 +156,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
 
   // Debug component lifecycle
   React.useEffect(() => {
-
-    return () => {
-
-    };
+    return () => {};
   }, [clientId]);
 
   // Delete state debugging removed - now handled by parent
@@ -209,7 +206,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
     });
 
   const handleDocumentClick = (doc: ClientDocument) => {
-     // Debug log
+    // Debug log
 
     // Check if document has a URL (try fileUrl first, then url as fallback)
     let documentUrl = doc.fileUrl || doc.url;
@@ -218,11 +215,9 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
     if (!documentUrl) {
       // For local development, assume documents are served from /uploads
       documentUrl = `/uploads/${doc.fileName}`;
-
     }
 
     if (documentUrl) {
-
       setSelectedDocument({
         id: doc.id,
         name: doc.fileName,
@@ -234,7 +229,6 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
       });
       setViewerOpen(true);
     } else {
-
       alert(
         "Document file not available. Please check if the file was uploaded correctly."
       );
@@ -308,9 +302,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
   };
 
   const handleDeleteClick = (doc: ClientDocument) => {
-
     if (onDelete) {
-
       onDelete(doc.id);
     } else {
       console.error("❌ No onDelete handler provided");
@@ -441,7 +433,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        window.location.href = `/dashboard/assessment-entry/${doc.id}`;
+                        // Assessment entry removed
                       }}
                       className="p-1 hover:bg-opacity-20 rounded transition-colors"
                       title="Manual Data Entry"
@@ -745,7 +737,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.location.href = `/dashboard/assessment-entry/${doc.id}`;
+                          // Assessment entry removed
                         }}
                         className="p-1 hover:bg-white/20 rounded"
                         title="Manual Data Entry"
@@ -897,7 +889,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.location.href = `/dashboard/assessment-entry/${doc.id}`;
+                          // Assessment entry removed
                         }}
                         className="p-1 hover:bg-gray-200 rounded"
                         title="Manual Data Entry"
