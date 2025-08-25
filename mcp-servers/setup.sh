@@ -67,6 +67,17 @@ else
     exit 1
 fi
 
+# Data Analysis Server
+echo -e "${YELLOW}📦 Installing Data Analysis Server dependencies...${NC}"
+cd "$MCP_ROOT/data-analysis-server"
+npm install > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}✅ Data Analysis Server ready${NC}"
+else
+    echo -e "${RED}❌ Failed to install Data Analysis Server${NC}"
+    exit 1
+fi
+
 # Railway MCP Server
 echo ""
 echo -e "${BLUE}=== Installing Railway MCP Server ===${NC}"
@@ -104,6 +115,7 @@ echo "   ✅ Memory - Store project context"
 echo "   ✅ Browser - Web automation"
 echo "   🆕 Terminal - Run commands, npm scripts"
 echo "   🆕 Database - Direct PostgreSQL access"
+echo "   🆕 Data Analysis - Statistical analysis, pattern recognition"
 echo "   🆕 Railway - Deploy and manage production"
 echo ""
 echo -e "${GREEN}Claude will now have full development autonomy!${NC} 🚀"
