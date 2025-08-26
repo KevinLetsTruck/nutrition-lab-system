@@ -169,7 +169,7 @@ export async function GET(
     };
 
     // Create ZIP archive
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
       const archive = archiver("zip", { zlib: { level: 9 } });
       const chunks: Buffer[] = [];
 
@@ -251,20 +251,23 @@ export async function GET(
           // If LOCAL failed or storage is S3, try S3 download
           if (doc.storageProvider === "S3" || doc.fileUrl?.startsWith("http")) {
             console.log(`☁️ S3 file detected: ${doc.fileUrl}`);
-            
+
             try {
               // Attempt to download from S3
-              const s3Result = await medicalDocStorage.downloadFileByUrl(doc.fileUrl);
-              
+              const s3Result = await medicalDocStorage.downloadFileByUrl(
+                doc.fileUrl
+              );
+
               // Add the actual file to the ZIP
-              archive.append(s3Result.buffer, { name: `documents/${fileName}` });
+              archive.append(s3Result.buffer, {
+                name: `documents/${fileName}`,
+              });
               copiedDocuments++;
               console.log(`✅ S3 file downloaded and added: ${fileName}`);
               continue;
-              
             } catch (s3Error) {
               console.warn(`❌ S3 download failed for ${fileName}:`, s3Error);
-              
+
               // Fallback: Add informative placeholder
               const placeholderContent = `This document could not be downloaded from S3.
 
@@ -276,7 +279,7 @@ Document Details:
 - Storage: S3
 - File URL: ${doc.fileUrl}
 
-Error: ${s3Error instanceof Error ? s3Error.message : 'Unknown S3 error'}
+Error: ${s3Error instanceof Error ? s3Error.message : "Unknown S3 error"}
 
 To access this document:
 1. Check S3 bucket permissions
