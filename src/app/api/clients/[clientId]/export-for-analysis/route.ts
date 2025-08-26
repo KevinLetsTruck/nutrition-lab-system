@@ -169,70 +169,142 @@ export async function GET(
 
     // Create ZIP archive
     return new Promise((resolve) => {
-      const archive = archiver('zip', { zlib: { level: 9 } });
+      const archive = archiver("zip", { zlib: { level: 9 } });
       const chunks: Buffer[] = [];
 
-      archive.on('data', (chunk) => {
+      archive.on("data", (chunk) => {
         chunks.push(chunk);
       });
 
-      archive.on('end', () => {
+      archive.on("end", () => {
         const zipBuffer = Buffer.concat(chunks);
-        
+
         // Create response with ZIP file download
         const response = new NextResponse(zipBuffer, {
           status: 200,
           headers: {
-            'Content-Type': 'application/zip',
-            'Content-Disposition': `attachment; filename="${zipFilename}"`,
-            'Content-Length': zipBuffer.length.toString(),
+            "Content-Type": "application/zip",
+            "Content-Disposition": `attachment; filename="${zipFilename}"`,
+            "Content-Length": zipBuffer.length.toString(),
           },
         });
-        
+
         resolve(response);
       });
 
-      archive.on('error', (err) => {
-        console.error('Archive error:', err);
-        resolve(NextResponse.json({ error: 'Failed to create export archive' }, { status: 500 }));
+      archive.on("error", (err) => {
+        console.error("Archive error:", err);
+        resolve(
+          NextResponse.json(
+            { error: "Failed to create export archive" },
+            { status: 500 }
+          )
+        );
       });
 
       // Add JSON files to ZIP
-      archive.append(JSON.stringify(exportData, null, 2), { name: 'client-data.json' });
-      
+      archive.append(JSON.stringify(exportData, null, 2), {
+        name: "client-data.json",
+      });
+
       // Generate and add summary
       const summaryContent = generateClientSummary(exportData);
-      archive.append(summaryContent, { name: 'client-summary.md' });
-      
+      archive.append(summaryContent, { name: "client-summary.md" });
+
       // Add metadata
-      archive.append(JSON.stringify(exportData.exportMetadata, null, 2), { name: 'export-metadata.json' });
+      archive.append(JSON.stringify(exportData.exportMetadata, null, 2), {
+        name: "export-metadata.json",
+      });
 
       // Add document files (if they exist)
       let copiedDocuments = 0;
-      console.log(`🔍 Processing ${clientData.documents.length} documents for export...`);
-      
+      const skippedDocuments = [];
+      console.log(
+        `🔍 Processing ${clientData.documents.length} documents for export...`
+      );
+
       for (const doc of clientData.documents) {
         try {
           console.log(`📄 Processing document: ${doc.fileName}`);
-          console.log(`📁 FileUrl from DB: ${doc.fileUrl}`);
-          
-          const sourcePath = path.join(process.cwd(), "public", doc.fileUrl);
-          console.log(`🔍 Looking for file at: ${sourcePath}`);
-          console.log(`✅ File exists: ${fs.existsSync(sourcePath)}`);
-          
-          if (fs.existsSync(sourcePath)) {
-            archive.file(sourcePath, { name: `documents/${doc.fileName}` });
-            copiedDocuments++;
-            console.log(`✅ Added document to ZIP: ${doc.fileName}`);
-          } else {
-            console.warn(`❌ File not found: ${sourcePath}`);
+          console.log(`📁 FileUrl: ${doc.fileUrl}`);
+          console.log(`🗄️ Storage Provider: ${doc.storageProvider || 'LOCAL'}`);
+
+          let fileBuffer = null;
+          let fileName = doc.fileName;
+
+          // Try LOCAL storage first
+          if (!doc.storageProvider || doc.storageProvider === 'LOCAL') {
+            const sourcePath = path.join(process.cwd(), "public", doc.fileUrl);
+            console.log(`🔍 Checking local file: ${sourcePath}`);
+            
+            if (fs.existsSync(sourcePath)) {
+              console.log(`✅ Local file found: ${fileName}`);
+              archive.file(sourcePath, { name: `documents/${fileName}` });
+              copiedDocuments++;
+              continue;
+            } else {
+              console.warn(`❌ Local file not found: ${sourcePath}`);
+            }
           }
+
+          // If LOCAL failed or storage is S3, try S3
+          if (doc.storageProvider === 'S3' || doc.fileUrl?.startsWith('http')) {
+            console.log(`☁️ S3 file detected: ${doc.fileUrl}`);
+            // For now, add a placeholder file indicating S3 storage
+            const placeholderContent = `This document is stored in S3 and cannot be downloaded in this export.
+
+Document Details:
+- Name: ${doc.fileName}
+- Type: ${doc.fileType}
+- Size: ${doc.fileSize} bytes
+- Uploaded: ${doc.uploadedAt}
+- Storage: S3
+
+To access this document, please use the application interface or implement S3 download functionality.`;
+            
+            archive.append(placeholderContent, { 
+              name: `documents/${fileName.replace('.pdf', '.txt')}` 
+            });
+            console.log(`📝 Added S3 placeholder for: ${fileName}`);
+            copiedDocuments++;
+            continue;
+          }
+
+          // If we get here, document couldn't be processed
+          skippedDocuments.push(fileName);
+          console.warn(`⚠️ Skipped document: ${fileName} (not found)`);
+
         } catch (error) {
-          console.error(`❌ Failed to add document ${doc.fileName}:`, error);
+          console.error(`❌ Failed to process document ${doc.fileName}:`, error);
+          skippedDocuments.push(doc.fileName);
         }
       }
-      
-      console.log(`📊 Total documents copied: ${copiedDocuments}/${clientData.documents.length}`);
+
+      // Add summary of skipped documents if any
+      if (skippedDocuments.length > 0) {
+        const skippedSummary = `The following documents could not be included in this export:
+
+${skippedDocuments.map(name => `- ${name}`).join('\n')}
+
+Possible reasons:
+- Files were lost during server deployment (ephemeral file system)
+- Documents are stored in external storage (S3) without download access
+- File corruption or permission issues
+
+To recover these documents:
+1. Re-upload them to the client record
+2. Contact support for S3 file recovery
+3. Check the original source files`;
+
+        archive.append(skippedSummary, { name: 'missing-documents.txt' });
+        console.log(`📋 Added missing documents summary (${skippedDocuments.length} files)`);
+      }
+
+      console.log(
+        `📊 Export summary: ${copiedDocuments}/${clientData.documents.length} documents processed`
+      );
+      console.log(`✅ Successfully exported: ${copiedDocuments}`);
+      console.log(`⚠️ Skipped: ${skippedDocuments.length}`);
 
       // Finalize the archive
       archive.finalize();
