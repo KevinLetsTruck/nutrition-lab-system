@@ -28,6 +28,7 @@ import DocumentUploadModal from "@/components/documents/DocumentUploadModal";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
+import { ExportClientButton } from "@/components/clients/ExportClientButton";
 
 // Dynamically import SimplePDFViewer with SSR disabled
 const SimplePDFViewer = dynamic(
@@ -885,11 +886,29 @@ export default function ClientDetailPage() {
                 </div>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-400">Client since</div>
-              <div className="text-lg text-white">Aug 25, 2025</div>
-              <div className="text-green-400 text-sm font-medium">
-                ✓ Scheduled
+            <div className="text-right space-y-3">
+              <div>
+                <div className="text-sm text-gray-400">Client since</div>
+                <div className="text-lg text-white">Aug 25, 2025</div>
+                <div className="text-green-400 text-sm font-medium">
+                  ✓ Scheduled
+                </div>
+              </div>
+
+              {/* Export Button */}
+              <div className="flex gap-2">
+                <Link href={`/dashboard/clients/${client.id}/edit`}>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Edit className="w-4 h-4" />
+                    Edit
+                  </Button>
+                </Link>
+                <ExportClientButton
+                  clientId={client.id}
+                  clientName={`${client.firstName} ${client.lastName}`}
+                  variant="secondary"
+                  size="sm"
+                />
               </div>
             </div>
           </div>

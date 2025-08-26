@@ -1,0 +1,395 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { verifyAuthToken } from "@/lib/auth";
+import fs from "fs";
+import path from "path";
+import os from "os";
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ clientId: string }> }
+) {
+  try {
+    // Authenticate user
+    const authUser = await verifyAuthToken(request);
+    if (!authUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { clientId } = await params;
+
+    // Fetch complete client data from all 5 main tables
+    const clientData = await prisma.client.findUnique({
+      where: { id: clientId },
+      include: {
+        // SimpleAssessment data
+        simpleAssessments: {
+          include: {
+            responses: true,
+          },
+          orderBy: { startedAt: "desc" },
+        },
+        // Document data with analysis
+        documents: {
+          include: {
+            DocumentAnalysis: true,
+            LabValue: true,
+          },
+          orderBy: { uploadedAt: "desc" },
+        },
+        // Clinical notes
+        notes: {
+          orderBy: { createdAt: "desc" },
+        },
+        // Treatment protocols
+        protocols: {
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
+
+    if (!clientData) {
+      return NextResponse.json({ error: "Client not found" }, { status: 404 });
+    }
+
+    // Create export directory structure
+    const homeDir = os.homedir();
+    const exportBaseDir = path.join(homeDir, "FNTP-Client-Analysis");
+    const clientName = `${clientData.firstName}-${clientData.lastName}`;
+    const timestamp = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    const clientExportDir = path.join(
+      exportBaseDir,
+      `${clientName}-${timestamp}`
+    );
+    const documentsDir = path.join(clientExportDir, "documents");
+
+    // Ensure directories exist
+    fs.mkdirSync(clientExportDir, { recursive: true });
+    fs.mkdirSync(documentsDir, { recursive: true });
+
+    // Prepare structured client data
+    const exportData = {
+      client: {
+        id: clientData.id,
+        name: `${clientData.firstName} ${clientData.lastName}`,
+        email: clientData.email,
+        phone: clientData.phone,
+        dateOfBirth: clientData.dateOfBirth,
+        gender: clientData.gender,
+        isTruckDriver: clientData.isTruckDriver,
+        dotNumber: clientData.dotNumber,
+        cdlNumber: clientData.cdlNumber,
+        status: clientData.status,
+        healthGoals: clientData.healthGoals,
+        medications: clientData.medications,
+        conditions: clientData.conditions,
+        allergies: clientData.allergies,
+        createdAt: clientData.createdAt,
+        lastVisit: clientData.lastVisit,
+      },
+      assessments: clientData.simpleAssessments.map((assessment) => ({
+        id: assessment.id,
+        status: assessment.status,
+        startedAt: assessment.startedAt,
+        completedAt: assessment.completedAt,
+        responses: assessment.responses.map((response) => ({
+          questionId: response.questionId,
+          questionText: response.questionText,
+          category: response.category,
+          score: response.score,
+          answeredAt: response.answeredAt,
+        })),
+        totalQuestions: assessment.responses.length,
+        averageScore:
+          assessment.responses.length > 0
+            ? assessment.responses.reduce((sum, r) => sum + r.score, 0) /
+              assessment.responses.length
+            : 0,
+      })),
+      documents: clientData.documents.map((doc) => ({
+        id: doc.id,
+        fileName: doc.fileName,
+        fileType: doc.fileType,
+        uploadedAt: doc.uploadedAt,
+        extractedText: doc.extractedText,
+        aiAnalysis: doc.aiAnalysis,
+        documentType: doc.documentType,
+        labType: doc.labType,
+        analysisStatus: doc.analysisStatus,
+        analysis: doc.DocumentAnalysis.map((analysis) => ({
+          analysisType: analysis.analysisType,
+          patterns: analysis.patterns,
+          findings: analysis.findings,
+          criticalValues: analysis.criticalValues,
+          recommendations: analysis.recommendations,
+          confidence: analysis.confidence,
+          createdAt: analysis.createdAt,
+        })),
+        labValues: doc.LabValue.map((lab) => ({
+          testName: lab.testName,
+          value: lab.value,
+          unit: lab.unit,
+          flag: lab.flag,
+          isOutOfRange: lab.isOutOfRange,
+          isCritical: lab.isCritical,
+          severity: lab.severity,
+          category: lab.category,
+          collectionDate: lab.collectionDate,
+        })),
+      })),
+      notes: clientData.notes.map((note) => ({
+        id: note.id,
+        noteType: note.noteType,
+        title: note.title,
+        chiefComplaints: note.chiefComplaints,
+        healthHistory: note.healthHistory,
+        currentMedications: note.currentMedications,
+        goals: note.goals,
+        protocolAdjustments: note.protocolAdjustments,
+        complianceNotes: note.complianceNotes,
+        progressMetrics: note.progressMetrics,
+        nextSteps: note.nextSteps,
+        generalNotes: note.generalNotes,
+        isImportant: note.isImportant,
+        followUpNeeded: note.followUpNeeded,
+        createdAt: note.createdAt,
+      })),
+      protocols: clientData.protocols.map((protocol) => ({
+        id: protocol.id,
+        protocolName: protocol.protocolName,
+        status: protocol.status,
+        supplements: protocol.supplements,
+        dietary: protocol.dietary,
+        lifestyle: protocol.lifestyle,
+        timeline: protocol.timeline,
+        metrics: protocol.metrics,
+        createdAt: protocol.createdAt,
+        completedAt: protocol.completedAt,
+      })),
+      exportMetadata: {
+        exportedAt: new Date(),
+        exportedBy: authUser.email,
+        version: "1.0.0",
+        totalAssessments: clientData.simpleAssessments.length,
+        totalDocuments: clientData.documents.length,
+        totalNotes: clientData.notes.length,
+        totalProtocols: clientData.protocols.length,
+      },
+    };
+
+    // Write client-data.json
+    const clientDataPath = path.join(clientExportDir, "client-data.json");
+    fs.writeFileSync(clientDataPath, JSON.stringify(exportData, null, 2));
+
+    // Generate human-readable summary
+    const summaryContent = generateClientSummary(exportData);
+    const summaryPath = path.join(clientExportDir, "client-summary.md");
+    fs.writeFileSync(summaryPath, summaryContent);
+
+    // Write export metadata
+    const metadataPath = path.join(clientExportDir, "export-metadata.json");
+    fs.writeFileSync(
+      metadataPath,
+      JSON.stringify(exportData.exportMetadata, null, 2)
+    );
+
+    // Copy document files (if they exist locally)
+    const copiedDocuments = [];
+    for (const doc of clientData.documents) {
+      try {
+        // Assuming documents are stored in public/uploads/
+        const sourcePath = path.join(process.cwd(), "public", doc.fileUrl);
+        if (fs.existsSync(sourcePath)) {
+          const destPath = path.join(documentsDir, doc.fileName);
+          fs.copyFileSync(sourcePath, destPath);
+          copiedDocuments.push(doc.fileName);
+        }
+      } catch (error) {
+        console.error(`Failed to copy document ${doc.fileName}:`, error);
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Client data exported successfully",
+      exportPath: clientExportDir,
+      summary: {
+        clientName: `${clientData.firstName} ${clientData.lastName}`,
+        totalAssessments: clientData.simpleAssessments.length,
+        totalDocuments: clientData.documents.length,
+        totalNotes: clientData.notes.length,
+        totalProtocols: clientData.protocols.length,
+        copiedDocuments: copiedDocuments.length,
+        exportedFiles: [
+          "client-data.json",
+          "client-summary.md",
+          "export-metadata.json",
+          `documents/ (${copiedDocuments.length} files)`,
+        ],
+      },
+    });
+  } catch (error) {
+    console.error("Export error:", error);
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Export failed",
+        details: error instanceof Error ? error.stack : "Unknown error",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+function generateClientSummary(data: any): string {
+  const client = data.client;
+  const assessments = data.assessments;
+  const documents = data.documents;
+  const notes = data.notes;
+  const protocols = data.protocols;
+
+  return `# Client Analysis Summary: ${client.name}
+
+## Client Overview
+- **Name:** ${client.name}
+- **Email:** ${client.email}
+- **Phone:** ${client.phone}
+- **Date of Birth:** ${
+    client.dateOfBirth
+      ? new Date(client.dateOfBirth).toLocaleDateString()
+      : "Not provided"
+  }
+- **Gender:** ${client.gender || "Not specified"}
+- **Commercial Driver:** ${client.isTruckDriver ? "Yes" : "No"}
+- **Status:** ${client.status}
+- **Last Visit:** ${
+    client.lastVisit
+      ? new Date(client.lastVisit).toLocaleDateString()
+      : "No previous visits"
+  }
+
+## Health Goals
+${
+  client.healthGoals
+    ? JSON.stringify(client.healthGoals, null, 2)
+    : "No health goals specified"
+}
+
+## Current Medications
+${
+  client.medications
+    ? JSON.stringify(client.medications, null, 2)
+    : "No medications listed"
+}
+
+## Medical Conditions
+${
+  client.conditions
+    ? JSON.stringify(client.conditions, null, 2)
+    : "No conditions listed"
+}
+
+## Allergies
+${
+  client.allergies
+    ? JSON.stringify(client.allergies, null, 2)
+    : "No allergies listed"
+}
+
+## Assessment Summary
+- **Total Assessments:** ${assessments.length}
+${assessments
+  .map(
+    (assessment) => `
+### Assessment (${assessment.startedAt})
+- **Status:** ${assessment.status}
+- **Total Questions:** ${assessment.totalQuestions}
+- **Average Score:** ${assessment.averageScore.toFixed(1)}/5.0
+- **Completed:** ${
+      assessment.completedAt
+        ? new Date(assessment.completedAt).toLocaleDateString()
+        : "In progress"
+    }
+`
+  )
+  .join("")}
+
+## Document Summary
+- **Total Documents:** ${documents.length}
+${documents
+  .map(
+    (doc) => `
+### ${doc.fileName}
+- **Type:** ${doc.documentType} ${doc.labType ? `(${doc.labType})` : ""}
+- **Uploaded:** ${new Date(doc.uploadedAt).toLocaleDateString()}
+- **Analysis Status:** ${doc.analysisStatus}
+- **Lab Values:** ${doc.labValues.length} values extracted
+${
+  doc.labValues.length > 0
+    ? `
+  **Critical Values:**
+  ${doc.labValues
+    .filter((lab) => lab.isCritical)
+    .map(
+      (lab) => `
+  - **${lab.testName}:** ${lab.value} ${lab.unit} (${lab.flag})`
+    )
+    .join("")}
+`
+    : ""
+}
+`
+  )
+  .join("")}
+
+## Clinical Notes Summary
+- **Total Notes:** ${notes.length}
+${notes
+  .map(
+    (note) => `
+### ${note.noteType} Note - ${new Date(note.createdAt).toLocaleDateString()}
+${note.title ? `**Title:** ${note.title}` : ""}
+${note.chiefComplaints ? `**Chief Complaints:** ${note.chiefComplaints}` : ""}
+${note.nextSteps ? `**Next Steps:** ${note.nextSteps}` : ""}
+${note.followUpNeeded ? "**⚠️ Follow-up Required**" : ""}
+`
+  )
+  .join("")}
+
+## Treatment Protocols
+- **Total Protocols:** ${protocols.length}
+${protocols
+  .map(
+    (protocol) => `
+### ${protocol.protocolName}
+- **Status:** ${protocol.status}
+- **Created:** ${new Date(protocol.createdAt).toLocaleDateString()}
+- **Supplements:** ${
+      typeof protocol.supplements === "object"
+        ? Object.keys(protocol.supplements).length + " items"
+        : "Not specified"
+    }
+- **Dietary Guidelines:** ${
+      typeof protocol.dietary === "object"
+        ? Object.keys(protocol.dietary).length + " items"
+        : "Not specified"
+    }
+- **Lifestyle Changes:** ${
+      typeof protocol.lifestyle === "object"
+        ? Object.keys(protocol.lifestyle).length + " items"
+        : "Not specified"
+    }
+`
+  )
+  .join("")}
+
+## Export Information
+- **Exported On:** ${new Date().toLocaleDateString()}
+- **Export Version:** 1.0.0
+- **Data Completeness:** ${
+    assessments.length + documents.length + notes.length + protocols.length
+  } total records
+
+---
+*This summary was automatically generated from the FNTP assessment system.*
+`;
+}
