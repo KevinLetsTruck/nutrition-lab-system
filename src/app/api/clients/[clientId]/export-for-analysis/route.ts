@@ -4,6 +4,7 @@ import { verifyAuthToken } from "@/lib/auth";
 import fs from "fs";
 import path from "path";
 import archiver from "archiver";
+import { medicalDocStorage } from "@/lib/medical/storage-service";
 
 export async function GET(
   request: NextRequest,
@@ -227,16 +228,16 @@ export async function GET(
         try {
           console.log(`📄 Processing document: ${doc.fileName}`);
           console.log(`📁 FileUrl: ${doc.fileUrl}`);
-          console.log(`🗄️ Storage Provider: ${doc.storageProvider || 'LOCAL'}`);
+          console.log(`🗄️ Storage Provider: ${doc.storageProvider || "LOCAL"}`);
 
           let fileBuffer = null;
           let fileName = doc.fileName;
 
           // Try LOCAL storage first
-          if (!doc.storageProvider || doc.storageProvider === 'LOCAL') {
+          if (!doc.storageProvider || doc.storageProvider === "LOCAL") {
             const sourcePath = path.join(process.cwd(), "public", doc.fileUrl);
             console.log(`🔍 Checking local file: ${sourcePath}`);
-            
+
             if (fs.existsSync(sourcePath)) {
               console.log(`✅ Local file found: ${fileName}`);
               archive.file(sourcePath, { name: `documents/${fileName}` });
@@ -247,11 +248,25 @@ export async function GET(
             }
           }
 
-          // If LOCAL failed or storage is S3, try S3
-          if (doc.storageProvider === 'S3' || doc.fileUrl?.startsWith('http')) {
+          // If LOCAL failed or storage is S3, try S3 download
+          if (doc.storageProvider === "S3" || doc.fileUrl?.startsWith("http")) {
             console.log(`☁️ S3 file detected: ${doc.fileUrl}`);
-            // For now, add a placeholder file indicating S3 storage
-            const placeholderContent = `This document is stored in S3 and cannot be downloaded in this export.
+            
+            try {
+              // Attempt to download from S3
+              const s3Result = await medicalDocStorage.downloadFileByUrl(doc.fileUrl);
+              
+              // Add the actual file to the ZIP
+              archive.append(s3Result.buffer, { name: `documents/${fileName}` });
+              copiedDocuments++;
+              console.log(`✅ S3 file downloaded and added: ${fileName}`);
+              continue;
+              
+            } catch (s3Error) {
+              console.warn(`❌ S3 download failed for ${fileName}:`, s3Error);
+              
+              // Fallback: Add informative placeholder
+              const placeholderContent = `This document could not be downloaded from S3.
 
 Document Details:
 - Name: ${doc.fileName}
@@ -259,23 +274,33 @@ Document Details:
 - Size: ${doc.fileSize} bytes
 - Uploaded: ${doc.uploadedAt}
 - Storage: S3
+- File URL: ${doc.fileUrl}
 
-To access this document, please use the application interface or implement S3 download functionality.`;
-            
-            archive.append(placeholderContent, { 
-              name: `documents/${fileName.replace('.pdf', '.txt')}` 
-            });
-            console.log(`📝 Added S3 placeholder for: ${fileName}`);
-            copiedDocuments++;
-            continue;
+Error: ${s3Error instanceof Error ? s3Error.message : 'Unknown S3 error'}
+
+To access this document:
+1. Check S3 bucket permissions
+2. Verify AWS credentials are configured
+3. Use the application interface to access the file
+4. Contact support for S3 file recovery`;
+
+              archive.append(placeholderContent, {
+                name: `documents/${fileName.replace(".pdf", ".txt")}`,
+              });
+              console.log(`📝 Added S3 error placeholder for: ${fileName}`);
+              copiedDocuments++;
+              continue;
+            }
           }
 
           // If we get here, document couldn't be processed
           skippedDocuments.push(fileName);
           console.warn(`⚠️ Skipped document: ${fileName} (not found)`);
-
         } catch (error) {
-          console.error(`❌ Failed to process document ${doc.fileName}:`, error);
+          console.error(
+            `❌ Failed to process document ${doc.fileName}:`,
+            error
+          );
           skippedDocuments.push(doc.fileName);
         }
       }
@@ -284,7 +309,7 @@ To access this document, please use the application interface or implement S3 do
       if (skippedDocuments.length > 0) {
         const skippedSummary = `The following documents could not be included in this export:
 
-${skippedDocuments.map(name => `- ${name}`).join('\n')}
+${skippedDocuments.map((name) => `- ${name}`).join("\n")}
 
 Possible reasons:
 - Files were lost during server deployment (ephemeral file system)
@@ -296,8 +321,10 @@ To recover these documents:
 2. Contact support for S3 file recovery
 3. Check the original source files`;
 
-        archive.append(skippedSummary, { name: 'missing-documents.txt' });
-        console.log(`📋 Added missing documents summary (${skippedDocuments.length} files)`);
+        archive.append(skippedSummary, { name: "missing-documents.txt" });
+        console.log(
+          `📋 Added missing documents summary (${skippedDocuments.length} files)`
+        );
       }
 
       console.log(
