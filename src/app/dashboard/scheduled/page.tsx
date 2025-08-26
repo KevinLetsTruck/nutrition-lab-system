@@ -474,6 +474,7 @@ export default function ScheduledClientsPage() {
                 className="flex space-x-1 p-2 overflow-x-auto"
                 aria-label="Client Tabs"
               >
+                {/* Clean client cards - no initials or badges */}
                 {clients.map((client) => (
                   <button
                     key={client.id}
@@ -482,14 +483,10 @@ export default function ScheduledClientsPage() {
                       activeClientTab === client.id
                         ? "bg-blue-500 text-white shadow-lg"
                         : "bg-gray-600 text-gray-300 hover:bg-gray-500 hover:text-white"
-                    } px-4 py-3 text-sm font-medium rounded-lg transition-all whitespace-nowrap flex items-center space-x-2 min-w-0`}
+                    } px-4 py-3 text-sm font-medium rounded-lg transition-all whitespace-nowrap flex items-center justify-center min-w-0`}
                   >
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                      {client.firstName[0]}
-                      {client.lastName[0]}
-                    </div>
-                    <div className="flex flex-col items-start min-w-0">
-                      <span className="truncate">
+                    <div className="flex flex-col items-center min-w-0">
+                      <span className="truncate font-semibold">
                         {client.firstName} {client.lastName}
                       </span>
                       <span className="text-xs opacity-75">
@@ -498,21 +495,6 @@ export default function ScheduledClientsPage() {
                           : "No age"}
                       </span>
                     </div>
-                    {(clientNotes[client.id]?.length > 0 ||
-                      clientDocuments[client.id]?.length > 0) && (
-                      <div className="flex items-center space-x-1">
-                        {clientNotes[client.id]?.length > 0 && (
-                          <span className="bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full">
-                            {clientNotes[client.id].length}
-                          </span>
-                        )}
-                        {clientDocuments[client.id]?.length > 0 && (
-                          <span className="bg-purple-600 text-white text-xs px-1.5 py-0.5 rounded-full">
-                            {clientDocuments[client.id].length}
-                          </span>
-                        )}
-                      </div>
-                    )}
                   </button>
                 ))}
               </nav>
