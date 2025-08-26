@@ -18,7 +18,6 @@ function verifyAuthToken(request: NextRequest) {
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as any;
     return payload;
   } catch (error) {
-
     throw new Error("Invalid token");
   }
 }
@@ -111,25 +110,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
 
-    // Save file to public/uploads directory
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
+    // Convert file to buffer and upload to S3
+    const fileBuffer = Buffer.from(await file.arrayBuffer());
 
-    // Ensure upload directory exists
-    try {
-      await fs.access(uploadDir);
-    } catch {
-      await fs.mkdir(uploadDir, { recursive: true });
-    }
-
-    // Create unique filename to prevent conflicts
+    // Generate secure filename to prevent conflicts
     const timestamp = Date.now();
     const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
     const uniqueFileName = `${timestamp}_${sanitizedFileName}`;
-    const filePath = path.join(uploadDir, uniqueFileName);
 
-    // Save file to disk
-    const fileBuffer = await file.arrayBuffer();
-    await fs.writeFile(filePath, Buffer.from(fileBuffer));
+    // Import and use S3 storage service
+    const { medicalDocStorage } = await import("@/lib/medical/storage-service");
+
+    // Upload to S3
+    const uploadResult = await medicalDocStorage.uploadFile(
+      fileBuffer,
+      uniqueFileName,
+      clientId,
+      {
+        contentType: file.type,
+        documentType,
+        metadata: {
+          originalFileName: file.name,
+          labType: labType || undefined,
+        },
+      }
+    );
 
     const document = await prisma.document.create({
       data: {
@@ -137,7 +142,8 @@ export async function POST(request: NextRequest) {
         fileName: file.name,
         fileType: file.type,
         fileSize: file.size,
-        fileUrl: `/uploads/${uniqueFileName}`, // Actual file URL
+        fileUrl: uploadResult.url, // S3 URL
+        storageProvider: "S3", // Mark as S3 storage
         documentType,
         labType: labType || null,
         analysisStatus: "PENDING", // Using the correct enum value
@@ -209,9 +215,7 @@ export async function DELETE(request: NextRequest) {
       const filePath = path.join(process.cwd(), "public", document.fileUrl);
       try {
         await fs.unlink(filePath);
-
       } catch (error) {
-
         // Continue with database deletion even if file deletion fails
       }
     }
