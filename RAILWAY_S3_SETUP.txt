@@ -1,0 +1,33 @@
+RAILWAY S3 ENVIRONMENT VARIABLES SETUP
+=====================================
+
+🌐 Go to: https://railway.app/dashboard
+📂 Select your FNTP project  
+⚙️ Click "Variables" tab
+➕ Add these 4 variables:
+
+COPY/PASTE THESE EXACTLY:
+--------------------------
+
+Variable Name: S3_REGION
+Value: us-east-1
+
+Variable Name: S3_MEDICAL_BUCKET_NAME  
+Value: destinationhealth-medical-docs-dev
+
+Variable Name: S3_ACCESS_KEY_ID
+Value: AKIAW7P6NTUQMFEDKZNS
+
+Variable Name: S3_SECRET_ACCESS_KEY
+Value: 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
+
+💾 Save all changes
+🔄 Railway will auto-redeploy
+
+VERIFICATION:
+✅ Wait 2-3 minutes for deployment
+✅ Test export with client that has documents  
+✅ Check ZIP contains real PDF files
+✅ No more placeholder text files for S3 documents
+
+The S3-enabled export system is now ready for production!

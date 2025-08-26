@@ -41,7 +41,9 @@ export class S3StorageService {
     }
 
     if (!this.bucketName) {
-      throw new Error("S3_MEDICAL_BUCKET_NAME environment variable is required");
+      throw new Error(
+        "S3_MEDICAL_BUCKET_NAME environment variable is required"
+      );
     }
 
     this.s3Client = new S3Client({
@@ -105,7 +107,7 @@ export class S3StorageService {
     // Convert stream to buffer
     const chunks: Uint8Array[] = [];
     const reader = response.Body as any;
-    
+
     for await (const chunk of reader) {
       chunks.push(chunk);
     }
@@ -144,7 +146,10 @@ export class S3StorageService {
   /**
    * Get a presigned URL for temporary access
    */
-  async getPresignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
+  async getPresignedUrl(
+    key: string,
+    expiresIn: number = 3600
+  ): Promise<string> {
     const command = new GetObjectCommand({
       Bucket: this.bucketName,
       Key: key,
@@ -233,39 +238,49 @@ export const medicalDocStorage = {
     }
     return _medicalDocStorageInstance;
   },
-  
+
   // Proxy all methods to the lazy-loaded instance
-  async uploadFile(fileBuffer: Buffer, fileName: string, clientId: string, options: UploadOptions = {}) {
-    return this.getInstance().uploadFile(fileBuffer, fileName, clientId, options);
+  async uploadFile(
+    fileBuffer: Buffer,
+    fileName: string,
+    clientId: string,
+    options: UploadOptions = {}
+  ) {
+    return this.getInstance().uploadFile(
+      fileBuffer,
+      fileName,
+      clientId,
+      options
+    );
   },
-  
+
   async downloadFile(key: string) {
     return this.getInstance().downloadFile(key);
   },
-  
+
   async downloadFileByUrl(fileUrl: string) {
     return this.getInstance().downloadFileByUrl(fileUrl);
   },
-  
+
   async getPresignedUrl(key: string, expiresIn: number = 3600) {
     return this.getInstance().getPresignedUrl(key, expiresIn);
   },
-  
+
   async fileExists(key: string) {
     return this.getInstance().fileExists(key);
   },
-  
+
   async deleteFile(key: string) {
     return this.getInstance().deleteFile(key);
   },
-  
+
   async testConnection() {
     return this.getInstance().testConnection();
   },
-  
+
   async getFileMetadata(key: string) {
     return this.getInstance().getFileMetadata(key);
-  }
+  },
 };
 
 // Legacy export for backward compatibility
