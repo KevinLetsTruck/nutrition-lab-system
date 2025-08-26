@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, CheckCircle } from "lucide-react";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
@@ -62,7 +62,7 @@ export default function LoginPage() {
             </svg>
           </div>
           <span className="font-semibold text-xl gradient-text">
-            DestinationHealth
+            Daily Practice Management
           </span>
         </Link>
 
@@ -70,7 +70,7 @@ export default function LoginPage() {
         <div className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-2xl p-8">
           <div className="space-y-2 text-center mb-8">
             <h1 className="text-3xl font-bold text-white">Welcome Back</h1>
-            <p className="text-gray-400">Sign in to continue your assessment</p>
+            <p className="text-gray-400">Sign in to access your practice</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -78,8 +78,8 @@ export default function LoginPage() {
               <Alert className="border-brand-green/50 bg-brand-green/10 text-brand-green">
                 <CheckCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Account created successfully! Please sign in to begin your
-                  assessment.
+                  Account created successfully! Please sign in to access your
+                  practice.
                 </AlertDescription>
               </Alert>
             )}
@@ -153,5 +153,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-brand-navy flex items-center justify-center"><div className="text-white">Loading...</div></div>}>
+      <LoginForm />
+    </Suspense>
   );
 }
