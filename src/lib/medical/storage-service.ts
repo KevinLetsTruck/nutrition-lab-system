@@ -223,8 +223,50 @@ export class S3StorageService {
   }
 }
 
-// Create singleton instance
-export const medicalDocStorage = new S3StorageService();
+// Create lazy-loaded singleton instance
+let _medicalDocStorageInstance: S3StorageService | null = null;
+
+export const medicalDocStorage = {
+  getInstance(): S3StorageService {
+    if (!_medicalDocStorageInstance) {
+      _medicalDocStorageInstance = new S3StorageService();
+    }
+    return _medicalDocStorageInstance;
+  },
+  
+  // Proxy all methods to the lazy-loaded instance
+  async uploadFile(fileBuffer: Buffer, fileName: string, clientId: string, options: UploadOptions = {}) {
+    return this.getInstance().uploadFile(fileBuffer, fileName, clientId, options);
+  },
+  
+  async downloadFile(key: string) {
+    return this.getInstance().downloadFile(key);
+  },
+  
+  async downloadFileByUrl(fileUrl: string) {
+    return this.getInstance().downloadFileByUrl(fileUrl);
+  },
+  
+  async getPresignedUrl(key: string, expiresIn: number = 3600) {
+    return this.getInstance().getPresignedUrl(key, expiresIn);
+  },
+  
+  async fileExists(key: string) {
+    return this.getInstance().fileExists(key);
+  },
+  
+  async deleteFile(key: string) {
+    return this.getInstance().deleteFile(key);
+  },
+  
+  async testConnection() {
+    return this.getInstance().testConnection();
+  },
+  
+  async getFileMetadata(key: string) {
+    return this.getInstance().getFileMetadata(key);
+  }
+};
 
 // Legacy export for backward compatibility
 export const storageService = medicalDocStorage;
