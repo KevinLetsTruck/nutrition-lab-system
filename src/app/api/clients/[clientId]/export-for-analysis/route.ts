@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { verifyAuthToken } from "@/lib/auth";
 import fs from "fs";
 import path from "path";
-import os from "os";
+import archiver from "archiver";
 
 export async function GET(
   request: NextRequest,
@@ -52,20 +52,10 @@ export async function GET(
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
 
-    // Create export directory structure
-    const homeDir = os.homedir();
-    const exportBaseDir = path.join(homeDir, "FNTP-Client-Analysis");
+    // Prepare ZIP filename
     const clientName = `${clientData.firstName}-${clientData.lastName}`;
     const timestamp = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-    const clientExportDir = path.join(
-      exportBaseDir,
-      `${clientName}-${timestamp}`
-    );
-    const documentsDir = path.join(clientExportDir, "documents");
-
-    // Ensure directories exist
-    fs.mkdirSync(clientExportDir, { recursive: true });
-    fs.mkdirSync(documentsDir, { recursive: true });
+    const zipFilename = `${clientName}-${timestamp}.zip`;
 
     // Prepare structured client data
     const exportData = {
@@ -177,56 +167,62 @@ export async function GET(
       },
     };
 
-    // Write client-data.json
-    const clientDataPath = path.join(clientExportDir, "client-data.json");
-    fs.writeFileSync(clientDataPath, JSON.stringify(exportData, null, 2));
+    // Create ZIP archive
+    return new Promise((resolve) => {
+      const archive = archiver('zip', { zlib: { level: 9 } });
+      const chunks: Buffer[] = [];
 
-    // Generate human-readable summary
-    const summaryContent = generateClientSummary(exportData);
-    const summaryPath = path.join(clientExportDir, "client-summary.md");
-    fs.writeFileSync(summaryPath, summaryContent);
+      archive.on('data', (chunk) => {
+        chunks.push(chunk);
+      });
 
-    // Write export metadata
-    const metadataPath = path.join(clientExportDir, "export-metadata.json");
-    fs.writeFileSync(
-      metadataPath,
-      JSON.stringify(exportData.exportMetadata, null, 2)
-    );
+      archive.on('end', () => {
+        const zipBuffer = Buffer.concat(chunks);
+        
+        // Create response with ZIP file download
+        const response = new NextResponse(zipBuffer, {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/zip',
+            'Content-Disposition': `attachment; filename="${zipFilename}"`,
+            'Content-Length': zipBuffer.length.toString(),
+          },
+        });
+        
+        resolve(response);
+      });
 
-    // Copy document files (if they exist locally)
-    const copiedDocuments = [];
-    for (const doc of clientData.documents) {
-      try {
-        // Assuming documents are stored in public/uploads/
-        const sourcePath = path.join(process.cwd(), "public", doc.fileUrl);
-        if (fs.existsSync(sourcePath)) {
-          const destPath = path.join(documentsDir, doc.fileName);
-          fs.copyFileSync(sourcePath, destPath);
-          copiedDocuments.push(doc.fileName);
+      archive.on('error', (err) => {
+        console.error('Archive error:', err);
+        resolve(NextResponse.json({ error: 'Failed to create export archive' }, { status: 500 }));
+      });
+
+      // Add JSON files to ZIP
+      archive.append(JSON.stringify(exportData, null, 2), { name: 'client-data.json' });
+      
+      // Generate and add summary
+      const summaryContent = generateClientSummary(exportData);
+      archive.append(summaryContent, { name: 'client-summary.md' });
+      
+      // Add metadata
+      archive.append(JSON.stringify(exportData.exportMetadata, null, 2), { name: 'export-metadata.json' });
+
+      // Add document files (if they exist)
+      let copiedDocuments = 0;
+      for (const doc of clientData.documents) {
+        try {
+          const sourcePath = path.join(process.cwd(), "public", doc.fileUrl);
+          if (fs.existsSync(sourcePath)) {
+            archive.file(sourcePath, { name: `documents/${doc.fileName}` });
+            copiedDocuments++;
+          }
+        } catch (error) {
+          console.error(`Failed to add document ${doc.fileName}:`, error);
         }
-      } catch (error) {
-        console.error(`Failed to copy document ${doc.fileName}:`, error);
       }
-    }
 
-    return NextResponse.json({
-      success: true,
-      message: "Client data exported successfully",
-      exportPath: clientExportDir,
-      summary: {
-        clientName: `${clientData.firstName} ${clientData.lastName}`,
-        totalAssessments: clientData.simpleAssessments.length,
-        totalDocuments: clientData.documents.length,
-        totalNotes: clientData.notes.length,
-        totalProtocols: clientData.protocols.length,
-        copiedDocuments: copiedDocuments.length,
-        exportedFiles: [
-          "client-data.json",
-          "client-summary.md",
-          "export-metadata.json",
-          `documents/ (${copiedDocuments.length} files)`,
-        ],
-      },
+      // Finalize the archive
+      archive.finalize();
     });
   } catch (error) {
     console.error("Export error:", error);

@@ -43,49 +43,62 @@ export function ExportClientButton({
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
           },
         }
       );
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || "Export failed");
+        // Try to parse error as JSON, fallback to text
+        let errorMessage = "Export failed";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          errorMessage = await response.text();
+        }
+        throw new Error(errorMessage);
       }
 
-      if (data.success) {
-        setExportStatus("success");
-        toast.success("Export Complete!", {
-          description: (
-            <div className="space-y-1">
-              <p>
-                <strong>Client:</strong> {data.summary.clientName}
-              </p>
-              <p>
-                <strong>Location:</strong> {data.exportPath}
-              </p>
-              <p>
-                <strong>Files:</strong> {data.summary.exportedFiles.join(", ")}
-              </p>
-              <div className="text-xs text-gray-500 mt-2">
-                <p>📊 {data.summary.totalAssessments} assessments</p>
-                <p>📄 {data.summary.totalDocuments} documents</p>
-                <p>📝 {data.summary.totalNotes} notes</p>
-                <p>💊 {data.summary.totalProtocols} protocols</p>
-              </div>
-            </div>
-          ),
-          duration: 8000,
-        });
+      // Handle file download
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get('content-disposition');
+      const filenameMatch = contentDisposition?.match(/filename="([^"]+)"/);
+      const filename = filenameMatch ? filenameMatch[1] : `${clientName}-export.zip`;
 
-        // Optional: Show system notification
-        if ("Notification" in window && Notification.permission === "granted") {
-          new Notification("FNTP Client Export Complete", {
-            body: `${clientName} data exported successfully`,
-            icon: "/favicon.ico",
-          });
-        }
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      setExportStatus("success");
+      toast.success("Export Downloaded!", {
+        description: (
+          <div className="space-y-1">
+            <p>
+              <strong>Client:</strong> {clientName}
+            </p>
+            <p>
+              <strong>File:</strong> {filename}
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              📦 ZIP file downloaded to your Downloads folder
+            </p>
+          </div>
+        ),
+        duration: 6000,
+      });
+
+      // Optional: Show system notification
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("FNTP Client Export Downloaded", {
+          body: `${clientName} data downloaded as ${filename}`,
+          icon: "/favicon.ico",
+        });
       }
     } catch (error) {
       console.error("Export error:", error);
