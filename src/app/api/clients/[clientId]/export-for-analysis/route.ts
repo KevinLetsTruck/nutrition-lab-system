@@ -240,7 +240,7 @@ export async function GET(
 
             if (fs.existsSync(sourcePath)) {
               console.log(`✅ Local file found: ${fileName}`);
-              archive.file(sourcePath, { name: `documents/${fileName}` });
+              archive.file(sourcePath, { name: fileName });
               copiedDocuments++;
               continue;
             } else {
@@ -260,7 +260,7 @@ export async function GET(
 
               // Add the actual file to the ZIP
               archive.append(s3Result.buffer, {
-                name: `documents/${fileName}`,
+                name: fileName,
               });
               copiedDocuments++;
               console.log(`✅ S3 file downloaded and added: ${fileName}`);
@@ -288,7 +288,7 @@ To access this document:
 4. Contact support for S3 file recovery`;
 
               archive.append(placeholderContent, {
-                name: `documents/${fileName.replace(".pdf", ".txt")}`,
+                name: fileName.replace(".pdf", ".txt"),
               });
               console.log(`📝 Added S3 error placeholder for: ${fileName}`);
               copiedDocuments++;
