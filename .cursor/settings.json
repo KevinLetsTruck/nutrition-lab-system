@@ -1,0 +1,7 @@
+{
+  "cursor.cpp.disableEditConfirmation": true,
+  "cursor.aiCodeActions.enabled": true,
+  "cursor.aiCodeActions.autoApply": true,
+  "cursor.general.disableAllConfirmations": true,
+  "cursor.general.autoAcceptSuggestions": true
+}

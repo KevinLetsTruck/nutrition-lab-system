@@ -1,0 +1,7 @@
+Missing Railway Variables for Daily Workflow:
+
+NEXTAUTH_SECRET=GioCopf7DKF+FcyIjtjhgL+W7k31KClzLuP0RPNbw64=
+NEXTAUTH_URL=https://nutrition-lab-system-production-0fa7.up.railway.app
+NEXT_PUBLIC_APP_NAME=FNTP Daily Workflow
+
+That's it! Only 3 variables needed.

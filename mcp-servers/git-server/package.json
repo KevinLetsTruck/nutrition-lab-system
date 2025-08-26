@@ -1,0 +1,20 @@
+{
+  "name": "@local/mcp-server-git",
+  "version": "1.0.0",
+  "description": "MCP server for Git repository operations",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0"
+  },
+  "keywords": [
+    "mcp",
+    "git",
+    "version-control"
+  ],
+  "author": "",
+  "license": "MIT"
+}

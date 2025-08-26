@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Background colors from screenshot */
+    --background: 210 25% 12%; /* Dark navy blue #1a1f2e */
+    --foreground: 0 0% 100%; /* White */
+
+    /* Card and muted colors */
+    --card: 210 25% 15%; /* Slightly lighter than background */
+    --card-foreground: 0 0% 100%;
+    --popover: 210 25% 15%;
+    --popover-foreground: 0 0% 100%;
+
+    /* Primary - Blue from button */
+    --primary: 217 91% 60%; /* #3b82f6 blue-500 */
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Muted backgrounds */
+    --secondary: 210 20% 20%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted for subtle elements */
+    --muted: 210 20% 25%;
+    --muted-foreground: 210 10% 60%;
+
+    /* Accent colors */
+    --accent: 142 71% 45%; /* Green #4ade80 */
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive/Error */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders */
+    --border: 210 20% 25%;
+    --input: 210 20% 25%;
+    --ring: 217 91% 60%;
+
+    /* Chart colors */
+    --chart-1: 142 71% 45%; /* Green */
+    --chart-2: 38 92% 50%; /* Orange */
+    --chart-3: 217 91% 60%; /* Blue */
+    --chart-4: 280 65% 60%; /* Purple */
+    --chart-5: 340 75% 55%; /* Pink */
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark mode is the default, same as root */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom utility classes */
+@layer components {
+  /* Green accent from screenshot */
+  .text-brand-green {
+    @apply text-[#4ade80];
+  }
+
+  /* Orange accent from screenshot */
+  .text-brand-orange {
+    @apply text-[#f59e0b];
+  }
+
+  /* Navigation styles */
+  .nav-bg {
+    @apply bg-[#0f1419];
+  }
+
+  /* Button hover effects */
+  .btn-primary {
+    @apply bg-blue-600 text-white border border-blue-500 hover:bg-blue-700 transition-all rounded-xl px-6 py-2 shadow-lg hover:shadow-xl;
+  }
+
+  /* Text gradient */
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-green via-green-400 to-brand-orange;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-background;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted rounded-xl;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/20;
+}

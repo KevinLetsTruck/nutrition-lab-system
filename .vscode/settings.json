@@ -1,0 +1,39 @@
+{
+  "typescript.preferences.strictNullChecks": true,
+  "typescript.preferences.noImplicitReturns": true,
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.strictFunctionTypes": true,
+
+  "eslint.enable": true,
+  "eslint.run": "onType",
+  "eslint.autoFixOnSave": true,
+  "eslint.validate": [
+    "javascript",
+    "typescript",
+    "javascriptreact",
+    "typescriptreact"
+  ],
+
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+  "files.associations": {
+    "*.prisma": "prisma"
+  },
+
+  "emmet.includeLanguages": {
+    "typescript": "html",
+    "typescriptreact": "html"
+  },
+
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/dist": true
+  }
+}
