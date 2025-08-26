@@ -12,13 +12,13 @@ import {
   Mail,
   Truck,
   FileText,
-  Activity,
   Eye,
   Plus,
   MessageSquare,
   Clock,
   Star,
   AlertCircle,
+  Users,
 } from "lucide-react";
 import NoteCard from "@/components/notes/NoteCard";
 import NoteModal from "@/components/notes/NoteModal";
@@ -27,6 +27,13 @@ import ClientDocumentViewer from "@/components/clients/ClientDocumentViewer";
 import DocumentUploadModal from "@/components/documents/DocumentUploadModal";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import dynamic from "next/dynamic";
+
+// Dynamically import SimplePDFViewer with SSR disabled
+const SimplePDFViewer = dynamic(
+  () => import("@/components/pdf/SimplePDFViewer"),
+  { ssr: false }
+);
 
 interface Client {
   id: string;
@@ -100,6 +107,9 @@ export default function ClientDetailPage() {
   const [activeTab, setActiveTab] = useState<"interview" | "coaching">(
     "interview"
   );
+  const [activeMainTab, setActiveMainTab] = useState<
+    "health-goals" | "notes" | "documents"
+  >("health-goals");
   const [searchTerm, setSearchTerm] = useState("");
   const [showImportant, setShowImportant] = useState(false);
   const [showFollowUp, setShowFollowUp] = useState(false);
@@ -111,84 +121,67 @@ export default function ClientDetailPage() {
   const [isNoteViewerOpen, setIsNoteViewerOpen] = useState(false);
   const [viewingNote, setViewingNote] = useState<Note | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResults, setAnalysisResults] = useState<any[]>([]);
 
   // Document delete modal state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<Document | null>(
     null
   );
+  const [selectedDocument, setSelectedDocument] = useState<{
+    id: string;
+    name: string;
+    url: string;
+    type: "lab_report" | "protocol" | "assessment" | "intake" | "other";
+    uploadedDate: Date;
+    clientId: string;
+  } | null>(null);
+  const [isDocumentViewerOpen, setIsDocumentViewerOpen] = useState(false);
 
   useEffect(() => {
-    const fetchClientAndDocuments = async () => {
+    const fetchCompleteClientData = async () => {
       try {
-
         const token = localStorage.getItem("token");
         if (!token) {
           router.push("/login");
           return;
         }
 
-        // Fetch client data
-        const clientResponse = await fetch(`/api/clients/${params.id}`, {
+        // Single API call to get all client data (client + documents + notes)
+        const response = await fetch(`/api/clients/${params.id}/complete`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        if (!clientResponse.ok) {
-          throw new Error("Failed to fetch client");
-        }
-
-        const clientData = await clientResponse.json();
-        setClient(clientData);
-
-        // Fetch documents for this client
-        const documentsResponse = await fetch(
-          `/api/documents?clientId=${params.id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error("Client not found");
           }
-        );
-
-        if (documentsResponse.ok) {
-          const documentsData = await documentsResponse.json();
-
-          setDocuments(documentsData);
-        } else {
-          console.error(
-            "❌ Failed to fetch documents:",
-            documentsResponse.status,
-            documentsResponse.statusText
-          );
+          throw new Error("Failed to fetch client data");
         }
 
-        // Fetch notes for this client and note counts
-        if (params.id) {
+        const data = await response.json();
 
-          await Promise.all([fetchAllNotes(), fetchNoteCounts()]);
-        }
+        // Set all the data from the single API response
+        setClient(data.client);
+        setDocuments(data.documents || []);
+        setNotes(data.notes || []);
+        setNoteCounts(data.noteCounts || { interview: 0, coaching: 0 });
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load client");
+        setError(
+          err instanceof Error ? err.message : "Failed to load client data"
+        );
       } finally {
         setLoading(false);
       }
     };
 
     if (params.id) {
-      fetchClientAndDocuments();
+      fetchCompleteClientData();
     }
   }, [params.id, router]);
 
-  // Refetch all notes when filters change (we'll filter locally now)
-  useEffect(() => {
-    if (params.id) {
-      fetchAllNotes();
-    }
-  }, [searchTerm, showImportant, showFollowUp, sortBy, params.id]);
+  // Note: Filtering is now done locally since we have all notes in memory
 
   const handleDelete = async () => {
     if (!client || !confirm("Are you sure you want to delete this client?")) {
@@ -217,6 +210,24 @@ export default function ClientDetailPage() {
   const openNewNoteModal = () => {
     setEditingNote(null);
     setIsNoteModalOpen(true);
+  };
+
+  const handleDocumentClick = (doc: any) => {
+    setSelectedDocument({
+      id: doc.id,
+      name: doc.fileName,
+      url: doc.fileUrl,
+      type:
+        (doc.documentType?.toLowerCase() as
+          | "lab_report"
+          | "protocol"
+          | "assessment"
+          | "intake"
+          | "other") || "other",
+      uploadedDate: new Date(doc.uploadedAt),
+      clientId: client?.id || "",
+    });
+    setIsDocumentViewerOpen(true);
   };
 
   const handleCreateNote = async (
@@ -296,13 +307,10 @@ export default function ClientDetailPage() {
   // Handle delete button click - just show the modal
   const handleDeleteDocumentClick = useCallback(
     (documentId: string) => {
-
       const docToDelete = documents.find((doc) => doc.id === documentId);
       if (docToDelete) {
-
         setDocumentToDelete(docToDelete);
         setShowDeleteConfirm(true);
-
       } else {
         console.error("❌ Document not found with ID:", documentId);
       }
@@ -334,7 +342,6 @@ export default function ClientDetailPage() {
       });
 
       if (response.ok) {
-
         setDocuments((prev) =>
           prev.filter((doc) => doc.id !== documentToDelete.id)
         );
@@ -364,7 +371,6 @@ export default function ClientDetailPage() {
   // Memoized refresh handler to prevent unnecessary component remounting
   const handleRefresh = useCallback(async () => {
     try {
-
       const token = localStorage.getItem("token");
       if (!token) {
         router.push("/login");
@@ -448,139 +454,6 @@ export default function ClientDetailPage() {
       throw err; // Re-throw to let modal handle the error state
     }
   };
-
-  // Document analysis handler with robust error handling
-  const handleAnalyzeDocuments = useCallback(async () => {
-    // Safety checks
-    if (!client || !documents || documents.length === 0) {
-
-      return;
-    }
-
-    setIsAnalyzing(true);
-    setError(null);
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      setError("Authentication required");
-      setIsAnalyzing(false);
-      return;
-    }
-
-    const results: any[] = [];
-
-    try {
-
-      for (const document of documents) {
-        if (!document?.id || !document?.fileName) {
-
-          continue;
-        }
-
-        try {
-
-          // First, ensure the document is processed (OCR completed)
-          const processResponse = await fetch(`/api/medical/process`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              documentId: document.id,
-              forceReprocess: false,
-            }),
-          });
-
-          if (!processResponse.ok) {
-
-          }
-
-          // Then run FNTP complete analysis
-          const analysisResponse = await fetch(
-            `/api/medical/documents/${document.id}/fntp-complete-analysis`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                generateComplete: true,
-                includeMonitoring: true,
-              }),
-            }
-          );
-
-          if (analysisResponse.ok) {
-            const analysisResult = await analysisResponse.json();
-            results.push({
-              documentId: document.id,
-              fileName: document.fileName,
-              status: "success",
-              analysis: analysisResult,
-            });
-
-          } else {
-            const errorData = await analysisResponse
-              .json()
-              .catch(() => ({ error: "Unknown API error" }));
-            results.push({
-              documentId: document.id,
-              fileName: document.fileName,
-              status: "error",
-              error: errorData.error || "Analysis failed",
-            });
-
-          }
-        } catch (docError) {
-          results.push({
-            documentId: document.id,
-            fileName: document.fileName,
-            status: "error",
-            error:
-              docError instanceof Error ? docError.message : "Unknown error",
-          });
-          console.error(`💥 Error analyzing ${document.fileName}:`, docError);
-        }
-      }
-
-      setAnalysisResults(results);
-
-      // Refresh documents to get updated analysis status
-      try {
-        await handleRefresh();
-      } catch (refreshError) {
-
-      }
-
-      // Show summary
-      const successCount = results.filter((r) => r.status === "success").length;
-      const errorCount = results.filter((r) => r.status === "error").length;
-
-      if (successCount > 0) {
-        alert(
-          `✅ Analysis completed!\n${successCount} documents analyzed successfully${
-            errorCount > 0 ? `\n${errorCount} documents had errors` : ""
-          }`
-        );
-      } else if (results.length > 0) {
-        alert(
-          `❌ Analysis failed for all documents. Check the console for details.`
-        );
-      } else {
-        alert("⚠️ No valid documents found to analyze.");
-      }
-    } catch (error) {
-      console.error("💥 Analysis error:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Analysis failed";
-      setError(errorMessage);
-      alert(`Error during analysis: ${errorMessage}`);
-    } finally {
-      setIsAnalyzing(false);
-    }
-  }, [client, documents, handleRefresh]);
 
   const fetchNoteCounts = async () => {
     try {
@@ -701,6 +574,20 @@ export default function ClientDetailPage() {
     return note.generalNotes || "";
   };
 
+  // Helper function to safely handle healthGoals which can be string, array, or null
+  const getHealthGoalsArray = (healthGoals: any): string[] => {
+    if (!healthGoals) return [];
+    if (Array.isArray(healthGoals)) return healthGoals;
+    if (typeof healthGoals === "string") {
+      // Split by common delimiters and clean up
+      return healthGoals
+        .split(/[,;|\n]/)
+        .map((goal) => goal.trim())
+        .filter((goal) => goal.length > 0);
+    }
+    return [];
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
@@ -794,6 +681,25 @@ export default function ClientDetailPage() {
 
     // If not 10 digits, return as-is
     return phone;
+  };
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  // Format file size for display
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   return (
@@ -931,436 +837,320 @@ export default function ClientDetailPage() {
           </div>
         )}
 
-        {/* Compact Client Overview */}
-        <Card className="mb-3 max-w-3xl">
-          <CardContent className="p-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+        {/* Client Header - Full Width */}
+        <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-lg p-6 mb-6 border border-gray-700">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                {client.firstName?.charAt(0).toUpperCase()}
+                {client.lastName?.charAt(0).toUpperCase()}
+              </div>
               <div>
-                <span style={{ color: "var(--text-secondary)" }}>Email:</span>
-                <div
-                  style={{ color: "var(--text-primary)" }}
-                  className="font-medium"
-                >
-                  {client.email}
+                <h1 className="text-3xl font-bold text-white">
+                  {client.firstName} {client.lastName}
+                </h1>
+                <div className="flex items-center space-x-4 text-gray-300 mt-1">
+                  <span className="flex items-center">
+                    <Mail className="w-4 h-4 mr-1" />
+                    {client.email}
+                  </span>
+                  {client.phone && (
+                    <span className="flex items-center">
+                      <Phone className="w-4 h-4 mr-1" />
+                      {formatPhoneNumber(client.phone)}
+                    </span>
+                  )}
+                  {client.dateOfBirth && (
+                    <span>Age: {calculateAge(client.dateOfBirth)}</span>
+                  )}
+                  {client.gender && (
+                    <span>
+                      {client.gender === "M" ||
+                      client.gender === "male" ||
+                      client.gender === "Male"
+                        ? "♂"
+                        : "♀"}{" "}
+                      {client.gender === "M" ||
+                      client.gender === "male" ||
+                      client.gender === "Male"
+                        ? "Male"
+                        : "Female"}
+                    </span>
+                  )}
+                  {client.isTruckDriver && (
+                    <span className="text-orange-400 flex items-center">
+                      🚛 Commercial Driver
+                    </span>
+                  )}
                 </div>
               </div>
-              {client.phone && (
-                <div>
-                  <span style={{ color: "var(--text-secondary)" }}>Phone:</span>
-                  <div
-                    style={{ color: "var(--text-primary)" }}
-                    className="font-medium"
-                  >
-                    {formatPhoneNumber(client.phone)}
-                  </div>
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-gray-400">Client since</div>
+              <div className="text-lg text-white">Aug 25, 2025</div>
+              <div className="text-green-400 text-sm font-medium">
+                ✓ Scheduled
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Dynamic Three-Column Layout - Responsive */}
+        <div className="flex gap-4 h-[calc(100vh-300px)] min-h-[600px] w-full overflow-hidden">
+          {/* Left Column - Health Goals */}
+          <div className="flex-shrink-0 w-80 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+            <div className="bg-gray-700 px-4 py-3 border-b border-gray-600">
+              <h3 className="font-semibold text-white flex items-center">
+                <span className="text-lg mr-2">🎯</span>
+                Health Goals
+                <span className="ml-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                  {getHealthGoalsArray(client.healthGoals).length}
+                </span>
+              </h3>
+            </div>
+            <div className="p-4 h-full overflow-y-auto">
+              {getHealthGoalsArray(client.healthGoals).length > 0 ? (
+                <div className="space-y-3">
+                  {getHealthGoalsArray(client.healthGoals).map(
+                    (goal, index) => (
+                      <div
+                        key={index}
+                        className="p-3 rounded-lg bg-gray-700 border border-gray-600 hover:bg-gray-600 transition-colors"
+                      >
+                        <p className="text-white text-sm">{goal}</p>
+                      </div>
+                    )
+                  )}
                 </div>
-              )}
-              {client.dateOfBirth && (
-                <div>
-                  <span style={{ color: "var(--text-secondary)" }}>Age:</span>
-                  <div
-                    style={{ color: "var(--text-primary)" }}
-                    className="font-medium"
-                  >
-                    {calculateAge(client.dateOfBirth)}
-                  </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="text-3xl mb-2">🎯</div>
+                  <p className="text-gray-400 text-sm">No health goals set</p>
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Health Goals Section */}
-        {client.healthGoals && client.healthGoals.length > 0 && (
-          <Card className="mb-3 max-w-3xl">
-            <CardContent className="p-4">
-              <h3
-                className="text-lg font-medium mb-3 flex items-center"
-                style={{ color: "#10b981" }}
-              >
-                <span className="w-5 h-5 mr-3">🎯</span>
-                Health Goals
-              </h3>
+          {/* Center Column - Notes */}
+          <div className="flex-1 min-w-0 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden flex flex-col">
+            <div className="bg-gray-700 px-4 py-3 border-b border-gray-600">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-white flex items-center">
+                  <span className="text-lg mr-2">📝</span>
+                  Notes
+                  <span className="ml-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                    {interviewNotesCount + coachingNotesCount}
+                  </span>
+                </h3>
+                <Button
+                  onClick={openNewNoteModal}
+                  size="sm"
+                  className="flex items-center text-xs"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Add Note
+                </Button>
+              </div>
+              {/* Notes Sub-tabs */}
+              <div className="flex space-x-2 mt-3">
+                <button
+                  onClick={() => setActiveTab("interview")}
+                  className={`${
+                    activeTab === "interview"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                  } px-3 py-1 text-xs rounded transition-colors flex items-center space-x-1`}
+                >
+                  <MessageSquare className="w-3 h-3" />
+                  <span>Interview ({interviewNotesCount})</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab("coaching")}
+                  className={`${
+                    activeTab === "coaching"
+                      ? "bg-yellow-500 text-white"
+                      : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                  } px-3 py-1 text-xs rounded transition-colors flex items-center space-x-1`}
+                >
+                  <Users className="w-3 h-3" />
+                  <span>Coaching ({coachingNotesCount})</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 p-4 overflow-y-auto">
               <div className="space-y-2">
-                {client.healthGoals.map((goal, index) => (
-                  <div
-                    key={index}
-                    className="p-3 rounded-md"
-                    style={{
-                      background: "var(--bg-secondary)",
-                      border: "1px solid var(--border-primary)",
-                    }}
-                  >
-                    <p style={{ color: "var(--text-primary)" }}>{goal}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Notes Section - Two Cards Side by Side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-          {/* Interview Notes Card */}
-          <Card>
-            <CardHeader className="p-3">
-              <div className="flex items-center justify-between">
-                <h3
-                  className="text-lg font-bold flex items-center"
-                  style={{ color: "#3b82f6" }}
-                >
-                  <MessageSquare
-                    className="w-5 h-5 mr-3"
-                    style={{ color: "#3b82f6" }}
-                  />
-                  Interview Notes ({interviewNotesCount})
-                </h3>
-                <Button
-                  onClick={() => {
-                    setActiveTab("interview");
-                    openNewNoteModal();
-                  }}
-                  size="sm"
-                  className="flex items-center"
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-3 pt-0">
-              {/* Interview Notes List */}
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {notes.filter((note) => note.noteType === "INTERVIEW")
-                  .length === 0 ? (
-                  <div className="text-center py-6">
-                    <p
-                      className="text-xs mb-2"
-                      style={{ color: "var(--text-secondary)" }}
-                    >
-                      No interview notes yet
+                {notes.filter((note) =>
+                  activeTab === "interview"
+                    ? note.noteType === "INTERVIEW"
+                    : note.noteType === "COACHING"
+                ).length === 0 ? (
+                  <div className="text-center py-16">
+                    <div className="text-4xl mb-3">
+                      {activeTab === "interview" ? "🎤" : "🏃‍♂️"}
+                    </div>
+                    <p className="text-gray-400 mb-3">
+                      No {activeTab} notes yet
                     </p>
-                    <button
-                      onClick={() => {
-                        setActiveTab("interview");
-                        openNewNoteModal();
-                      }}
-                      className="btn-primary text-xs px-3 py-1"
+                    <Button
+                      onClick={openNewNoteModal}
+                      size="sm"
+                      variant="outline"
                     >
+                      <Plus className="w-4 h-4 mr-2" />
                       Create First Note
-                    </button>
+                    </Button>
                   </div>
                 ) : (
                   notes
-                    .filter((note) => note.noteType === "INTERVIEW")
-                    .slice(0, 4)
+                    .filter((note) =>
+                      activeTab === "interview"
+                        ? note.noteType === "INTERVIEW"
+                        : note.noteType === "COACHING"
+                    )
                     .map((note) => (
                       <div
                         key={note.id}
-                        className="p-2 rounded text-xs border hover:border-opacity-75 transition-colors cursor-pointer"
-                        style={{
-                          borderColor: "var(--border-primary)",
-                          background: "var(--bg-secondary)",
-                        }}
+                        className="p-3 rounded-lg bg-gray-700 border border-gray-600 hover:bg-gray-600 transition-colors cursor-pointer"
                         onClick={() => handleViewNote(note)}
                       >
-                        <div className="flex items-center justify-between mb-1">
-                          <span
-                            className="font-medium truncate flex-1"
-                            style={{ color: "var(--text-primary)" }}
-                          >
-                            {note.title || `Interview Note`}
-                          </span>
-                          <div className="flex items-center space-x-1 ml-2">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium text-white text-sm">
+                            {note.title ||
+                              `${note.noteType.toLowerCase()} note`}
+                          </h4>
+                          <div className="flex items-center space-x-2">
                             {note.isImportant && (
-                              <Star
-                                className="w-3 h-3"
-                                style={{ color: "#fbbf24" }}
-                              />
+                              <span
+                                className="text-red-400 text-xs"
+                                title="Important"
+                              >
+                                ⭐
+                              </span>
                             )}
                             {note.followUpNeeded && (
-                              <AlertCircle
-                                className="w-3 h-3"
-                                style={{ color: "var(--primary-green)" }}
-                              />
+                              <span
+                                className="text-yellow-400 text-xs"
+                                title="Follow Up Needed"
+                              >
+                                📋
+                              </span>
                             )}
-                            <span
-                              style={{ color: "var(--text-secondary)" }}
-                              className="text-xs"
-                            >
-                              {new Date(note.createdAt).toLocaleDateString()}
+                            <span className="text-gray-400 text-xs">
+                              {formatDate(note.createdAt)}
                             </span>
                           </div>
                         </div>
-                        <p
-                          className="line-clamp-2 leading-tight"
-                          style={{ color: "var(--text-secondary)" }}
-                        >
-                          {formatNoteContent(note).substring(0, 100)}...
+                        <p className="text-gray-300 text-xs line-clamp-2">
+                          {note.chiefComplaints ||
+                            note.generalNotes ||
+                            "Click to view details..."}
                         </p>
                       </div>
                     ))
                 )}
-                {notes.filter((note) => note.noteType === "INTERVIEW").length >
-                  4 && (
-                  <div className="text-center py-1">
-                    <span
-                      className="text-xs"
-                      style={{ color: "var(--text-secondary)" }}
-                    >
-                      +
-                      {notes.filter((note) => note.noteType === "INTERVIEW")
-                        .length - 4}{" "}
-                      more notes
-                    </span>
-                  </div>
-                )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          {/* Coaching Notes Card */}
-          <Card>
-            <CardHeader className="p-3">
+          {/* Right Column - Documents */}
+          <div className="flex-shrink-0 w-80 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+            <div className="bg-gray-700 px-4 py-3 border-b border-gray-600">
               <div className="flex items-center justify-between">
-                <h3
-                  className="text-lg font-bold flex items-center"
-                  style={{ color: "#f59e0b" }}
-                >
-                  <MessageSquare
-                    className="w-5 h-5 mr-3"
-                    style={{ color: "#f59e0b" }}
-                  />
-                  Coaching Notes ({coachingNotesCount})
+                <h3 className="font-semibold text-white flex items-center">
+                  <span className="text-lg mr-2">📄</span>
+                  Documents
+                  <span className="ml-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                    {documents.length}
+                  </span>
                 </h3>
-                <Button
-                  onClick={() => {
-                    setActiveTab("coaching");
-                    openNewNoteModal();
-                  }}
-                  size="sm"
-                  className="flex items-center"
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-3 pt-0">
-              {/* Coaching Notes List */}
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {notes.filter((note) => note.noteType === "COACHING").length ===
-                0 ? (
-                  <div className="text-center py-6">
-                    <p
-                      className="text-xs mb-2"
-                      style={{ color: "var(--text-secondary)" }}
-                    >
-                      No coaching notes yet
-                    </p>
-                    <button
-                      onClick={() => {
-                        setActiveTab("coaching");
-                        openNewNoteModal();
-                      }}
-                      className="btn-primary text-xs px-3 py-1"
-                    >
-                      Create First Note
-                    </button>
-                  </div>
-                ) : (
-                  notes
-                    .filter((note) => note.noteType === "COACHING")
-                    .slice(0, 4)
-                    .map((note) => (
-                      <div
-                        key={note.id}
-                        className="p-2 rounded text-xs border hover:border-opacity-75 transition-colors cursor-pointer"
-                        style={{
-                          borderColor: "var(--border-primary)",
-                          background: "var(--bg-secondary)",
-                        }}
-                        onClick={() => handleViewNote(note)}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <span
-                            className="font-medium truncate flex-1"
-                            style={{ color: "var(--text-primary)" }}
-                          >
-                            {note.title || `Coaching Note`}
-                          </span>
-                          <div className="flex items-center space-x-1 ml-2">
-                            {note.isImportant && (
-                              <Star
-                                className="w-3 h-3"
-                                style={{ color: "#fbbf24" }}
-                              />
-                            )}
-                            {note.followUpNeeded && (
-                              <AlertCircle
-                                className="w-3 h-3"
-                                style={{ color: "var(--primary-green)" }}
-                              />
-                            )}
-                            <span
-                              style={{ color: "var(--text-secondary)" }}
-                              className="text-xs"
-                            >
-                              {new Date(note.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                        <p
-                          className="line-clamp-2 leading-tight"
-                          style={{ color: "var(--text-secondary)" }}
-                        >
-                          {formatNoteContent(note).substring(0, 100)}...
-                        </p>
-                      </div>
-                    ))
-                )}
-                {notes.filter((note) => note.noteType === "COACHING").length >
-                  4 && (
-                  <div className="text-center py-1">
-                    <span
-                      className="text-xs"
-                      style={{ color: "var(--text-secondary)" }}
-                    >
-                      +
-                      {notes.filter((note) => note.noteType === "COACHING")
-                        .length - 4}{" "}
-                      more notes
-                    </span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Documents Section - Compact and Reduced Space */}
-        <Card>
-          <CardHeader className="p-3">
-            <div className="flex items-center justify-between">
-              <h3
-                className="text-lg font-bold flex items-center"
-                style={{ color: "#8b5cf6" }}
-              >
-                <FileText
-                  className="w-5 h-5 mr-3"
-                  style={{ color: "#8b5cf6" }}
-                />
-                Documents ({documents.length})
-              </h3>
-              <div className="flex items-center space-x-2">
-                <Button
-                  onClick={() => {
-                    try {
-                      handleAnalyzeDocuments();
-                    } catch (error) {
-                      console.error(
-                        "Error calling handleAnalyzeDocuments:",
-                        error
-                      );
-                      alert(
-                        "Analysis function not available. Please refresh the page."
-                      );
-                    }
-                  }}
-                  disabled={
-                    !client ||
-                    !documents ||
-                    documents.length === 0 ||
-                    isAnalyzing
-                  }
-                  variant="secondary"
-                  size="sm"
-                  className="flex items-center"
-                  title="Run FNTP analysis on all documents"
-                >
-                  <Activity className="w-3 h-3 mr-1" />
-                  {isAnalyzing ? "Analyzing..." : "Analyze"}
-                </Button>
                 <Button
                   onClick={() => setIsUploadModalOpen(true)}
                   size="sm"
-                  className="flex items-center"
+                  className="flex items-center text-xs"
                 >
                   <Plus className="w-3 h-3 mr-1" />
                   Upload
                 </Button>
               </div>
             </div>
-          </CardHeader>
-          <CardContent className="p-3 pt-0">
-            <div className="max-h-48 overflow-y-auto">
-              <ClientDocumentViewer
-                clientId={client.id}
-                documents={documents}
-                onRefresh={handleRefresh}
-                onDelete={handleDeleteDocumentClick}
-                compact={true}
-              />
-            </div>
 
-            {/* Analysis Results Section */}
-            {analysisResults.length > 0 && (
-              <div
-                className="mt-4 p-3 rounded-lg border"
-                style={{
-                  background: "var(--bg-secondary)",
-                  borderColor: "var(--border-primary)",
-                }}
-              >
-                <h4
-                  className="text-sm font-semibold mb-2 flex items-center"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  <Activity
-                    className="w-4 h-4 mr-2"
-                    style={{ color: "#10b981" }}
-                  />
-                  Analysis Results
-                </h4>
-                <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {analysisResults.map((result, index) => (
+            <div className="p-4 h-full overflow-y-auto">
+              {documents.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="text-3xl mb-2">📄</div>
+                  <p className="text-gray-400 text-sm mb-3">No documents yet</p>
+                  <Button
+                    onClick={() => setIsUploadModalOpen(true)}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Upload First
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {documents.map((doc) => (
                     <div
-                      key={index}
-                      className="flex items-center justify-between text-xs p-2 rounded"
-                      style={{
-                        background:
-                          result.status === "success"
-                            ? "rgba(16, 185, 129, 0.1)"
-                            : "rgba(239, 68, 68, 0.1)",
-                        border: `1px solid ${
-                          result.status === "success" ? "#10b981" : "#ef4444"
-                        }20`,
-                      }}
+                      key={doc.id}
+                      className="p-3 rounded-lg bg-gray-700 border border-gray-600 hover:bg-gray-600 transition-colors"
                     >
-                      <span
-                        className="truncate flex-1"
-                        style={{ color: "var(--text-primary)" }}
-                      >
-                        {result.fileName}
-                      </span>
-                      <span
-                        className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
-                          result.status === "success"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {result.status === "success"
-                          ? "✅ Analyzed"
-                          : "❌ Failed"}
-                      </span>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2 flex-1 min-w-0">
+                          <FileText className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white text-sm font-medium truncate">
+                              {doc.fileName}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs text-gray-400">
+                          <div className="mb-1">
+                            <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded">
+                              {doc.documentType
+                                ?.replace("_", " ")
+                                .toUpperCase() || "UNKNOWN"}
+                            </span>
+                          </div>
+                          <div>
+                            {formatFileSize(doc.fileSize)} •{" "}
+                            {formatDate(doc.uploadedAt)}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDocumentClick(doc as any);
+                            }}
+                            className="p-1 hover:bg-gray-600 rounded transition-colors text-blue-400"
+                            title="View"
+                          >
+                            <Eye className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDocumentToDelete(doc);
+                              setShowDeleteConfirm(true);
+                            }}
+                            className="p-1 hover:bg-red-600/20 rounded transition-colors text-red-400"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Note Modal */}
@@ -1379,6 +1169,7 @@ export default function ClientDetailPage() {
       <NoteViewerModal
         isOpen={isNoteViewerOpen}
         note={viewingNote}
+        client={client}
         onClose={() => {
           setIsNoteViewerOpen(false);
           setViewingNote(null);
@@ -1400,10 +1191,8 @@ export default function ClientDetailPage() {
       {showDeleteConfirm && documentToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
           <div
-            className="rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
-            style={{ background: "var(--bg-card)" }}
+            className="bg-gray-800 border border-gray-700 rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
             onClick={(e) => {
-
               e.stopPropagation();
             }}
           >
@@ -1412,22 +1201,16 @@ export default function ClientDetailPage() {
                 <Trash2 className="w-5 h-5 text-red-600" />
               </div>
               <div>
-                <h3
-                  className="text-lg font-semibold"
-                  style={{ color: "var(--text-primary)" }}
-                >
+                <h3 className="text-lg font-semibold text-white">
                   Delete Document
                 </h3>
-                <p
-                  className="text-sm"
-                  style={{ color: "var(--text-secondary)" }}
-                >
+                <p className="text-sm text-gray-300">
                   This action cannot be undone
                 </p>
               </div>
             </div>
 
-            <p className="mb-6" style={{ color: "var(--text-primary)" }}>
+            <p className="mb-6 text-white">
               Are you sure you want to delete this document?
               <span className="font-medium block mt-1">
                 "{documentToDelete.fileName}"
@@ -1437,31 +1220,20 @@ export default function ClientDetailPage() {
             <div className="flex justify-end gap-3">
               <button
                 onClick={(e) => {
-
                   e.stopPropagation();
                   setShowDeleteConfirm(false);
                   setDocumentToDelete(null);
                 }}
-                className="px-4 py-2 rounded-md transition-colors hover:opacity-80"
-                style={{
-                  background: "var(--bg-secondary)",
-                  color: "var(--text-secondary)",
-                  border: "1px solid var(--border-primary)",
-                }}
+                className="px-4 py-2 rounded-xl bg-gray-600 text-gray-200 border border-gray-500 hover:bg-gray-500 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={(e) => {
-
                   e.stopPropagation();
                   confirmDeleteDocument();
                 }}
-                className="flex items-center px-4 py-2 rounded-md transition-colors hover:opacity-80"
-                style={{
-                  background: "#dc2626",
-                  color: "white",
-                }}
+                className="flex items-center px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 transition-colors"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete Document
@@ -1469,6 +1241,17 @@ export default function ClientDetailPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Document Viewer */}
+      {isDocumentViewerOpen && selectedDocument && (
+        <SimplePDFViewer
+          document={selectedDocument}
+          onClose={() => {
+            setIsDocumentViewerOpen(false);
+            setSelectedDocument(null);
+          }}
+        />
       )}
     </div>
   );

@@ -60,12 +60,27 @@ export async function PUT(
     const body = await request.json();
 
     // Only allow updating specific fields
-    const allowedFields = ["status", "firstName", "lastName", "email", "phone"];
+    const allowedFields = [
+      "status",
+      "firstName",
+      "lastName",
+      "email",
+      "phone",
+      "dateOfBirth",
+      "gender",
+      "isTruckDriver",
+      "healthGoals",
+    ];
     const updateData: any = {};
 
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
-        updateData[field] = body[field];
+        if (field === "dateOfBirth" && body[field]) {
+          // Convert date string to DateTime object
+          updateData[field] = new Date(body[field]);
+        } else {
+          updateData[field] = body[field];
+        }
       }
     }
 

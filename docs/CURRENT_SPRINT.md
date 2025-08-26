@@ -36,9 +36,10 @@ Extract diagnostic patterns from thousands of historical NutriQ assessments to i
 
 ## **⚡ CURRENT STATUS**
 
-**Active Task**: Building CSV upload system for NutriQ data  
-**Progress**: ✅ Workflow system, ✅ Database schema (6 tables + indexes + 15 conditions seeded)  
-**Next Step**: Create CSV parsing and upload interface  
+**Active Task**: Building practitioner-focused SimpleAssessment enhancements  
+**Progress**: ✅ Workflow system, ✅ Database schema, ✅ NutriQ methodology analysis complete  
+**Next Step**: Implement percentage-based condition scoring for practitioners  
+**Focus**: Clinical diagnostic tool, not client-facing interface  
 **Blockers**: None currently  
 
 ## **📊 PROGRESS TRACKING**

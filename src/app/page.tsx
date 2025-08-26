@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Users, Calendar, FileText } from "lucide-react";
 import { MainNav } from "@/components/navigation/MainNav";
 
 export default function Home() {
@@ -36,40 +36,39 @@ export default function Home() {
           <div className="max-w-5xl mx-auto text-center space-y-8">
             {/* Badge */}
             <div className="inline-flex items-center px-6 py-2 bg-brand-green/20 text-brand-green rounded-full text-sm font-medium">
-              Personalized Nutrition & Wellness
+              Daily Practice Management
             </div>
 
             {/* Main Heading */}
             <h1 className="text-5xl md:text-7xl font-bold leading-tight">
               <span className="bg-gradient-to-r from-brand-green via-green-400 to-brand-orange bg-clip-text text-transparent">
-                Transform Your Life Through
+                Streamline Your
               </span>
               <br />
               <span className="bg-gradient-to-r from-gray-100 via-white to-gray-100 bg-clip-text text-transparent">
-                Holistic Health Coaching
+                Nutrition Practice
               </span>
             </h1>
 
             {/* Subheading */}
             <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
-              Start your journey to optimal health with evidence-based
-              nutritional guidance and personalized wellness strategies designed
-              just for you
+              Manage your nutrition practice efficiently with client tracking,
+              appointment scheduling, and note management in one simple platform
             </p>
 
             {/* CTA Button */}
             <div className="pt-8">
-              <Link href="/login">
+              <Link href="/dashboard/clients">
                 <Button
                   size="lg"
                   className="text-lg px-8 py-6 bg-brand-green text-brand-darkNavy hover:bg-brand-green/90"
                 >
-                  Get Started
+                  Access Dashboard
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
               <p className="text-sm text-gray-400 mt-3">
-                No login required • Takes 15-20 minutes
+                Start managing your practice today
               </p>
             </div>
           </div>
@@ -84,76 +83,40 @@ export default function Home() {
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-8 hover:border-brand-green/50 transition-colors">
             <div className="w-12 h-12 bg-brand-green/20 rounded-lg flex items-center justify-center mb-6">
-              <svg
-                className="w-6 h-6 text-brand-green"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+              <Users className="w-6 h-6 text-brand-green" />
             </div>
             <h3 className="text-xl font-semibold text-white mb-3">
-              Comprehensive Assessment
+              Client Management
             </h3>
             <p className="text-gray-400">
-              246 body-system focused questions to understand your unique health
-              profile and nutritional needs
+              Keep detailed records of your clients, their health goals, and
+              contact information in an organized dashboard
             </p>
           </div>
 
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-8 hover:border-brand-green/50 transition-colors">
             <div className="w-12 h-12 bg-brand-green/20 rounded-lg flex items-center justify-center mb-6">
-              <svg
-                className="w-6 h-6 text-brand-green"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-                />
-              </svg>
+              <Calendar className="w-6 h-6 text-brand-green" />
             </div>
             <h3 className="text-xl font-semibold text-white mb-3">
-              Personalized Plans
+              Appointment Scheduling
             </h3>
             <p className="text-gray-400">
-              Custom nutrition protocols based on your assessment results and
-              health goals
+              Schedule and track client appointments, Thursday calls, and
+              follow-ups with an intuitive calendar system
             </p>
           </div>
 
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-8 hover:border-brand-green/50 transition-colors">
             <div className="w-12 h-12 bg-brand-green/20 rounded-lg flex items-center justify-center mb-6">
-              <svg
-                className="w-6 h-6 text-brand-green"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                />
-              </svg>
+              <FileText className="w-6 h-6 text-brand-green" />
             </div>
             <h3 className="text-xl font-semibold text-white mb-3">
-              Track Progress
+              Session Notes
             </h3>
             <p className="text-gray-400">
-              Monitor your health improvements with regular check-ins and
-              adjustments
+              Document client sessions, progress notes, and recommendations for
+              comprehensive care tracking
             </p>
           </div>
         </div>

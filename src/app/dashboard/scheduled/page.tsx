@@ -17,9 +17,9 @@ import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-// Dynamically import PDFViewerModal with SSR disabled to prevent canvas module issues
-const PDFViewerModal = dynamic(
-  () => import("@/components/pdf/PDFViewerModal"),
+// Dynamically import SimplePDFViewer with SSR disabled
+const SimplePDFViewer = dynamic(
+  () => import("@/components/pdf/SimplePDFViewer"),
   {
     ssr: false,
     loading: () => (
@@ -39,6 +39,21 @@ const PDFViewerModal = dynamic(
     ),
   }
 );
+
+// Helper function to safely handle healthGoals data type conversion
+function getHealthGoalsArray(healthGoals: any): string[] {
+  if (!healthGoals) return [];
+  if (Array.isArray(healthGoals)) return healthGoals;
+  if (typeof healthGoals === "string") {
+    try {
+      const parsed = JSON.parse(healthGoals);
+      return Array.isArray(parsed) ? parsed : [healthGoals];
+    } catch {
+      return [healthGoals];
+    }
+  }
+  return [];
+}
 
 interface Client {
   id: string;
@@ -75,13 +90,12 @@ interface ClientDocument {
   uploadedAt: string;
 }
 
-interface PDFDocument {
+interface SelectedDocument {
   id: string;
   name: string;
   url: string;
   type: "lab_report" | "protocol" | "assessment" | "intake" | "other";
   uploadedDate: Date;
-  pages?: number;
   clientId: string;
 }
 
@@ -98,6 +112,7 @@ export default function ScheduledClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activeClientTab, setActiveClientTab] = useState<string>("");
 
   // Notes and Documents state
   const [clientNotes, setClientNotes] = useState<Record<string, Note[]>>({});
@@ -111,11 +126,11 @@ export default function ScheduledClientsPage() {
 
   // Modal state
   const [viewingNote, setViewingNote] = useState<Note | null>(null);
-  const [viewingDocument, setViewingDocument] = useState<PDFDocument | null>(
-    null
-  );
+  const [viewingClient, setViewingClient] = useState<Client | null>(null);
+  const [selectedDocument, setSelectedDocument] =
+    useState<SelectedDocument | null>(null);
   const [isNoteViewerOpen, setIsNoteViewerOpen] = useState(false);
-  const [isPDFViewerOpen, setIsPDFViewerOpen] = useState(false);
+  const [isDocumentViewerOpen, setIsDocumentViewerOpen] = useState(false);
 
   useEffect(() => {
     fetchScheduledClients();
@@ -151,6 +166,10 @@ export default function ScheduledClientsPage() {
 
       const data = await response.json();
       setClients(data);
+      // Set first client as active tab
+      if (data.length > 0) {
+        setActiveClientTab(data[0].id);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load clients");
     } finally {
@@ -219,34 +238,28 @@ export default function ScheduledClientsPage() {
   };
 
   // Modal handlers
-  const handleViewNote = (note: Note) => {
+  const handleViewNote = (note: Note, client: Client) => {
     setViewingNote(note);
+    setViewingClient(client);
     setIsNoteViewerOpen(true);
   };
 
   const handleViewDocument = (document: ClientDocument) => {
-    // Temporarily disabled - PDF viewer causing issues
-
-    alert(
-      `Document viewing is temporarily disabled. Document: ${document.fileName}`
-    );
-
-    /* // Convert ClientDocument to PDFDocument format
-    const pdfDocument: PDFDocument = {
+    setSelectedDocument({
       id: document.id,
       name: document.fileName,
       url: document.fileUrl,
-      type: document.documentType as
-        | "lab_report"
-        | "protocol"
-        | "assessment"
-        | "intake"
-        | "other",
+      type:
+        (document.documentType?.toLowerCase() as
+          | "lab_report"
+          | "protocol"
+          | "assessment"
+          | "intake"
+          | "other") || "other",
       uploadedDate: new Date(document.uploadedAt),
-      clientId: "", // This will be filled from the client context
-    };
-    setViewingDocument(pdfDocument);
-    setIsPDFViewerOpen(true); */
+      clientId: "",
+    });
+    setIsDocumentViewerOpen(true);
   };
 
   const calculateAge = (dateOfBirth: string) => {
@@ -439,7 +452,7 @@ export default function ScheduledClientsPage() {
           </div>
         </div>
 
-        {/* Client List */}
+        {/* Client Tabs Layout */}
         {clients.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
@@ -454,320 +467,284 @@ export default function ScheduledClientsPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
-            {clients.map((client) => (
-              <Card
-                key={client.id}
-                className="hover:shadow-xl transition-all duration-300 border-2 border-brand-green/50 relative overflow-hidden"
+          <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+            {/* Client Tabs Navigation */}
+            <div className="bg-gray-700 border-b border-gray-600">
+              <nav
+                className="flex space-x-1 p-2 overflow-x-auto"
+                aria-label="Client Tabs"
               >
-                {/* Gradient Accent */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-green via-green-500 to-brand-green" />
-
-                <CardContent className="p-6">
-                  {/* Client Header */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center">
-                      <div
-                        className="w-12 h-12 rounded-full flex items-center justify-center mr-4"
-                        style={{ background: "var(--primary-green-light)" }}
-                      >
-                        <span
-                          className="text-lg font-bold"
-                          style={{ color: "var(--primary-green)" }}
-                        >
-                          {client.firstName[0]}
-                          {client.lastName[0]}
-                        </span>
-                      </div>
-                      <div>
-                        <h2
-                          className="text-xl font-bold mb-1"
-                          style={{ color: "var(--text-primary)" }}
-                        >
-                          {client.firstName} {client.lastName}
-                        </h2>
-                        <div className="flex items-center space-x-4 text-sm">
-                          {client.dateOfBirth && (
-                            <span style={{ color: "var(--text-secondary)" }}>
-                              Age: {calculateAge(client.dateOfBirth)}
-                              {client.gender && (
-                                <span
-                                  className="ml-2 text-xs px-2 py-1 rounded-full"
-                                  style={{
-                                    background:
-                                      client.gender === "male"
-                                        ? "rgba(59, 130, 246, 0.2)"
-                                        : "rgba(236, 72, 153, 0.2)",
-                                    color:
-                                      client.gender === "male"
-                                        ? "#3b82f6"
-                                        : "#ec4899",
-                                  }}
-                                >
-                                  {client.gender === "male" ? "M" : "F"}
-                                </span>
-                              )}
-                            </span>
-                          )}
-                          <div className="flex items-center">
-                            <Mail
-                              className="w-4 h-4 mr-2"
-                              style={{ color: "var(--text-secondary)" }}
-                            />
-                            <span style={{ color: "var(--text-primary)" }}>
-                              {client.email}
-                            </span>
-                          </div>
-                          {client.phone && (
-                            <div className="flex items-center">
-                              <Phone
-                                className="w-4 h-4 mr-2"
-                                style={{ color: "var(--text-secondary)" }}
-                              />
-                              <span style={{ color: "var(--text-primary)" }}>
-                                {formatPhoneNumber(client.phone)}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                {clients.map((client) => (
+                  <button
+                    key={client.id}
+                    onClick={() => setActiveClientTab(client.id)}
+                    className={`${
+                      activeClientTab === client.id
+                        ? "bg-blue-500 text-white shadow-lg"
+                        : "bg-gray-600 text-gray-300 hover:bg-gray-500 hover:text-white"
+                    } px-4 py-3 text-sm font-medium rounded-lg transition-all whitespace-nowrap flex items-center space-x-2 min-w-0`}
+                  >
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                      {client.firstName[0]}
+                      {client.lastName[0]}
                     </div>
-
-                    <div className="flex items-center space-x-4">
-                      <span
-                        className="px-3 py-1 rounded-full text-xs font-medium"
-                        style={{
-                          background: `${getStatusColor(
-                            client.status as StatusType
-                          )}20`,
-                          color: getStatusColor(client.status as StatusType),
-                        }}
-                      >
-                        {getStatusLabel(client.status as StatusType)}
+                    <div className="flex flex-col items-start min-w-0">
+                      <span className="truncate">
+                        {client.firstName} {client.lastName}
                       </span>
-                      <div
-                        className="text-right text-xs"
-                        style={{ color: "var(--text-secondary)" }}
-                      >
-                        <div>Client since: {formatDate(client.createdAt)}</div>
-                        {client.lastVisit && (
-                          <div>Last visit: {formatDate(client.lastVisit)}</div>
+                      <span className="text-xs opacity-75">
+                        {client.dateOfBirth
+                          ? `Age ${calculateAge(client.dateOfBirth)}`
+                          : "No age"}
+                      </span>
+                    </div>
+                    {(clientNotes[client.id]?.length > 0 ||
+                      clientDocuments[client.id]?.length > 0) && (
+                      <div className="flex items-center space-x-1">
+                        {clientNotes[client.id]?.length > 0 && (
+                          <span className="bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full">
+                            {clientNotes[client.id].length}
+                          </span>
+                        )}
+                        {clientDocuments[client.id]?.length > 0 && (
+                          <span className="bg-purple-600 text-white text-xs px-1.5 py-0.5 rounded-full">
+                            {clientDocuments[client.id].length}
+                          </span>
                         )}
                       </div>
-                    </div>
-                  </div>
+                    )}
+                  </button>
+                ))}
+              </nav>
+            </div>
 
-                  {/* Main Content Grid */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    {/* Health Goals - Left Column */}
-                    <div className="lg:col-span-1">
-                      <div className="flex items-center mb-3">
-                        <Target
-                          className="w-5 h-5 mr-2"
-                          style={{ color: "#10b981" }}
-                        />
-                        <h3
-                          className="text-lg font-semibold"
-                          style={{ color: "var(--text-primary)" }}
-                        >
-                          Health Goals
-                        </h3>
+            {/* Active Client Content */}
+            {clients.map(
+              (client) =>
+                activeClientTab === client.id && (
+                  <div key={client.id} className="p-6">
+                    {/* Client Header - Compact */}
+                    <div className="bg-gradient-to-r from-gray-700 to-gray-800 rounded-lg p-4 mb-6 border border-gray-600">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-lg font-bold">
+                            {client.firstName[0]}
+                            {client.lastName[0]}
+                          </div>
+                          <div>
+                            <h2 className="text-2xl font-bold text-white">
+                              {client.firstName} {client.lastName}
+                            </h2>
+                            <div className="flex items-center space-x-4 text-gray-300 text-sm">
+                              <span className="flex items-center">
+                                <Mail className="w-3 h-3 mr-1" />
+                                {client.email}
+                              </span>
+                              {client.phone && (
+                                <span className="flex items-center">
+                                  <Phone className="w-3 h-3 mr-1" />
+                                  {formatPhoneNumber(client.phone)}
+                                </span>
+                              )}
+                              {client.dateOfBirth && (
+                                <span>
+                                  Age: {calculateAge(client.dateOfBirth)}
+                                </span>
+                              )}
+                              {client.gender && (
+                                <span>
+                                  {client.gender === "M" ||
+                                  client.gender === "male" ||
+                                  client.gender === "Male"
+                                    ? "♂ Male"
+                                    : "♀ Female"}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span
+                            className="px-3 py-1 rounded-full text-sm font-medium"
+                            style={{
+                              background: `${getStatusColor(
+                                client.status as StatusType
+                              )}20`,
+                              color: getStatusColor(
+                                client.status as StatusType
+                              ),
+                            }}
+                          >
+                            {getStatusLabel(client.status as StatusType)}
+                          </span>
+                          <div className="text-xs text-gray-400 mt-1">
+                            Client since: {formatDate(client.createdAt)}
+                          </div>
+                        </div>
                       </div>
-                      {client.healthGoals && client.healthGoals.length > 0 ? (
-                        <div className="space-y-3">
-                          {client.healthGoals.map((goal, index) => (
-                            <div
-                              key={index}
-                              className="p-4 rounded-lg"
-                              style={{
-                                background: "var(--bg-secondary)",
-                                border: "1px solid var(--border-primary)",
-                              }}
-                            >
-                              <p style={{ color: "var(--text-primary)" }}>
-                                {goal}
+                    </div>
+
+                    {/* Three-Column Content Layout - Full Width */}
+                    <div className="grid grid-cols-12 gap-6 h-[calc(100vh-400px)]">
+                      {/* Left Column - Health Goals */}
+                      <div className="col-span-3 bg-gray-700 rounded-lg border border-gray-600 overflow-hidden">
+                        <div className="bg-gray-600 px-4 py-3 border-b border-gray-500">
+                          <h3 className="font-semibold text-white flex items-center">
+                            <Target className="w-4 h-4 mr-2 text-green-400" />
+                            Health Goals
+                            <span className="ml-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                              {getHealthGoalsArray(client.healthGoals).length}
+                            </span>
+                          </h3>
+                        </div>
+                        <div className="p-4 h-full overflow-y-auto">
+                          {getHealthGoalsArray(client.healthGoals).length >
+                          0 ? (
+                            <div className="space-y-2">
+                              {getHealthGoalsArray(client.healthGoals).map(
+                                (goal, index) => (
+                                  <div
+                                    key={index}
+                                    className="p-3 rounded-lg bg-gray-600 border border-gray-500 hover:bg-gray-500 transition-colors"
+                                  >
+                                    <p className="text-white text-sm">{goal}</p>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          ) : (
+                            <div className="text-center py-8">
+                              <Target className="w-8 h-8 text-gray-500 mx-auto mb-2" />
+                              <p className="text-gray-400 text-sm">
+                                No health goals set
                               </p>
                             </div>
-                          ))}
+                          )}
                         </div>
-                      ) : (
-                        <div
-                          className="p-6 rounded-lg text-center"
-                          style={{
-                            background: "var(--bg-secondary)",
-                            border: "1px solid var(--border-primary)",
-                          }}
-                        >
-                          <p style={{ color: "var(--text-secondary)" }}>
-                            No health goals recorded
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                      </div>
 
-                    {/* Notes and Documents Section - Right Two Columns Side by Side */}
-                    <div className="lg:col-span-2">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Notes Section */}
-                        <div>
-                          <div className="flex items-center mb-3">
-                            <MessageSquare
-                              className="w-5 h-5 mr-2"
-                              style={{ color: "#3b82f6" }}
-                            />
-                            <h3
-                              className="text-lg font-semibold"
-                              style={{ color: "var(--text-primary)" }}
-                            >
+                      {/* Center Column - Notes */}
+                      <div className="col-span-6 bg-gray-700 rounded-lg border border-gray-600 overflow-hidden flex flex-col">
+                        <div className="bg-gray-600 px-4 py-3 border-b border-gray-500">
+                          <h3 className="font-semibold text-white flex items-center justify-between">
+                            <div className="flex items-center">
+                              <MessageSquare className="w-4 h-4 mr-2 text-blue-400" />
                               Notes
-                            </h3>
+                              <span className="ml-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                                {clientNotes[client.id]?.length || 0}
+                              </span>
+                            </div>
                             {loadingNotes.has(client.id) && (
-                              <div
-                                className="ml-3 text-sm"
-                                style={{ color: "var(--text-secondary)" }}
-                              >
+                              <span className="text-xs text-gray-300">
                                 Loading...
-                              </div>
+                              </span>
                             )}
-                          </div>
-
-                          <div className="space-y-3 max-h-96 overflow-y-auto">
-                            {clientNotes[client.id]?.length > 0 ? (
-                              clientNotes[client.id].map((note) => (
+                          </h3>
+                        </div>
+                        <div className="flex-1 p-4 overflow-y-auto">
+                          {clientNotes[client.id]?.length > 0 ? (
+                            <div className="space-y-2">
+                              {clientNotes[client.id].map((note) => (
                                 <div
                                   key={note.id}
-                                  onClick={() => handleViewNote(note)}
-                                  className="p-4 rounded-xl cursor-pointer hover:bg-gray-800/50 transition-all bg-gray-900/50 border border-gray-700"
+                                  onClick={() => handleViewNote(note, client)}
+                                  className="p-3 rounded-lg bg-gray-600 border border-gray-500 hover:bg-gray-500 transition-colors cursor-pointer"
                                 >
                                   <div className="flex items-center justify-between mb-2">
-                                    <h4
-                                      className="font-medium"
-                                      style={{ color: "var(--text-primary)" }}
-                                    >
+                                    <h4 className="font-medium text-white text-sm">
                                       {note.title}
                                     </h4>
-                                    <span
-                                      className="text-xs px-2 py-1 rounded-full"
-                                      style={{
-                                        background:
-                                          note.noteType === "INTERVIEW"
-                                            ? "#3b82f620"
-                                            : "#f59e0b20",
-                                        color:
-                                          note.noteType === "INTERVIEW"
-                                            ? "#3b82f6"
-                                            : "#f59e0b",
-                                      }}
-                                    >
-                                      {note.noteType === "INTERVIEW"
-                                        ? "Interview"
-                                        : "Coaching"}
-                                    </span>
-                                  </div>
-                                  <p
-                                    className="text-sm line-clamp-3"
-                                    style={{ color: "var(--text-secondary)" }}
-                                  >
-                                    {note.generalNotes}
-                                  </p>
-                                  <div
-                                    className="flex items-center justify-between mt-2 text-xs"
-                                    style={{ color: "var(--text-secondary)" }}
-                                  >
-                                    <span>{formatDate(note.createdAt)}</span>
-                                    <div className="flex space-x-2">
-                                      {note.isImportant && (
-                                        <span className="px-1 py-0.5 bg-red-100 text-red-600 rounded">
-                                          Important
-                                        </span>
-                                      )}
-                                      {note.followUpNeeded && (
-                                        <span className="px-1 py-0.5 bg-yellow-100 text-yellow-600 rounded">
-                                          Follow Up
-                                        </span>
-                                      )}
+                                    <div className="flex items-center space-x-2">
+                                      <span
+                                        className="text-xs px-2 py-0.5 rounded-full"
+                                        style={{
+                                          background:
+                                            note.noteType === "INTERVIEW"
+                                              ? "#3b82f620"
+                                              : "#f59e0b20",
+                                          color:
+                                            note.noteType === "INTERVIEW"
+                                              ? "#3b82f6"
+                                              : "#f59e0b",
+                                        }}
+                                      >
+                                        {note.noteType === "INTERVIEW"
+                                          ? "Interview"
+                                          : "Coaching"}
+                                      </span>
+                                      <span className="text-xs text-gray-400">
+                                        {formatDate(note.createdAt)}
+                                      </span>
                                     </div>
                                   </div>
+                                  <p className="text-gray-300 text-xs line-clamp-2">
+                                    {note.generalNotes}
+                                  </p>
+                                  <div className="flex space-x-1 mt-2">
+                                    {note.isImportant && (
+                                      <span className="px-1.5 py-0.5 bg-red-500/20 text-red-400 text-xs rounded">
+                                        Important
+                                      </span>
+                                    )}
+                                    {note.followUpNeeded && (
+                                      <span className="px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded">
+                                        Follow Up
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
-                              ))
-                            ) : clientNotes[client.id] !== undefined ? (
-                              <div
-                                className="p-6 rounded-lg text-center"
-                                style={{
-                                  background: "var(--bg-secondary)",
-                                  border: "1px solid var(--border-primary)",
-                                }}
-                              >
-                                <MessageSquare
-                                  className="w-12 h-12 mx-auto mb-3 opacity-50"
-                                  style={{ color: "var(--text-secondary)" }}
-                                />
-                                <p style={{ color: "var(--text-secondary)" }}>
-                                  No notes available
-                                </p>
-                              </div>
-                            ) : (
-                              <div
-                                className="p-6 rounded-lg text-center animate-pulse"
-                                style={{
-                                  background: "var(--bg-secondary)",
-                                  border: "1px solid var(--border-primary)",
-                                }}
-                              >
-                                <p style={{ color: "var(--text-secondary)" }}>
-                                  Loading notes...
-                                </p>
-                              </div>
-                            )}
-                          </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-16">
+                              <MessageSquare className="w-12 h-12 text-gray-500 mx-auto mb-3" />
+                              <p className="text-gray-400">
+                                No notes available
+                              </p>
+                            </div>
+                          )}
                         </div>
+                      </div>
 
-                        {/* Documents Section */}
-                        <div>
-                          <div className="flex items-center mb-3">
-                            <FolderOpen
-                              className="w-5 h-5 mr-2"
-                              style={{ color: "#8b5cf6" }}
-                            />
-                            <h3
-                              className="text-lg font-semibold"
-                              style={{ color: "var(--text-primary)" }}
-                            >
+                      {/* Right Column - Documents */}
+                      <div className="col-span-3 bg-gray-700 rounded-lg border border-gray-600 overflow-hidden">
+                        <div className="bg-gray-600 px-4 py-3 border-b border-gray-500">
+                          <h3 className="font-semibold text-white flex items-center justify-between">
+                            <div className="flex items-center">
+                              <FolderOpen className="w-4 h-4 mr-2 text-purple-400" />
                               Documents
-                            </h3>
+                              <span className="ml-2 bg-purple-500 text-white text-xs px-2 py-1 rounded-full">
+                                {clientDocuments[client.id]?.length || 0}
+                              </span>
+                            </div>
                             {loadingDocuments.has(client.id) && (
-                              <div
-                                className="ml-3 text-sm"
-                                style={{ color: "var(--text-secondary)" }}
-                              >
+                              <span className="text-xs text-gray-300">
                                 Loading...
-                              </div>
+                              </span>
                             )}
-                          </div>
-
-                          <div className="space-y-2 max-h-80 overflow-y-auto">
-                            {clientDocuments[client.id]?.length > 0 ? (
-                              clientDocuments[client.id].map((document) => (
+                          </h3>
+                        </div>
+                        <div className="p-4 h-full overflow-y-auto">
+                          {clientDocuments[client.id]?.length > 0 ? (
+                            <div className="space-y-2">
+                              {clientDocuments[client.id].map((document) => (
                                 <div
                                   key={document.id}
                                   onClick={() => handleViewDocument(document)}
-                                  className="p-3 rounded-xl cursor-pointer hover:bg-gray-800/50 transition-all bg-gray-900/50 border border-gray-700"
+                                  className="p-3 rounded-lg bg-gray-600 border border-gray-500 hover:bg-gray-500 transition-colors cursor-pointer"
                                 >
                                   <div className="flex items-center justify-between mb-2">
-                                    <h4
-                                      className="font-medium truncate"
-                                      style={{ color: "var(--text-primary)" }}
-                                    >
-                                      {document.fileName}
-                                    </h4>
-                                    <Eye
-                                      className="w-4 h-4"
-                                      style={{ color: "var(--text-secondary)" }}
-                                    />
+                                    <div className="flex items-center space-x-2 flex-1 min-w-0">
+                                      <FileText className="w-3 h-3 text-purple-400 flex-shrink-0" />
+                                      <p className="text-white text-xs font-medium truncate">
+                                        {document.fileName}
+                                      </p>
+                                    </div>
+                                    <Eye className="w-3 h-3 text-gray-400" />
                                   </div>
-                                  <div className="flex items-center justify-between text-sm">
+                                  <div className="flex items-center justify-between text-xs">
                                     <span
-                                      className="px-2 py-1 rounded-full"
+                                      className="px-2 py-0.5 rounded-full"
                                       style={{
                                         background: "#8b5cf620",
                                         color: "#8b5cf6",
@@ -775,57 +752,30 @@ export default function ScheduledClientsPage() {
                                     >
                                       {document.documentType}
                                     </span>
-                                    <span
-                                      style={{ color: "var(--text-secondary)" }}
-                                    >
+                                    <span className="text-gray-400">
                                       {(document.fileSize / 1024).toFixed(1)} KB
                                     </span>
                                   </div>
-                                  <div
-                                    className="mt-2 text-xs"
-                                    style={{ color: "var(--text-secondary)" }}
-                                  >
-                                    Uploaded: {formatDate(document.uploadedAt)}
+                                  <div className="text-xs text-gray-400 mt-1">
+                                    {formatDate(document.uploadedAt)}
                                   </div>
                                 </div>
-                              ))
-                            ) : clientDocuments[client.id] !== undefined ? (
-                              <div
-                                className="p-6 rounded-lg text-center"
-                                style={{
-                                  background: "var(--bg-secondary)",
-                                  border: "1px solid var(--border-primary)",
-                                }}
-                              >
-                                <FolderOpen
-                                  className="w-12 h-12 mx-auto mb-3 opacity-50"
-                                  style={{ color: "var(--text-secondary)" }}
-                                />
-                                <p style={{ color: "var(--text-secondary)" }}>
-                                  No documents available
-                                </p>
-                              </div>
-                            ) : (
-                              <div
-                                className="p-6 rounded-lg text-center animate-pulse"
-                                style={{
-                                  background: "var(--bg-secondary)",
-                                  border: "1px solid var(--border-primary)",
-                                }}
-                              >
-                                <p style={{ color: "var(--text-secondary)" }}>
-                                  Loading documents...
-                                </p>
-                              </div>
-                            )}
-                          </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-16">
+                              <FolderOpen className="w-8 h-8 text-gray-500 mx-auto mb-2" />
+                              <p className="text-gray-400 text-sm">
+                                No documents
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                )
+            )}
           </div>
         )}
 
@@ -838,13 +788,15 @@ export default function ScheduledClientsPage() {
       </div>
 
       {/* Modals */}
-      {isNoteViewerOpen && viewingNote && (
+      {isNoteViewerOpen && viewingNote && viewingClient && (
         <NoteViewerModal
           note={viewingNote}
+          client={viewingClient}
           isOpen={isNoteViewerOpen}
           onClose={() => {
             setIsNoteViewerOpen(false);
             setViewingNote(null);
+            setViewingClient(null);
           }}
           onEdit={() => {
             // Could add edit functionality here if needed
@@ -852,16 +804,16 @@ export default function ScheduledClientsPage() {
         />
       )}
 
-      {/* Temporarily disable PDF viewer to debug
-      {isPDFViewerOpen && viewingDocument && (
-        <PDFViewerModal
-          document={viewingDocument}
+      {/* Document Viewer */}
+      {isDocumentViewerOpen && selectedDocument && (
+        <SimplePDFViewer
+          document={selectedDocument}
           onClose={() => {
-            setIsPDFViewerOpen(false);
-            setViewingDocument(null);
+            setIsDocumentViewerOpen(false);
+            setSelectedDocument(null);
           }}
         />
-      )} */}
+      )}
     </div>
   );
 }

@@ -143,6 +143,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
     pages?: number;
     clientId: string;
   } | null>(null);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -206,10 +207,8 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
     });
 
   const handleDocumentClick = (doc: ClientDocument) => {
-    // Debug log
-
-    // Check if document has a URL (try fileUrl first, then url as fallback)
-    let documentUrl = doc.fileUrl || doc.url;
+    // Check if document has a URL (use fileUrl)
+    let documentUrl = doc.fileUrl;
 
     // If no URL but we have the document, try to construct one
     if (!documentUrl) {
@@ -344,10 +343,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
       <div className="space-y-2">
         {documents.length === 0 ? (
           <div className="text-center py-4">
-            <p
-              className="text-xs mb-2"
-              style={{ color: "var(--text-secondary)" }}
-            >
+            <p className="text-xs mb-2 text-muted-foreground">
               No documents uploaded yet
             </p>
           </div>
@@ -360,39 +356,23 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
             return (
               <div
                 key={doc.id}
-                className="flex items-center justify-between p-2 rounded text-xs border hover:border-opacity-75 transition-colors cursor-pointer"
-                style={{
-                  borderColor: "var(--border-primary)",
-                  background: "var(--bg-secondary)",
-                }}
+                className="flex items-center justify-between p-2 rounded text-xs border border-border bg-secondary hover:border-opacity-75 transition-colors cursor-pointer"
                 onClick={() => handleDocumentClick(doc)}
               >
                 <div className="flex items-center space-x-2 flex-1 min-w-0">
-                  <Icon
-                    className="w-3 h-3 flex-shrink-0"
-                    style={{ color: "var(--primary-green)" }}
-                  />
+                  <Icon className="w-3 h-3 flex-shrink-0 text-primary" />
                   <div className="flex-1 min-w-0">
-                    <p
-                      className="font-medium truncate"
-                      style={{ color: "var(--text-primary)" }}
-                    >
+                    <p className="font-medium truncate text-foreground">
                       {doc.fileName}
                     </p>
                     <div className="flex items-center space-x-2 mt-0.5">
-                      <span
-                        className="text-xs px-1.5 py-0.5 rounded"
-                        style={{
-                          background: "var(--primary-green-light)",
-                          color: "var(--primary-green)",
-                        }}
-                      >
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-primary/20 text-primary">
                         {category.label}
                       </span>
-                      <span style={{ color: "var(--text-secondary)" }}>
+                      <span className="text-muted-foreground">
                         {formatDate(doc.uploadedAt)}
                       </span>
-                      <span style={{ color: "var(--text-secondary)" }}>
+                      <span className="text-muted-foreground">
                         {formatFileSize(doc.fileSize)}
                       </span>
                     </div>
@@ -404,13 +384,15 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                       e.stopPropagation();
                       handleDocumentClick(doc);
                     }}
-                    className="p-1 hover:bg-opacity-20 rounded transition-colors"
+                    className="p-2 hover:bg-gray-600 rounded transition-colors text-blue-400 hover:text-blue-300 border border-blue-400"
                     title="View Document"
+                    style={{
+                      backgroundColor: "rgba(59, 130, 246, 0.1)",
+                      minWidth: "32px",
+                      minHeight: "32px",
+                    }}
                   >
-                    <Eye
-                      className="w-3 h-3"
-                      style={{ color: "var(--text-secondary)" }}
-                    />
+                    <Eye className="w-4 h-4" />
                   </button>
                   {(doc.status === "uploaded" || doc.status === "pending") && (
                     <button
@@ -421,10 +403,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                       className="p-1 hover:bg-opacity-20 rounded transition-colors"
                       title="Process Document"
                     >
-                      <Play
-                        className="w-3 h-3"
-                        style={{ color: "var(--text-secondary)" }}
-                      />
+                      <Play className="w-3 h-3" />
                     </button>
                   )}
                   {(doc.documentType === "assessment" ||
@@ -438,10 +417,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                       className="p-1 hover:bg-opacity-20 rounded transition-colors"
                       title="Manual Data Entry"
                     >
-                      <FileEdit
-                        className="w-3 h-3"
-                        style={{ color: "var(--text-secondary)" }}
-                      />
+                      <FileEdit className="w-3 h-3" />
                     </button>
                   )}
                   {doc.status === "completed" && (
@@ -455,15 +431,9 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                       disabled={reclassifyingId === doc.id}
                     >
                       {reclassifyingId === doc.id ? (
-                        <RefreshCw
-                          className="w-3 h-3 animate-spin"
-                          style={{ color: "var(--text-secondary)" }}
-                        />
+                        <RefreshCw className="w-3 h-3 animate-spin" />
                       ) : (
-                        <RefreshCw
-                          className="w-3 h-3"
-                          style={{ color: "var(--text-secondary)" }}
-                        />
+                        <RefreshCw className="w-3 h-3" />
                       )}
                     </button>
                   )}
@@ -475,10 +445,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                       className="p-1 hover:bg-opacity-20 rounded transition-colors"
                       title="Download"
                     >
-                      <Download
-                        className="w-3 h-3"
-                        style={{ color: "var(--text-secondary)" }}
-                      />
+                      <Download className="w-3 h-3" />
                     </a>
                   )}
                   {onDelete && (
@@ -500,10 +467,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
         )}
         {documents.length > 6 && (
           <div className="text-center py-1">
-            <span
-              className="text-xs"
-              style={{ color: "var(--text-secondary)" }}
-            >
+            <span className="text-xs text-muted-foreground">
               +{documents.length - 6} more documents
             </span>
           </div>

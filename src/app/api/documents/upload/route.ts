@@ -1,10 +1,9 @@
-// Medical Document Upload API Route
+// Simple Document Upload API Route
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { storageService } from "@/lib/storage";
-import { queueManager } from "@/lib/queue/manager";
-import { validateFile, generateSecureFileName } from "@/lib/storage/config";
 import jwt from "jsonwebtoken";
+import { writeFile, mkdir } from "fs/promises";
+import path from "path";
 
 interface AuthPayload {
   id: string;

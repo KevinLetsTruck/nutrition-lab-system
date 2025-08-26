@@ -6,7 +6,6 @@ import Link from "next/link";
 import {
   Search,
   Plus,
-  FlaskConical,
   Eye,
   Edit,
   Trash2,
@@ -406,7 +405,6 @@ export default function ClientDashboard() {
       });
 
       if (response.ok) {
-
         // Status is already updated in state above
       } else {
         // Revert on error
@@ -564,9 +562,6 @@ export default function ClientDashboard() {
                 </th>
 
                 <th className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
-                  Quick Actions
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -575,7 +570,7 @@ export default function ClientDashboard() {
               {loading ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={4}
                     className="px-6 py-8 text-center text-[#94a3b8]"
                   >
                     <div className="flex items-center justify-center space-x-2">
@@ -587,7 +582,7 @@ export default function ClientDashboard() {
               ) : filteredAndSortedClients.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={4}
                     className="px-6 py-8 text-center text-[#94a3b8]"
                   >
                     No clients found
@@ -665,17 +660,6 @@ export default function ClientDashboard() {
                       )}
                     </td>
 
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex space-x-2">
-                        <Link
-                          href={`/dashboard/protocols/new?clientId=${client.id}`}
-                          className="p-2 rounded-xl text-brand-green hover:text-brand-green/90 hover:bg-brand-green/10 transition-all duration-200 border border-transparent hover:border-brand-green/30"
-                          title="Create Protocol"
-                        >
-                          <FlaskConical className="w-4 h-4" />
-                        </Link>
-                      </div>
-                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex space-x-2">
                         <Link

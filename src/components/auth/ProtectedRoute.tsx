@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth-context';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { token, isLoading } = useAuth();
+  const { token, user, isLoading } = useAuth();
 
   useEffect(() => {
     if (!isLoading && !token) {
-      router.push('/login');
+      router.push("/login");
     }
   }, [token, isLoading, router]);
 
@@ -25,6 +25,5 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (!token) {
     return null;
   }
-
   return <>{children}</>;
 }

@@ -448,8 +448,7 @@ export class LabValueExtractor {
       if (result.totalFound > 0) {
 
         result.extractedValues.forEach((value, index) => {
-          `
-          );
+          // Processing logic here
         });
       } else {
 
