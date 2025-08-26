@@ -18,7 +18,7 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ExportClientButton } from "@/components/clients/ExportClientButton";
+
 import {
   Select,
   SelectContent,
@@ -677,12 +677,7 @@ export default function ClientDashboard() {
                         >
                           <Edit className="w-4 h-4" />
                         </Link>
-                        <ExportClientButton
-                          clientId={client.id}
-                          clientName={`${client.firstName} ${client.lastName}`}
-                          variant="outline"
-                          size="sm"
-                        />
+
                         {client.status !== "ARCHIVED" ? (
                           <button
                             onClick={() =>

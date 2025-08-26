@@ -5,8 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
-  Edit,
-  Trash2,
   Calendar,
   Phone,
   Mail,
@@ -183,30 +181,6 @@ export default function ClientDetailPage() {
   }, [params.id, router]);
 
   // Note: Filtering is now done locally since we have all notes in memory
-
-  const handleDelete = async () => {
-    if (!client || !confirm("Are you sure you want to delete this client?")) {
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`/api/clients/${client.id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        router.push("/dashboard/clients");
-      } else {
-        throw new Error("Failed to delete client");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete client");
-    }
-  };
 
   const openNewNoteModal = () => {
     setEditingNote(null);
@@ -777,26 +751,6 @@ export default function ClientDetailPage() {
                 : client.status}
             </div>
           </div>
-          <div className="flex space-x-2">
-            <Link
-              href={`/dashboard/clients/${client.id}/edit`}
-              className="btn-primary flex items-center text-sm px-3 py-2"
-            >
-              <Edit className="w-4 h-4 mr-1" />
-              Edit
-            </Link>
-            <button
-              onClick={handleDelete}
-              className="flex items-center px-3 py-2 rounded-lg transition-colors duration-200 text-sm"
-              style={{
-                background: "var(--red-accent)",
-                color: "var(--text-primary)",
-              }}
-            >
-              <Trash2 className="w-4 h-4 mr-1" />
-              Delete
-            </button>
-          </div>
         </div>
 
         {/* Token Management Debug Section */}
@@ -897,12 +851,6 @@ export default function ClientDetailPage() {
 
               {/* Export Button */}
               <div className="flex gap-2">
-                <Link href={`/dashboard/clients/${client.id}/edit`}>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Edit className="w-4 h-4" />
-                    Edit
-                  </Button>
-                </Link>
                 <ExportClientButton
                   clientId={client.id}
                   clientName={`${client.firstName} ${client.lastName}`}
