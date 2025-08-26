@@ -209,17 +209,30 @@ export async function GET(
 
       // Add document files (if they exist)
       let copiedDocuments = 0;
+      console.log(`🔍 Processing ${clientData.documents.length} documents for export...`);
+      
       for (const doc of clientData.documents) {
         try {
+          console.log(`📄 Processing document: ${doc.fileName}`);
+          console.log(`📁 FileUrl from DB: ${doc.fileUrl}`);
+          
           const sourcePath = path.join(process.cwd(), "public", doc.fileUrl);
+          console.log(`🔍 Looking for file at: ${sourcePath}`);
+          console.log(`✅ File exists: ${fs.existsSync(sourcePath)}`);
+          
           if (fs.existsSync(sourcePath)) {
             archive.file(sourcePath, { name: `documents/${doc.fileName}` });
             copiedDocuments++;
+            console.log(`✅ Added document to ZIP: ${doc.fileName}`);
+          } else {
+            console.warn(`❌ File not found: ${sourcePath}`);
           }
         } catch (error) {
-          console.error(`Failed to add document ${doc.fileName}:`, error);
+          console.error(`❌ Failed to add document ${doc.fileName}:`, error);
         }
       }
+      
+      console.log(`📊 Total documents copied: ${copiedDocuments}/${clientData.documents.length}`);
 
       // Finalize the archive
       archive.finalize();
