@@ -907,10 +907,9 @@ export default function ClientDetailPage() {
                 <Button
                   onClick={openNewNoteModal}
                   size="sm"
-                  className="flex items-center text-xs"
+                  className="flex items-center justify-center"
                 >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add Note
+                  <Plus className="w-4 h-4" />
                 </Button>
               </div>
               {/* Notes Sub-tabs */}
@@ -1026,10 +1025,9 @@ export default function ClientDetailPage() {
                 <Button
                   onClick={() => setIsUploadModalOpen(true)}
                   size="sm"
-                  className="flex items-center text-xs"
+                  className="flex items-center justify-center"
                 >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Upload
+                  <Plus className="w-4 h-4" />
                 </Button>
               </div>
             </div>
@@ -1043,9 +1041,9 @@ export default function ClientDetailPage() {
                     onClick={() => setIsUploadModalOpen(true)}
                     size="sm"
                     variant="outline"
+                    className="flex items-center justify-center"
                   >
-                    <Plus className="w-3 h-3 mr-1" />
-                    Upload First
+                    <Plus className="w-4 h-4" />
                   </Button>
                 </div>
               ) : (
