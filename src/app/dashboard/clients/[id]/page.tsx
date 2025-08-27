@@ -895,7 +895,7 @@ export default function ClientDetailPage() {
           </div>
 
           {/* Center Column - Notes */}
-          <div className="flex-1 min-w-0 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden flex flex-col">
+          <div className="flex-shrink-0 w-96 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden flex flex-col">
             <div className="bg-gray-700 px-4 py-3 border-b border-gray-600">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-white flex items-center">
@@ -918,10 +918,9 @@ export default function ClientDetailPage() {
                     activeTab === "interview"
                       ? "bg-blue-500 text-white"
                       : "bg-gray-600 text-gray-300 hover:bg-gray-500"
-                  } px-3 py-1 text-xs rounded transition-colors flex items-center space-x-1`}
+                  } px-3 py-2 rounded transition-colors flex items-center justify-center`}
                 >
-                  <MessageSquare className="w-3 h-3" />
-                  <span>Interview ({interviewNotesCount})</span>
+                  <MessageSquare className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setActiveTab("coaching")}
@@ -929,10 +928,9 @@ export default function ClientDetailPage() {
                     activeTab === "coaching"
                       ? "bg-yellow-500 text-white"
                       : "bg-gray-600 text-gray-300 hover:bg-gray-500"
-                  } px-3 py-1 text-xs rounded transition-colors flex items-center space-x-1`}
+                  } px-3 py-2 rounded transition-colors flex items-center justify-center`}
                 >
-                  <Users className="w-3 h-3" />
-                  <span>Coaching ({coachingNotesCount})</span>
+                  <Users className="w-4 h-4" />
                 </button>
               </div>
             </div>
