@@ -68,7 +68,7 @@ export async function GET(
   { params }: { params: { clientId: string } }
 ) {
   try {
-    // Authenticate user
+    // 1. Authentication
     const authUser = await verifyAuthToken(request);
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -76,7 +76,7 @@ export async function GET(
 
     const { clientId } = params;
 
-    // Get client with AI analysis data
+    // 2. Fetch client with existing AI analysis results
     const client = await prisma.client.findUnique({
       where: { id: clientId },
       select: {
@@ -93,6 +93,7 @@ export async function GET(
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
 
+    // 3. Return analysis results if they exist
     if (client.aiAnalysisResults) {
       return NextResponse.json({
         success: true,
@@ -126,7 +127,7 @@ export async function POST(
   { params }: { params: { clientId: string } }
 ) {
   try {
-    // 1. Authenticate user
+    // 1. Authentication - Fixed 2025-08-26
     const authUser = await verifyAuthToken(request);
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -134,16 +135,18 @@ export async function POST(
 
     const { clientId } = params;
 
-    // 2. Data Aggregation (same as export API)
+    // 2. Data Aggregation (exact query from export API)
     const clientData = await prisma.client.findUnique({
       where: { id: clientId },
       include: {
+        // SimpleAssessment data
         simpleAssessments: {
           include: {
             responses: true,
           },
           orderBy: { startedAt: "desc" },
         },
+        // Document data with analysis
         documents: {
           include: {
             DocumentAnalysis: true,
@@ -151,133 +154,42 @@ export async function POST(
           },
           orderBy: { uploadedAt: "desc" },
         },
+        // Clinical notes
         notes: {
           orderBy: { createdAt: "desc" },
         },
+        // Treatment protocols
         protocols: {
           orderBy: { createdAt: "desc" },
         },
       },
     });
 
+    // 3. Validation
     if (!clientData) {
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
 
-    const clientName = `${clientData.firstName} ${clientData.lastName}`;
-    console.log(`🤖 Starting Puppeteer analysis for ${clientName}...`);
-
-    // 3. Check for existing recent analysis (24-hour caching)
+    // 4. Check for existing recent analysis (24-hour caching)
     const existingAnalysis = clientData.aiAnalysisResults;
     const analysisDate = clientData.aiAnalysisDate;
     const isRecentAnalysis = analysisDate && 
-      new Date().getTime() - new Date(analysisDate).getTime() < 24 * 60 * 60 * 1000;
+      new Date().getTime() - new Date(analysisDate).getTime() < 24 * 60 * 60 * 1000; // 24 hours
 
     if (isRecentAnalysis && existingAnalysis) {
-      console.log(`✅ Using cached analysis for ${clientName}`);
       return NextResponse.json({
         success: true,
         data: {
           analysis: existingAnalysis,
           analysisDate: analysisDate,
           cached: true,
-          clientName,
-        },
+          clientName: `${clientData.firstName} ${clientData.lastName}`
+        }
       });
     }
 
-    // 4. Create temporary ZIP export (reuse export logic)
-    console.log("📦 Creating temporary ZIP export...");
-    const tempDir = os.tmpdir();
-    const zipFileName = `${clientName.replace(/\s+/g, '-')}-analysis-${Date.now()}.zip`;
-    const zipPath = path.join(tempDir, zipFileName);
-
-    await createClientExportZip(clientData, zipPath);
-    console.log(`✅ Export created: ${zipPath}`);
-
-    // 5. Use Puppeteer automation to analyze via Claude Desktop
-    const automation = new ClaudeDesktopAutomation({
-      headless: process.env.NODE_ENV === 'production', // Visible in dev, headless in prod
-      timeout: 120000, // 2 minutes
-    });
-
-    console.log("🤖 Starting Claude Desktop automation...");
-    const result = await automation.analyzeClientData(zipPath, clientName);
-
-    // 6. Cleanup temporary file
-    try {
-      if (fs.existsSync(zipPath)) {
-        fs.unlinkSync(zipPath);
-        console.log("🗑️ Temporary ZIP file cleaned up");
-      }
-    } catch (cleanupError) {
-      console.warn("⚠️ Failed to cleanup temporary file:", cleanupError);
-    }
-
-    if (!result.success) {
-      throw new Error(result.error || "Puppeteer automation failed");
-    }
-
-    // 7. Save analysis to database
-    console.log("💾 Saving Puppeteer analysis to database...");
-    await prisma.client.update({
-      where: { id: clientId },
-      data: {
-        aiAnalysisResults: result.analysis,
-        aiAnalysisDate: new Date(),
-        aiAnalysisVersion: 'v2.0-puppeteer'
-      }
-    });
-
-    console.log(`✅ Puppeteer analysis completed for ${clientName}`);
-    return NextResponse.json({
-      success: true,
-      data: {
-        analysis: result.analysis,
-        analysisDate: new Date(),
-        cached: false,
-        clientName,
-        method: 'puppeteer',
-        summary: {
-          totalAssessments: clientData.simpleAssessments.length,
-          totalDocuments: clientData.documents.length,
-          totalNotes: clientData.notes.length,
-          totalProtocols: clientData.protocols.length,
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error("❌ Puppeteer AI Analysis error:", error);
-    return NextResponse.json(
-      {
-        error: "Failed to generate AI analysis via Puppeteer",
-        details: error instanceof Error ? error.message : "Unknown error"
-      },
-      { status: 500 }
-    );
-  }
-}
-
-// Helper function to create ZIP export (extracted from export API)
-async function createClientExportZip(clientData: any, zipPath: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const output = fs.createWriteStream(zipPath);
-    const archive = archiver('zip', { zlib: { level: 9 } });
-
-    output.on('close', () => {
-      console.log(`✅ ZIP created: ${archive.pointer()} total bytes`);
-      resolve();
-    });
-
-    archive.on('error', (err) => {
-      reject(err);
-    });
-
-    archive.pipe(output);
-
-    // Add client summary JSON
-    const clientSummary = {
+    // 5. Prepare structured client data (similar to export API)
+    const structuredData = {
       client: {
         id: clientData.id,
         name: `${clientData.firstName} ${clientData.lastName}`,
@@ -285,18 +197,23 @@ async function createClientExportZip(clientData: any, zipPath: string): Promise<
         phone: clientData.phone,
         dateOfBirth: clientData.dateOfBirth,
         gender: clientData.gender,
+        isTruckDriver: clientData.isTruckDriver,
+        dotNumber: clientData.dotNumber,
+        cdlNumber: clientData.cdlNumber,
+        status: clientData.status,
         healthGoals: clientData.healthGoals,
         medications: clientData.medications,
         conditions: clientData.conditions,
         allergies: clientData.allergies,
-        status: clientData.status,
+        createdAt: clientData.createdAt,
+        lastVisit: clientData.lastVisit,
       },
-      assessments: clientData.simpleAssessments.map((assessment: any) => ({
+      assessments: clientData.simpleAssessments.map((assessment) => ({
         id: assessment.id,
         status: assessment.status,
         startedAt: assessment.startedAt,
         completedAt: assessment.completedAt,
-        responses: assessment.responses.map((response: any) => ({
+        responses: assessment.responses.map((response) => ({
           questionId: response.questionId,
           questionText: response.questionText,
           category: response.category,
@@ -304,21 +221,37 @@ async function createClientExportZip(clientData: any, zipPath: string): Promise<
           answeredAt: response.answeredAt,
         })),
         totalQuestions: assessment.responses.length,
-        averageScore: assessment.responses.length > 0
-          ? assessment.responses.reduce((sum: number, r: any) => sum + r.score, 0) / assessment.responses.length
-          : 0,
+        averageScore:
+          assessment.responses.length > 0
+            ? assessment.responses.reduce((sum, r) => sum + r.score, 0) /
+              assessment.responses.length
+            : 0,
       })),
-      documents: clientData.documents.map((doc: any) => ({
+      documents: clientData.documents.map((doc) => ({
+        id: doc.id,
         fileName: doc.fileName,
         fileType: doc.fileType,
         documentType: doc.documentType,
         uploadedAt: doc.uploadedAt,
         extractedText: doc.extractedText,
         aiAnalysis: doc.aiAnalysis,
-        labValues: doc.LabValue || [],
-        analysis: doc.DocumentAnalysis || [],
+        ocrConfidence: doc.ocrConfidence,
+        labValues: doc.LabValue?.map((lv) => ({
+          name: lv.name,
+          value: lv.value,
+          unit: lv.unit,
+          referenceRange: lv.referenceRange,
+          isCritical: lv.isCritical,
+        })) || [],
+        analysis: doc.DocumentAnalysis?.map((da) => ({
+          analysisType: da.analysisType,
+          findings: da.findings,
+          confidence: da.confidence,
+          analyzedAt: da.analyzedAt,
+        })) || [],
       })),
-      notes: clientData.notes.map((note: any) => ({
+      notes: clientData.notes.map((note) => ({
+        id: note.id,
         noteType: note.noteType,
         title: note.title,
         chiefComplaints: note.chiefComplaints,
@@ -333,8 +266,10 @@ async function createClientExportZip(clientData: any, zipPath: string): Promise<
         isImportant: note.isImportant,
         followUpNeeded: note.followUpNeeded,
         createdAt: note.createdAt,
+        updatedAt: note.updatedAt,
       })),
-      protocols: clientData.protocols.map((protocol: any) => ({
+      protocols: clientData.protocols.map((protocol) => ({
+        id: protocol.id,
         name: protocol.name,
         description: protocol.description,
         supplements: protocol.supplements,
@@ -343,93 +278,110 @@ async function createClientExportZip(clientData: any, zipPath: string): Promise<
         monitoring: protocol.monitoring,
         duration: protocol.duration,
         status: protocol.status,
+        createdAt: protocol.createdAt,
       })),
     };
 
-    archive.append(JSON.stringify(clientSummary, null, 2), { name: 'client-data.json' });
+    // 6. Claude API Call
+    const claudeApiKey = process.env.ANTHROPIC_API_KEY;
+    console.log("🔑 Claude API Key check:", claudeApiKey ? "FOUND" : "MISSING");
+    
+    if (!claudeApiKey) {
+      console.error("❌ ANTHROPIC_API_KEY environment variable not set");
+      throw new Error("Claude API key not configured - please set ANTHROPIC_API_KEY environment variable");
+    }
 
-    // Add markdown summary
-    const markdownSummary = generateMarkdownSummary(clientData);
-    archive.append(markdownSummary, { name: 'client-summary.md' });
+    const prompt = FUNCTIONAL_MEDICINE_PROMPT.replace(
+      "{{CLIENT_DATA}}",
+      JSON.stringify(structuredData, null, 2)
+    );
 
-    // Note: Document files would be added here if S3 integration is working
-    // For now, the JSON contains extractedText and aiAnalysis
+    // Debug: Log data summary being sent to Claude
+    console.log("📊 Data summary being sent to Claude:");
+    console.log("  - Client:", structuredData.client.name, `(${structuredData.client.gender}, age based on DOB: ${structuredData.client.dateOfBirth})`);
+    console.log("  - Health Goals:", structuredData.client.healthGoals);
+    console.log("  - Assessments:", structuredData.assessments.length);
+    console.log("  - Documents:", structuredData.documents.length);
+    console.log("  - Notes:", structuredData.notes.length);
+    console.log("  - Protocols:", structuredData.protocols.length);
+    
+    // Log sample data to verify content
+    if (structuredData.assessments.length > 0) {
+      console.log("  - Sample assessment responses:", structuredData.assessments[0].responses.length, "questions");
+    }
+    if (structuredData.documents.length > 0) {
+      console.log("  - Sample document:", structuredData.documents[0].fileName, "type:", structuredData.documents[0].documentType);
+    }
+    if (structuredData.notes.length > 0) {
+      console.log("  - Sample note:", structuredData.notes[0].title, "type:", structuredData.notes[0].noteType);
+    }
 
-    archive.finalize();
-  });
-}
+    console.log("🤖 Making Claude API request...");
+    const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": claudeApiKey,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model: "claude-3-5-sonnet-20241022",
+        max_tokens: 4000,
+        temperature: 0.3,
+        messages: [
+          { role: "user", content: prompt }
+        ]
+      })
+    });
 
-function generateMarkdownSummary(clientData: any): string {
-  const clientName = `${clientData.firstName} ${clientData.lastName}`;
-  
-  return `# ${clientName} - Health Analysis Summary
+    console.log("📡 Claude API response status:", claudeResponse.status);
 
-## Client Information
-- **Name:** ${clientName}
-- **Email:** ${clientData.email || 'Not provided'}
-- **Phone:** ${clientData.phone || 'Not provided'}
-- **Date of Birth:** ${clientData.dateOfBirth || 'Not provided'}
-- **Gender:** ${clientData.gender || 'Not provided'}
-- **Status:** ${clientData.status}
+    if (!claudeResponse.ok) {
+      const errorData = await claudeResponse.text();
+      console.error("Claude API error:", claudeResponse.status, errorData);
+      throw new Error(`Claude API error: ${claudeResponse.status} - ${errorData}`);
+    }
 
-## Health Goals
-${clientData.healthGoals || 'No health goals specified'}
+    const claudeData = await claudeResponse.json();
+    const analysis = claudeData.content[0].text;
 
-## Current Medications
-${clientData.medications || 'No medications listed'}
+    // 7. Store Results in Database
+    console.log("💾 Saving analysis to database...");
+    const updatedClient = await prisma.client.update({
+      where: { id: clientId },
+      data: {
+        aiAnalysisResults: analysis,
+        aiAnalysisDate: new Date(),
+        aiAnalysisVersion: 'v1.0'
+      }
+    });
+    console.log("✅ Analysis saved successfully");
+    console.log("🔍 Verification - Saved analysis length:", updatedClient.aiAnalysisResults?.length || 0);
+    console.log("📅 Verification - Analysis date:", updatedClient.aiAnalysisDate);
 
-## Medical Conditions
-${clientData.conditions || 'No conditions listed'}
+    // 8. Return Success Response
+    console.log("📤 Returning success response");
+    return NextResponse.json({
+      success: true,
+      data: {
+        analysis: analysis,
+        analysisDate: new Date(),
+        cached: false,
+        clientName: `${clientData.firstName} ${clientData.lastName}`,
+        summary: {
+          totalAssessments: clientData.simpleAssessments.length,
+          totalDocuments: clientData.documents.length,
+          totalNotes: clientData.notes.length,
+          totalProtocols: clientData.protocols.length,
+        }
+      }
+    });
 
-## Allergies
-${clientData.allergies || 'No allergies listed'}
-
-## Assessment Summary
-- **Total Assessments:** ${clientData.simpleAssessments.length}
-${clientData.simpleAssessments.map((assessment: any) => `
-### Assessment ${assessment.id}
-- **Status:** ${assessment.status}
-- **Started:** ${assessment.startedAt}
-- **Completed:** ${assessment.completedAt || 'In progress'}
-- **Total Questions:** ${assessment.responses.length}
-- **Average Score:** ${assessment.responses.length > 0 ? (assessment.responses.reduce((sum: number, r: any) => sum + r.score, 0) / assessment.responses.length).toFixed(1) : 'N/A'}
-`).join('')}
-
-## Documents Summary
-- **Total Documents:** ${clientData.documents.length}
-${clientData.documents.map((doc: any) => `
-### ${doc.fileName}
-- **Type:** ${doc.documentType}
-- **Uploaded:** ${doc.uploadedAt}
-- **Text Extracted:** ${doc.extractedText ? 'Yes' : 'No'}
-- **AI Analysis:** ${doc.aiAnalysis ? 'Yes' : 'No'}
-`).join('')}
-
-## Clinical Notes Summary
-- **Total Notes:** ${clientData.notes.length}
-${clientData.notes.map((note: any) => `
-### ${note.title || 'Untitled Note'} (${note.noteType})
-- **Created:** ${note.createdAt}
-- **Chief Complaints:** ${note.chiefComplaints || 'None listed'}
-- **Health History:** ${note.healthHistory || 'None provided'}
-- **General Notes:** ${note.generalNotes || 'None provided'}
-- **Important:** ${note.isImportant ? 'Yes' : 'No'}
-- **Follow-up Needed:** ${note.followUpNeeded ? 'Yes' : 'No'}
-`).join('')}
-
-## Treatment Protocols
-- **Total Protocols:** ${clientData.protocols.length}
-${clientData.protocols.map((protocol: any) => `
-### ${protocol.name}
-- **Status:** ${protocol.status}
-- **Description:** ${protocol.description || 'No description'}
-- **Supplements:** ${protocol.supplements || 'None specified'}
-- **Dietary:** ${protocol.dietary || 'None specified'}
-- **Lifestyle:** ${protocol.lifestyle || 'None specified'}
-- **Duration:** ${protocol.duration || 'Not specified'}
-`).join('')}
-
----
-*Generated on ${new Date().toISOString()}*
-`;
+  } catch (error) {
+    console.error("AI Analysis error:", error);
+    return NextResponse.json({
+      error: error instanceof Error ? error.message : "AI analysis failed",
+      details: error instanceof Error ? error.stack : "Unknown error"
+    }, { status: 500 });
+  }
 }
