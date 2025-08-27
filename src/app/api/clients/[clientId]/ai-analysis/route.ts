@@ -36,6 +36,66 @@ ANALYSIS REQUIREMENTS:
 
 OUTPUT FORMAT: Provide a comprehensive markdown-formatted analysis that a functional medicine practitioner can use for clinical decision-making. Use clear headings, bullet points, and prioritized recommendations.`;
 
+// GET handler to retrieve existing AI analysis results
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { clientId: string } }
+) {
+  try {
+    // 1. Authentication
+    const authUser = await verifyAuthToken(request);
+    if (!authUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { clientId } = params;
+
+    // 2. Fetch client with existing AI analysis results
+    const client = await prisma.client.findUnique({
+      where: { id: clientId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        aiAnalysisResults: true,
+        aiAnalysisDate: true,
+        aiAnalysisVersion: true,
+      }
+    });
+
+    if (!client) {
+      return NextResponse.json({ error: "Client not found" }, { status: 404 });
+    }
+
+    // 3. Return analysis results if they exist
+    if (client.aiAnalysisResults) {
+      return NextResponse.json({
+        success: true,
+        analysis: client.aiAnalysisResults,
+        analysisDate: client.aiAnalysisDate,
+        analysisVersion: client.aiAnalysisVersion,
+        cached: true
+      });
+    } else {
+      // No analysis exists yet
+      return NextResponse.json({
+        success: false,
+        message: "No AI analysis available for this client"
+      }, { status: 404 });
+    }
+
+  } catch (error) {
+    console.error("AI Analysis GET error:", error);
+    return NextResponse.json(
+      { 
+        error: "Failed to retrieve AI analysis",
+        details: error instanceof Error ? error.message : "Unknown error"
+      }, 
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: { clientId: string } }
