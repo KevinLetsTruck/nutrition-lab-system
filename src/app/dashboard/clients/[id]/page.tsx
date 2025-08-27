@@ -843,8 +843,6 @@ export default function ClientDetailPage() {
             </div>
             <div className="text-right space-y-3">
               <div>
-                <div className="text-sm text-gray-400">Client since</div>
-                <div className="text-lg text-white">Aug 25, 2025</div>
                 <div className="text-green-400 text-sm font-medium">
                   ✓ Scheduled
                 </div>
