@@ -4,37 +4,58 @@ import { verifyAuthToken } from "@/lib/auth";
 
 const FUNCTIONAL_MEDICINE_PROMPT = `You are an expert Functional Medicine practitioner analyzing a client's comprehensive health data.
 
+CRITICAL INSTRUCTIONS:
+- ONLY use the specific data provided in CLIENT DATA below
+- DO NOT make assumptions or create generic recommendations
+- IF data is missing or limited, state this explicitly
+- Reference specific assessment scores, document findings, and practitioner notes when available
+- Provide analysis ONLY based on what is actually documented
+
 CLIENT DATA:
 {{CLIENT_DATA}}
 
 ANALYSIS REQUIREMENTS:
-1. **COMPREHENSIVE HEALTH ASSESSMENT**
-   - Overall health status and key concerns
-   - Pattern recognition across symptoms and assessments
-   - Root cause analysis using functional medicine principles
 
-2. **ASSESSMENT ANALYSIS**
-   - Analyze assessment scores and identify significant patterns
-   - Highlight scores indicating dysfunction or imbalance
-   - Connect assessment findings to potential root causes
+1. **CLIENT OVERVIEW** (Use ONLY provided data)
+   - Name, demographics, and health goals from client object
+   - Current health status from client.status
+   - Medications, conditions, allergies if provided
 
-3. **DOCUMENT & LAB INSIGHTS**
-   - Review any uploaded documents and lab results
-   - Identify critical values and patterns
-   - Correlate with assessment findings
+2. **ASSESSMENT ANALYSIS** (Reference specific scores)
+   - IF assessments exist: Analyze actual scores from responses array
+   - Quote specific questionText and score values
+   - Calculate patterns from actual averageScore values
+   - IF no assessments: State "No assessment data available"
 
-4. **FUNCTIONAL MEDICINE RECOMMENDATIONS**
-   - Identify likely underlying dysfunctions
-   - Suggest targeted interventions (supplements, lifestyle, testing)
-   - Prioritize recommendations by impact and urgency
-   - Include monitoring and follow-up suggestions
+3. **DOCUMENT REVIEW** (Use actual document content)
+   - IF documents exist: Review extractedText and aiAnalysis content
+   - Reference specific labValues with actual values and ranges
+   - Quote findings from DocumentAnalysis if available
+   - IF no documents: State "No documents uploaded for analysis"
 
-5. **CLINICAL NOTES INTEGRATION**
-   - Incorporate practitioner notes and observations
-   - Highlight important patient-reported symptoms
-   - Consider treatment history and responses
+4. **CLINICAL NOTES REVIEW** (Use actual practitioner notes)
+   - IF notes exist: Quote from chiefComplaints, healthHistory, currentMedications
+   - Reference protocolAdjustments and progressMetrics
+   - Include nextSteps and generalNotes content
+   - IF no notes: State "No practitioner notes available"
 
-OUTPUT FORMAT: Provide a comprehensive markdown-formatted analysis that a functional medicine practitioner can use for clinical decision-making. Use clear headings, bullet points, and prioritized recommendations.`;
+5. **PROTOCOL REVIEW** (Reference existing protocols)
+   - IF protocols exist: Review supplements, dietary, lifestyle recommendations
+   - Quote monitoring and duration details
+   - IF no protocols: State "No protocols currently assigned"
+
+6. **DATA-DRIVEN RECOMMENDATIONS**
+   - Base recommendations ONLY on findings from above sections
+   - IF insufficient data: Focus on what assessments/testing are needed
+   - Prioritize based on actual documented concerns, not assumptions
+
+REQUIRED OUTPUT SECTIONS:
+1. **Data Summary** - What information was actually available
+2. **Findings Analysis** - What the available data reveals
+3. **Recommendations** - Based only on documented findings
+4. **Data Gaps** - What additional information is needed
+
+FORMAT: Use markdown with clear headings. Start analysis with "Based on the available data for [client name]..." and explicitly reference data sources throughout.`;
 
 // GET handler to retrieve existing AI analysis results
 export async function GET(
@@ -269,6 +290,26 @@ export async function POST(
       "{{CLIENT_DATA}}",
       JSON.stringify(structuredData, null, 2)
     );
+
+    // Debug: Log data summary being sent to Claude
+    console.log("📊 Data summary being sent to Claude:");
+    console.log("  - Client:", structuredData.client.name, `(${structuredData.client.gender}, age based on DOB: ${structuredData.client.dateOfBirth})`);
+    console.log("  - Health Goals:", structuredData.client.healthGoals);
+    console.log("  - Assessments:", structuredData.assessments.length);
+    console.log("  - Documents:", structuredData.documents.length);
+    console.log("  - Notes:", structuredData.notes.length);
+    console.log("  - Protocols:", structuredData.protocols.length);
+    
+    // Log sample data to verify content
+    if (structuredData.assessments.length > 0) {
+      console.log("  - Sample assessment responses:", structuredData.assessments[0].responses.length, "questions");
+    }
+    if (structuredData.documents.length > 0) {
+      console.log("  - Sample document:", structuredData.documents[0].fileName, "type:", structuredData.documents[0].documentType);
+    }
+    if (structuredData.notes.length > 0) {
+      console.log("  - Sample note:", structuredData.notes[0].title, "type:", structuredData.notes[0].noteType);
+    }
 
     console.log("🤖 Making Claude API request...");
     const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
