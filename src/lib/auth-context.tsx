@@ -58,25 +58,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     window.addEventListener("storage", handleStorageChange);
 
-    // Also check periodically in case storage event doesn't fire
-    const interval = setInterval(() => {
-      const currentToken = localStorage.getItem("token");
-      const currentUser = localStorage.getItem("user");
-
-      if (!currentToken || !currentUser) {
-        if (token || user) {
-          // Storage was cleared but state still has auth
-          setToken(null);
-          setUser(null);
-        }
-      }
-    }, 30000); // Check every 30 seconds instead of 1 second
+    // Temporarily disable interval to fix constant refreshing
+    // const interval = setInterval(() => {
+    //   const currentToken = localStorage.getItem("token");
+    //   const currentUser = localStorage.getItem("user");
+    //   if (!currentToken || !currentUser) {
+    //     if (token || user) {
+    //       setToken(null);
+    //       setUser(null);
+    //     }
+    //   }
+    // }, 30000);
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
-      clearInterval(interval);
+      // clearInterval(interval); // Disabled with interval
     };
-  }, [token, user]);
+  }, []); // Remove token/user dependencies to prevent re-setup loops
 
   const login = async (email: string, password: string) => {
     const response = await fetch("/api/auth/login", {
