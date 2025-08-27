@@ -1,0 +1,16 @@
+[phases.setup]
+nixPkgs = ["nodejs", "npm", "google-chrome-stable", "chromium", "cairo", "nss", "at-spi2-atk", "gtk3", "alsa-lib"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm start"
+
+[variables]
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
+PUPPETEER_EXECUTABLE_PATH = "/usr/bin/google-chrome-stable"
+NODE_ENV = "production"

@@ -22,7 +22,7 @@ export class ClaudeDesktopAutomation {
     } = {}
   ) {
     this.options = {
-      headless: process.env.NODE_ENV === 'production', // Visible in dev, headless in prod
+      headless: true, // Always headless for Railway/Docker compatibility
       timeout: 60000, // 60 seconds
       ...options,
     };
@@ -47,7 +47,35 @@ export class ClaudeDesktopAutomation {
         '--no-zygote',
         '--single-process', // Required for Railway/Docker
         '--disable-gpu',
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor',
+        '--disable-extensions',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+        '--disable-field-trial-config',
+        '--disable-ipc-flooding-protection',
+        // Additional Railway/Docker specific flags
+        '--virtual-time-budget=60000',
+        '--disable-default-apps',
+        '--mute-audio',
+        '--no-default-browser-check',
+        '--autoplay-policy=user-gesture-required',
+        '--disable-background-sync',
+        '--disable-sync',
+        '--disable-translate',
+        '--hide-scrollbars',
+        '--metrics-recording-only',
+        '--no-first-run',
+        '--safebrowsing-disable-auto-update',
+        '--ignore-ssl-errors',
+        '--ignore-certificate-errors',
+        '--ignore-certificate-errors-spki-list',
+        // Force headless in production regardless of setting
+        ...(process.env.NODE_ENV === 'production' ? ['--headless=new'] : []),
       ],
+      executablePath: process.env.CHROME_BIN || undefined,
+      ignoreDefaultArgs: ['--disable-extensions'],
     });
 
     this.page = await this.browser.newPage();
