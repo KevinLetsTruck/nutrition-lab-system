@@ -871,9 +871,6 @@ export default function ClientDetailPage() {
               <h3 className="font-semibold text-white flex items-center">
                 <span className="text-lg mr-2">🎯</span>
                 Health Goals
-                <span className="ml-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                  {getHealthGoalsArray(client.healthGoals).length}
-                </span>
               </h3>
             </div>
             <div className="p-4 h-full overflow-y-auto">
@@ -906,9 +903,6 @@ export default function ClientDetailPage() {
                 <h3 className="font-semibold text-white flex items-center">
                   <span className="text-lg mr-2">📝</span>
                   Notes
-                  <span className="ml-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                    {interviewNotesCount + coachingNotesCount}
-                  </span>
                 </h3>
                 <Button
                   onClick={openNewNoteModal}
@@ -1028,9 +1022,6 @@ export default function ClientDetailPage() {
                 <h3 className="font-semibold text-white flex items-center">
                   <span className="text-lg mr-2">📄</span>
                   Documents
-                  <span className="ml-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                    {documents.length}
-                  </span>
                 </h3>
                 <Button
                   onClick={() => setIsUploadModalOpen(true)}
