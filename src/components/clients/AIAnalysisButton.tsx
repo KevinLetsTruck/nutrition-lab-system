@@ -165,7 +165,11 @@ export function AIAnalysisButton({
 
   return (
     <Button
-      onClick={handleAnalysis}
+      onClick={() => {
+        console.log("🔥 BUTTON CLICKED! Starting handler...");
+        alert("Button clicked! Check console for logs.");
+        handleAnalysis();
+      }}
       disabled={isAnalyzing}
       variant={getButtonVariant()}
       size={size}
