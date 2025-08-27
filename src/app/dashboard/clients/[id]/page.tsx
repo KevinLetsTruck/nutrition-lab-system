@@ -910,32 +910,36 @@ export default function ClientDetailPage() {
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
-              {/* Notes Sub-tabs */}
-              <div className="flex space-x-2 mt-3">
-                <button
-                  onClick={() => setActiveTab("interview")}
-                  className={`${
-                    activeTab === "interview"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-600 text-gray-300 hover:bg-gray-500"
-                  } px-3 py-2 rounded transition-colors flex items-center justify-center`}
-                >
-                  <MessageSquare className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setActiveTab("coaching")}
-                  className={`${
-                    activeTab === "coaching"
-                      ? "bg-yellow-500 text-white"
-                      : "bg-gray-600 text-gray-300 hover:bg-gray-500"
-                  } px-3 py-2 rounded transition-colors flex items-center justify-center`}
-                >
-                  <Users className="w-4 h-4" />
-                </button>
-              </div>
             </div>
 
-            <div className="flex-1 p-4 overflow-y-auto">
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* Notes Sub-tabs - Moved to content area */}
+              <div className="bg-gray-700 border-b border-gray-600 px-4 py-2">
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setActiveTab("interview")}
+                    className={`${
+                      activeTab === "interview"
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                    } px-3 py-2 rounded transition-colors flex items-center justify-center`}
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("coaching")}
+                    className={`${
+                      activeTab === "coaching"
+                        ? "bg-yellow-500 text-white"
+                        : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                    } px-3 py-2 rounded transition-colors flex items-center justify-center`}
+                  >
+                    <Users className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex-1 p-4 overflow-y-auto">
               <div className="space-y-2">
                 {notes.filter((note) =>
                   activeTab === "interview"
@@ -1007,6 +1011,7 @@ export default function ClientDetailPage() {
                     ))
                 )}
               </div>
+            </div>
             </div>
           </div>
 
