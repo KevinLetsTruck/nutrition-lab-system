@@ -51,6 +51,8 @@ model Client {
   notes                  Note[]
   protocols              Protocol[]
   medicalDocuments       MedicalDocument[]
+  clientAnalyses         ClientAnalysis[]
+  enhancedProtocols      EnhancedProtocol[]
 }
 
 model SimpleAssessment {
@@ -604,4 +606,72 @@ enum MedicalJobStatus {
   COMPLETED
   FAILED
   RETRY
+}
+
+model ClientAnalysis {
+  id               String   @id @default(cuid())
+  clientId         String
+  analysisDate     DateTime @default(now())
+  analysisVersion  String   @default("v1.0")
+  
+  // Analysis Sections (structured storage)
+  executiveSummary        String?
+  systemAnalysis          Json?
+  rootCauseAnalysis       String?
+  protocolRecommendations Json?
+  monitoringPlan          String?
+  patientEducation        String?
+  
+  // Full analysis storage
+  fullAnalysis     String
+  
+  // Metadata
+  practitionerNotes String?
+  status           String   @default("active")
+  createdBy        String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // Relations
+  client           Client             @relation(fields: [clientId], references: [id])
+  enhancedProtocols EnhancedProtocol[]
+  
+  @@index([clientId, analysisDate])
+  @@index([status])
+}
+
+model EnhancedProtocol {
+  id               String   @id @default(cuid())
+  clientId         String
+  analysisId       String?
+  
+  protocolName     String
+  protocolPhase    String? // Phase 1, 2, 3
+  
+  // Protocol components
+  supplements              Json?
+  dietaryGuidelines        Json?
+  lifestyleModifications   Json?
+  monitoringRequirements   Json?
+  
+  // Timeline
+  startDate        DateTime?
+  durationWeeks    Int?
+  status           String    @default("planned")
+  
+  // Progress tracking
+  complianceNotes      String?
+  effectivenessRating  Int?    // 1-5 scale
+  sideEffects          String?
+  modificationsMade    Json?
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // Relations
+  client          Client          @relation(fields: [clientId], references: [id])
+  analysis        ClientAnalysis? @relation(fields: [analysisId], references: [id])
+  
+  @@index([clientId, status])
+  @@index([analysisId])
 }

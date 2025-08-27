@@ -18,6 +18,8 @@ import {
   AlertCircle,
   Users,
   Trash2,
+  Brain,
+  BarChart3,
 } from "lucide-react";
 import NoteCard from "@/components/notes/NoteCard";
 import NoteModal from "@/components/notes/NoteModal";
@@ -848,14 +850,30 @@ export default function ClientDetailPage() {
                 </div>
               </div>
 
-              {/* Export Button */}
-              <div className="flex gap-2">
-                <ExportClientButton
-                  clientId={client.id}
-                  clientName={`${client.firstName} ${client.lastName}`}
-                  variant="secondary"
-                  size="sm"
-                />
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <ExportClientButton
+                    clientId={client.id}
+                    clientName={`${client.firstName} ${client.lastName}`}
+                    variant="secondary"
+                    size="sm"
+                  />
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/dashboard/clients/${client.id}/analysis/import`}>
+                      <Brain className="h-4 w-4 mr-1" />
+                      Import Analysis
+                    </Link>
+                  </Button>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/dashboard/clients/${client.id}/analysis/history`}>
+                      <BarChart3 className="h-4 w-4 mr-1" />
+                      Analysis History
+                    </Link>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
