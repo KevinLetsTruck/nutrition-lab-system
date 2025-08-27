@@ -5,7 +5,7 @@ import { parseClaudeAnalysis, validateAnalysis } from "@/lib/analysis-parser";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { clientId: string } }
+  { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
     // Authenticate user
