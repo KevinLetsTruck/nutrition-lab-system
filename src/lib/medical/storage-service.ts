@@ -37,14 +37,7 @@ export class S3StorageService {
     this.region = process.env.S3_REGION || "us-east-1";
     this.bucketName = process.env.S3_MEDICAL_BUCKET_NAME || "";
 
-    // Debug logging for production
-    console.log("🔍 S3StorageService Configuration Debug:");
-    console.log("  Region:", this.region);
-    console.log("  Bucket:", this.bucketName || "NOT SET");
-    console.log("  Access Key ID:", process.env.S3_ACCESS_KEY_ID ? 
-      `SET (length: ${process.env.S3_ACCESS_KEY_ID.length})` : "NOT SET");
-    console.log("  Secret Key:", process.env.S3_SECRET_ACCESS_KEY ? 
-      `SET (length: ${process.env.S3_SECRET_ACCESS_KEY.length})` : "NOT SET");
+    // Configuration check
 
     // Check if S3 is properly configured
     if (process.env.S3_ACCESS_KEY_ID && 
@@ -60,13 +53,12 @@ export class S3StorageService {
           },
         });
         this.isConfigured = true;
-        console.log("✅ S3Client created successfully");
       } catch (error: any) {
-        console.error("❌ Failed to create S3Client:", error.message);
+        console.error("Failed to create S3Client:", error.message);
         this.isConfigured = false;
       }
     } else {
-      console.warn("⚠️ S3 not configured - missing environment variables");
+      console.warn("⚠️ S3 not configured - documents will be stored as metadata only");
       this.isConfigured = false;
     }
   }
@@ -113,32 +105,14 @@ export class S3StorageService {
       },
     };
 
-    try {
-      console.log("🚀 Attempting S3 upload:", {
-        bucket: this.bucketName,
-        key,
-        region: this.region
-      });
-      
-      await this.s3Client!.send(new PutObjectCommand(uploadParams));
-      
-      console.log("✅ S3 upload successful");
-      return {
-        id: key,
-        url: `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${key}`,
-        key,
-        bucket: this.bucketName,
-      };
-    } catch (error: any) {
-      console.error("❌ S3 upload failed:", {
-        error: error.message,
-        code: error.Code,
-        statusCode: error.$metadata?.httpStatusCode,
-        region: this.region,
-        bucket: this.bucketName
-      });
-      throw error;
-    }
+    await this.s3Client!.send(new PutObjectCommand(uploadParams));
+
+    return {
+      id: key,
+      url: `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${key}`,
+      key,
+      bucket: this.bucketName,
+    };
   }
 
   /**

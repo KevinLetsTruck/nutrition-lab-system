@@ -17,6 +17,7 @@ import {
   Star,
   AlertCircle,
   Users,
+  Trash2,
 } from "lucide-react";
 import NoteCard from "@/components/notes/NoteCard";
 import NoteModal from "@/components/notes/NoteModal";
