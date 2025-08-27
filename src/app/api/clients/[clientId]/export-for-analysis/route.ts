@@ -8,7 +8,7 @@ import { medicalDocStorage } from "@/lib/medical/storage-service";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { clientId: string } }
+  { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
     // Authenticate user - Fixed 2025-08-26
@@ -17,7 +17,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { clientId } = params;
+    const { clientId } = await params;
 
     // Fetch complete client data from all 5 main tables
     const clientData = await prisma.client.findUnique({

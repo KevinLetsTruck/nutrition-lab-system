@@ -35,7 +35,8 @@ async function getClient(id: string) {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const client = await getClient(params.id);
+  const { id } = await params;
+  const client = await getClient(id);
   
   return {
     title: client 
@@ -45,7 +46,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ImportAnalysisPage({ params }: PageProps) {
-  const client = await getClient(params.id);
+  const { id } = await params;
+  const client = await getClient(id);
 
   if (!client) {
     notFound();

@@ -4,7 +4,7 @@ import { verifyAuthToken } from "@/lib/auth";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { clientId: string } }
+  { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
     // Authenticate user
