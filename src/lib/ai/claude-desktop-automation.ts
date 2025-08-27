@@ -1,6 +1,6 @@
-import puppeteer, { Browser, Page } from 'puppeteer';
-import fs from 'fs';
-import path from 'path';
+import puppeteer, { Browser, Page } from "puppeteer";
+import fs from "fs";
+import path from "path";
 
 export interface ClaudeAnalysisResult {
   success: boolean;
@@ -26,102 +26,102 @@ export class ClaudeDesktopAutomation {
       timeout: 60000, // 60 seconds
       ...options,
     };
-    
+
     console.log(`🤖 ClaudeDesktopAutomation initialized:`, {
       headless: this.options.headless,
       timeout: this.options.timeout,
-      environment: process.env.NODE_ENV
+      environment: process.env.NODE_ENV,
     });
   }
 
   async initialize(): Promise<void> {
-    console.log('🤖 Launching Puppeteer browser...');
+    console.log("🤖 Launching Puppeteer browser...");
     this.browser = await puppeteer.launch({
       headless: this.options.headless,
       args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process', // Required for Railway/Docker
-        '--disable-gpu',
-        '--disable-web-security',
-        '--disable-features=VizDisplayCompositor',
-        '--disable-extensions',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding',
-        '--disable-field-trial-config',
-        '--disable-ipc-flooding-protection',
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--no-first-run",
+        "--no-zygote",
+        "--single-process", // Required for Railway/Docker
+        "--disable-gpu",
+        "--disable-web-security",
+        "--disable-features=VizDisplayCompositor",
+        "--disable-extensions",
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
+        "--disable-renderer-backgrounding",
+        "--disable-field-trial-config",
+        "--disable-ipc-flooding-protection",
         // Additional Railway/Docker specific flags
-        '--virtual-time-budget=60000',
-        '--disable-default-apps',
-        '--mute-audio',
-        '--no-default-browser-check',
-        '--autoplay-policy=user-gesture-required',
-        '--disable-background-sync',
-        '--disable-sync',
-        '--disable-translate',
-        '--hide-scrollbars',
-        '--metrics-recording-only',
-        '--no-first-run',
-        '--safebrowsing-disable-auto-update',
-        '--ignore-ssl-errors',
-        '--ignore-certificate-errors',
-        '--ignore-certificate-errors-spki-list',
+        "--virtual-time-budget=60000",
+        "--disable-default-apps",
+        "--mute-audio",
+        "--no-default-browser-check",
+        "--autoplay-policy=user-gesture-required",
+        "--disable-background-sync",
+        "--disable-sync",
+        "--disable-translate",
+        "--hide-scrollbars",
+        "--metrics-recording-only",
+        "--no-first-run",
+        "--safebrowsing-disable-auto-update",
+        "--ignore-ssl-errors",
+        "--ignore-certificate-errors",
+        "--ignore-certificate-errors-spki-list",
         // Force headless in production regardless of setting
-        ...(process.env.NODE_ENV === 'production' ? ['--headless=new'] : []),
+        ...(process.env.NODE_ENV === "production" ? ["--headless=new"] : []),
       ],
-      executablePath: process.env.CHROME_BIN || undefined,
-      ignoreDefaultArgs: ['--disable-extensions'],
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+      ignoreDefaultArgs: ["--disable-extensions"],
     });
 
     this.page = await this.browser.newPage();
-    
+
     // Set realistic viewport and user agent
     await this.page.setViewport({ width: 1920, height: 1080 });
     await this.page.setUserAgent(
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
     );
 
-    console.log('✅ Browser initialized');
+    console.log("✅ Browser initialized");
   }
 
   async navigateToClaude(): Promise<void> {
-    if (!this.page) throw new Error('Browser not initialized');
+    if (!this.page) throw new Error("Browser not initialized");
 
-    console.log('🌐 Navigating to Claude.ai...');
-    await this.page.goto('https://claude.ai/chats', {
-      waitUntil: 'networkidle2',
+    console.log("🌐 Navigating to Claude.ai...");
+    await this.page.goto("https://claude.ai/chats", {
+      waitUntil: "networkidle2",
       timeout: this.options.timeout,
     });
 
     // Wait for page to load
     await this.page.waitForTimeout(2000);
-    console.log('✅ Reached Claude.ai');
+    console.log("✅ Reached Claude.ai");
   }
 
   async handleAuthentication(): Promise<void> {
-    if (!this.page) throw new Error('Browser not initialized');
+    if (!this.page) throw new Error("Browser not initialized");
 
     try {
-      console.log('🔍 Checking for existing authentication...');
-      
+      console.log("🔍 Checking for existing authentication...");
+
       // Take a screenshot for debugging
       const currentUrl = await this.page.url();
-      console.log('📍 Current URL:', currentUrl);
-      
+      console.log("📍 Current URL:", currentUrl);
+
       // Look for various indicators of being logged in
       const selectors = [
         '[data-testid="send-button"]',
         'textarea[placeholder*="message"]',
-        '.chat-input',
+        ".chat-input",
         'button:has-text("Send")',
-        '.message-input'
+        ".message-input",
       ];
-      
+
       for (const selector of selectors) {
         try {
           await this.page.waitForSelector(selector, { timeout: 2000 });
@@ -131,74 +131,82 @@ export class ClaudeDesktopAutomation {
           console.log(`❌ Selector not found: ${selector}`);
         }
       }
-      
+
       // If we're here, we didn't find any auth indicators
-      console.log('🔑 No authentication indicators found');
-      console.log('📄 Page title:', await this.page.title());
-      
+      console.log("🔑 No authentication indicators found");
+      console.log("📄 Page title:", await this.page.title());
+
       // Check if we're on a login page
       const pageContent = await this.page.content();
-      const hasLoginForm = pageContent.includes('login') || pageContent.includes('sign in') || pageContent.includes('email');
-      
+      const hasLoginForm =
+        pageContent.includes("login") ||
+        pageContent.includes("sign in") ||
+        pageContent.includes("email");
+
       if (hasLoginForm) {
-        console.log('🔓 Detected login page - authentication required');
-        throw new Error('Authentication required - please log in to Claude.ai manually first. The automation will handle the rest once you\'re logged in.');
+        console.log("🔓 Detected login page - authentication required");
+        throw new Error(
+          "Authentication required - please log in to Claude.ai manually first. The automation will handle the rest once you're logged in."
+        );
       } else {
-        console.log('❓ Unexpected page state - may need to handle this case');
-        throw new Error(`Unexpected page state. Current URL: ${currentUrl}. Please check Claude.ai manually.`);
+        console.log("❓ Unexpected page state - may need to handle this case");
+        throw new Error(
+          `Unexpected page state. Current URL: ${currentUrl}. Please check Claude.ai manually.`
+        );
       }
-      
     } catch (error) {
-      console.error('🚨 Authentication check error:', error);
+      console.error("🚨 Authentication check error:", error);
       throw error;
     }
   }
 
   async createNewChat(): Promise<void> {
-    if (!this.page) throw new Error('Browser not initialized');
+    if (!this.page) throw new Error("Browser not initialized");
 
-    console.log('💬 Creating new chat...');
-    
+    console.log("💬 Creating new chat...");
+
     try {
       // Look for "New Chat" button or similar
-      const newChatButton = await this.page.$('button:has-text("New Chat"), a[href*="/chat"], button[aria-label*="new"]');
+      const newChatButton = await this.page.$(
+        'button:has-text("New Chat"), a[href*="/chat"], button[aria-label*="new"]'
+      );
       if (newChatButton) {
         await newChatButton.click();
         await this.page.waitForTimeout(2000);
       }
     } catch (error) {
-      console.log('ℹ️ Continuing with existing chat interface');
+      console.log("ℹ️ Continuing with existing chat interface");
     }
 
-    console.log('✅ Ready for new conversation');
+    console.log("✅ Ready for new conversation");
   }
 
   async uploadFile(filePath: string): Promise<void> {
-    if (!this.page) throw new Error('Browser not initialized');
+    if (!this.page) throw new Error("Browser not initialized");
 
     console.log(`📎 Uploading file: ${path.basename(filePath)}`);
 
     // Look for file upload input
     const fileInput = await this.page.$('input[type="file"]');
     if (!fileInput) {
-      throw new Error('File upload input not found');
+      throw new Error("File upload input not found");
     }
 
     await fileInput.uploadFile(filePath);
     await this.page.waitForTimeout(3000); // Wait for upload to process
 
-    console.log('✅ File uploaded successfully');
+    console.log("✅ File uploaded successfully");
   }
 
   async sendMessage(message: string): Promise<void> {
-    if (!this.page) throw new Error('Browser not initialized');
+    if (!this.page) throw new Error("Browser not initialized");
 
-    console.log('💬 Sending analysis prompt...');
+    console.log("💬 Sending analysis prompt...");
 
     // Find the text input area
     const textArea = await this.page.$('textarea, [contenteditable="true"]');
     if (!textArea) {
-      throw new Error('Message input not found');
+      throw new Error("Message input not found");
     }
 
     // Clear and type the message
@@ -207,38 +215,45 @@ export class ClaudeDesktopAutomation {
     await this.page.type('textarea, [contenteditable="true"]', message);
 
     // Find and click send button
-    const sendButton = await this.page.$('button[type="submit"], [data-testid="send-button"], button:has-text("Send")');
+    const sendButton = await this.page.$(
+      'button[type="submit"], [data-testid="send-button"], button:has-text("Send")'
+    );
     if (!sendButton) {
-      throw new Error('Send button not found');
+      throw new Error("Send button not found");
     }
 
     await sendButton.click();
-    console.log('✅ Message sent, waiting for response...');
+    console.log("✅ Message sent, waiting for response...");
   }
 
   async waitForResponse(): Promise<string> {
-    if (!this.page) throw new Error('Browser not initialized');
+    if (!this.page) throw new Error("Browser not initialized");
 
-    console.log('⏳ Waiting for Claude response...');
+    console.log("⏳ Waiting for Claude response...");
 
     // Wait for response to appear and complete
     await this.page.waitForTimeout(5000); // Initial delay
 
     // Look for response container - this may need adjustment based on Claude's HTML
-    let response = '';
+    let response = "";
     let previousLength = 0;
     let stableCount = 0;
 
-    for (let i = 0; i < 30; i++) { // Max 30 iterations (3 minutes)
+    for (let i = 0; i < 30; i++) {
+      // Max 30 iterations (3 minutes)
       try {
         // Try multiple selectors for response content
-        const responseElements = await this.page.$$('div[data-message-id] div, .message-content, .response-content, [role="presentation"] p');
-        
+        const responseElements = await this.page.$$(
+          'div[data-message-id] div, .message-content, .response-content, [role="presentation"] p'
+        );
+
         if (responseElements.length > 0) {
           // Get the last response (Claude's latest message)
           const lastResponse = responseElements[responseElements.length - 1];
-          const currentText = await lastResponse.evaluate(el => el.textContent || '');
-          
+          const currentText = await lastResponse.evaluate(
+            (el) => el.textContent || ""
+          );
+
           if (currentText.length > previousLength) {
             response = currentText;
             previousLength = currentText.length;
@@ -260,40 +275,42 @@ export class ClaudeDesktopAutomation {
     }
 
     if (!response || response.length < 50) {
-      throw new Error('No valid response received from Claude');
+      throw new Error("No valid response received from Claude");
     }
 
     console.log(`✅ Response received (${response.length} characters)`);
     return response;
   }
 
-  async analyzeClientData(zipFilePath: string, clientName: string): Promise<ClaudeAnalysisResult> {
+  async analyzeClientData(
+    zipFilePath: string,
+    clientName: string
+  ): Promise<ClaudeAnalysisResult> {
     try {
       await this.initialize();
       await this.navigateToClaude();
       await this.handleAuthentication();
       await this.createNewChat();
-      
+
       // Upload the client data ZIP
       await this.uploadFile(zipFilePath);
-      
+
       // Send the functional medicine analysis prompt
       const prompt = this.getFunctionalMedicinePrompt(clientName);
       await this.sendMessage(prompt);
-      
+
       // Wait for and extract Claude's response
       const analysis = await this.waitForResponse();
-      
+
       return {
         success: true,
         analysis: analysis,
       };
-
     } catch (error) {
-      console.error('❌ Claude Desktop automation error:', error);
+      console.error("❌ Claude Desktop automation error:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
         debugInfo: {
           currentUrl: await this.page?.url(),
           pageTitle: await this.page?.title(),
@@ -344,7 +361,7 @@ Please make this analysis clinically actionable for a functional medicine practi
   }
 
   async cleanup(): Promise<void> {
-    console.log('🧹 Cleaning up browser resources...');
+    console.log("🧹 Cleaning up browser resources...");
     if (this.page) {
       await this.page.close();
       this.page = null;
@@ -353,6 +370,6 @@ Please make this analysis clinically actionable for a functional medicine practi
       await this.browser.close();
       this.browser = null;
     }
-    console.log('✅ Cleanup complete');
+    console.log("✅ Cleanup complete");
   }
 }
