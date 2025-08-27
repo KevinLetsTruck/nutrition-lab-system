@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, BarChart3 } from 'lucide-react';
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 async function getClient(id: string) {
