@@ -301,7 +301,7 @@ export async function POST(
 
     // 7. Store Results in Database
     console.log("💾 Saving analysis to database...");
-    await prisma.client.update({
+    const updatedClient = await prisma.client.update({
       where: { id: clientId },
       data: {
         aiAnalysisResults: analysis,
@@ -310,6 +310,8 @@ export async function POST(
       }
     });
     console.log("✅ Analysis saved successfully");
+    console.log("🔍 Verification - Saved analysis length:", updatedClient.aiAnalysisResults?.length || 0);
+    console.log("📅 Verification - Analysis date:", updatedClient.aiAnalysisDate);
 
     // 8. Return Success Response
     console.log("📤 Returning success response");

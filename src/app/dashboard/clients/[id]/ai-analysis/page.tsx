@@ -51,10 +51,12 @@ export default function AIAnalysisPage() {
       setLoading(true);
       setError(null);
 
+      console.log("🔄 Making request to complete endpoint...");
       const response = await fetch(`/api/clients/${clientId}/complete`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        cache: 'no-store' // Prevent caching issues
       });
 
       if (!response.ok) {

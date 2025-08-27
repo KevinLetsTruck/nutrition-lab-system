@@ -99,7 +99,7 @@ export function AIAnalysisButton({
           });
         }
 
-        // Navigate to analysis results page
+        // Navigate to analysis results page with longer delay to ensure DB commit
         setTimeout(() => {
           console.log("🚀 Attempting navigation to results page...");
           try {
@@ -108,7 +108,7 @@ export function AIAnalysisButton({
           } catch (error) {
             console.error("❌ Navigation error:", error);
           }
-        }, 1000);
+        }, 2000); // Increased delay to ensure database commit
       } else {
         throw new Error(data.error || "Analysis failed");
       }
