@@ -895,7 +895,7 @@ export default function ClientDetailPage() {
           </div>
 
           {/* Center Column - Notes */}
-          <div className="flex-shrink-0 w-96 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden flex flex-col">
+          <div className="flex-shrink-0 w-80 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden flex flex-col">
             <div className="bg-gray-700 px-4 py-3 border-b border-gray-600">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-white flex items-center">
