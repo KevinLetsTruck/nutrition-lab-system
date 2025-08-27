@@ -39,7 +39,9 @@ export default function AIAnalysisPage() {
   const clientId = params.id as string;
 
   useEffect(() => {
+    console.log("🔍 AI Analysis page mounted. ClientId:", clientId, "Token present:", !!token);
     if (clientId && token) {
+      console.log("📥 Fetching client data for analysis page...");
       fetchClientData();
     }
   }, [clientId, token]);
@@ -60,6 +62,14 @@ export default function AIAnalysisPage() {
       }
 
       const data = await response.json();
+      console.log("📦 Client data received:", {
+        hasClient: !!data.client,
+        clientName: data.client ? `${data.client.firstName} ${data.client.lastName}` : 'N/A',
+        hasAiAnalysisResults: !!data.client?.aiAnalysisResults,
+        analysisResultsLength: data.client?.aiAnalysisResults?.length || 0,
+        analysisDate: data.client?.aiAnalysisDate
+      });
+      
       setClient(data.client);
 
       // No need to check analysis status here - the client data already includes AI results

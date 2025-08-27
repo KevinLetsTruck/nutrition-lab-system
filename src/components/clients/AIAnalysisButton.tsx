@@ -68,9 +68,11 @@ export function AIAnalysisButton({
 
       const data = await response.json();
       console.log("📦 Response data:", data);
+      console.log("📋 Analysis text preview:", data.data?.analysis?.substring(0, 100) + "...");
 
       if (data.success) {
         console.log("✅ Analysis successful, preparing to redirect...");
+        console.log("🧭 Navigation target:", `/dashboard/clients/${clientId}/ai-analysis`);
         setAnalysisStatus("success");
         toast.success("AI Analysis Complete!", {
           description: (
@@ -99,7 +101,13 @@ export function AIAnalysisButton({
 
         // Navigate to analysis results page
         setTimeout(() => {
-          router.push(`/dashboard/clients/${clientId}/ai-analysis`);
+          console.log("🚀 Attempting navigation to results page...");
+          try {
+            router.push(`/dashboard/clients/${clientId}/ai-analysis`);
+            console.log("✅ Navigation initiated successfully");
+          } catch (error) {
+            console.error("❌ Navigation error:", error);
+          }
         }, 1000);
       } else {
         throw new Error(data.error || "Analysis failed");
@@ -165,11 +173,7 @@ export function AIAnalysisButton({
 
   return (
     <Button
-      onClick={() => {
-        console.log("🔥 BUTTON CLICKED! Starting handler...");
-        alert("Button clicked! Check console for logs.");
-        handleAnalysis();
-      }}
+      onClick={handleAnalysis}
       disabled={isAnalyzing}
       variant={getButtonVariant()}
       size={size}
