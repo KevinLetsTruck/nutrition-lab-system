@@ -16,41 +16,56 @@ const SECTION_PATTERNS = {
     /## Executive Summary(.*?)(?=##|$)/is,
     /# Executive Summary(.*?)(?=#|$)/is,
     /\*\*Executive Summary\*\*(.*?)(?=\*\*|$)/is,
-    /EXECUTIVE SUMMARY(.*?)(?=\n\n|$)/is
+    /EXECUTIVE SUMMARY(.*?)(?=\n\n|$)/is,
+    /Executive Summary:(.*?)(?=\n\n|$)/is,
+    /Summary(.*?)(?=\n\n|Analysis|$)/is
   ],
   systemAnalysis: [
     /## System-by-System Analysis(.*?)(?=##|$)/is,
     /## System Analysis(.*?)(?=##|$)/is,
     /# Pattern Analysis(.*?)(?=#|$)/is,
     /\*\*System Analysis\*\*(.*?)(?=\*\*|$)/is,
-    /SYSTEM ANALYSIS(.*?)(?=\n\n|$)/is
+    /SYSTEM ANALYSIS(.*?)(?=\n\n|$)/is,
+    /System.*Analysis:(.*?)(?=\n\n|$)/is,
+    /Pattern.*Analysis:(.*?)(?=\n\n|$)/is,
+    /Assessment:(.*?)(?=\n\n|Recommendations|$)/is
   ],
   rootCauseAnalysis: [
     /## Root Cause Analysis(.*?)(?=##|$)/is,
     /# Root Cause(.*?)(?=#|$)/is,
     /\*\*Root Cause\*\*(.*?)(?=\*\*|$)/is,
-    /ROOT CAUSE(.*?)(?=\n\n|$)/is
+    /ROOT CAUSE(.*?)(?=\n\n|$)/is,
+    /Root Cause:(.*?)(?=\n\n|$)/is,
+    /Primary.*Causes:(.*?)(?=\n\n|$)/is
   ],
   protocolRecommendations: [
     /## Protocol Recommendations(.*?)(?=##|$)/is,
     /## Treatment Protocol(.*?)(?=##|$)/is,
     /# Protocol(.*?)(?=#|$)/is,
     /\*\*Protocol\*\*(.*?)(?=\*\*|$)/is,
-    /PROTOCOL(.*?)(?=\n\n|$)/is
+    /PROTOCOL(.*?)(?=\n\n|$)/is,
+    /Recommendations:(.*?)(?=\n\n|Monitoring|$)/is,
+    /Treatment.*Plan:(.*?)(?=\n\n|$)/is,
+    /Protocol:(.*?)(?=\n\n|$)/is
   ],
   monitoringPlan: [
     /## Monitoring Plan(.*?)(?=##|$)/is,
     /## Follow-up(.*?)(?=##|$)/is,
     /# Monitoring(.*?)(?=#|$)/is,
     /\*\*Monitoring\*\*(.*?)(?=\*\*|$)/is,
-    /MONITORING(.*?)(?=\n\n|$)/is
+    /MONITORING(.*?)(?=\n\n|$)/is,
+    /Monitoring:(.*?)(?=\n\n|$)/is,
+    /Follow.*up:(.*?)(?=\n\n|$)/is
   ],
   patientEducation: [
     /## Patient Education(.*?)(?=##|$)/is,
     /## Client Education(.*?)(?=##|$)/is,
     /# Education(.*?)(?=#|$)/is,
     /\*\*Patient Education\*\*(.*?)(?=\*\*|$)/is,
-    /PATIENT EDUCATION(.*?)(?=\n\n|$)/is
+    /PATIENT EDUCATION(.*?)(?=\n\n|$)/is,
+    /Patient.*Education:(.*?)(?=\n\n|$)/is,
+    /Client.*Education:(.*?)(?=\n\n|$)/is,
+    /Education:(.*?)(?=\n\n|$)/is
   ]
 };
 
@@ -153,10 +168,9 @@ export function validateAnalysis(analysis: ParsedAnalysis): string[] {
     errors.push('Analysis text is too short (minimum 100 characters)');
   }
 
-  if (!analysis.executiveSummary && !analysis.systemAnalysis && !analysis.protocolRecommendations) {
-    errors.push('No recognizable sections found - please check formatting');
-  }
-
+  // More lenient validation - allow import even if sections aren't detected
+  // The full analysis text will still be stored for manual review
+  
   return errors;
 }
 
