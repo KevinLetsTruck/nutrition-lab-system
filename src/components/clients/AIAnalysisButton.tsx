@@ -100,11 +100,29 @@ export function AIAnalysisButton({
     } catch (error) {
       console.error("AI Analysis error:", error);
       setAnalysisStatus("error");
+      
+      // More detailed error handling
+      let errorMessage = "An unexpected error occurred during analysis.";
+      let errorDescription = "";
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        
+        // Specific error cases
+        if (error.message.includes("Claude API key not configured")) {
+          errorDescription = "Please configure ANTHROPIC_API_KEY in Railway environment variables.";
+        } else if (error.message.includes("Claude API error: 401")) {
+          errorDescription = "Invalid or expired Claude API key. Please check your API key.";
+        } else if (error.message.includes("Claude API error: 429")) {
+          errorDescription = "Rate limit exceeded. Please try again in a few minutes.";
+        } else if (error.message.includes("Claude API error")) {
+          errorDescription = "Claude AI service error. Please try again.";
+        }
+      }
+      
       toast.error("AI Analysis Failed", {
-        description:
-          error instanceof Error
-            ? error.message
-            : "An unexpected error occurred during analysis.",
+        description: errorDescription || errorMessage,
+        duration: 8000, // Longer duration for error messages
       });
     } finally {
       setIsAnalyzing(false);
