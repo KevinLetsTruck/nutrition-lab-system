@@ -404,51 +404,50 @@ export default function ScheduledClientsPage() {
       style={{ background: "var(--bg-primary)" }}
     >
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1
-                className="text-3xl font-bold"
-                style={{ color: "var(--text-primary)" }}
-              >
-                Thursday Group Coaching Call
-              </h1>
-              <p
-                className="text-lg mt-1"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Scheduled Clients Report
-              </p>
-            </div>
-
-            {/* Date Display */}
-            <Card className="border-brand-green/30">
-              <CardContent className="p-4 text-center">
-                <Calendar className="w-8 h-8 mx-auto mb-2 text-brand-green" />
-                <p className="text-xs text-gray-400 mb-1">Next Coaching Call</p>
-                <p className="text-sm font-medium text-white">
-                  {getNextThursday()}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Summary Stats */}
-          <div className="flex justify-start mb-6">
-            <Card className="border-brand-green/30">
-              <CardContent className="p-4">
-                <div className="flex items-center">
-                  <Users className="w-8 h-8 mr-3 text-brand-green" />
-                  <div>
-                    <p className="text-2xl font-bold text-white">
-                      {clients.length}
-                    </p>
-                    <p className="text-sm text-gray-400">Scheduled Clients</p>
-                  </div>
+        {/* Header - Compact & Sleek */}
+        <div className="mb-4">
+          <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl p-4 border border-gray-600/50">
+            <div className="flex items-center justify-between">
+              {/* Left Side - Title & Stats */}
+              <div className="flex items-center space-x-6">
+                <div>
+                  <h1
+                    className="text-xl font-bold leading-tight"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    Thursday Group Coaching Call
+                  </h1>
+                  <p
+                    className="text-sm opacity-75 leading-tight"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    Scheduled Clients Report
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
+
+                {/* Inline Stats */}
+                <div className="flex items-center space-x-1 bg-brand-green/20 rounded-lg px-3 py-2 border border-brand-green/30">
+                  <Users className="w-4 h-4 text-brand-green" />
+                  <span className="text-lg font-bold text-white">
+                    {clients.length}
+                  </span>
+                  <span className="text-xs text-gray-300">clients</span>
+                </div>
+              </div>
+
+              {/* Right Side - Compact Date */}
+              <div className="flex items-center space-x-2 bg-gray-700/50 rounded-lg px-3 py-2 border border-gray-600">
+                <Calendar className="w-4 h-4 text-brand-green" />
+                <div className="text-right">
+                  <p className="text-xs text-gray-400 leading-tight">
+                    Next Call
+                  </p>
+                  <p className="text-sm font-medium text-white leading-tight">
+                    {getNextThursday()}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -574,9 +573,6 @@ export default function ScheduledClientsPage() {
                           <h3 className="font-semibold text-white flex items-center">
                             <Target className="w-4 h-4 mr-2 text-green-400" />
                             Health Goals
-                            <span className="ml-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                              {getHealthGoalsArray(client.healthGoals).length}
-                            </span>
                           </h3>
                         </div>
                         <div className="p-4 h-full overflow-y-auto">
@@ -612,9 +608,6 @@ export default function ScheduledClientsPage() {
                             <div className="flex items-center">
                               <MessageSquare className="w-4 h-4 mr-2 text-blue-400" />
                               Notes
-                              <span className="ml-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                                {clientNotes[client.id]?.length || 0}
-                              </span>
                             </div>
                             {loadingNotes.has(client.id) && (
                               <span className="text-xs text-gray-300">
@@ -695,9 +688,6 @@ export default function ScheduledClientsPage() {
                             <div className="flex items-center">
                               <FolderOpen className="w-4 h-4 mr-2 text-purple-400" />
                               Documents
-                              <span className="ml-2 bg-purple-500 text-white text-xs px-2 py-1 rounded-full">
-                                {clientDocuments[client.id]?.length || 0}
-                              </span>
                             </div>
                             {loadingDocuments.has(client.id) && (
                               <span className="text-xs text-gray-300">

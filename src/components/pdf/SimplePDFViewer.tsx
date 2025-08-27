@@ -96,6 +96,7 @@ const SimplePDFViewer: React.FC<SimplePDFViewerProps> = ({
         ref={modalRef}
         tabIndex={-1}
         className="w-full h-full max-w-7xl max-h-[95vh] bg-card border border-border shadow-2xl overflow-hidden flex flex-col rounded-lg focus:outline-none"
+        style={{ minHeight: "400px", maxHeight: "95vh" }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 bg-card border-b border-border shrink-0">
@@ -136,12 +137,16 @@ const SimplePDFViewer: React.FC<SimplePDFViewerProps> = ({
         </div>
 
         {/* PDF Content */}
-        <div className="flex-1 bg-muted/20 min-h-0">
+        <div className="flex-1 bg-muted/20 min-h-0 overflow-hidden">
           <iframe
             src={`${document.url}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH&zoom=page-width`}
             className="w-full h-full border-0 rounded-none"
             title={document.name}
-            style={{ minHeight: "500px" }}
+            style={{
+              minHeight: "300px",
+              maxHeight: "100%",
+              objectFit: "contain",
+            }}
           />
         </div>
 

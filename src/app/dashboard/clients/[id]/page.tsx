@@ -864,14 +864,14 @@ export default function ClientDetailPage() {
         {/* Dynamic Three-Column Layout - Responsive */}
         <div className="flex gap-4 h-[calc(100vh-300px)] min-h-[600px] w-full overflow-hidden">
           {/* Left Column - Health Goals */}
-          <div className="flex-shrink-0 w-80 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+          <div className="flex-shrink-0 w-80 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden flex flex-col">
             <div className="bg-gray-700 px-4 py-3 border-b border-gray-600">
               <h3 className="font-semibold text-white flex items-center">
                 <span className="text-lg mr-2">🎯</span>
                 Health Goals
               </h3>
             </div>
-            <div className="p-4 h-full overflow-y-auto">
+            <div className="flex-1 p-4 overflow-y-auto">
               {getHealthGoalsArray(client.healthGoals).length > 0 ? (
                 <div className="space-y-3">
                   {getHealthGoalsArray(client.healthGoals).map(
@@ -1011,7 +1011,7 @@ export default function ClientDetailPage() {
           </div>
 
           {/* Right Column - Documents */}
-          <div className="flex-shrink-0 w-80 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+          <div className="flex-shrink-0 w-80 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden flex flex-col">
             <div className="bg-gray-700 px-4 py-3 border-b border-gray-600">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-white flex items-center">
@@ -1028,7 +1028,7 @@ export default function ClientDetailPage() {
               </div>
             </div>
 
-            <div className="p-4 h-full overflow-y-auto">
+            <div className="flex-1 p-4 overflow-y-auto">
               {documents.length === 0 ? (
                 <div className="text-center py-16">
                   <div className="text-3xl mb-2">📄</div>
