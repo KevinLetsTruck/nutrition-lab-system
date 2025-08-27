@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -27,7 +28,6 @@ import { useAuth } from "@/lib/auth-context";
 interface AnalysisImportFormProps {
   clientId: string;
   clientName: string;
-  onSuccess?: (analysisId: string) => void;
 }
 
 interface ParsePreview {
@@ -40,9 +40,9 @@ interface ParsePreview {
 export function AnalysisImportForm({
   clientId,
   clientName,
-  onSuccess,
 }: AnalysisImportFormProps) {
   const { token } = useAuth();
+  const router = useRouter();
   const [analysisText, setAnalysisText] = useState("");
   const [practitionerNotes, setPractitionerNotes] = useState("");
   const [analysisVersion, setAnalysisVersion] = useState("v1.0");
@@ -152,10 +152,8 @@ export function AnalysisImportForm({
       setPractitionerNotes("");
       setPreview(null);
 
-      // Call success callback
-      if (onSuccess) {
-        onSuccess(data.analysis.id);
-      }
+      // Navigate to analysis history after successful import
+      router.push(`/dashboard/clients/${clientId}/analysis/history`);
     } catch (err: any) {
       console.error("Import error:", err);
       setError(err.message);

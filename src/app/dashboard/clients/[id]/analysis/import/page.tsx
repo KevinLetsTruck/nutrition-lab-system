@@ -97,10 +97,6 @@ export default async function ImportAnalysisPage({ params }: PageProps) {
       <AnalysisImportForm 
         clientId={client.id}
         clientName={clientName}
-        onSuccess={(analysisId) => {
-          // Redirect to analysis history after successful import
-          window.location.href = `/dashboard/clients/${client.id}/analysis/history`;
-        }}
       />
     </div>
   );
