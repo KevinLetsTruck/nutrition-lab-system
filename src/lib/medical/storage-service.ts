@@ -92,17 +92,38 @@ export class S3StorageService {
       };
     }
 
+    // Sanitize metadata values to prevent invalid header characters
+    const sanitizeMetadataValue = (value: string) => {
+      if (!value) return "";
+      // Replace invalid characters and encode special characters for HTTP headers
+      return value
+        .replace(/[\x00-\x1f\x7f-\x9f]/g, '') // Remove control characters
+        .replace(/[^\x20-\x7e]/g, (char) => encodeURIComponent(char)) // Encode non-ASCII characters
+        .substring(0, 1024); // AWS metadata values have a 1024 character limit
+    };
+
+    // Sanitize all metadata values
+    const sanitizedMetadata: Record<string, string> = {
+      clientId: sanitizeMetadataValue(clientId),
+      documentType: sanitizeMetadataValue(options.documentType || "unknown"),
+      uploadedAt: new Date().toISOString(),
+    };
+
+    // Sanitize any additional metadata from options
+    if (options.metadata) {
+      for (const [key, value] of Object.entries(options.metadata)) {
+        if (typeof value === 'string') {
+          sanitizedMetadata[key] = sanitizeMetadataValue(value);
+        }
+      }
+    }
+
     const uploadParams = {
       Bucket: this.bucketName,
       Key: key,
       Body: fileBuffer,
       ContentType: options.contentType || "application/octet-stream",
-      Metadata: {
-        clientId,
-        documentType: options.documentType || "unknown",
-        uploadedAt: new Date().toISOString(),
-        ...options.metadata,
-      },
+      Metadata: sanitizedMetadata,
     };
 
     await this.s3Client!.send(new PutObjectCommand(uploadParams));
