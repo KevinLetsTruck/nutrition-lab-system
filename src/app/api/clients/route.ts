@@ -2,40 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { createClientSchema } from "@/lib/validations/client";
 import { ZodError } from "zod";
-import jwt from "jsonwebtoken";
+import { verifyAuthToken } from "@/lib/auth";
 
-// Helper function to verify JWT token
-function verifyAuthToken(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new Error("No valid authorization header");
-  }
-
-  const token = authHeader.substring(7);
-
-  // Basic JWT format validation before verification
-  const tokenParts = token.split(".");
-  if (tokenParts.length !== 3) {
-    throw new Error("Malformed JWT token");
-  }
-
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    return payload;
-  } catch (error) {
-
-    if (error instanceof jwt.JsonWebTokenError) {
-      throw new Error("Invalid or expired token");
-    }
-    throw new Error("Token verification failed");
-  }
-}
 
 export async function GET(request: NextRequest) {
   try {
     // Verify authentication
-    const user = verifyAuthToken(request);
+    const user = await verifyAuthToken(request);
 
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get("status");
@@ -75,7 +49,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Verify authentication
-    const user = verifyAuthToken(request);
+    const user = await verifyAuthToken(request);
 
     const body = await request.json();
     const validatedData = createClientSchema.parse(body);
