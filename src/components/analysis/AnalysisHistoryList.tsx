@@ -14,7 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Brain,
   Calendar,
@@ -297,7 +296,7 @@ export function AnalysisHistoryList({ clientId }: AnalysisHistoryListProps) {
                           Version {analysis.analysisVersion} • {analysis.analysisLength.toLocaleString()} characters
                         </DialogDescription>
                       </DialogHeader>
-                      <ScrollArea className="h-[60vh] w-full">
+                      <div className="h-[60vh] w-full overflow-y-auto">
                         {loadingAnalysis ? (
                           <div className="flex items-center justify-center p-8">
                             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
@@ -316,7 +315,7 @@ export function AnalysisHistoryList({ clientId }: AnalysisHistoryListProps) {
                             No analysis details available
                           </div>
                         )}
-                      </ScrollArea>
+                      </div>
                     </DialogContent>
                   </Dialog>
                   <Button variant="outline" size="sm">
