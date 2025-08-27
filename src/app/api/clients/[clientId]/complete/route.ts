@@ -87,10 +87,6 @@ export async function GET(
         status: clientData.status,
         createdAt: clientData.createdAt,
         updatedAt: clientData.updatedAt,
-        // AI Analysis fields - added for AI analysis results page
-        aiAnalysisResults: clientData.aiAnalysisResults,
-        aiAnalysisDate: clientData.aiAnalysisDate,
-        aiAnalysisVersion: clientData.aiAnalysisVersion,
       },
       documents: clientData.documents,
       notes: clientData.notes,

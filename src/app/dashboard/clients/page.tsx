@@ -14,7 +14,6 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
-  Brain,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -378,11 +377,6 @@ export default function ClientDashboard() {
     }
   };
 
-  const handleAIAnalysis = (clientId: string, clientName: string) => {
-    // Navigate directly to the AI analysis page
-    router.push(`/dashboard/clients/${clientId}/ai-analysis`);
-  };
-
   const handleStatusUpdate = async (clientId: string, newStatus: string) => {
     try {
       if (typeof window === "undefined") return;
@@ -683,19 +677,6 @@ export default function ClientDashboard() {
                         >
                           <Edit className="w-4 h-4" />
                         </Link>
-                        <button
-                          onClick={() =>
-                            handleAIAnalysis(
-                              client.id,
-                              `${client.firstName} ${client.lastName}`
-                            )
-                          }
-                          className="p-2 rounded-xl text-blue-400 hover:text-blue-300 hover:bg-gray-800 transition-all duration-200"
-                          title="Get AI Analysis"
-                        >
-                          <Brain className="w-4 h-4" />
-                        </button>
-
                         {client.status !== "ARCHIVED" ? (
                           <button
                             onClick={() =>

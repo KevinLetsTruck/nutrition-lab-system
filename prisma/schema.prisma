@@ -45,9 +45,6 @@ model Client {
   lastLoginAt            DateTime?
   password               String?
   rememberToken          String?
-  aiAnalysisResults      String?
-  aiAnalysisDate         DateTime?
-  aiAnalysisVersion      String?            @default("v1.0")
   simpleAssessments      SimpleAssessment[]
   statuses               ClientStatus[]
   documents              Document[]
@@ -94,7 +91,6 @@ model Document {
   processingError  String?
   extractedText    String?
   ocrConfidence    Float?
-  aiAnalysis       Json?
   analysisDate     DateTime?
   uploadedAt       DateTime           @default(now())
   processedAt      DateTime?

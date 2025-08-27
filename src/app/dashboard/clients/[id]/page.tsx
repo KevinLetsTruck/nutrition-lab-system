@@ -28,7 +28,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
 import { ExportClientButton } from "@/components/clients/ExportClientButton";
-import { AIAnalysisButton } from "@/components/clients/AIAnalysisButton";
 
 // Dynamically import SimplePDFViewer with SSR disabled
 const SimplePDFViewer = dynamic(
@@ -849,18 +848,12 @@ export default function ClientDetailPage() {
                 </div>
               </div>
 
-              {/* Export & AI Analysis Buttons */}
+              {/* Export Button */}
               <div className="flex gap-2">
                 <ExportClientButton
                   clientId={client.id}
                   clientName={`${client.firstName} ${client.lastName}`}
                   variant="secondary"
-                  size="sm"
-                />
-                <AIAnalysisButton
-                  clientId={client.id}
-                  clientName={`${client.firstName} ${client.lastName}`}
-                  variant="outline"
                   size="sm"
                 />
               </div>
