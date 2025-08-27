@@ -37,10 +37,12 @@ export function AIAnalysisButton({
       return;
     }
 
+    console.log("🚀 Starting AI analysis for client:", clientId);
     setIsAnalyzing(true);
     setAnalysisStatus("idle");
 
     try {
+      console.log("📡 Making POST request to AI analysis endpoint...");
       const response = await fetch(`/api/clients/${clientId}/ai-analysis`, {
         method: "POST",
         headers: {
@@ -49,7 +51,10 @@ export function AIAnalysisButton({
         },
       });
 
+      console.log("📊 Response status:", response.status, response.statusText);
+
       if (!response.ok) {
+        console.log("❌ Response not OK, getting error details...");
         // Try to parse error as JSON, fallback to text
         let errorMessage = "AI analysis failed";
         try {
@@ -62,8 +67,10 @@ export function AIAnalysisButton({
       }
 
       const data = await response.json();
+      console.log("📦 Response data:", data);
 
       if (data.success) {
+        console.log("✅ Analysis successful, preparing to redirect...");
         setAnalysisStatus("success");
         toast.success("AI Analysis Complete!", {
           description: (
