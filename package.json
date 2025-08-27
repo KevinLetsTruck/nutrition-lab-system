@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma migrate deploy && prisma generate && next build",
-    "railway:build": "prisma migrate deploy && prisma generate && next build",
-    "start": "next start",
+    "build": "prisma generate && next build",
+    "railway:migrate": "prisma migrate deploy",
+    "start": "prisma migrate deploy && next start",
     "lint": "next lint",
     "check-types": "tsc --noEmit",
     "migrate": "prisma migrate dev",
