@@ -1,38 +1,15 @@
 // Combined API endpoint for client detail page - all data in one request
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { verifyAuthToken } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-
-interface AuthPayload {
-  id: string;
-  email: string;
-  role: string;
-}
-
-async function verifyAuthToken(request: NextRequest): Promise<AuthPayload> {
-  const authHeader = request.headers.get("authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new Error("No valid authorization header");
-  }
-
-  const token = authHeader.substring(7);
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as AuthPayload;
-    return decoded;
-  } catch (error) {
-    throw new Error("Invalid token");
-  }
-}
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ clientId: string }> }
+  { params }: { params: { clientId: string } }
 ) {
   try {
     const user = await verifyAuthToken(request);
-    const { clientId } = await params;
+    const { clientId } = params;
 
     // Single database query to get all client data with related records
     const clientData = await prisma.client.findUnique({

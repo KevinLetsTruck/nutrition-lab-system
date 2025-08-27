@@ -1,26 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import jwt from "jsonwebtoken";
+import { verifyAuthToken } from "@/lib/auth";
 import { z } from "zod";
-
-// Helper function to verify JWT token
-function verifyAuthToken(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new Error("No valid authorization header");
-  }
-
-  const token = authHeader.substring(7);
-
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    return payload;
-  } catch (error) {
-
-    throw new Error("Invalid token");
-  }
-}
 
 // Validation schema for creating notes
 const createNoteSchema = z.object({
@@ -45,7 +26,7 @@ export async function POST(
 ) {
   try {
     // Verify authentication
-    const user = verifyAuthToken(request);
+    const user = await verifyAuthToken(request);
 
     const { clientId } = await params;
     const body = await request.json();
@@ -107,7 +88,7 @@ export async function GET(
 ) {
   try {
     // Verify authentication
-    const user = verifyAuthToken(request);
+    const user = await verifyAuthToken(request);
 
     const { clientId } = await params;
     const searchParams = request.nextUrl.searchParams;
