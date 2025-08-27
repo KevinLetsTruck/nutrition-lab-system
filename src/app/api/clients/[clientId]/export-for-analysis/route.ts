@@ -11,7 +11,7 @@ export async function GET(
   { params }: { params: { clientId: string } }
 ) {
   try {
-    // Authenticate user
+    // Authenticate user - Fixed 2025-08-26
     const authUser = await verifyAuthToken(request);
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

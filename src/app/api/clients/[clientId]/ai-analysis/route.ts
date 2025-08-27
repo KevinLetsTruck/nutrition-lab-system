@@ -41,7 +41,7 @@ export async function POST(
   { params }: { params: { clientId: string } }
 ) {
   try {
-    // 1. Authentication (copied from export API)
+    // 1. Authentication - Fixed 2025-08-26
     const authUser = await verifyAuthToken(request);
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
