@@ -1,0 +1,153 @@
+"use client";
+
+import { useState } from "react";
+import { useAuth } from "@/lib/auth-context";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Brain, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
+
+interface AIAnalysisButtonProps {
+  clientId: string;
+  clientName: string;
+  variant?: "default" | "outline" | "secondary" | "ghost";
+  size?: "sm" | "default" | "lg";
+  className?: string;
+}
+
+export function AIAnalysisButton({
+  clientId,
+  clientName,
+  variant = "outline",
+  size = "sm",
+  className,
+}: AIAnalysisButtonProps) {
+  const { token } = useAuth();
+  const router = useRouter();
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisStatus, setAnalysisStatus] = useState<
+    "idle" | "success" | "error"
+  >("idle");
+
+  const handleAnalysis = async () => {
+    if (!token) {
+      toast.error("Authentication required", {
+        description: "Please log in to run AI analysis.",
+      });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setAnalysisStatus("idle");
+
+    try {
+      const response = await fetch(`/api/clients/${clientId}/ai-analysis`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        // Try to parse error as JSON, fallback to text
+        let errorMessage = "AI analysis failed";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          errorMessage = await response.text();
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setAnalysisStatus("success");
+        toast.success("AI Analysis Complete!", {
+          description: (
+            <div className="space-y-1">
+              <p>
+                <strong>Client:</strong> {clientName}
+              </p>
+              <p>
+                <strong>Status:</strong> Analysis generated successfully
+              </p>
+              <p className="text-xs text-gray-500 mt-2">
+                🧠 Click to view comprehensive functional medicine analysis
+              </p>
+            </div>
+          ),
+          duration: 6000,
+        });
+
+        // Optional: Show system notification
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification("FNTP AI Analysis Complete", {
+            body: `${clientName} - Functional medicine analysis ready`,
+            icon: "/favicon.ico",
+          });
+        }
+
+        // Navigate to analysis results page
+        setTimeout(() => {
+          router.push(`/dashboard/clients/${clientId}/ai-analysis`);
+        }, 1000);
+      } else {
+        throw new Error(data.error || "Analysis failed");
+      }
+    } catch (error) {
+      console.error("AI Analysis error:", error);
+      setAnalysisStatus("error");
+      toast.error("AI Analysis Failed", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred during analysis.",
+      });
+    } finally {
+      setIsAnalyzing(false);
+
+      // Reset status after a delay
+      setTimeout(() => {
+        setAnalysisStatus("idle");
+      }, 3000);
+    }
+  };
+
+  const getButtonIcon = () => {
+    if (isAnalyzing) return <Loader2 className="h-4 w-4 animate-spin" />;
+    if (analysisStatus === "success")
+      return <CheckCircle className="h-4 w-4 text-green-600" />;
+    if (analysisStatus === "error")
+      return <AlertCircle className="h-4 w-4 text-red-600" />;
+    return <Brain className="h-4 w-4" />;
+  };
+
+  const getButtonText = () => {
+    if (isAnalyzing) return "Analyzing...";
+    if (analysisStatus === "success") return "Analysis Complete!";
+    if (analysisStatus === "error") return "Analysis Failed";
+    return "Get AI Analysis";
+  };
+
+  const getButtonVariant = () => {
+    if (analysisStatus === "success") return "default";
+    if (analysisStatus === "error") return "destructive";
+    return variant;
+  };
+
+  return (
+    <Button
+      onClick={handleAnalysis}
+      disabled={isAnalyzing}
+      variant={getButtonVariant()}
+      size={size}
+      className={`gap-2 ${className || ""}`}
+    >
+      {getButtonIcon()}
+      {getButtonText()}
+    </Button>
+  );
+}

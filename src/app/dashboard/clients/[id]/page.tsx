@@ -28,6 +28,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
 import { ExportClientButton } from "@/components/clients/ExportClientButton";
+import { AIAnalysisButton } from "@/components/clients/AIAnalysisButton";
 
 // Dynamically import SimplePDFViewer with SSR disabled
 const SimplePDFViewer = dynamic(
@@ -848,12 +849,18 @@ export default function ClientDetailPage() {
                 </div>
               </div>
 
-              {/* Export Button */}
+              {/* Export & AI Analysis Buttons */}
               <div className="flex gap-2">
                 <ExportClientButton
                   clientId={client.id}
                   clientName={`${client.firstName} ${client.lastName}`}
                   variant="secondary"
+                  size="sm"
+                />
+                <AIAnalysisButton
+                  clientId={client.id}
+                  clientName={`${client.firstName} ${client.lastName}`}
+                  variant="outline"
                   size="sm"
                 />
               </div>
@@ -938,80 +945,80 @@ export default function ClientDetailPage() {
                   </button>
                 </div>
               </div>
-              
+
               <div className="flex-1 p-4 overflow-y-auto">
-              <div className="space-y-2">
-                {notes.filter((note) =>
-                  activeTab === "interview"
-                    ? note.noteType === "INTERVIEW"
-                    : note.noteType === "COACHING"
-                ).length === 0 ? (
-                  <div className="text-center py-16">
-                    <div className="text-4xl mb-3">
-                      {activeTab === "interview" ? "🎤" : "🏃‍♂️"}
-                    </div>
-                    <p className="text-gray-400 mb-3">
-                      No {activeTab} notes yet
-                    </p>
-                    <Button
-                      onClick={openNewNoteModal}
-                      size="sm"
-                      variant="outline"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create First Note
-                    </Button>
-                  </div>
-                ) : (
-                  notes
-                    .filter((note) =>
-                      activeTab === "interview"
-                        ? note.noteType === "INTERVIEW"
-                        : note.noteType === "COACHING"
-                    )
-                    .map((note) => (
-                      <div
-                        key={note.id}
-                        className="p-3 rounded-lg bg-gray-700 border border-gray-600 hover:bg-gray-600 transition-colors cursor-pointer"
-                        onClick={() => handleViewNote(note)}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-medium text-white text-sm">
-                            {note.title ||
-                              `${note.noteType.toLowerCase()} note`}
-                          </h4>
-                          <div className="flex items-center space-x-2">
-                            {note.isImportant && (
-                              <span
-                                className="text-red-400 text-xs"
-                                title="Important"
-                              >
-                                ⭐
-                              </span>
-                            )}
-                            {note.followUpNeeded && (
-                              <span
-                                className="text-yellow-400 text-xs"
-                                title="Follow Up Needed"
-                              >
-                                📋
-                              </span>
-                            )}
-                            <span className="text-gray-400 text-xs">
-                              {formatDate(note.createdAt)}
-                            </span>
-                          </div>
-                        </div>
-                        <p className="text-gray-300 text-xs line-clamp-2">
-                          {note.chiefComplaints ||
-                            note.generalNotes ||
-                            "Click to view details..."}
-                        </p>
+                <div className="space-y-2">
+                  {notes.filter((note) =>
+                    activeTab === "interview"
+                      ? note.noteType === "INTERVIEW"
+                      : note.noteType === "COACHING"
+                  ).length === 0 ? (
+                    <div className="text-center py-16">
+                      <div className="text-4xl mb-3">
+                        {activeTab === "interview" ? "🎤" : "🏃‍♂️"}
                       </div>
-                    ))
-                )}
+                      <p className="text-gray-400 mb-3">
+                        No {activeTab} notes yet
+                      </p>
+                      <Button
+                        onClick={openNewNoteModal}
+                        size="sm"
+                        variant="outline"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create First Note
+                      </Button>
+                    </div>
+                  ) : (
+                    notes
+                      .filter((note) =>
+                        activeTab === "interview"
+                          ? note.noteType === "INTERVIEW"
+                          : note.noteType === "COACHING"
+                      )
+                      .map((note) => (
+                        <div
+                          key={note.id}
+                          className="p-3 rounded-lg bg-gray-700 border border-gray-600 hover:bg-gray-600 transition-colors cursor-pointer"
+                          onClick={() => handleViewNote(note)}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-white text-sm">
+                              {note.title ||
+                                `${note.noteType.toLowerCase()} note`}
+                            </h4>
+                            <div className="flex items-center space-x-2">
+                              {note.isImportant && (
+                                <span
+                                  className="text-red-400 text-xs"
+                                  title="Important"
+                                >
+                                  ⭐
+                                </span>
+                              )}
+                              {note.followUpNeeded && (
+                                <span
+                                  className="text-yellow-400 text-xs"
+                                  title="Follow Up Needed"
+                                >
+                                  📋
+                                </span>
+                              )}
+                              <span className="text-gray-400 text-xs">
+                                {formatDate(note.createdAt)}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-gray-300 text-xs line-clamp-2">
+                            {note.chiefComplaints ||
+                              note.generalNotes ||
+                              "Click to view details..."}
+                          </p>
+                        </div>
+                      ))
+                  )}
+                </div>
               </div>
-            </div>
             </div>
           </div>
 
