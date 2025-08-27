@@ -6,6 +6,11 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Fix Railway build issues with AMP validator
+  amp: {
+    validator: false,
+    canonicalBase: '',
+  },
   experimental: {
     // Optimize bundle size
     optimizePackageImports: ["lucide-react"],
