@@ -2,28 +2,41 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
 
 export default function Home() {
   const router = useRouter();
-  const { user, isLoading } = useAuth();
 
   useEffect(() => {
-    if (!isLoading) {
-      if (user) {
-        // User is authenticated - redirect to appropriate dashboard
-        if (user.role === "CLIENT") {
-          router.replace("/dashboard");
-        } else {
-          // Admin/Practitioner - go directly to clients page
-          router.replace("/dashboard/clients");
+    // Simple one-time redirect without auth context dependencies
+    const checkAuth = () => {
+      const token = localStorage.getItem("token");
+      const user = localStorage.getItem("user");
+      
+      if (token && user) {
+        try {
+          const parsedUser = JSON.parse(user);
+          // Redirect based on role
+          if (parsedUser.role === "CLIENT") {
+            router.replace("/dashboard");
+          } else {
+            router.replace("/dashboard/clients");
+          }
+        } catch (e) {
+          // If parsing fails, clear and go to login
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          router.replace("/auth/login");
         }
       } else {
-        // User not authenticated - redirect to login
+        // No auth - go to login
         router.replace("/auth/login");
       }
-    }
-  }, [user, isLoading, router]);
+    };
+
+    // Small delay to prevent immediate redirect loops
+    const timeout = setTimeout(checkAuth, 100);
+    return () => clearTimeout(timeout);
+  }, [router]); // Only depend on router, not auth context
 
   // Show loading while determining redirect
   return (
