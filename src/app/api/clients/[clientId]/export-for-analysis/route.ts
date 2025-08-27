@@ -217,6 +217,14 @@ export async function GET(
         name: "export-metadata.json",
       });
 
+      // Generate and add functional medicine assessment analysis
+      console.log("🧠 Generating functional medicine assessment analysis...");
+      const functionalAssessmentAnalysis = await generateFunctionalAssessmentAnalysis(clientId);
+      archive.append(functionalAssessmentAnalysis, { 
+        name: "functional-assessment-analysis.md" 
+      });
+      console.log("✅ Functional medicine assessment analysis added to export");
+
       // Add document files (if they exist)
       let copiedDocuments = 0;
       const skippedDocuments = [];
@@ -335,6 +343,7 @@ To recover these documents:
       );
       console.log(`✅ Successfully exported: ${copiedDocuments}`);
       console.log(`⚠️ Skipped: ${skippedDocuments.length}`);
+      console.log(`🧠 Functional medicine analysis: ✅ Generated and included`);
 
       // Finalize the archive
       archive.finalize();
@@ -349,6 +358,306 @@ To recover these documents:
       { status: 500 }
     );
   }
+}
+
+// Functional Medicine Assessment Categorization Function
+async function generateFunctionalAssessmentAnalysis(clientId: string): Promise<string> {
+  // Query all completed assessments for the client
+  const assessments = await prisma.simpleAssessment.findMany({
+    where: { clientId, status: 'completed' },
+    include: { responses: true },
+    orderBy: { completedAt: 'desc' }
+  });
+
+  if (assessments.length === 0) {
+    return `# Functional Medicine Assessment Analysis
+
+## Assessment Status
+❌ **No completed assessments available**
+
+To generate comprehensive functional medicine analysis, the client needs to complete the health assessment questionnaire covering the 8 core functional medicine systems.
+
+### Missing Data Impact
+Without assessment data, analysis is limited to:
+- Document analysis (lab results, medical records)
+- Clinical notes review
+- Protocol effectiveness tracking
+
+### Recommendations
+1. **Priority Action**: Complete initial health assessment
+2. **Follow-up**: Establish baseline scores across all functional systems
+3. **Timeline**: Re-export data after assessment completion for full analysis
+
+---
+*Assessment completion is essential for personalized functional medicine recommendations.*`;
+  }
+
+  // Define functional medicine categories
+  const categories = [
+    'digestive', 'energy', 'sleep', 'stress', 
+    'immune', 'hormonal', 'detox', 'cardiovascular'
+  ];
+
+  // Calculate category analysis across all assessments
+  const categoryAnalysis: any = {};
+  const categoryData: any = {};
+
+  // Initialize category tracking
+  categories.forEach(category => {
+    categoryData[category] = {
+      totalScore: 0,
+      questionCount: 0,
+      responses: [] as any[],
+      assessmentHistory: [] as any[]
+    };
+  });
+
+  // Process all assessments and categorize responses
+  assessments.forEach((assessment, assessmentIndex) => {
+    const assessmentDate = assessment.completedAt || assessment.startedAt;
+    
+    assessment.responses.forEach(response => {
+      const category = response.category;
+      if (categories.includes(category)) {
+        categoryData[category].totalScore += response.score;
+        categoryData[category].questionCount++;
+        categoryData[category].responses.push({
+          questionText: response.questionText,
+          score: response.score,
+          assessmentDate: assessmentDate
+        });
+      }
+    });
+
+    // Track per-assessment category scores for trending
+    categories.forEach(category => {
+      const categoryResponses = assessment.responses.filter(r => r.category === category);
+      if (categoryResponses.length > 0) {
+        const avgScore = categoryResponses.reduce((sum, r) => sum + r.score, 0) / categoryResponses.length;
+        categoryData[category].assessmentHistory.push({
+          assessmentIndex,
+          assessmentDate,
+          avgScore,
+          questionCount: categoryResponses.length
+        });
+      }
+    });
+  });
+
+  // Calculate final category scores and analysis
+  categories.forEach(category => {
+    const data = categoryData[category];
+    if (data.questionCount > 0) {
+      const avgScore = data.totalScore / data.questionCount;
+      const percentage = (avgScore / 5) * 100;
+      
+      let severity: string;
+      let priority: number;
+      let interpretation: string;
+      let recommendations: string[];
+
+      // Determine severity and priority based on score
+      if (percentage >= 80) {
+        severity = 'OPTIMAL';
+        priority = 4;
+        interpretation = 'Excellent function with minimal concerns';
+        recommendations = ['Maintain current practices', 'Monitor for changes', 'Continue supportive protocols'];
+      } else if (percentage >= 65) {
+        severity = 'GOOD';
+        priority = 3;
+        interpretation = 'Good function with minor optimization opportunities';
+        recommendations = ['Fine-tune current approaches', 'Address minor imbalances', 'Prevent future dysfunction'];
+      } else if (percentage >= 50) {
+        severity = 'MODERATE';
+        priority = 2;
+        interpretation = 'Moderate dysfunction requiring targeted intervention';
+        recommendations = ['Implement targeted protocols', 'Address underlying imbalances', 'Monitor progress closely'];
+      } else if (percentage >= 35) {
+        severity = 'HIGH';
+        priority = 1;
+        interpretation = 'Significant dysfunction requiring immediate attention';
+        recommendations = ['Priority intervention needed', 'Comprehensive protocol implementation', 'Consider additional testing'];
+      } else {
+        severity = 'CRITICAL';
+        priority = 1;
+        interpretation = 'Severe dysfunction requiring urgent intervention';
+        recommendations = ['Urgent intervention required', 'Comprehensive diagnostic workup', 'Intensive protocol implementation'];
+      }
+
+      // Identify trending patterns
+      let trendAnalysis = 'Insufficient data for trending';
+      if (data.assessmentHistory.length >= 2) {
+        const firstScore = data.assessmentHistory[data.assessmentHistory.length - 1].avgScore;
+        const lastScore = data.assessmentHistory[0].avgScore;
+        const change = ((lastScore - firstScore) / firstScore) * 100;
+        
+        if (Math.abs(change) < 5) {
+          trendAnalysis = 'Stable (no significant change)';
+        } else if (change > 15) {
+          trendAnalysis = `Improving (+${change.toFixed(1)}% improvement)`;
+        } else if (change > 5) {
+          trendAnalysis = `Slight improvement (+${change.toFixed(1)}%)`;
+        } else if (change < -15) {
+          trendAnalysis = `Declining (${change.toFixed(1)}% decline)`;
+        } else if (change < -5) {
+          trendAnalysis = `Slight decline (${change.toFixed(1)}%)`;
+        }
+      }
+
+      categoryAnalysis[category] = {
+        avgScore: avgScore.toFixed(2),
+        percentage: percentage.toFixed(1),
+        severity,
+        priority,
+        interpretation,
+        recommendations,
+        questionCount: data.questionCount,
+        trendAnalysis,
+        assessmentCount: data.assessmentHistory.length,
+        highConcernQuestions: data.responses.filter(r => r.score <= 2).length,
+        lowConcernQuestions: data.responses.filter(r => r.score >= 4).length
+      };
+    }
+  });
+
+  // Sort categories by priority (highest concern first)
+  const sortedCategories = categories
+    .filter(cat => categoryAnalysis[cat])
+    .sort((a, b) => {
+      const priorityDiff = categoryAnalysis[a].priority - categoryAnalysis[b].priority;
+      if (priorityDiff !== 0) return priorityDiff;
+      return parseFloat(categoryAnalysis[a].percentage) - parseFloat(categoryAnalysis[b].percentage);
+    });
+
+  // Generate comprehensive markdown
+  const categoryNames = {
+    digestive: 'Digestive Health',
+    energy: 'Energy & Focus', 
+    sleep: 'Sleep Quality',
+    stress: 'Stress Management',
+    immune: 'Immune System',
+    hormonal: 'Hormonal Balance',
+    detox: 'Detoxification',
+    cardiovascular: 'Cardiovascular Health'
+  };
+
+  let markdown = `# Functional Medicine Assessment Analysis
+
+## Assessment Overview
+- **Total Completed Assessments**: ${assessments.length}
+- **Most Recent Assessment**: ${assessments[0].completedAt ? new Date(assessments[0].completedAt).toLocaleDateString() : 'In Progress'}
+- **Assessment Period**: ${assessments.length > 1 ? 
+  `${new Date(assessments[assessments.length - 1].startedAt).toLocaleDateString()} to ${new Date(assessments[0].startedAt).toLocaleDateString()}` : 
+  'Single assessment'}
+- **Total Questions Analyzed**: ${Object.values(categoryAnalysis).reduce((sum: number, cat: any) => sum + cat.questionCount, 0)}
+
+## 🎯 Priority Intervention Summary
+
+### High Priority Areas (Immediate Attention Needed)
+${sortedCategories.filter(cat => ['HIGH', 'CRITICAL'].includes(categoryAnalysis[cat].severity)).length > 0 ?
+  sortedCategories.filter(cat => ['HIGH', 'CRITICAL'].includes(categoryAnalysis[cat].severity))
+    .map(cat => `- **${categoryNames[cat as keyof typeof categoryNames]}**: ${categoryAnalysis[cat].percentage}% (${categoryAnalysis[cat].severity})`)
+    .join('\n') :
+  '✅ No critical areas identified - all systems within acceptable ranges'}
+
+### Optimization Opportunities  
+${sortedCategories.filter(cat => ['MODERATE', 'GOOD'].includes(categoryAnalysis[cat].severity)).length > 0 ?
+  sortedCategories.filter(cat => ['MODERATE', 'GOOD'].includes(categoryAnalysis[cat].severity))
+    .map(cat => `- **${categoryNames[cat as keyof typeof categoryNames]}**: ${categoryAnalysis[cat].percentage}% (optimization potential)`)
+    .join('\n') :
+  'No moderate areas identified'}
+
+### Well-Functioning Systems
+${sortedCategories.filter(cat => categoryAnalysis[cat].severity === 'OPTIMAL').length > 0 ?
+  sortedCategories.filter(cat => categoryAnalysis[cat].severity === 'OPTIMAL')
+    .map(cat => `- **${categoryNames[cat as keyof typeof categoryNames]}**: ${categoryAnalysis[cat].percentage}% (optimal function)`)
+    .join('\n') :
+  'No systems currently at optimal levels'}
+
+## 📊 Detailed Category Analysis
+
+${sortedCategories.map(category => {
+  const analysis = categoryAnalysis[category];
+  const severityEmoji = {
+    'CRITICAL': '🔴',
+    'HIGH': '🟠', 
+    'MODERATE': '🟡',
+    'GOOD': '🟢',
+    'OPTIMAL': '✅'
+  }[analysis.severity] || '⚪';
+
+  return `### ${severityEmoji} ${categoryNames[category as keyof typeof categoryNames]}
+
+**Overall Score**: ${analysis.percentage}% (${analysis.avgScore}/5.0)
+**Severity Level**: ${analysis.severity}
+**Clinical Interpretation**: ${analysis.interpretation}
+
+**Assessment Details**:
+- Questions Analyzed: ${analysis.questionCount}
+- High Concern Responses (≤2): ${analysis.highConcernQuestions}
+- Low Concern Responses (≥4): ${analysis.lowConcernQuestions}
+- Trend Analysis: ${analysis.trendAnalysis}
+
+**Recommendations**:
+${analysis.recommendations.map((rec: string) => `- ${rec}`).join('\n')}
+
+---`;
+}).join('\n')}
+
+## 📈 Trending Analysis
+
+${assessments.length > 1 ? `
+### Assessment Progression
+${sortedCategories.map(category => {
+  const history = categoryData[category].assessmentHistory;
+  if (history.length >= 2) {
+    const firstScore = history[history.length - 1].avgScore;
+    const lastScore = history[0].avgScore;
+    const change = lastScore - firstScore;
+    const changeIcon = change > 0.2 ? '📈' : change < -0.2 ? '📉' : '➡️';
+    
+    return `- **${categoryNames[category as keyof typeof categoryNames]}**: ${changeIcon} ${firstScore.toFixed(1)} → ${lastScore.toFixed(1)} (${change > 0 ? '+' : ''}${change.toFixed(1)} point change)`;
+  }
+  return `- **${categoryNames[category as keyof typeof categoryNames]}**: Single assessment (no trend data)`;
+}).join('\n')}
+` : `
+### Single Assessment
+This analysis is based on a single assessment. Complete additional assessments to:
+- Track progress over time
+- Identify improvement patterns
+- Monitor intervention effectiveness
+- Adjust protocols based on response
+`}
+
+## 🎯 Clinical Action Items
+
+### Immediate Priority Actions
+${sortedCategories.filter(cat => ['HIGH', 'CRITICAL'].includes(categoryAnalysis[cat].severity)).length > 0 ?
+  sortedCategories.filter(cat => ['HIGH', 'CRITICAL'].includes(categoryAnalysis[cat].severity))
+    .slice(0, 3)
+    .map((cat, index) => `${index + 1}. **Address ${categoryNames[cat as keyof typeof categoryNames]}** (${categoryAnalysis[cat].percentage}%)
+   - ${categoryAnalysis[cat].recommendations[0]}
+   - Consider additional testing specific to ${categoryNames[cat as keyof typeof categoryNames].toLowerCase()}`)
+    .join('\n') :
+  '✅ No immediate priority actions required - focus on optimization and maintenance'}
+
+### Follow-up Recommendations
+1. **Re-assessment Timeline**: Complete follow-up assessment in 4-6 weeks
+2. **Progress Tracking**: Monitor changes in high-priority categories
+3. **Protocol Adjustments**: Modify interventions based on response patterns
+4. **Additional Testing**: Consider functional testing for high-concern categories
+
+## 📋 Data Completeness Assessment
+
+- **Assessment Coverage**: ${((Object.values(categoryAnalysis).reduce((sum: number, cat: any) => sum + cat.questionCount, 0) / (categories.length * 10)) * 100).toFixed(1)}% of functional systems evaluated
+- **Trending Data**: ${assessments.length > 1 ? `✅ Available (${assessments.length} assessments)` : '❌ Limited (single assessment)'}
+- **Historical Context**: ${assessments.length >= 3 ? 'Excellent (3+ assessments)' : assessments.length === 2 ? 'Good (2 assessments)' : 'Limited (1 assessment)'}
+
+---
+
+*This analysis uses evidence-based functional medicine scoring to identify system dysfunctions and prioritize interventions. Scores ≤50% indicate significant dysfunction requiring targeted protocols.*`;
+
+  return markdown;
 }
 
 function generateClientSummary(data: any): string {
