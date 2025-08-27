@@ -22,10 +22,16 @@ export class ClaudeDesktopAutomation {
     } = {}
   ) {
     this.options = {
-      headless: true, // Set to false for debugging
+      headless: process.env.NODE_ENV === 'production', // Visible in dev, headless in prod
       timeout: 60000, // 60 seconds
       ...options,
     };
+    
+    console.log(`🤖 ClaudeDesktopAutomation initialized:`, {
+      headless: this.options.headless,
+      timeout: this.options.timeout,
+      environment: process.env.NODE_ENV
+    });
   }
 
   async initialize(): Promise<void> {
@@ -73,17 +79,50 @@ export class ClaudeDesktopAutomation {
     if (!this.page) throw new Error('Browser not initialized');
 
     try {
-      // Check if already logged in by looking for chat interface
-      await this.page.waitForSelector('[data-testid="send-button"]', { 
-        timeout: 5000 
-      });
-      console.log('✅ Already authenticated');
-      return;
-    } catch {
-      console.log('🔑 Need to authenticate...');
-      // If we need auth, we'll handle it here
-      // For now, assume user needs to handle auth manually
-      throw new Error('Authentication required - please log in to Claude.ai manually first');
+      console.log('🔍 Checking for existing authentication...');
+      
+      // Take a screenshot for debugging
+      const currentUrl = await this.page.url();
+      console.log('📍 Current URL:', currentUrl);
+      
+      // Look for various indicators of being logged in
+      const selectors = [
+        '[data-testid="send-button"]',
+        'textarea[placeholder*="message"]',
+        '.chat-input',
+        'button:has-text("Send")',
+        '.message-input'
+      ];
+      
+      for (const selector of selectors) {
+        try {
+          await this.page.waitForSelector(selector, { timeout: 2000 });
+          console.log(`✅ Found authentication indicator: ${selector}`);
+          return;
+        } catch {
+          console.log(`❌ Selector not found: ${selector}`);
+        }
+      }
+      
+      // If we're here, we didn't find any auth indicators
+      console.log('🔑 No authentication indicators found');
+      console.log('📄 Page title:', await this.page.title());
+      
+      // Check if we're on a login page
+      const pageContent = await this.page.content();
+      const hasLoginForm = pageContent.includes('login') || pageContent.includes('sign in') || pageContent.includes('email');
+      
+      if (hasLoginForm) {
+        console.log('🔓 Detected login page - authentication required');
+        throw new Error('Authentication required - please log in to Claude.ai manually first. The automation will handle the rest once you\'re logged in.');
+      } else {
+        console.log('❓ Unexpected page state - may need to handle this case');
+        throw new Error(`Unexpected page state. Current URL: ${currentUrl}. Please check Claude.ai manually.`);
+      }
+      
+    } catch (error) {
+      console.error('🚨 Authentication check error:', error);
+      throw error;
     }
   }
 
