@@ -1,31 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import jwt from "jsonwebtoken";
+import { verifyAuthToken } from "@/lib/auth";
 import { promises as fs } from "fs";
 import path from "path";
-
-// Helper function to verify JWT token
-function verifyAuthToken(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new Error("No valid authorization header");
-  }
-
-  const token = authHeader.substring(7);
-
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    return payload;
-  } catch (error) {
-    throw new Error("Invalid token");
-  }
-}
 
 export async function GET(request: NextRequest) {
   try {
     // Verify authentication
-    const user = verifyAuthToken(request);
+    const user = await verifyAuthToken(request);
 
     const searchParams = request.nextUrl.searchParams;
     const clientId = searchParams.get("clientId");
@@ -69,7 +51,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Verify authentication
-    const user = verifyAuthToken(request);
+    const user = await verifyAuthToken(request);
 
     const formData = await request.formData();
     const clientId = formData.get("clientId") as string;
@@ -186,7 +168,7 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     // Verify authentication
-    const user = verifyAuthToken(request);
+    const user = await verifyAuthToken(request);
 
     const searchParams = request.nextUrl.searchParams;
     const documentId = searchParams.get("id");
