@@ -5,11 +5,11 @@ import { prisma } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { clientId: string } }
+  { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
     const user = await verifyAuthToken(request);
-    const { clientId } = params;
+    const { clientId } = await params;
 
     // Single database query to get all client data with related records
     const clientData = await prisma.client.findUnique({
