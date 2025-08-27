@@ -62,10 +62,7 @@ export default function AIAnalysisPage() {
       const data = await response.json();
       setClient(data.client);
 
-      // If no analysis exists, check if one is in progress
-      if (!data.client.aiAnalysisResults) {
-        checkAnalysisStatus();
-      }
+      // No need to check analysis status here - the client data already includes AI results
     } catch (error) {
       console.error("Error fetching client data:", error);
       setError(
@@ -76,28 +73,8 @@ export default function AIAnalysisPage() {
     }
   };
 
-  const checkAnalysisStatus = async () => {
-    // Check if analysis is in progress by attempting to fetch
-    try {
-      const response = await fetch(`/api/clients/${clientId}/ai-analysis`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.analysis) {
-          // Fresh analysis completed, refresh client data
-          fetchClientData();
-        }
-      }
-    } catch (error) {
-      // Analysis not ready yet, that's okay
-      console.log("Analysis not ready yet");
-    }
-  };
+  // Removed checkAnalysisStatus function to prevent recursive loops
+  // The client data from /api/clients/${clientId}/complete already includes AI analysis results
 
   const triggerNewAnalysis = async () => {
     if (!token || !client) return;
