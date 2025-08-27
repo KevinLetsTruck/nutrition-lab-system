@@ -1,25 +1,25 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Brain, 
-  Calendar, 
-  FileText, 
-  TrendingUp, 
-  Eye, 
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Brain,
+  Calendar,
+  FileText,
+  TrendingUp,
+  Eye,
   Download,
   AlertCircle,
   Activity,
-  Clock
-} from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { toast } from 'sonner';
-import { useAuth } from '@/lib/auth-context';
+  Clock,
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
+import { useAuth } from "@/lib/auth-context";
 
 interface Analysis {
   id: string;
@@ -74,39 +74,42 @@ export function AnalysisHistoryList({ clientId }: AnalysisHistoryListProps) {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/clients/${clientId}/analysis/history`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+      const response = await fetch(
+        `/api/clients/${clientId}/analysis/history`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch analysis history');
+        throw new Error("Failed to fetch analysis history");
       }
 
       const result = await response.json();
       setData(result);
     } catch (err: any) {
       setError(err.message);
-      toast.error('Failed to load analysis history');
+      toast.error("Failed to load analysis history");
     } finally {
       setLoading(false);
     }
   };
 
-  const getSectionBadges = (sections: Analysis['sections']) => {
+  const getSectionBadges = (sections: Analysis["sections"]) => {
     const availableSections = Object.entries(sections)
       .filter(([_, available]) => available)
       .map(([section]) => section);
 
     return availableSections.map((section) => {
       const sectionNames: Record<string, string> = {
-        executiveSummary: 'Summary',
-        systemAnalysis: 'Systems',
-        rootCauseAnalysis: 'Root Cause',
-        protocolRecommendations: 'Protocol',
-        monitoringPlan: 'Monitoring',
-        patientEducation: 'Education'
+        executiveSummary: "Summary",
+        systemAnalysis: "Systems",
+        rootCauseAnalysis: "Root Cause",
+        protocolRecommendations: "Protocol",
+        monitoringPlan: "Monitoring",
+        patientEducation: "Education",
       };
 
       return (
@@ -119,9 +122,12 @@ export function AnalysisHistoryList({ clientId }: AnalysisHistoryListProps) {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'archived': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-blue-100 text-blue-800';
+      case "active":
+        return "bg-green-100 text-green-800";
+      case "archived":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-blue-100 text-blue-800";
     }
   };
 
@@ -150,7 +156,9 @@ export function AnalysisHistoryList({ clientId }: AnalysisHistoryListProps) {
       <Card>
         <CardContent className="py-12 text-center">
           <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No Analyses Found</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No Analyses Found
+          </h3>
           <p className="text-gray-600 mb-4">
             This client doesn't have any Claude Desktop analyses imported yet.
           </p>
@@ -199,17 +207,15 @@ export function AnalysisHistoryList({ clientId }: AnalysisHistoryListProps) {
                     <h3 className="font-semibold text-gray-900">
                       Analysis #{data.analyses.length - index}
                     </h3>
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className={getStatusColor(analysis.status)}
                     >
                       {analysis.status}
                     </Badge>
-                    <Badge variant="outline">
-                      {analysis.analysisVersion}
-                    </Badge>
+                    <Badge variant="outline">{analysis.analysisVersion}</Badge>
                   </div>
-                  
+
                   <div className="flex items-center gap-4 text-sm text-gray-600">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
@@ -217,7 +223,9 @@ export function AnalysisHistoryList({ clientId }: AnalysisHistoryListProps) {
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
-                      {formatDistanceToNow(new Date(analysis.createdAt), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(analysis.createdAt), {
+                        addSuffix: true,
+                      })}
                     </div>
                     <div className="flex items-center gap-1">
                       <FileText className="h-4 w-4" />
@@ -299,7 +307,8 @@ export function AnalysisHistoryList({ clientId }: AnalysisHistoryListProps) {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 mb-4">
-              Compare analyses to track client progress and intervention effectiveness.
+              Compare analyses to track client progress and intervention
+              effectiveness.
             </p>
             <Button variant="outline" disabled>
               <TrendingUp className="h-4 w-4 mr-2" />

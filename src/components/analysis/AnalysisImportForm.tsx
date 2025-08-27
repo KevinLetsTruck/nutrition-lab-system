@@ -1,16 +1,28 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, AlertCircle, Brain, FileText, Activity } from 'lucide-react';
-import { toast } from 'sonner';
-import { useAuth } from '@/lib/auth-context';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import {
+  CheckCircle2,
+  AlertCircle,
+  Brain,
+  FileText,
+  Activity,
+} from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/lib/auth-context";
 
 interface AnalysisImportFormProps {
   clientId: string;
@@ -25,15 +37,15 @@ interface ParsePreview {
   summary: string;
 }
 
-export function AnalysisImportForm({ 
-  clientId, 
-  clientName, 
-  onSuccess 
+export function AnalysisImportForm({
+  clientId,
+  clientName,
+  onSuccess,
 }: AnalysisImportFormProps) {
   const { token } = useAuth();
-  const [analysisText, setAnalysisText] = useState('');
-  const [practitionerNotes, setPractitionerNotes] = useState('');
-  const [analysisVersion, setAnalysisVersion] = useState('v1.0');
+  const [analysisText, setAnalysisText] = useState("");
+  const [practitionerNotes, setPractitionerNotes] = useState("");
+  const [analysisVersion, setAnalysisVersion] = useState("v1.0");
   const [isImporting, setIsImporting] = useState(false);
   const [preview, setPreview] = useState<ParsePreview | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -45,28 +57,28 @@ export function AnalysisImportForm({
     let sectionsDetected = 0;
 
     // Check for common Claude analysis sections
-    if (text.includes('Executive Summary') || text.includes('## Executive')) {
-      sections.push('Executive Summary');
+    if (text.includes("Executive Summary") || text.includes("## Executive")) {
+      sections.push("Executive Summary");
       sectionsDetected++;
     }
-    if (text.includes('System Analysis') || text.includes('Pattern Analysis')) {
-      sections.push('System Analysis');
+    if (text.includes("System Analysis") || text.includes("Pattern Analysis")) {
+      sections.push("System Analysis");
       sectionsDetected++;
     }
-    if (text.includes('Root Cause') || text.includes('## Root')) {
-      sections.push('Root Cause Analysis');
+    if (text.includes("Root Cause") || text.includes("## Root")) {
+      sections.push("Root Cause Analysis");
       sectionsDetected++;
     }
-    if (text.includes('Protocol') || text.includes('Recommendations')) {
-      sections.push('Protocol Recommendations');
+    if (text.includes("Protocol") || text.includes("Recommendations")) {
+      sections.push("Protocol Recommendations");
       sectionsDetected++;
     }
-    if (text.includes('Monitoring') || text.includes('Follow-up')) {
-      sections.push('Monitoring Plan');
+    if (text.includes("Monitoring") || text.includes("Follow-up")) {
+      sections.push("Monitoring Plan");
       sectionsDetected++;
     }
-    if (text.includes('Patient Education') || text.includes('Education')) {
-      sections.push('Patient Education');
+    if (text.includes("Patient Education") || text.includes("Education")) {
+      sections.push("Patient Education");
       sectionsDetected++;
     }
 
@@ -74,14 +86,16 @@ export function AnalysisImportForm({
       sectionsDetected,
       sections,
       analysisLength: text.length,
-      summary: `${sectionsDetected} sections detected in ${Math.round(text.length / 100) / 10}K characters`
+      summary: `${sectionsDetected} sections detected in ${
+        Math.round(text.length / 100) / 10
+      }K characters`,
     };
   };
 
   const handleAnalysisChange = (value: string) => {
     setAnalysisText(value);
     setError(null);
-    
+
     if (value.length > 100) {
       setPreview(generatePreview(value));
     } else {
@@ -91,17 +105,17 @@ export function AnalysisImportForm({
 
   const handleImport = async () => {
     if (!token) {
-      toast.error('Authentication required');
+      toast.error("Authentication required");
       return;
     }
 
     if (!analysisText.trim()) {
-      setError('Analysis text is required');
+      setError("Analysis text is required");
       return;
     }
 
     if (analysisText.length < 100) {
-      setError('Analysis text is too short (minimum 100 characters)');
+      setError("Analysis text is too short (minimum 100 characters)");
       return;
     }
 
@@ -110,44 +124,43 @@ export function AnalysisImportForm({
 
     try {
       const response = await fetch(`/api/clients/${clientId}/analysis/import`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           analysisText: analysisText.trim(),
           practitionerNotes: practitionerNotes.trim() || undefined,
-          analysisVersion
-        })
+          analysisVersion,
+        }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to import analysis');
+        throw new Error(errorData.error || "Failed to import analysis");
       }
 
       const data = await response.json();
 
-      toast.success('Claude analysis imported successfully!', {
-        description: `${data.analysis.sectionsDetected} sections detected and parsed`
+      toast.success("Claude analysis imported successfully!", {
+        description: `${data.analysis.sectionsDetected} sections detected and parsed`,
       });
 
       // Reset form
-      setAnalysisText('');
-      setPractitionerNotes('');
+      setAnalysisText("");
+      setPractitionerNotes("");
       setPreview(null);
 
       // Call success callback
       if (onSuccess) {
         onSuccess(data.analysis.id);
       }
-
     } catch (err: any) {
-      console.error('Import error:', err);
+      console.error("Import error:", err);
       setError(err.message);
-      toast.error('Failed to import analysis', {
-        description: err.message
+      toast.error("Failed to import analysis", {
+        description: err.message,
       });
     } finally {
       setIsImporting(false);
@@ -161,9 +174,12 @@ export function AnalysisImportForm({
           <Brain className="h-5 w-5 text-blue-600" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Import Claude Analysis</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Import Claude Analysis
+          </h1>
           <p className="text-gray-600">
-            Import analysis for <span className="font-medium">{clientName}</span>
+            Import analysis for{" "}
+            <span className="font-medium">{clientName}</span>
           </p>
         </div>
       </div>
@@ -175,13 +191,16 @@ export function AnalysisImportForm({
             Analysis Content
           </CardTitle>
           <CardDescription>
-            Paste the complete analysis from Claude Desktop below. The system will automatically 
-            detect and parse different sections.
+            Paste the complete analysis from Claude Desktop below. The system
+            will automatically detect and parse different sections.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="analysis-text" className="text-gray-900 font-medium">
+            <Label
+              htmlFor="analysis-text"
+              className="text-gray-900 font-medium"
+            >
               Analysis Text *
             </Label>
             <Textarea
@@ -205,7 +224,11 @@ export function AnalysisImportForm({
                   <span>{preview.summary}</span>
                   <div className="flex flex-wrap gap-1">
                     {preview.sections.map((section) => (
-                      <Badge key={section} variant="secondary" className="text-xs">
+                      <Badge
+                        key={section}
+                        variant="secondary"
+                        className="text-xs"
+                      >
                         {section}
                       </Badge>
                     ))}
@@ -232,7 +255,10 @@ export function AnalysisImportForm({
           </div>
 
           <div>
-            <Label htmlFor="practitioner-notes" className="text-gray-900 font-medium">
+            <Label
+              htmlFor="practitioner-notes"
+              className="text-gray-900 font-medium"
+            >
               Practitioner Notes
             </Label>
             <Textarea
@@ -244,7 +270,8 @@ export function AnalysisImportForm({
               disabled={isImporting}
             />
             <p className="text-sm text-gray-500 mt-1">
-              Optional - your clinical observations and notes about this analysis
+              Optional - your clinical observations and notes about this
+              analysis
             </p>
           </div>
 
@@ -258,7 +285,9 @@ export function AnalysisImportForm({
           <div className="flex gap-3 pt-4">
             <Button
               onClick={handleImport}
-              disabled={!analysisText.trim() || isImporting || analysisText.length < 100}
+              disabled={
+                !analysisText.trim() || isImporting || analysisText.length < 100
+              }
               className="flex items-center gap-2"
             >
               {isImporting ? (
@@ -273,7 +302,7 @@ export function AnalysisImportForm({
                 </>
               )}
             </Button>
-            
+
             {preview && (
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Activity className="h-4 w-4" />
