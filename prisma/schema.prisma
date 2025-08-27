@@ -53,6 +53,7 @@ model Client {
   medicalDocuments       MedicalDocument[]
   clientAnalyses         ClientAnalysis[]
   enhancedProtocols      EnhancedProtocol[]
+  protocolGenerations    ProtocolGeneration[]
 }
 
 model SimpleAssessment {
@@ -665,13 +666,87 @@ model EnhancedProtocol {
   sideEffects          String?
   modificationsMade    Json?
   
+  // Protocol Development Extensions
+  greeting             String?
+  clinicalFocus        String?
+  currentStatus        String?
+  prioritySupplements  Json?
+  dailySchedule        Json?
+  protocolNotes        String?
+  brandingConfig       Json?
+  
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   
   // Relations
-  client          Client          @relation(fields: [clientId], references: [id])
-  analysis        ClientAnalysis? @relation(fields: [analysisId], references: [id])
+  client              Client                @relation(fields: [clientId], references: [id])
+  analysis            ClientAnalysis?       @relation(fields: [analysisId], references: [id])
+  protocolSupplements ProtocolSupplement[]
+  protocolGenerations ProtocolGeneration[]
   
   @@index([clientId, status])
   @@index([analysisId])
+}
+
+model ProtocolTemplate {
+  id           String   @id @default(cuid())
+  name         String
+  category     String
+  templateData Json
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([category, isActive])
+  @@index([isActive])
+}
+
+model ProtocolSupplement {
+  id          String    @id @default(cuid())
+  protocolId  String
+  productName String
+  dosage      String
+  timing      String
+  purpose     String?
+  priority    Int       @default(1)
+  isActive    Boolean   @default(true)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  protocol EnhancedProtocol @relation(fields: [protocolId], references: [id], onDelete: Cascade)
+
+  @@index([protocolId])
+  @@index([priority, isActive])
+  @@index([startDate, endDate])
+}
+
+model ProtocolGeneration {
+  id              String    @id @default(cuid())
+  protocolId      String
+  clientId        String
+  pdfUrl          String?
+  emailSentAt     DateTime?
+  emailRecipients String[]
+  generationData  Json?
+  createdAt       DateTime  @default(now())
+
+  // Relations
+  protocol EnhancedProtocol @relation(fields: [protocolId], references: [id], onDelete: Cascade)
+  client   Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([protocolId])
+  @@index([clientId])
+  @@index([createdAt])
+}
+
+model DailyScheduleTemplate {
+  id            String   @id @default(cuid())
+  name          String
+  scheduleTimes Json
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([isDefault])
 }
