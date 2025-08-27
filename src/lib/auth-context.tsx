@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(null);
         }
       }
-    }, 1000); // Check every second
+    }, 30000); // Check every 30 seconds instead of 1 second
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
