@@ -1,11 +1,6 @@
 /*
-  Warnings:
-
-  - You are about to drop the column `aiAnalysis` on the `Document` table. All the data in the column will be lost.
-
+  Safe migration: Adding Claude Analysis tables without dropping any existing data
 */
--- AlterTable
-ALTER TABLE "public"."Document" DROP COLUMN "aiAnalysis";
 
 -- CreateTable
 CREATE TABLE "public"."ClientAnalysis" (
