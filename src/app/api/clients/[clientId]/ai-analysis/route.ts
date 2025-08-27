@@ -258,8 +258,11 @@ export async function POST(
 
     // 6. Claude API Call
     const claudeApiKey = process.env.ANTHROPIC_API_KEY;
+    console.log("🔑 Claude API Key check:", claudeApiKey ? "FOUND" : "MISSING");
+    
     if (!claudeApiKey) {
-      throw new Error("Claude API key not configured");
+      console.error("❌ ANTHROPIC_API_KEY environment variable not set");
+      throw new Error("Claude API key not configured - please set ANTHROPIC_API_KEY environment variable");
     }
 
     const prompt = FUNCTIONAL_MEDICINE_PROMPT.replace(
@@ -267,6 +270,7 @@ export async function POST(
       JSON.stringify(structuredData, null, 2)
     );
 
+    console.log("🤖 Making Claude API request...");
     const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -284,6 +288,8 @@ export async function POST(
       })
     });
 
+    console.log("📡 Claude API response status:", claudeResponse.status);
+
     if (!claudeResponse.ok) {
       const errorData = await claudeResponse.text();
       console.error("Claude API error:", claudeResponse.status, errorData);
@@ -294,6 +300,7 @@ export async function POST(
     const analysis = claudeData.content[0].text;
 
     // 7. Store Results in Database
+    console.log("💾 Saving analysis to database...");
     await prisma.client.update({
       where: { id: clientId },
       data: {
@@ -302,8 +309,10 @@ export async function POST(
         aiAnalysisVersion: 'v1.0'
       }
     });
+    console.log("✅ Analysis saved successfully");
 
     // 8. Return Success Response
+    console.log("📤 Returning success response");
     return NextResponse.json({
       success: true,
       data: {
