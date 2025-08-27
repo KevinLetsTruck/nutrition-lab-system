@@ -38,7 +38,7 @@ OUTPUT FORMAT: Provide a comprehensive markdown-formatted analysis that a functi
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ clientId: string }> }
+  { params }: { params: { clientId: string } }
 ) {
   try {
     // 1. Authentication (copied from export API)
@@ -47,7 +47,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { clientId } = await params;
+    const { clientId } = params;
 
     // 2. Data Aggregation (exact query from export API)
     const clientData = await prisma.client.findUnique({
