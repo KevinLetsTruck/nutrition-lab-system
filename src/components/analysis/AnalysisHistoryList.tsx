@@ -7,6 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
   Brain,
   Calendar,
   FileText,
@@ -17,7 +26,7 @@ import {
   Activity,
   Clock,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 
@@ -62,6 +71,9 @@ export function AnalysisHistoryList({ clientId }: AnalysisHistoryListProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedAnalyses, setSelectedAnalyses] = useState<string[]>([]);
+  const [viewingAnalysis, setViewingAnalysis] = useState<string | null>(null);
+  const [analysisDetails, setAnalysisDetails] = useState<any>(null);
+  const [loadingAnalysis, setLoadingAnalysis] = useState(false);
 
   useEffect(() => {
     fetchAnalysisHistory();
@@ -94,6 +106,36 @@ export function AnalysisHistoryList({ clientId }: AnalysisHistoryListProps) {
       toast.error("Failed to load analysis history");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleViewAnalysis = async (analysisId: string) => {
+    if (!token) return;
+
+    try {
+      setLoadingAnalysis(true);
+      setViewingAnalysis(analysisId);
+
+      const response = await fetch(
+        `/api/clients/${clientId}/analysis/${analysisId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch analysis details");
+      }
+
+      const analysisData = await response.json();
+      setAnalysisDetails(analysisData);
+    } catch (err: any) {
+      toast.error("Failed to load analysis details");
+      setViewingAnalysis(null);
+    } finally {
+      setLoadingAnalysis(false);
     }
   };
 
@@ -235,10 +277,48 @@ export function AnalysisHistoryList({ clientId }: AnalysisHistoryListProps) {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4 mr-1" />
-                    View
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleViewAnalysis(analysis.id)}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl max-h-[80vh]">
+                      <DialogHeader>
+                        <DialogTitle>
+                          Claude Analysis - {format(new Date(analysis.analysisDate), "MMM dd, yyyy")}
+                        </DialogTitle>
+                        <DialogDescription>
+                          Version {analysis.analysisVersion} • {analysis.analysisLength.toLocaleString()} characters
+                        </DialogDescription>
+                      </DialogHeader>
+                      <ScrollArea className="h-[60vh] w-full">
+                        {loadingAnalysis ? (
+                          <div className="flex items-center justify-center p-8">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                            <span className="ml-2">Loading analysis...</span>
+                          </div>
+                        ) : analysisDetails ? (
+                          <div className="space-y-6 p-4">
+                            <div className="prose max-w-none">
+                              <pre className="whitespace-pre-wrap text-sm leading-relaxed">
+                                {analysisDetails.fullAnalysis}
+                              </pre>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="p-4 text-center text-gray-500">
+                            No analysis details available
+                          </div>
+                        )}
+                      </ScrollArea>
+                    </DialogContent>
+                  </Dialog>
                   <Button variant="outline" size="sm">
                     <Download className="h-4 w-4 mr-1" />
                     Export
