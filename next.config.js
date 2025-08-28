@@ -6,15 +6,16 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Explicitly disable AMP
-  amp: false,
+  // Minimal config to avoid AMP issues
   experimental: {
-    // Optimize bundle size
     optimizePackageImports: ["lucide-react"],
+  },
+  // Skip static optimization for problematic pages
+  generateBuildId: async () => {
+    return 'fntp-' + Date.now();
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      // Exclude server-only packages from client bundle
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,

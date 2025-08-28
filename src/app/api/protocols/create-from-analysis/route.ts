@@ -30,19 +30,22 @@ function extractSupplementsFromAnalysis(analysisText: string): ExtractedSuppleme
   // Enhanced patterns for Claude's structured format
   const supplementPatterns = [
     // Pattern: "**Brand Product Name** - dosage timing"
-    /\*\*([^*]+?)\*\*\s*[\-–]\s*([0-9]+(?:\.[0-9]+)?\s*(?:mg|g|mcg|IU|capsules?|tablets?|drops?|ml|cap))\s+([^.\n]*?)(?=\n|$)/gi,
+    /\*\*([^*]+?)\*\*\s*[\-–]\s*([0-9]+(?:\.[0-9]+)?\s*(?:mg|g|mcg|IU|capsules?|tablets?|drops?|ml))\s+([^.\n]*?)(?=\n|$)/gi,
     
     // Pattern: "Brand Product Name - dosage timing" 
-    /^[-*]\s*\*\*([^*]+?)\*\*\s*[-–]\s*([0-9]+(?:\.[0-9]+)?\s*(?:mg|g|mcg|IU|capsules?|tablets?|drops?|ml|cap))\s+([^.\n]*?)$/gmi,
+    /^[-*]\s*\*\*([^*]+?)\*\*\s*[-–]\s*([0-9]+(?:\.[0-9]+)?\s*(?:mg|g|mcg|IU|capsules?|tablets?|drops?|ml))\s+([^.\n]*?)$/gmi,
     
-    // Pattern: "- Brand Product Name - dosage timing" (bullet points)
-    /^[-*]\s*([A-Za-z][A-Za-z0-9\s\-&]+?)\s*[-–]\s*([0-9]+(?:\.[0-9]+)?\s*(?:mg|g|mcg|IU|capsules?|tablets?|drops?|ml|cap(?:sules?)?(?:\s+(?:daily|twice|once|before|with|after))?)\s+([^.\n]*?)$/gmi,
+    // Pattern: "- Brand Product Name - dosage timing" (bullet points - simplified)
+    /^[-*]\s*([A-Za-z][A-Za-z0-9\s\-&]+?)\s*[-–]\s*([0-9]+(?:\.[0-9]+)?\s*(?:mg|g|mcg|IU|capsules?|tablets?|drops?|ml))\s+([^.\n]*?)$/gmi,
     
     // Pattern: "Supplement Name: dosage timing"
     /([A-Za-z][A-Za-z0-9\s\-&]+?):\s*([0-9]+(?:\.[0-9]+)?\s*(?:mg|g|mcg|IU|capsules?|tablets?|drops?|ml))\s+([^.\n]*)/gi,
     
     // Pattern: "Take X dosage of Supplement Name timing"
     /(?:take|recommend|suggest)\s+([0-9]+(?:\.[0-9]+)?\s*(?:mg|g|mcg|IU|capsules?|tablets?|drops?|ml))\s+(?:of\s+)?([A-Za-z0-9\s\-&]+)\s+([^.\n]*)/gi,
+    
+    // Pattern: "Product Name - X capsules/mg timing"
+    /([A-Za-z][A-Za-z0-9\s\-&]+?)\s*[-–]\s*([0-9]+(?:\.[0-9]+)?\s*(?:mg|g|mcg|IU|capsules?|tablets?|drops?|ml))\s+([^.\n]*)/gi,
   ];
 
   let priority = 1;
