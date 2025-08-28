@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TimelineExportButton } from "@/components/clients/TimelineExportButton";
 
 interface Client {
   id: string;
@@ -677,6 +678,15 @@ export default function ClientDashboard() {
                         >
                           <Edit className="w-4 h-4" />
                         </Link>
+                        <div className="inline-block">
+                          <TimelineExportButton
+                            clientId={client.id}
+                            clientName={`${client.firstName} ${client.lastName}`}
+                            variant="outline"
+                            size="sm"
+                            defaultTimelineType="PROTOCOL_DEVELOPMENT"
+                          />
+                        </div>
                         {client.status !== "ARCHIVED" ? (
                           <button
                             onClick={() =>

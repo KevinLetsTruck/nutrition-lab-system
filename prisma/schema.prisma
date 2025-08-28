@@ -54,6 +54,7 @@ model Client {
   clientAnalyses         ClientAnalysis[]
   enhancedProtocols      EnhancedProtocol[]
   protocolGenerations    ProtocolGeneration[]
+  timelineExports        TimelineExport[]
 }
 
 model SimpleAssessment {
@@ -749,4 +750,157 @@ model DailyScheduleTemplate {
   createdAt     DateTime @default(now())
 
   @@index([isDefault])
+}
+
+model TimelineExport {
+  id               String            @id @default(cuid())
+  clientId         String
+  exportType       TimelineType      @default(COMPREHENSIVE)
+  status           ExportStatus      @default(PENDING)
+  
+  // Timeline data and analysis
+  timelineData     Json?             // Chronologically sorted health events
+  criticalFindings Json?             // Key health insights and patterns
+  exportedAt       DateTime?
+  
+  // Enhanced lab analysis data
+  labAnalysisData  Json?             // Functional medicine lab analysis results
+  
+  // Enhanced assessment analysis data
+  assessmentAnalysisData Json?       // Assessment categorization and pattern analysis
+  
+  // File generation
+  markdownContent  String?           // Generated client-timeline.md content
+  fileUrl          String?           // S3 URL if file stored
+  fileName         String?           // client-timeline-{date}.md
+  
+  // Analysis metadata
+  dateRange        Json?             // start_date, end_date for analysis
+  dataPoints       Int               @default(0)
+  analysisVersion  String            @default("v1.0")
+  
+  // Audit and compliance
+  requestedBy      String?           // User who requested export
+  processingTime   Int?              // Processing time in milliseconds
+  errorMessage     String?
+  hipaaRelevant    Boolean           @default(true)
+  
+  // Standard fields
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  
+  // Relations
+  client           Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  // Performance indexes
+  @@index([clientId, exportType])
+  @@index([status])
+  @@index([createdAt])
+  @@index([requestedBy])
+}
+
+enum TimelineType {
+  COMPREHENSIVE      // Full health journey with all data points
+  FOCUSED           // Key events and critical findings only
+  SYMPTOMS          // Symptom progression and patterns
+  TREATMENTS        // Treatment history and outcomes
+  ASSESSMENTS       // Assessment results over time
+  PROTOCOL_DEVELOPMENT // Protocol development focused analysis for Claude Desktop
+}
+
+enum ExportStatus {
+  PENDING          // Export requested but not started
+  PROCESSING       // Currently generating timeline
+  COMPLETED        // Successfully generated
+  FAILED           // Export failed
+  EXPIRED          // Export link expired
+}
+
+model FunctionalMedicineLabRange {
+  id                   String    @id @default(cuid())
+  testName             String    // e.g., "Thyroid Stimulating Hormone (TSH)"
+  testCode             String?   // e.g., "TSH", "FT3", "FT4"
+  category             String    // e.g., "thyroid", "metabolic", "inflammation"
+  
+  // Standard laboratory ranges
+  standardRangeMin     Float?
+  standardRangeMax     Float?
+  
+  // Functional Medicine optimal ranges
+  fmOptimalMin         Float     // FM optimal minimum
+  fmOptimalMax         Float     // FM optimal maximum
+  
+  // Critical values requiring immediate attention
+  criticalLow          Float?
+  criticalHigh         Float?
+  
+  // Units and metadata
+  unit                 String    // e.g., "mg/dL", "µIU/mL", "%"
+  genderSpecific       Boolean   @default(false)
+  ageDependent         Boolean   @default(false)
+  
+  // Clinical information
+  description          String?   // Brief description of the test
+  clinicalSignificance String?   // Clinical significance and FM insights
+  
+  // Standard fields
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  
+  // Ensure unique test identification
+  @@unique([testName, testCode])
+  @@index([category])
+  @@index([testName])
+}
+
+model AssessmentCategory {
+  id                   String    @id @default(cuid())
+  categoryName         String    @unique // e.g., "Digestive Dysfunction - SIBO/Dysbiosis"
+  categoryDescription  String?   // Detailed description of the category
+  systemFocus          String    // e.g., "digestive", "energy", "hormonal"
+  
+  // Diagnostic significance
+  diagnosticWeight     Float     @default(1.0) // 0.5-3.0 multiplier for diagnostic value
+  interventionPriority Int       @default(3)   // 1=Critical, 2=High, 3=Moderate, 4=Low
+  
+  // Pattern matching and clinical insights
+  symptomPatterns      Json?     // Common symptom combinations and timing
+  rootCauseIndicators  Json?     // What this category typically indicates
+  
+  // Standard fields
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  
+  // Relations
+  questionCategories   AssessmentQuestionCategory[]
+  
+  // Indexes for performance
+  @@index([systemFocus])
+  @@index([interventionPriority])
+}
+
+model AssessmentQuestionCategory {
+  id                  String             @id @default(cuid())
+  questionId          Int                // Reference to assessment question
+  categoryId          String             // Reference to assessment category
+  
+  // Diagnostic scoring weights
+  diagnosticWeight    Float              @default(1.0) // Question weight within category
+  severityMultiplier  Float              @default(1.0) // Response severity impact
+  
+  // Pattern analysis indicators
+  primaryIndicator    Boolean            @default(false) // Key diagnostic question
+  secondaryIndicator  Boolean            @default(false) // Supporting diagnostic question
+  rootCauseMarker     Boolean            @default(false) // Indicates underlying cause
+  
+  // Standard fields
+  createdAt           DateTime           @default(now())
+  
+  // Relations
+  category            AssessmentCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  // Ensure unique question-category mapping
+  @@unique([questionId, categoryId])
+  @@index([questionId])
+  @@index([categoryId])
 }

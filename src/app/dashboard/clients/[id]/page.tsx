@@ -31,6 +31,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
 import { ExportClientButton } from "@/components/clients/ExportClientButton";
+import { TimelineExportButton } from "@/components/clients/TimelineExportButton";
 
 // Dynamically import SimplePDFViewer with SSR disabled
 const SimplePDFViewer = dynamic(
@@ -186,11 +187,14 @@ export default function ClientDetailPage() {
 
         // Fetch protocols for this client
         try {
-          const protocolsResponse = await fetch(`/api/protocols?clientId=${params.id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+          const protocolsResponse = await fetch(
+            `/api/protocols?clientId=${params.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
           if (protocolsResponse.ok) {
             const protocolsData = await protocolsResponse.json();
@@ -889,22 +893,35 @@ export default function ClientDetailPage() {
                     variant="secondary"
                     size="sm"
                   />
+                  <TimelineExportButton
+                    clientId={client.id}
+                    clientName={`${client.firstName} ${client.lastName}`}
+                    variant="outline"
+                    size="sm"
+                    defaultTimelineType="PROTOCOL_DEVELOPMENT"
+                  />
+                </div>
+                <div className="flex gap-2">
                   <Button variant="outline" size="sm" asChild>
-                    <Link href={`/dashboard/clients/${client.id}/analysis/import`}>
+                    <Link
+                      href={`/dashboard/clients/${client.id}/analysis/import`}
+                    >
                       <Brain className="h-4 w-4 mr-1" />
                       Import Analysis
                     </Link>
                   </Button>
-                </div>
-                <div className="flex gap-2">
                   <Button variant="outline" size="sm" asChild>
                     <Link href={`/dashboard/clients/${client.id}/protocols`}>
                       <FlaskConical className="h-4 w-4 mr-1" />
                       Protocols ({protocols.length})
                     </Link>
                   </Button>
+                </div>
+                <div className="flex gap-2">
                   <Button variant="outline" size="sm" asChild>
-                    <Link href={`/dashboard/clients/${client.id}/analysis/history`}>
+                    <Link
+                      href={`/dashboard/clients/${client.id}/analysis/history`}
+                    >
                       <BarChart3 className="h-4 w-4 mr-1" />
                       Analysis History
                     </Link>
@@ -1176,7 +1193,9 @@ export default function ClientDetailPage() {
                   className="flex items-center justify-center"
                   asChild
                 >
-                  <Link href={`/dashboard/clients/${client?.id}/protocols/create`}>
+                  <Link
+                    href={`/dashboard/clients/${client?.id}/protocols/create`}
+                  >
                     <Plus className="w-4 h-4" />
                   </Link>
                 </Button>
@@ -1194,7 +1213,9 @@ export default function ClientDetailPage() {
                     className="flex items-center justify-center"
                     asChild
                   >
-                    <Link href={`/dashboard/clients/${client?.id}/protocols/create`}>
+                    <Link
+                      href={`/dashboard/clients/${client?.id}/protocols/create`}
+                    >
                       <Plus className="w-4 h-4" />
                     </Link>
                   </Button>
@@ -1220,20 +1241,23 @@ export default function ClientDetailPage() {
                       <div className="flex items-center justify-between">
                         <div className="text-xs text-gray-400">
                           <div className="mb-1">
-                            <span className={`px-2 py-0.5 rounded ${
-                              protocol.currentStatus === 'active' 
-                                ? 'bg-green-500/20 text-green-300'
-                                : protocol.currentStatus === 'planned'
-                                ? 'bg-blue-500/20 text-blue-300'
-                                : protocol.currentStatus === 'completed'
-                                ? 'bg-purple-500/20 text-purple-300'
-                                : 'bg-gray-500/20 text-gray-300'
-                            }`}>
+                            <span
+                              className={`px-2 py-0.5 rounded ${
+                                protocol.currentStatus === "active"
+                                  ? "bg-green-500/20 text-green-300"
+                                  : protocol.currentStatus === "planned"
+                                  ? "bg-blue-500/20 text-blue-300"
+                                  : protocol.currentStatus === "completed"
+                                  ? "bg-purple-500/20 text-purple-300"
+                                  : "bg-gray-500/20 text-gray-300"
+                              }`}
+                            >
                               {protocol.currentStatus.toUpperCase()}
                             </span>
                           </div>
                           <div>
-                            {protocol.protocolPhase && `${protocol.protocolPhase} • `}
+                            {protocol.protocolPhase &&
+                              `${protocol.protocolPhase} • `}
                             {formatDate(protocol.createdAt)}
                           </div>
                           {protocol._count?.protocolSupplements && (

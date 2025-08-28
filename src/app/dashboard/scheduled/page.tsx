@@ -16,6 +16,7 @@ import NoteViewerModal from "@/components/notes/NoteViewerModal";
 import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { TimelineExportButton } from "@/components/clients/TimelineExportButton";
 
 // Dynamically import SimplePDFViewer with SSR disabled
 const SimplePDFViewer = dynamic(
@@ -544,22 +545,33 @@ export default function ScheduledClientsPage() {
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <span
-                            className="px-3 py-1 rounded-full text-sm font-medium"
-                            style={{
-                              background: `${getStatusColor(
-                                client.status as StatusType
-                              )}20`,
-                              color: getStatusColor(
-                                client.status as StatusType
-                              ),
-                            }}
-                          >
-                            {getStatusLabel(client.status as StatusType)}
-                          </span>
-                          <div className="text-xs text-gray-400 mt-1">
-                            Client since: {formatDate(client.createdAt)}
+                        <div className="text-right space-y-2">
+                          <div>
+                            <span
+                              className="px-3 py-1 rounded-full text-sm font-medium"
+                              style={{
+                                background: `${getStatusColor(
+                                  client.status as StatusType
+                                )}20`,
+                                color: getStatusColor(
+                                  client.status as StatusType
+                                ),
+                              }}
+                            >
+                              {getStatusLabel(client.status as StatusType)}
+                            </span>
+                            <div className="text-xs text-gray-400 mt-1">
+                              Client since: {formatDate(client.createdAt)}
+                            </div>
+                          </div>
+                          <div>
+                            <TimelineExportButton
+                              clientId={client.id}
+                              clientName={`${client.firstName} ${client.lastName}`}
+                              variant="outline"
+                              size="sm"
+                              defaultTimelineType="PROTOCOL_DEVELOPMENT"
+                            />
                           </div>
                         </div>
                       </div>
