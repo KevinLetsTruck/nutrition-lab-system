@@ -7,24 +7,45 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // Simple one-time redirect without auth context dependencies
-    const checkAuth = () => {
+    // Simple one-time redirect with token validation
+    const checkAuth = async () => {
       const token = localStorage.getItem("token");
       const user = localStorage.getItem("user");
       
       if (token && user) {
         try {
           const parsedUser = JSON.parse(user);
-          // Redirect based on role
-          if (parsedUser.role === "CLIENT") {
-            router.replace("/dashboard");
+          
+          // Validate token with backend before redirecting
+          const response = await fetch('/api/auth/verify', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (response.ok) {
+            // Token is valid, redirect based on role
+            if (parsedUser.role === "CLIENT") {
+              router.replace("/dashboard");
+            } else {
+              router.replace("/dashboard/clients");
+            }
           } else {
-            router.replace("/dashboard/clients");
+            // Token is invalid, clear and go to login
+            console.log('Token validation failed, clearing auth state');
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            sessionStorage.clear();
+            router.replace("/auth/login");
           }
         } catch (e) {
-          // If parsing fails, clear and go to login
+          // If parsing fails or network error, clear and go to login
+          console.log('Auth validation error:', e);
           localStorage.removeItem("token");
           localStorage.removeItem("user");
+          sessionStorage.clear();
           router.replace("/auth/login");
         }
       } else {
