@@ -101,32 +101,45 @@ interface Protocol {
 
 interface ProtocolBuilderProps {
   protocol?: Protocol;
+  protocolId?: string;
   clientId?: string;
   analysisId?: string;
-  mode: "create" | "edit" | "create-from-analysis";
+  mode?: "create" | "edit" | "create-from-analysis";
   onSave?: (protocol: Protocol) => void;
+  onProtocolCreated?: (protocolId: string) => void;
   onCancel?: () => void;
   onGeneratePDF?: (protocolId: string) => void;
   onSendEmail?: (protocolId: string) => void;
+  autoSave?: boolean;
+  editMode?: boolean;
   className?: string;
 }
 
 export function ProtocolBuilder({
   protocol,
+  protocolId,
   clientId,
   analysisId,
   mode,
   onSave,
+  onProtocolCreated,
   onCancel,
   onGeneratePDF,
   onSendEmail,
+  autoSave,
+  editMode,
   className,
 }: ProtocolBuilderProps) {
   const { token } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(autoSave !== false);
+  
+  // Determine mode automatically if not provided
+  const actualMode = mode || 
+    (analysisId && !protocol && !protocolId ? "create-from-analysis" : 
+     (protocol || protocolId || editMode ? "edit" : "create"));
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [activeTab, setActiveTab] = useState("details");
   
@@ -164,7 +177,7 @@ export function ProtocolBuilder({
 
   // Auto-save interval
   useEffect(() => {
-    if (!autoSaveEnabled || !hasUnsavedChanges || mode === "create") return;
+    if (!autoSaveEnabled || !hasUnsavedChanges || actualMode === "create") return;
 
     const interval = setInterval(() => {
       handleAutoSave();
@@ -185,7 +198,7 @@ export function ProtocolBuilder({
 
   // Load existing protocol supplements
   useEffect(() => {
-    if (protocol?.id && mode === "edit") {
+    if (protocol?.id && actualMode === "edit") {
       // In a real implementation, we would fetch supplements from the API
       // For now, we'll simulate this
       setSupplements([]);
@@ -194,10 +207,10 @@ export function ProtocolBuilder({
 
   // Create from analysis
   useEffect(() => {
-    if (mode === "create-from-analysis" && analysisId) {
+    if (actualMode === "create-from-analysis" && analysisId) {
       handleCreateFromAnalysis();
     }
-  }, [mode, analysisId]);
+  }, [actualMode, analysisId]);
 
   // Fetch client data
   const fetchClientData = async (id: string) => {
@@ -239,7 +252,7 @@ export function ProtocolBuilder({
 
   // Create protocol from analysis
   const handleCreateFromAnalysis = async () => {
-    if (!token || !analysisId || !formData.protocolName) return;
+    if (!token || !analysisId) return;
 
     setIsLoading(true);
     try {
@@ -298,7 +311,7 @@ export function ProtocolBuilder({
 
   // Auto-save function
   const handleAutoSave = async () => {
-    if (mode === "create" || !protocol?.id) return;
+    if (actualMode === "create" || !protocol?.id) return;
 
     try {
       await saveProtocol(false); // Silent save
@@ -315,11 +328,11 @@ export function ProtocolBuilder({
     setIsSaving(true);
 
     try {
-      const endpoint = mode === "create" 
+      const endpoint = actualMode === "create" 
         ? "/api/protocols"
-        : `/api/protocols/${protocol!.id}`;
+        : `/api/protocols/${protocol?.id || protocolId}`;
       
-      const method = mode === "create" ? "POST" : "PUT";
+      const method = actualMode === "create" ? "POST" : "PUT";
 
       // Prepare supplement data
       const supplementList = supplements.map(supp => ({
@@ -358,7 +371,7 @@ export function ProtocolBuilder({
 
         if (showToast) {
           toast.success(
-            mode === "create" ? "Protocol created" : "Protocol saved",
+            actualMode === "create" ? "Protocol created" : "Protocol saved",
             {
               description: `${formData.protocolName} has been saved successfully`,
             }
@@ -367,6 +380,10 @@ export function ProtocolBuilder({
 
         if (onSave) {
           onSave(data.data);
+        }
+
+        if (actualMode === "create" && onProtocolCreated && data.data.id) {
+          onProtocolCreated(data.data.id);
         }
 
         return data.data;
@@ -450,8 +467,8 @@ export function ProtocolBuilder({
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {mode === "create" ? "New Protocol" : 
-               mode === "edit" ? "Edit Protocol" : 
+              {actualMode === "create" ? "New Protocol" : 
+               actualMode === "edit" ? "Edit Protocol" : 
                "Create from Analysis"}
             </h1>
             {clientData && (
@@ -463,7 +480,7 @@ export function ProtocolBuilder({
 
           <div className="flex items-center gap-3">
             {/* Auto-save status */}
-            {mode === "edit" && (
+            {actualMode === "edit" && (
               <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <Activity className="h-4 w-4" />
                 {hasUnsavedChanges ? (
@@ -504,7 +521,7 @@ export function ProtocolBuilder({
 
               <Button
                 onClick={() => saveProtocol()}
-                disabled={isSaving || (!hasUnsavedChanges && mode === "edit")}
+                disabled={isSaving || (!hasUnsavedChanges && actualMode === "edit")}
                 className="flex items-center gap-2"
               >
                 {isSaving ? (
@@ -515,7 +532,7 @@ export function ProtocolBuilder({
                 ) : (
                   <>
                     <Save className="h-4 w-4" />
-                    {mode === "create" ? "Create Protocol" : "Save Protocol"}
+                    {actualMode === "create" ? "Create Protocol" : "Save Protocol"}
                   </>
                 )}
               </Button>
@@ -698,7 +715,7 @@ export function ProtocolBuilder({
                   </div>
 
                   {/* Effectiveness Rating */}
-                  {mode === "edit" && (
+                  {actualMode === "edit" && (
                     <div>
                       <Label htmlFor="effectivenessRating" className="text-gray-900 font-medium dark:text-gray-100">
                         Effectiveness Rating (1-5)
@@ -908,7 +925,7 @@ export function ProtocolBuilder({
                 </CardContent>
               </Card>
 
-              {mode === "edit" && (
+              {actualMode === "edit" && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">Tracking Notes</CardTitle>

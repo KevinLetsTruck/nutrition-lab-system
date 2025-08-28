@@ -212,9 +212,9 @@ export default function EditProtocolPage() {
               protocolId={protocol.id}
               clientId={protocol.client.id}
               analysisId={protocol.analysis?.id}
+              mode="edit"
               onProtocolCreated={handleProtocolUpdated}
               autoSave={true}
-              editMode={true}
             />
           </div>
         </div>

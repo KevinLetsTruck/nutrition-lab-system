@@ -353,6 +353,7 @@ export default function CreateClientProtocolPage() {
             <ProtocolBuilder
               clientId={client.id}
               analysisId={selectedAnalysisId}
+              mode={selectedAnalysisId ? "create-from-analysis" : "create"}
               onProtocolCreated={handleProtocolCreated}
               autoSave={true}
             />
