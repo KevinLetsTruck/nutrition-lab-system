@@ -142,13 +142,15 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log('Create from analysis request body:', body);
 
     // Validate required fields
-    if (!body.analysisId || !body.protocolName) {
+    if (!body.analysisId) {
+      console.log('Missing analysisId in request');
       return NextResponse.json<APIResponse>(
         {
           success: false,
-          error: "Missing required fields: analysisId, protocolName",
+          error: "Missing required field: analysisId",
         },
         { status: 400 }
       );
@@ -177,6 +179,31 @@ export async function POST(request: NextRequest) {
     }
 
     const clientName = `${analysis.client.firstName} ${analysis.client.lastName}`;
+    
+    // Auto-generate protocol name if not provided
+    let protocolName = body.protocolName;
+    if (!protocolName || protocolName.trim() === "") {
+      // Try to extract a meaningful name from analysis
+      const focusMatch = analysis.fullAnalysis.match(/(?:primary|main|key)\s*(?:concern|issue|focus|goal)[s]?[:\-\s]*([^\n.]{10,50})/i);
+      const systemMatch = analysis.fullAnalysis.match(/(?:digestive|gut|thyroid|adrenal|hormonal|metabolic|immune|cardiovascular|neurological)\s*(?:health|function|support|protocol)/i);
+      
+      if (focusMatch) {
+        protocolName = `${focusMatch[1].trim()} Protocol`;
+      } else if (systemMatch) {
+        protocolName = `${systemMatch[0].replace(/protocol/i, '').trim()} Protocol`;
+      } else {
+        // Fallback based on analysis date
+        const analysisDate = new Date(analysis.analysisDate).toLocaleDateString();
+        protocolName = `Functional Protocol - ${analysisDate}`;
+      }
+      
+      // Clean up the generated name
+      protocolName = protocolName
+        .replace(/[^\w\s\-]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .substring(0, 100);
+    }
     
     // Extract supplements from analysis text
     const extractedSupplements = extractSupplementsFromAnalysis(analysis.fullAnalysis);
@@ -219,7 +246,7 @@ export async function POST(request: NextRequest) {
         data: {
           clientId: analysis.clientId,
           analysisId: analysis.id,
-          protocolName: body.protocolName,
+          protocolName: protocolName,
           protocolPhase: body.protocolPhase || "Phase 1",
           supplements: {
             total: extractedSupplements.length,
@@ -233,7 +260,7 @@ export async function POST(request: NextRequest) {
             keyMetrics: ['symptoms', 'energy', 'digestion', 'sleep'],
             extractedFrom: 'analysis'
           },
-          startDate: body.startDate ? new Date(body.startDate) : new Date(),
+          startDate: body.startDate && body.startDate !== "" ? new Date(body.startDate) : new Date(),
           durationWeeks: body.durationWeeks || 12,
           status: body.status || "planned",
           greeting,
@@ -266,11 +293,12 @@ export async function POST(request: NextRequest) {
             purpose: supplement.purpose || 'As recommended in analysis',
             priority: supplement.priority,
             isActive: true,
-            startDate: body.startDate ? new Date(body.startDate) : new Date(),
+            startDate: body.startDate && body.startDate !== "" ? new Date(body.startDate) : new Date(),
           })),
         });
       }
 
+      console.log('Protocol created successfully with name:', protocolName);
       return newProtocol;
     });
 
@@ -316,10 +344,35 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error("Error creating protocol from analysis:", error);
+    
+    // Check if it's a Prisma validation error
+    if (error.code === 'P2002') {
+      console.error("Unique constraint violation:", error.meta);
+      return NextResponse.json<APIResponse>(
+        {
+          success: false,
+          error: "Protocol with similar data already exists",
+        },
+        { status: 409 }
+      );
+    }
+    
+    // Check if it's a missing field error
+    if (error.code === 'P2012') {
+      console.error("Missing required field:", error.meta);
+      return NextResponse.json<APIResponse>(
+        {
+          success: false,
+          error: "Missing required database field",
+        },
+        { status: 400 }
+      );
+    }
+    
     return NextResponse.json<APIResponse>(
       {
         success: false,
-        error: "Failed to create protocol from analysis",
+        error: `Failed to create protocol from analysis: ${error.message || 'Unknown error'}`,
       },
       { status: 500 }
     );
