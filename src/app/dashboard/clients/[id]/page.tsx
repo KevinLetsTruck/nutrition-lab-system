@@ -20,6 +20,7 @@ import {
   Trash2,
   Brain,
   BarChart3,
+  FlaskConical,
 } from "lucide-react";
 import NoteCard from "@/components/notes/NoteCard";
 import NoteModal from "@/components/notes/NoteModal";
@@ -97,12 +98,25 @@ interface Note {
   };
 }
 
+interface Protocol {
+  id: string;
+  protocolName: string;
+  protocolPhase?: string;
+  currentStatus: string;
+  createdAt: string;
+  updatedAt: string;
+  _count?: {
+    protocolSupplements?: number;
+  };
+}
+
 export default function ClientDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [client, setClient] = useState<Client | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
+  const [protocols, setProtocols] = useState<Protocol[]>([]);
   const [noteCounts, setNoteCounts] = useState({ interview: 0, coaching: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -169,6 +183,22 @@ export default function ClientDetailPage() {
         setDocuments(data.documents || []);
         setNotes(data.notes || []);
         setNoteCounts(data.noteCounts || { interview: 0, coaching: 0 });
+
+        // Fetch protocols for this client
+        try {
+          const protocolsResponse = await fetch(`/api/protocols?clientId=${params.id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (protocolsResponse.ok) {
+            const protocolsData = await protocolsResponse.json();
+            setProtocols(protocolsData.data?.protocols || []);
+          }
+        } catch (err) {
+          console.warn("Failed to fetch protocols:", err);
+        }
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to load client data"
@@ -868,6 +898,12 @@ export default function ClientDetailPage() {
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" asChild>
+                    <Link href={`/dashboard/clients/${client.id}/protocols`}>
+                      <FlaskConical className="h-4 w-4 mr-1" />
+                      Protocols ({protocols.length})
+                    </Link>
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
                     <Link href={`/dashboard/clients/${client.id}/analysis/history`}>
                       <BarChart3 className="h-4 w-4 mr-1" />
                       Analysis History
@@ -879,7 +915,7 @@ export default function ClientDetailPage() {
           </div>
         </div>
 
-        {/* Dynamic Three-Column Layout - Responsive */}
+        {/* Dynamic Four-Column Layout - Responsive */}
         <div className="flex gap-4 h-[calc(100vh-300px)] min-h-[600px] w-full overflow-hidden">
           {/* Left Column - Health Goals */}
           <div className="flex-shrink-0 w-80 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden flex flex-col">
@@ -1122,6 +1158,103 @@ export default function ClientDetailPage() {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column - Protocols */}
+          <div className="flex-shrink-0 w-80 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden flex flex-col">
+            <div className="bg-gray-700 px-4 py-3 border-b border-gray-600">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-white flex items-center">
+                  <span className="text-lg mr-2">⚗️</span>
+                  Protocols
+                </h3>
+                <Button
+                  size="sm"
+                  className="flex items-center justify-center"
+                  asChild
+                >
+                  <Link href={`/dashboard/clients/${client?.id}/protocols/create`}>
+                    <Plus className="w-4 h-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex-1 p-4 overflow-y-auto">
+              {protocols.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="text-3xl mb-2">⚗️</div>
+                  <p className="text-gray-400 text-sm mb-3">No protocols yet</p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex items-center justify-center"
+                    asChild
+                  >
+                    <Link href={`/dashboard/clients/${client?.id}/protocols/create`}>
+                      <Plus className="w-4 h-4" />
+                    </Link>
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {protocols.slice(0, 5).map((protocol) => (
+                    <Link
+                      key={protocol.id}
+                      href={`/dashboard/clients/${client?.id}/protocols/${protocol.id}`}
+                      className="block p-3 rounded-lg bg-gray-700 border border-gray-600 hover:bg-gray-600 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2 flex-1 min-w-0">
+                          <FlaskConical className="w-4 h-4 text-green-400 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white text-sm font-medium truncate">
+                              {protocol.protocolName}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs text-gray-400">
+                          <div className="mb-1">
+                            <span className={`px-2 py-0.5 rounded ${
+                              protocol.currentStatus === 'active' 
+                                ? 'bg-green-500/20 text-green-300'
+                                : protocol.currentStatus === 'planned'
+                                ? 'bg-blue-500/20 text-blue-300'
+                                : protocol.currentStatus === 'completed'
+                                ? 'bg-purple-500/20 text-purple-300'
+                                : 'bg-gray-500/20 text-gray-300'
+                            }`}>
+                              {protocol.currentStatus.toUpperCase()}
+                            </span>
+                          </div>
+                          <div>
+                            {protocol.protocolPhase && `${protocol.protocolPhase} • `}
+                            {formatDate(protocol.createdAt)}
+                          </div>
+                          {protocol._count?.protocolSupplements && (
+                            <div className="mt-1 text-green-400">
+                              {protocol._count.protocolSupplements} supplements
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                  {protocols.length > 5 && (
+                    <Link
+                      href={`/dashboard/clients/${client?.id}/protocols`}
+                      className="block p-3 rounded-lg bg-gray-600 hover:bg-gray-500 transition-colors text-center"
+                    >
+                      <span className="text-gray-300 text-sm">
+                        View all {protocols.length} protocols →
+                      </span>
+                    </Link>
+                  )}
                 </div>
               )}
             </div>
