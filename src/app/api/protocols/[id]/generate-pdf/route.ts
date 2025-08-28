@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { verifyAuthToken } from "@/lib/auth";
+import { generateProtocolPDFWithRetry } from "@/lib/services/pdf-service";
+import { formatFileSize } from "@/lib/utils/pdf-helpers";
+import { type PDFProtocolData, type PDFTemplateOptions } from "@/lib/templates/protocol-pdf-template";
 
 // Response type for consistent API responses
 interface APIResponse<T = any> {
@@ -11,12 +14,14 @@ interface APIResponse<T = any> {
 
 /**
  * POST /api/protocols/[id]/generate-pdf
- * Generate a PDF document for the protocol (stub implementation)
+ * Generate a professional PDF document for the protocol
  */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const startTime = Date.now();
+
   try {
     // Authenticate user
     const authUser = await verifyAuthToken(request);
@@ -29,6 +34,8 @@ export async function POST(
 
     const { id } = await params;
     const body = await request.json();
+
+    console.log(`📋 Generating PDF for protocol: ${id}`);
 
     // Fetch protocol with all related data
     const protocol = await prisma.enhancedProtocol.findUnique({
@@ -51,7 +58,6 @@ export async function POST(
           },
         },
         protocolSupplements: {
-          where: { isActive: true },
           orderBy: { priority: "asc" },
         },
       },
@@ -64,105 +70,170 @@ export async function POST(
       );
     }
 
-    // Generate PDF metadata (stub implementation)
-    const pdfData = {
-      title: `${protocol.protocolName} - ${protocol.client.firstName} ${protocol.client.lastName}`,
-      clientName: `${protocol.client.firstName} ${protocol.client.lastName}`,
+    // Transform database data to PDF protocol data format
+    const protocolData: PDFProtocolData = {
+      id: protocol.id,
       protocolName: protocol.protocolName,
-      generatedDate: new Date().toISOString(),
-      supplementCount: protocol.protocolSupplements.length,
+      protocolPhase: protocol.protocolPhase || undefined,
       status: protocol.status,
-      phase: protocol.protocolPhase,
-      duration: protocol.durationWeeks,
-      
-      // Branding configuration
-      branding: protocol.brandingConfig || {
-        theme: 'professional',
-        includeGreeting: true,
-        includeClinicLogo: true,
+      startDate: protocol.startDate || undefined,
+      durationWeeks: protocol.durationWeeks || undefined,
+      greeting: protocol.greeting || undefined,
+      clinicalFocus: protocol.clinicalFocus || undefined,
+      currentStatus: protocol.currentStatus || undefined,
+      protocolNotes: protocol.protocolNotes || undefined,
+      effectivenessRating: protocol.effectivenessRating || undefined,
+      client: {
+        id: protocol.client.id,
+        firstName: protocol.client.firstName,
+        lastName: protocol.client.lastName,
+        email: protocol.client.email,
       },
-      
-      // Protocol content
-      greeting: protocol.greeting,
-      clinicalFocus: protocol.clinicalFocus,
+      analysis: protocol.analysis ? {
+        id: protocol.analysis.id,
+        analysisDate: protocol.analysis.analysisDate,
+        analysisVersion: protocol.analysis.analysisVersion,
+      } : undefined,
       supplements: protocol.protocolSupplements.map(supplement => ({
-        name: supplement.productName,
+        id: supplement.id,
+        productName: supplement.productName,
         dosage: supplement.dosage,
         timing: supplement.timing,
-        purpose: supplement.purpose,
+        purpose: supplement.purpose || undefined,
         priority: supplement.priority,
+        isActive: supplement.isActive,
       })),
-      dietaryGuidelines: protocol.dietaryGuidelines,
-      lifestyleModifications: protocol.lifestyleModifications,
-      monitoringRequirements: protocol.monitoringRequirements,
-      dailySchedule: protocol.dailySchedule,
-      notes: protocol.protocolNotes,
+      dailySchedule: protocol.dailySchedule as any || undefined,
     };
 
-    // TODO: Implement actual PDF generation
-    // This would typically use a library like:
-    // - puppeteer to generate PDF from HTML
-    // - jsPDF for client-side PDF generation
-    // - A service like PDFShift or DocuSign
-    
-    // For now, simulate PDF generation
-    const mockPdfUrl = `/generated-pdfs/${protocol.id}_${Date.now()}.pdf`;
+    // Configure PDF template options from request body
+    const templateOptions: PDFTemplateOptions = {
+      paperSize: (body.paperSize || 'A4') as 'A4' | 'Letter',
+      includeGreeting: body.includeGreeting !== false,
+      includeSupplements: body.includeSupplements !== false,
+      includeDietaryGuidelines: body.includeDietaryGuidelines !== false,
+      includeLifestyleModifications: body.includeLifestyleModifications !== false,
+      includeSchedule: body.includeSchedule !== false,
+      brandingConfig: {
+        theme: body.theme || 'professional',
+        includeClinicLogo: body.includeClinicLogo !== false,
+        primaryColor: body.primaryColor || '#10b981',
+        logoUrl: body.logoUrl,
+      },
+    };
 
-    // Create protocol generation record
+    // Generate PDF using our PDF service
+    const result = await generateProtocolPDFWithRetry({
+      protocol: protocolData,
+      options: templateOptions,
+      filename: body.filename,
+    });
+
+    if (!result.success) {
+      console.error(`❌ PDF generation failed for protocol ${id}:`, result.error);
+      return NextResponse.json<APIResponse>(
+        { success: false, error: result.error || "PDF generation failed" },
+        { status: 500 }
+      );
+    }
+
+    const fileMetadata = result.fileMetadata!;
+
+    // Create protocol generation record in database
     const protocolGeneration = await prisma.protocolGeneration.create({
       data: {
         protocolId: protocol.id,
         clientId: protocol.clientId,
-        pdfUrl: mockPdfUrl,
+        pdfUrl: fileMetadata.url,
         generationData: {
-          ...pdfData,
+          // Generation metadata
           generationType: 'pdf',
           requestedBy: authUser.id,
-          requestedAt: new Date().toISOString(),
-          format: body.format || 'standard',
-          includeSupplements: body.includeSupplements !== false,
-          includeDietaryGuidelines: body.includeDietaryGuidelines !== false,
-          includeLifestyleModifications: body.includeLifestyleModifications !== false,
-          includeSchedule: body.includeSchedule !== false,
+          requestedAt: startTime,
+          generatedAt: fileMetadata.generatedAt.toISOString(),
+          
+          // Template options used
+          templateOptions: templateOptions,
+          
+          // File information
+          filename: fileMetadata.filename,
+          filePath: fileMetadata.filePath,
+          fileSize: fileMetadata.size,
+          pageCount: fileMetadata.pages,
+          
+          // Protocol metadata
+          protocolName: protocol.protocolName,
+          clientName: `${protocol.client.firstName} ${protocol.client.lastName}`,
+          supplementCount: protocolData.supplements.filter(s => s.isActive).length,
+          
+          // Performance metrics
+          generationTime: result.generationTime,
+          templateSize: result.debugInfo?.templateSize,
+          
+          // Request details
+          userAgent: request.headers.get('user-agent'),
+          ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
         },
       },
     });
 
-    // In a real implementation, this would trigger:
-    // 1. HTML template rendering with protocol data
-    // 2. PDF generation from HTML
-    // 3. File storage (S3, local filesystem, etc.)
-    // 4. URL generation for download
+    const totalTime = Date.now() - startTime;
+    console.log(`✅ PDF generation completed in ${totalTime}ms for protocol ${id}`);
 
     return NextResponse.json<APIResponse>({
       success: true,
       data: {
         generationId: protocolGeneration.id,
-        pdfUrl: mockPdfUrl,
+        pdfUrl: fileMetadata.url,
         status: 'generated',
-        message: 'PDF generation completed successfully (stub implementation)',
-        metadata: {
-          clientName: pdfData.clientName,
-          protocolName: pdfData.protocolName,
-          supplementCount: pdfData.supplementCount,
-          generatedAt: protocolGeneration.createdAt,
+        message: 'PDF generation completed successfully',
+        
+        // File metadata
+        file: {
+          filename: fileMetadata.filename,
+          url: fileMetadata.url,
+          size: fileMetadata.size,
+          sizeFormatted: formatFileSize(fileMetadata.size),
+          pages: fileMetadata.pages,
+          generatedAt: fileMetadata.generatedAt,
         },
-        // Mock download information
+        
+        // Protocol information
+        protocol: {
+          id: protocol.id,
+          name: protocol.protocolName,
+          clientName: `${protocol.client.firstName} ${protocol.client.lastName}`,
+          supplementCount: protocolData.supplements.filter(s => s.isActive).length,
+        },
+        
+        // Performance metrics
+        performance: {
+          generationTime: result.generationTime,
+          totalTime,
+          templateSize: result.debugInfo?.templateSize,
+          pdfSize: result.debugInfo?.pdfSize,
+        },
+        
+        // Download information
         download: {
-          url: mockPdfUrl,
-          filename: `${protocol.protocolName.replace(/[^a-z0-9]/gi, '_')}_${protocol.client.firstName}_${protocol.client.lastName}.pdf`,
-          size: '2.3 MB', // Mock file size
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
+          url: fileMetadata.url,
+          filename: fileMetadata.filename,
+          contentType: 'application/pdf',
+          disposition: 'inline',
         },
       },
     });
 
   } catch (error: any) {
-    console.error("Error generating PDF:", error);
+    const totalTime = Date.now() - startTime;
+    console.error(`❌ PDF generation error after ${totalTime}ms:`, error);
+    
     return NextResponse.json<APIResponse>(
       {
         success: false,
         error: "Failed to generate PDF",
+        details: error instanceof Error ? error.message : String(error),
+        generationTime: totalTime,
       },
       { status: 500 }
     );
