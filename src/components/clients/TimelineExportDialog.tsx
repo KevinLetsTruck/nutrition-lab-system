@@ -162,26 +162,60 @@ export function TimelineExportDialog({
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Export failed");
+        // Try to parse error as JSON, fallback to text
+        let errorMessage = "Export failed";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          errorMessage = await response.text();
+        }
+        throw new Error(errorMessage);
       }
 
-      const data = await response.json();
+      // Handle markdown response (API returns raw markdown content with download headers)
+      const contentType = response.headers.get("content-type") || "";
+      
+      if (contentType.includes("text/markdown")) {
+        // Handle direct markdown response
+        const markdownContent = await response.text();
+        const contentDisposition = response.headers.get("content-disposition");
+        const filenameMatch = contentDisposition?.match(/filename="([^"]+)"/);
+        const filename = filenameMatch 
+          ? filenameMatch[1] 
+          : `${clientName}-timeline-${timelineType.toLowerCase()}.md`;
 
-      // Download the generated markdown file
-      const blob = new Blob([data.markdownContent || data.content], {
-        type: "text/markdown",
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download =
-        data.fileName ||
-        `${clientName}-timeline-${timelineType.toLowerCase()}.md`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+        // Download the markdown file
+        const blob = new Blob([markdownContent], {
+          type: "text/markdown",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        // Handle JSON response (for other formats)
+        const data = await response.json();
+        
+        // Download the generated file
+        const blob = new Blob([data.markdownContent || data.content], {
+          type: "text/markdown",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download =
+          data.fileName ||
+          `${clientName}-timeline-${timelineType.toLowerCase()}.md`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
 
       toast.success(`${selectedOption?.label} timeline exported successfully`);
       onOpenChange(false);
