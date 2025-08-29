@@ -76,7 +76,7 @@ export function ExportClientButton({
       document.body.removeChild(a);
 
       setExportStatus("success");
-      toast.success("Export Downloaded!", {
+      toast.success("Client Data + PDFs Exported!", {
         description: (
           <div className="space-y-1">
             <p>
@@ -86,7 +86,10 @@ export function ExportClientButton({
               <strong>File:</strong> {filename}
             </p>
             <p className="text-xs text-gray-500 mt-2">
-              📦 ZIP file downloaded to your Downloads folder
+              📦 ZIP includes JSON data + all PDFs (NAQ, NutriQ, lab reports)
+            </p>
+            <p className="text-xs text-gray-400">
+              For external analysis tools and document review
             </p>
           </div>
         ),
@@ -95,8 +98,8 @@ export function ExportClientButton({
 
       // Optional: Show system notification
       if ("Notification" in window && Notification.permission === "granted") {
-        new Notification("FNTP Client Export Downloaded", {
-          body: `${clientName} data downloaded as ${filename}`,
+        new Notification("Client Data + PDFs Downloaded", {
+          body: `${clientName} ZIP export includes all PDFs and structured data`,
           icon: "/favicon.ico",
         });
       }
@@ -132,7 +135,7 @@ export function ExportClientButton({
     if (isExporting) return "Exporting...";
     if (exportStatus === "success") return "Exported!";
     if (exportStatus === "error") return "Export Failed";
-    return "Export for Analysis";
+    return "Export Data + PDFs";
   };
 
   const getButtonVariant = () => {

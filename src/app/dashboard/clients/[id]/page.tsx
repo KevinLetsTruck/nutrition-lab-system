@@ -30,6 +30,7 @@ import DocumentUploadModal from "@/components/documents/DocumentUploadModal";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
+import { ExportClientButton } from "@/components/clients/ExportClientButton";
 import { TimelineExportButton } from "@/components/clients/TimelineExportButton";
 
 // Dynamically import SimplePDFViewer with SSR disabled
@@ -893,14 +894,20 @@ export default function ClientDetailPage() {
                     size="sm"
                     defaultTimelineType="PROTOCOL_DEVELOPMENT"
                   />
+                  <ExportClientButton
+                    clientId={client.id}
+                    clientName={`${client.firstName} ${client.lastName}`}
+                    variant="outline"
+                    size="sm"
+                  />
+                </div>
+                <div className="flex gap-2">
                   <Button variant="outline" size="sm" asChild>
                     <Link href={`/dashboard/clients/${client.id}/protocols`}>
                       <FlaskConical className="h-4 w-4 mr-1" />
                       Protocols ({protocols.length})
                     </Link>
                   </Button>
-                </div>
-                <div className="flex gap-2">
                   <Button variant="outline" size="sm" asChild>
                     <Link
                       href={`/dashboard/clients/${client.id}/analysis/import`}
