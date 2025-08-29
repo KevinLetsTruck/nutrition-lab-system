@@ -30,7 +30,6 @@ import DocumentUploadModal from "@/components/documents/DocumentUploadModal";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
-import { ExportClientButton } from "@/components/clients/ExportClientButton";
 import { TimelineExportButton } from "@/components/clients/TimelineExportButton";
 
 // Dynamically import SimplePDFViewer with SSR disabled
@@ -887,29 +886,13 @@ export default function ClientDetailPage() {
               {/* Action Buttons */}
               <div className="flex flex-col gap-2">
                 <div className="flex gap-2">
-                  <ExportClientButton
+                  <TimelineExportButton
                     clientId={client.id}
                     clientName={`${client.firstName} ${client.lastName}`}
                     variant="secondary"
                     size="sm"
-                  />
-                  <TimelineExportButton
-                    clientId={client.id}
-                    clientName={`${client.firstName} ${client.lastName}`}
-                    variant="outline"
-                    size="sm"
                     defaultTimelineType="PROTOCOL_DEVELOPMENT"
                   />
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" asChild>
-                    <Link
-                      href={`/dashboard/clients/${client.id}/analysis/import`}
-                    >
-                      <Brain className="h-4 w-4 mr-1" />
-                      Import Analysis
-                    </Link>
-                  </Button>
                   <Button variant="outline" size="sm" asChild>
                     <Link href={`/dashboard/clients/${client.id}/protocols`}>
                       <FlaskConical className="h-4 w-4 mr-1" />
@@ -920,10 +903,10 @@ export default function ClientDetailPage() {
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" asChild>
                     <Link
-                      href={`/dashboard/clients/${client.id}/analysis/history`}
+                      href={`/dashboard/clients/${client.id}/analysis/import`}
                     >
-                      <BarChart3 className="h-4 w-4 mr-1" />
-                      Analysis History
+                      <Brain className="h-4 w-4 mr-1" />
+                      Import Analysis
                     </Link>
                   </Button>
                 </div>
