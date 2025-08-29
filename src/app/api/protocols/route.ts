@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { verifyAuthToken } from "@/lib/auth";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { verifyAuthToken } from '@/lib/auth';
 
 // Response type for consistent API responses
 interface APIResponse<T = any> {
@@ -26,19 +26,19 @@ export async function GET(request: NextRequest) {
     const authUser = await verifyAuthToken(request);
     if (!authUser) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: "Unauthorized" },
+        { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
     const { searchParams } = new URL(request.url);
-    
+
     // Extract query parameters
-    const clientId = searchParams.get("clientId");
-    const status = searchParams.get("status");
-    const protocolPhase = searchParams.get("protocolPhase");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    const clientId = searchParams.get('clientId');
+    const status = searchParams.get('status');
+    const protocolPhase = searchParams.get('protocolPhase');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
 
     // Validate pagination parameters
     const validatedPage = Math.max(1, page);
@@ -83,14 +83,14 @@ export async function GET(request: NextRequest) {
         },
         protocolSupplements: {
           where: { isActive: true },
-          orderBy: { priority: "asc" },
+          orderBy: { priority: 'asc' },
         },
         protocolGenerations: {
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
           take: 5, // Last 5 generations
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       skip,
       take: validatedLimit,
     });
@@ -107,13 +107,12 @@ export async function GET(request: NextRequest) {
         totalPages,
       },
     });
-
   } catch (error: any) {
-    console.error("Error fetching protocols:", error);
+    console.error('Error fetching protocols:', error);
     return NextResponse.json<APIResponse>(
       {
         success: false,
-        error: "Failed to fetch protocols",
+        error: 'Failed to fetch protocols',
       },
       { status: 500 }
     );
@@ -130,7 +129,7 @@ export async function POST(request: NextRequest) {
     const authUser = await verifyAuthToken(request);
     if (!authUser) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: "Unauthorized" },
+        { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
@@ -142,7 +141,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json<APIResponse>(
         {
           success: false,
-          error: "Missing required fields: clientId, protocolName",
+          error: 'Missing required fields: clientId, protocolName',
         },
         { status: 400 }
       );
@@ -155,13 +154,13 @@ export async function POST(request: NextRequest) {
 
     if (!client) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: "Client not found" },
+        { success: false, error: 'Client not found' },
         { status: 404 }
       );
     }
 
     // Use transaction to create protocol and related data
-    const protocol = await prisma.$transaction(async (tx) => {
+    const protocol = await prisma.$transaction(async tx => {
       // Create the main protocol
       const newProtocol = await tx.enhancedProtocol.create({
         data: {
@@ -175,7 +174,7 @@ export async function POST(request: NextRequest) {
           monitoringRequirements: body.monitoringRequirements || null,
           startDate: body.startDate ? new Date(body.startDate) : null,
           durationWeeks: body.durationWeeks || null,
-          status: body.status || "planned",
+          status: body.status || 'planned',
           greeting: body.greeting || null,
           clinicalFocus: body.clinicalFocus || null,
           currentStatus: body.currentStatus || null,
@@ -197,7 +196,9 @@ export async function POST(request: NextRequest) {
             purpose: supplement.purpose || null,
             priority: supplement.priority || 1,
             isActive: supplement.isActive !== false,
-            startDate: supplement.startDate ? new Date(supplement.startDate) : null,
+            startDate: supplement.startDate
+              ? new Date(supplement.startDate)
+              : null,
             endDate: supplement.endDate ? new Date(supplement.endDate) : null,
           })),
         });
@@ -221,7 +222,7 @@ export async function POST(request: NextRequest) {
         analysis: true,
         protocolSupplements: {
           where: { isActive: true },
-          orderBy: { priority: "asc" },
+          orderBy: { priority: 'asc' },
         },
         protocolGenerations: true,
       },
@@ -231,13 +232,12 @@ export async function POST(request: NextRequest) {
       success: true,
       data: protocolWithData,
     });
-
   } catch (error: any) {
-    console.error("Error creating protocol:", error);
+    console.error('Error creating protocol:', error);
     return NextResponse.json<APIResponse>(
       {
         success: false,
-        error: "Failed to create protocol",
+        error: 'Failed to create protocol',
       },
       { status: 500 }
     );

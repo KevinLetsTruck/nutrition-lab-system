@@ -1,13 +1,13 @@
 // Socket.IO Client for Real-time Medical Document Updates
-"use client";
+'use client';
 
-import { useEffect, useRef, useState, useCallback } from "react";
-import { io, Socket } from "socket.io-client";
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { io, Socket } from 'socket.io-client';
 import type {
   DocumentProgressUpdate,
   AnalysisUpdate,
   NotificationUpdate,
-} from "./server";
+} from './server';
 
 export interface UseWebSocketOptions {
   autoConnect?: boolean;
@@ -56,18 +56,18 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   const connect = useCallback(() => {
     if (socketRef.current?.connected) return;
 
-    setState((prev) => ({ ...prev, isConnecting: true, error: null }));
+    setState(prev => ({ ...prev, isConnecting: true, error: null }));
 
     const socketUrl =
-      process.env.NODE_ENV === "production"
+      process.env.NODE_ENV === 'production'
         ? window.location.origin
-        : "http://localhost:3000";
+        : 'http://localhost:3000';
 
     const socket = io(socketUrl, {
       auth: {
-        token: token || localStorage.getItem("auth_token"),
+        token: token || localStorage.getItem('auth_token'),
       },
-      transports: ["websocket", "polling"],
+      transports: ['websocket', 'polling'],
       autoConnect: false,
       reconnection: true,
       reconnectionAttempts: 5,
@@ -76,9 +76,8 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     });
 
     // Connection events
-    socket.on("connect", () => {
-
-      setState((prev) => ({
+    socket.on('connect', () => {
+      setState(prev => ({
         ...prev,
         isConnected: true,
         isConnecting: false,
@@ -87,9 +86,8 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       onConnect?.();
     });
 
-    socket.on("disconnect", (reason) => {
-
-      setState((prev) => ({
+    socket.on('disconnect', reason => {
+      setState(prev => ({
         ...prev,
         isConnected: false,
         isConnecting: false,
@@ -97,9 +95,9 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       onDisconnect?.(reason);
     });
 
-    socket.on("connect_error", (error) => {
-      console.error("📡 Socket connection error:", error);
-      setState((prev) => ({
+    socket.on('connect_error', error => {
+      console.error('📡 Socket connection error:', error);
+      setState(prev => ({
         ...prev,
         isConnected: false,
         isConnecting: false,
@@ -109,22 +107,20 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     });
 
     // Reconnection events
-    socket.on("reconnect", (attemptNumber) => {
+    socket.on('reconnect', attemptNumber => {});
 
-    });
-
-    socket.on("reconnect_error", (error) => {
-      console.error("📡 Reconnection failed:", error);
+    socket.on('reconnect_error', error => {
+      console.error('📡 Reconnection failed:', error);
     });
 
     // Ping/pong for connection health
-    socket.on("pong", (data) => {
-      setState((prev) => ({ ...prev, lastPing: Date.now() }));
+    socket.on('pong', data => {
+      setState(prev => ({ ...prev, lastPing: Date.now() }));
     });
 
     // Document progress updates
-    socket.on("document:progress", (update: DocumentProgressUpdate) => {
-      setDocumentSubscriptions((prev) => {
+    socket.on('document:progress', (update: DocumentProgressUpdate) => {
+      setDocumentSubscriptions(prev => {
         const newSubs = new Map(prev);
         const existing = newSubs.get(update.documentId);
         if (existing) {
@@ -138,8 +134,8 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     });
 
     // Document status updates
-    socket.on("document:status", (update: DocumentProgressUpdate) => {
-      setDocumentSubscriptions((prev) => {
+    socket.on('document:status', (update: DocumentProgressUpdate) => {
+      setDocumentSubscriptions(prev => {
         const newSubs = new Map(prev);
         const existing = newSubs.get(update.documentId);
         if (existing) {
@@ -153,32 +149,31 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     });
 
     // Analysis updates
-    socket.on("analysis:update", (update: AnalysisUpdate) => {
+    socket.on('analysis:update', (update: AnalysisUpdate) => {
       // Custom event for analysis-specific updates
       window.dispatchEvent(
-        new CustomEvent("analysis:update", { detail: update })
+        new CustomEvent('analysis:update', { detail: update })
       );
     });
 
     // Notifications
-    socket.on("notification", (notification: NotificationUpdate) => {
-      setNotifications((prev) => [notification, ...prev.slice(0, 49)]); // Keep last 50
+    socket.on('notification', (notification: NotificationUpdate) => {
+      setNotifications(prev => [notification, ...prev.slice(0, 49)]); // Keep last 50
     });
 
     // System events
-    socket.on("system:alert", (alert: NotificationUpdate) => {
-      setNotifications((prev) => [alert, ...prev.slice(0, 49)]);
+    socket.on('system:alert', (alert: NotificationUpdate) => {
+      setNotifications(prev => [alert, ...prev.slice(0, 49)]);
     });
 
-    socket.on("system:shutdown", (data) => {
-
+    socket.on('system:shutdown', data => {
       socket.disconnect();
     });
 
     // Error handling
-    socket.on("error", (error) => {
-      console.error("📡 Socket error:", error);
-      setState((prev) => ({ ...prev, error: error.message || "Socket error" }));
+    socket.on('error', error => {
+      console.error('📡 Socket error:', error);
+      setState(prev => ({ ...prev, error: error.message || 'Socket error' }));
     });
 
     socketRef.current = socket;
@@ -203,13 +198,12 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   // Subscribe to document updates
   const subscribeToDocument = useCallback((documentId: string) => {
     if (!socketRef.current?.connected) {
-
       return;
     }
 
-    socketRef.current.emit("subscribe:document", documentId);
+    socketRef.current.emit('subscribe:document', documentId);
 
-    setDocumentSubscriptions((prev) => {
+    setDocumentSubscriptions(prev => {
       const newSubs = new Map(prev);
       newSubs.set(documentId, {
         documentId,
@@ -217,51 +211,46 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       });
       return newSubs;
     });
-
   }, []);
 
   // Unsubscribe from document updates
   const unsubscribeFromDocument = useCallback((documentId: string) => {
     if (!socketRef.current?.connected) {
-
       return;
     }
 
-    socketRef.current.emit("unsubscribe:document", documentId);
+    socketRef.current.emit('unsubscribe:document', documentId);
 
-    setDocumentSubscriptions((prev) => {
+    setDocumentSubscriptions(prev => {
       const newSubs = new Map(prev);
       newSubs.delete(documentId);
       return newSubs;
     });
-
   }, []);
 
   // Request document status
   const requestDocumentStatus = useCallback((documentId: string) => {
     if (!socketRef.current?.connected) {
-
       return;
     }
 
-    socketRef.current.emit("request:document-status", documentId);
+    socketRef.current.emit('request:document-status', documentId);
   }, []);
 
   // Request queue status
   const requestQueueStatus = useCallback(() => {
     if (!socketRef.current?.connected) {
-
       return;
     }
 
-    socketRef.current.emit("request:queue-status");
+    socketRef.current.emit('request:queue-status');
   }, []);
 
   // Send ping to test connection
   const ping = useCallback(() => {
     if (!socketRef.current?.connected) return;
 
-    socketRef.current.emit("ping");
+    socketRef.current.emit('ping');
   }, []);
 
   // Clear notifications
@@ -271,7 +260,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
   // Remove specific notification
   const removeNotification = useCallback((index: number) => {
-    setNotifications((prev) => prev.filter((_, i) => i !== index));
+    setNotifications(prev => prev.filter((_, i) => i !== index));
   }, []);
 
   // Auto-connect on mount if enabled
@@ -337,17 +326,17 @@ export function useAnalysisUpdates() {
 
   useEffect(() => {
     const handleAnalysisUpdate = (event: CustomEvent<AnalysisUpdate>) => {
-      setAnalysisUpdates((prev) => [event.detail, ...prev.slice(0, 9)]); // Keep last 10
+      setAnalysisUpdates(prev => [event.detail, ...prev.slice(0, 9)]); // Keep last 10
     };
 
     window.addEventListener(
-      "analysis:update",
+      'analysis:update',
       handleAnalysisUpdate as EventListener
     );
 
     return () => {
       window.removeEventListener(
-        "analysis:update",
+        'analysis:update',
         handleAnalysisUpdate as EventListener
       );
     };
@@ -393,7 +382,7 @@ export function useDocumentProgress(documentId: string) {
 }
 
 // WebSocket context provider
-import { createContext, useContext, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from 'react';
 
 interface WebSocketContextType {
   webSocket: ReturnType<typeof useWebSocket>;
@@ -421,7 +410,7 @@ export function useWebSocketContext() {
   const context = useContext(WebSocketContext);
   if (!context) {
     throw new Error(
-      "useWebSocketContext must be used within a WebSocketProvider"
+      'useWebSocketContext must be used within a WebSocketProvider'
     );
   }
   return context.webSocket;
@@ -432,25 +421,25 @@ export function formatNotification(notification: NotificationUpdate): string {
   return `[${notification.type}] ${notification.title}: ${notification.message}`;
 }
 
-export function getNotificationIcon(type: NotificationUpdate["type"]): string {
+export function getNotificationIcon(type: NotificationUpdate['type']): string {
   const icons = {
-    SUCCESS: "✅",
-    ERROR: "❌",
-    WARNING: "⚠️",
-    INFO: "ℹ️",
+    SUCCESS: '✅',
+    ERROR: '❌',
+    WARNING: '⚠️',
+    INFO: 'ℹ️',
   };
-  return icons[type] || "ℹ️";
+  return icons[type] || 'ℹ️';
 }
 
 export function isDocumentProcessing(update?: DocumentProgressUpdate): boolean {
   if (!update) return false;
-  return update.progress < 100 && update.status !== "FAILED";
+  return update.progress < 100 && update.status !== 'FAILED';
 }
 
 export function getProgressColor(progress: number, status: string): string {
-  if (status === "FAILED") return "red";
-  if (progress === 100) return "green";
-  if (progress >= 75) return "blue";
-  if (progress >= 50) return "yellow";
-  return "gray";
+  if (status === 'FAILED') return 'red';
+  if (progress === 100) return 'green';
+  if (progress >= 75) return 'blue';
+  if (progress >= 50) return 'yellow';
+  return 'gray';
 }

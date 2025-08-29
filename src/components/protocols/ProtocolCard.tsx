@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { format } from "date-fns";
+import { useState } from 'react';
+import { format } from 'date-fns';
 import {
   Card,
   CardContent,
@@ -9,9 +9,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,7 +20,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 import {
   Dialog,
   DialogContent,
@@ -28,7 +28,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   Calendar,
   Clock,
@@ -42,8 +42,8 @@ import {
   Brain,
   Star,
   Activity,
-} from "lucide-react";
-import { toast } from "sonner";
+} from 'lucide-react';
+import { toast } from 'sonner';
 
 // Enhanced Protocol interface to match our database schema
 interface ProtocolClient {
@@ -120,38 +120,40 @@ export function ProtocolCard({
   // Status styling
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case "active":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "planned":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "completed":
-        return "bg-gray-100 text-gray-800 border-gray-200";
-      case "paused":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "discontinued":
-        return "bg-red-100 text-red-800 border-red-200";
+      case 'active':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'planned':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'completed':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'paused':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'discontinued':
+        return 'bg-red-100 text-red-800 border-red-200';
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   // Phase styling
   const getPhaseColor = (phase?: string) => {
-    if (!phase) return "bg-gray-100 text-gray-600";
+    if (!phase) return 'bg-gray-100 text-gray-600';
     switch (phase.toLowerCase()) {
-      case "phase 1":
-        return "bg-blue-100 text-blue-700";
-      case "phase 2":
-        return "bg-purple-100 text-purple-700";
-      case "phase 3":
-        return "bg-green-100 text-green-700";
+      case 'phase 1':
+        return 'bg-blue-100 text-blue-700';
+      case 'phase 2':
+        return 'bg-purple-100 text-purple-700';
+      case 'phase 3':
+        return 'bg-green-100 text-green-700';
       default:
-        return "bg-gray-100 text-gray-600";
+        return 'bg-gray-100 text-gray-600';
     }
   };
 
   // Calculate active supplements
-  const activeSupplements = protocol.protocolSupplements.filter(s => s.isActive);
+  const activeSupplements = protocol.protocolSupplements.filter(
+    s => s.isActive
+  );
   const prioritySupplements = activeSupplements
     .sort((a, b) => a.priority - b.priority)
     .slice(0, 3);
@@ -159,16 +161,16 @@ export function ProtocolCard({
   // Handle PDF generation
   const handleGeneratePDF = async () => {
     if (!onGeneratePDF) return;
-    
+
     setIsGeneratingPDF(true);
     try {
       await onGeneratePDF(protocol.id);
-      toast.success("PDF generated successfully", {
+      toast.success('PDF generated successfully', {
         description: `Protocol PDF for ${protocol.client.firstName} ${protocol.client.lastName}`,
       });
     } catch (error) {
-      toast.error("Failed to generate PDF", {
-        description: error instanceof Error ? error.message : "Unknown error",
+      toast.error('Failed to generate PDF', {
+        description: error instanceof Error ? error.message : 'Unknown error',
       });
     } finally {
       setIsGeneratingPDF(false);
@@ -178,16 +180,16 @@ export function ProtocolCard({
   // Handle email sending
   const handleSendEmail = async () => {
     if (!onSendEmail) return;
-    
+
     setIsSendingEmail(true);
     try {
       await onSendEmail(protocol.id);
-      toast.success("Email sent successfully", {
+      toast.success('Email sent successfully', {
         description: `Protocol sent to ${protocol.client.email}`,
       });
     } catch (error) {
-      toast.error("Failed to send email", {
-        description: error instanceof Error ? error.message : "Unknown error",
+      toast.error('Failed to send email', {
+        description: error instanceof Error ? error.message : 'Unknown error',
       });
     } finally {
       setIsSendingEmail(false);
@@ -204,8 +206,8 @@ export function ProtocolCard({
 
   // Format dates
   const formatDate = (date?: Date) => {
-    if (!date) return "Not set";
-    return format(new Date(date), "MMM d, yyyy");
+    if (!date) return 'Not set';
+    return format(new Date(date), 'MMM d, yyyy');
   };
 
   return (
@@ -221,7 +223,7 @@ export function ProtocolCard({
                 {protocol.client.firstName} {protocol.client.lastName}
               </CardDescription>
             </div>
-            
+
             <div className="flex items-center gap-2">
               {/* Status Badge */}
               <Badge
@@ -230,7 +232,7 @@ export function ProtocolCard({
               >
                 {protocol.status}
               </Badge>
-              
+
               {/* Phase Badge */}
               {protocol.protocolPhase && (
                 <Badge
@@ -240,7 +242,7 @@ export function ProtocolCard({
                   {protocol.protocolPhase}
                 </Badge>
               )}
-              
+
               {/* More Actions */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -259,26 +261,28 @@ export function ProtocolCard({
                       </DropdownMenuItem>
                     )}
                     {onGeneratePDF && (
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={handleGeneratePDF}
                         disabled={isGeneratingPDF}
                       >
                         <Download className="h-4 w-4 mr-2" />
-                        {isGeneratingPDF ? "Generating PDF..." : "Generate PDF"}
+                        {isGeneratingPDF ? 'Generating PDF...' : 'Generate PDF'}
                       </DropdownMenuItem>
                     )}
                     {onSendEmail && (
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={handleSendEmail}
                         disabled={isSendingEmail}
                       >
                         <Mail className="h-4 w-4 mr-2" />
-                        {isSendingEmail ? "Sending..." : "Email to Client"}
+                        {isSendingEmail ? 'Sending...' : 'Email to Client'}
                       </DropdownMenuItem>
                     )}
                     {protocol.analysis && onCreateFromAnalysis && (
-                      <DropdownMenuItem 
-                        onClick={() => onCreateFromAnalysis!(protocol.analysis!.id)}
+                      <DropdownMenuItem
+                        onClick={() =>
+                          onCreateFromAnalysis!(protocol.analysis!.id)
+                        }
                       >
                         <Brain className="h-4 w-4 mr-2" />
                         Create from Analysis
@@ -320,17 +324,19 @@ export function ProtocolCard({
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2 text-sm">
               <Clock className="h-4 w-4 text-green-600" />
               <div>
                 <p className="text-gray-600 dark:text-gray-400">Duration</p>
                 <p className="font-medium text-gray-900 dark:text-gray-100">
-                  {protocol.durationWeeks ? `${protocol.durationWeeks}w` : "TBD"}
+                  {protocol.durationWeeks
+                    ? `${protocol.durationWeeks}w`
+                    : 'TBD'}
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="h-4 w-4 text-purple-600" />
               <div>
@@ -340,7 +346,7 @@ export function ProtocolCard({
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2 text-sm">
               {protocol.effectivenessRating ? (
                 <>
@@ -373,7 +379,7 @@ export function ProtocolCard({
                 Priority Supplements
               </h4>
               <div className="space-y-2">
-                {prioritySupplements.map((supplement) => (
+                {prioritySupplements.map(supplement => (
                   <div
                     key={supplement.id}
                     className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg"
@@ -420,9 +426,7 @@ export function ProtocolCard({
               </div>
             )}
           </div>
-          <div>
-            Updated {format(new Date(protocol.updatedAt), "MMM d")}
-          </div>
+          <div>Updated {format(new Date(protocol.updatedAt), 'MMM d')}</div>
         </CardFooter>
       </Card>
 
@@ -432,7 +436,9 @@ export function ProtocolCard({
           <DialogHeader>
             <DialogTitle>Delete Protocol</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{protocol.protocolName}"? This will also delete all related supplements, generations, and tracking data. This action cannot be undone.
+              Are you sure you want to delete "{protocol.protocolName}"? This
+              will also delete all related supplements, generations, and
+              tracking data. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
@@ -442,10 +448,7 @@ export function ProtocolCard({
             >
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-            >
+            <Button variant="destructive" onClick={handleDelete}>
               Delete Protocol
             </Button>
           </DialogFooter>

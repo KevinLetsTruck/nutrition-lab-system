@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import jwt from "jsonwebtoken";
-import { z } from "zod";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import jwt from 'jsonwebtoken';
+import { z } from 'zod';
 
 // Helper function to verify JWT token
 function verifyAuthToken(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
+  const authHeader = request.headers.get('authorization');
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new Error("No valid authorization header");
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new Error('No valid authorization header');
   }
 
   const token = authHeader.substring(7);
@@ -17,8 +17,7 @@ function verifyAuthToken(request: NextRequest) {
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as any;
     return payload;
   } catch (error) {
-
-    throw new Error("Invalid token");
+    throw new Error('Invalid token');
   }
 }
 
@@ -62,21 +61,21 @@ export async function GET(
     });
 
     if (!note) {
-      return NextResponse.json({ error: "Note not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Note not found' }, { status: 404 });
     }
 
     return NextResponse.json(note);
   } catch (error) {
     if (
       error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
+      (error.message.includes('authorization') ||
+        error.message.includes('token'))
     ) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
     return NextResponse.json(
-      { error: "Failed to fetch note" },
+      { error: 'Failed to fetch note' },
       { status: 500 }
     );
   }
@@ -113,28 +112,28 @@ export async function PUT(
   } catch (error) {
     if (
       error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
+      (error.message.includes('authorization') ||
+        error.message.includes('token'))
     ) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid input", details: error.errors },
+        { error: 'Invalid input', details: error.errors },
         { status: 400 }
       );
     }
 
     if (
       error instanceof Error &&
-      error.message.includes("Record to update not found")
+      error.message.includes('Record to update not found')
     ) {
-      return NextResponse.json({ error: "Note not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Note not found' }, { status: 404 });
     }
 
     return NextResponse.json(
-      { error: "Failed to update note" },
+      { error: 'Failed to update note' },
       { status: 500 }
     );
   }
@@ -153,25 +152,25 @@ export async function DELETE(
       where: { id },
     });
 
-    return NextResponse.json({ message: "Note deleted successfully" });
+    return NextResponse.json({ message: 'Note deleted successfully' });
   } catch (error) {
     if (
       error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
+      (error.message.includes('authorization') ||
+        error.message.includes('token'))
     ) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
     if (
       error instanceof Error &&
-      error.message.includes("Record to delete does not exist")
+      error.message.includes('Record to delete does not exist')
     ) {
-      return NextResponse.json({ error: "Note not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Note not found' }, { status: 404 });
     }
 
     return NextResponse.json(
-      { error: "Failed to delete note" },
+      { error: 'Failed to delete note' },
       { status: 500 }
     );
   }

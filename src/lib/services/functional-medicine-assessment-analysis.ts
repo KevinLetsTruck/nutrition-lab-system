@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -8,20 +8,20 @@ export interface AssessmentAnalysisResult {
   categoryName: string;
   systemFocus: string;
   currentScore: number;
-  riskLevel: "low" | "moderate" | "high" | "critical";
+  riskLevel: 'low' | 'moderate' | 'high' | 'critical';
   diagnosticConfidence: number; // 0-100%
   keySymptoms: string[];
   patternMatch: number; // 0-100% match to known patterns
   interventionPriority: number; // 1=Critical, 2=High, 3=Moderate, 4=Low
   rootCauseIndicators: string[];
-  trend?: "improving" | "stable" | "worsening" | null;
+  trend?: 'improving' | 'stable' | 'worsening' | null;
 }
 
 export interface SystemAnalysis {
   systemName: string;
   systemFocus: string;
   overallScore: number;
-  riskLevel: "low" | "moderate" | "high" | "critical";
+  riskLevel: 'low' | 'moderate' | 'high' | 'critical';
   categories: AssessmentAnalysisResult[];
   primaryConcerns: string[];
   interventionStrategy: string[];
@@ -99,7 +99,7 @@ export class FunctionalMedicineAssessmentAnalysis {
     return {
       systemAnalyses,
       criticalFindings: categoryAnalyses.filter(
-        (cat) => cat.riskLevel === "critical"
+        cat => cat.riskLevel === 'critical'
       ),
       patternInsights,
       interventionMatrix,
@@ -112,7 +112,7 @@ export class FunctionalMedicineAssessmentAnalysis {
    */
   generateAssessmentAnalysisMarkdown(report: AssessmentAnalysisReport): string {
     if (report.summary.totalCategories === 0) {
-      return "### 🎯 ASSESSMENT ANALYSIS\n*No assessments available for functional medicine analysis*\n\n";
+      return '### 🎯 ASSESSMENT ANALYSIS\n*No assessments available for functional medicine analysis*\n\n';
     }
 
     return `### 🎯 FUNCTIONAL MEDICINE ASSESSMENT ANALYSIS
@@ -159,8 +159,8 @@ ${this.generateInterventionMatrixMarkdown(report.interventionMatrix)}
           questionCategories: true,
         },
         orderBy: [
-          { interventionPriority: "asc" },
-          { diagnosticWeight: "desc" },
+          { interventionPriority: 'asc' },
+          { diagnosticWeight: 'desc' },
         ],
       });
 
@@ -171,8 +171,8 @@ ${this.generateInterventionMatrixMarkdown(report.interventionMatrix)}
         `📋 Loaded ${categories.length} assessment categories into cache`
       );
     } catch (error) {
-      console.error("❌ Error loading assessment categories:", error);
-      throw new Error("Failed to load assessment categories for analysis");
+      console.error('❌ Error loading assessment categories:', error);
+      throw new Error('Failed to load assessment categories for analysis');
     }
   }
 
@@ -259,7 +259,7 @@ ${this.generateInterventionMatrixMarkdown(report.interventionMatrix)}
 
     for (const response of responses) {
       const questionText =
-        response.questionText || response.question?.text || "";
+        response.questionText || response.question?.text || '';
       const responseValue = parseInt(
         response.score || response.responseValue || 0
       );
@@ -301,11 +301,11 @@ ${this.generateInterventionMatrixMarkdown(report.interventionMatrix)}
 
   private determineRiskLevel(
     score: number
-  ): AssessmentAnalysisResult["riskLevel"] {
-    if (score >= 4.0) return "critical";
-    if (score >= 3.0) return "high";
-    if (score >= 2.0) return "moderate";
-    return "low";
+  ): AssessmentAnalysisResult['riskLevel'] {
+    if (score >= 4.0) return 'critical';
+    if (score >= 3.0) return 'high';
+    if (score >= 2.0) return 'moderate';
+    return 'low';
   }
 
   private calculatePatternMatch(assessment: any, category: any): number {
@@ -342,9 +342,9 @@ ${this.generateInterventionMatrixMarkdown(report.interventionMatrix)}
     let matches = 0;
 
     for (const symptom of symptoms) {
-      const hasSymptom = responses.some((response) => {
+      const hasSymptom = responses.some(response => {
         const questionText =
-          response.questionText || response.question?.text || "";
+          response.questionText || response.question?.text || '';
         const responseValue = parseInt(
           response.score || response.responseValue || 0
         );
@@ -389,7 +389,7 @@ ${this.generateInterventionMatrixMarkdown(report.interventionMatrix)}
     // Find responses that match category symptoms and have high scores
     for (const response of responses) {
       const questionText =
-        response.questionText || response.question?.text || "";
+        response.questionText || response.question?.text || '';
       const responseValue = parseInt(
         response.score || response.responseValue || 0
       );
@@ -418,27 +418,30 @@ ${this.generateInterventionMatrixMarkdown(report.interventionMatrix)}
   private calculateTrend(
     currentScore: number,
     previousScore: number
-  ): "improving" | "stable" | "worsening" {
+  ): 'improving' | 'stable' | 'worsening' {
     const difference = currentScore - previousScore;
     const threshold = 0.3; // Minimum change to be considered significant
 
-    if (difference > threshold) return "worsening";
-    if (difference < -threshold) return "improving";
-    return "stable";
+    if (difference > threshold) return 'worsening';
+    if (difference < -threshold) return 'improving';
+    return 'stable';
   }
 
   private groupCategoriesBySystem(
     categoryAnalyses: AssessmentAnalysisResult[]
   ): SystemAnalysis[] {
     // Group categories by system
-    const systemGroups = categoryAnalyses.reduce((groups, category) => {
-      const system = category.systemFocus;
-      if (!groups[system]) {
-        groups[system] = [];
-      }
-      groups[system].push(category);
-      return groups;
-    }, {} as Record<string, AssessmentAnalysisResult[]>);
+    const systemGroups = categoryAnalyses.reduce(
+      (groups, category) => {
+        const system = category.systemFocus;
+        if (!groups[system]) {
+          groups[system] = [];
+        }
+        groups[system].push(category);
+        return groups;
+      },
+      {} as Record<string, AssessmentAnalysisResult[]>
+    );
 
     return Object.entries(systemGroups)
       .map(([systemFocus, categories]) => {
@@ -452,9 +455,9 @@ ${this.generateInterventionMatrixMarkdown(report.interventionMatrix)}
 
         const primaryConcerns = categories
           .filter(
-            (cat) => cat.riskLevel === "critical" || cat.riskLevel === "high"
+            cat => cat.riskLevel === 'critical' || cat.riskLevel === 'high'
           )
-          .map((cat) => cat.categoryName);
+          .map(cat => cat.categoryName);
 
         const interventionStrategy = this.generateSystemInterventionStrategy(
           systemFocus,
@@ -462,13 +465,13 @@ ${this.generateInterventionMatrixMarkdown(report.interventionMatrix)}
         );
 
         const criticalCount = categories.filter(
-          (cat) => cat.riskLevel === "critical"
+          cat => cat.riskLevel === 'critical'
         ).length;
         const highRiskCount = categories.filter(
-          (cat) => cat.riskLevel === "high"
+          cat => cat.riskLevel === 'high'
         ).length;
         const moderateCount = categories.filter(
-          (cat) => cat.riskLevel === "moderate"
+          cat => cat.riskLevel === 'moderate'
         ).length;
 
         return {
@@ -491,14 +494,14 @@ ${this.generateInterventionMatrixMarkdown(report.interventionMatrix)}
 
   private formatSystemName(systemFocus: string): string {
     const systemNames: Record<string, string> = {
-      digestive: "Digestive Health",
-      energy: "Energy & Adrenals",
-      hormonal: "Hormonal Balance",
-      inflammation: "Inflammatory Status",
-      detoxification: "Detoxification Capacity",
-      neurological: "Neurological Function",
-      metabolic: "Metabolic Health",
-      immune: "Immune Function",
+      digestive: 'Digestive Health',
+      energy: 'Energy & Adrenals',
+      hormonal: 'Hormonal Balance',
+      inflammation: 'Inflammatory Status',
+      detoxification: 'Detoxification Capacity',
+      neurological: 'Neurological Function',
+      metabolic: 'Metabolic Health',
+      immune: 'Immune Function',
     };
 
     return (
@@ -513,138 +516,138 @@ ${this.generateInterventionMatrixMarkdown(report.interventionMatrix)}
   ): string[] {
     const strategies = [];
     const hasHighRisk = categories.some(
-      (cat) => cat.riskLevel === "high" || cat.riskLevel === "critical"
+      cat => cat.riskLevel === 'high' || cat.riskLevel === 'critical'
     );
 
     switch (systemFocus.toLowerCase()) {
-      case "digestive":
+      case 'digestive':
         if (hasHighRisk) {
           strategies.push(
-            "Comprehensive digestive repair protocol with enzymes, probiotics, and gut healing nutrients"
+            'Comprehensive digestive repair protocol with enzymes, probiotics, and gut healing nutrients'
           );
           strategies.push(
-            "Food sensitivity testing and targeted elimination diet"
+            'Food sensitivity testing and targeted elimination diet'
           );
-          strategies.push("SIBO/dysbiosis testing and antimicrobial therapy");
+          strategies.push('SIBO/dysbiosis testing and antimicrobial therapy');
         } else {
-          strategies.push("Digestive support with enzymes and prebiotic foods");
-          strategies.push("Gut health maintenance with probiotics and fiber");
+          strategies.push('Digestive support with enzymes and prebiotic foods');
+          strategies.push('Gut health maintenance with probiotics and fiber');
         }
         break;
 
-      case "energy":
+      case 'energy':
         if (hasHighRisk) {
           strategies.push(
-            "Comprehensive adrenal support protocol with adaptogenic herbs"
+            'Comprehensive adrenal support protocol with adaptogenic herbs'
           );
           strategies.push(
-            "Mitochondrial support with CoQ10, B-vitamins, and magnesium"
+            'Mitochondrial support with CoQ10, B-vitamins, and magnesium'
           );
           strategies.push(
-            "Sleep optimization and circadian rhythm restoration"
+            'Sleep optimization and circadian rhythm restoration'
           );
         } else {
-          strategies.push("Energy optimization with B-complex and magnesium");
-          strategies.push("Stress management and exercise moderation");
+          strategies.push('Energy optimization with B-complex and magnesium');
+          strategies.push('Stress management and exercise moderation');
         }
         break;
 
-      case "hormonal":
+      case 'hormonal':
         if (hasHighRisk) {
           strategies.push(
-            "Comprehensive hormone testing and targeted balancing protocol"
+            'Comprehensive hormone testing and targeted balancing protocol'
           );
           strategies.push(
-            "Liver detoxification support for hormone metabolism"
+            'Liver detoxification support for hormone metabolism'
           );
-          strategies.push("Stress management and lifestyle modifications");
+          strategies.push('Stress management and lifestyle modifications');
         } else {
-          strategies.push("Hormone optimization with targeted nutrition");
-          strategies.push("Lifestyle modifications for hormonal balance");
+          strategies.push('Hormone optimization with targeted nutrition');
+          strategies.push('Lifestyle modifications for hormonal balance');
         }
         break;
 
-      case "inflammation":
+      case 'inflammation':
         if (hasHighRisk) {
           strategies.push(
-            "Aggressive anti-inflammatory protocol with omega-3s, curcumin, quercetin"
+            'Aggressive anti-inflammatory protocol with omega-3s, curcumin, quercetin'
           );
           strategies.push(
-            "Root cause investigation: gut health, infections, toxins"
+            'Root cause investigation: gut health, infections, toxins'
           );
-          strategies.push("Advanced inflammatory marker testing");
+          strategies.push('Advanced inflammatory marker testing');
         } else {
           strategies.push(
-            "Anti-inflammatory nutrition with omega-3s and antioxidants"
+            'Anti-inflammatory nutrition with omega-3s and antioxidants'
           );
-          strategies.push("Stress reduction and gentle exercise");
+          strategies.push('Stress reduction and gentle exercise');
         }
         break;
 
-      case "detoxification":
+      case 'detoxification':
         if (hasHighRisk) {
           strategies.push(
-            "Comprehensive detox support with Phase I/II nutrients"
+            'Comprehensive detox support with Phase I/II nutrients'
           );
-          strategies.push("Environmental toxin reduction and testing");
+          strategies.push('Environmental toxin reduction and testing');
           strategies.push(
-            "Liver support with milk thistle, NAC, and glutathione"
+            'Liver support with milk thistle, NAC, and glutathione'
           );
         } else {
           strategies.push(
-            "Basic detox support with cruciferous vegetables and fiber"
+            'Basic detox support with cruciferous vegetables and fiber'
           );
-          strategies.push("Hydration optimization and sauna therapy");
+          strategies.push('Hydration optimization and sauna therapy');
         }
         break;
 
-      case "neurological":
+      case 'neurological':
         if (hasHighRisk) {
-          strategies.push("Comprehensive neurotransmitter support and testing");
+          strategies.push('Comprehensive neurotransmitter support and testing');
           strategies.push(
-            "Neuroinflammation reduction with specialized nutrients"
+            'Neuroinflammation reduction with specialized nutrients'
           );
           strategies.push(
-            "Cognitive support with nootropics and lifestyle changes"
+            'Cognitive support with nootropics and lifestyle changes'
           );
         } else {
           strategies.push(
-            "Brain health optimization with omega-3s and B-vitamins"
+            'Brain health optimization with omega-3s and B-vitamins'
           );
-          strategies.push("Stress management and cognitive exercises");
+          strategies.push('Stress management and cognitive exercises');
         }
         break;
 
-      case "metabolic":
+      case 'metabolic':
         if (hasHighRisk) {
-          strategies.push("Intensive blood sugar stabilization protocol");
+          strategies.push('Intensive blood sugar stabilization protocol');
           strategies.push(
-            "Insulin sensitivity improvement with targeted nutrients"
+            'Insulin sensitivity improvement with targeted nutrients'
           );
-          strategies.push("Comprehensive metabolic testing and monitoring");
+          strategies.push('Comprehensive metabolic testing and monitoring');
         } else {
           strategies.push(
-            "Blood sugar optimization with chromium and cinnamon"
+            'Blood sugar optimization with chromium and cinnamon'
           );
-          strategies.push("Exercise and dietary modifications");
+          strategies.push('Exercise and dietary modifications');
         }
         break;
 
-      case "immune":
+      case 'immune':
         if (hasHighRisk) {
-          strategies.push("Comprehensive immune system support and testing");
-          strategies.push("Gut health optimization for immune function");
-          strategies.push("Nutrient repletion for immune competence");
+          strategies.push('Comprehensive immune system support and testing');
+          strategies.push('Gut health optimization for immune function');
+          strategies.push('Nutrient repletion for immune competence');
         } else {
-          strategies.push("Immune optimization with vitamin D and zinc");
-          strategies.push("Stress reduction and adequate sleep");
+          strategies.push('Immune optimization with vitamin D and zinc');
+          strategies.push('Stress reduction and adequate sleep');
         }
         break;
 
       default:
-        strategies.push("Targeted nutritional and lifestyle interventions");
-        strategies.push("System-specific testing and monitoring");
-        strategies.push("Root cause investigation and treatment");
+        strategies.push('Targeted nutritional and lifestyle interventions');
+        strategies.push('System-specific testing and monitoring');
+        strategies.push('Root cause investigation and treatment');
     }
 
     return strategies;
@@ -652,14 +655,14 @@ ${this.generateInterventionMatrixMarkdown(report.interventionMatrix)}
 
   private generatePatternInsights(
     categoryAnalyses: AssessmentAnalysisResult[]
-  ): AssessmentAnalysisReport["patternInsights"] {
+  ): AssessmentAnalysisReport['patternInsights'] {
     const highConfidencePatterns = categoryAnalyses
-      .filter((cat) => cat.diagnosticConfidence >= 75)
+      .filter(cat => cat.diagnosticConfidence >= 75)
       .slice(0, 5);
 
     const emergingPatterns = categoryAnalyses
       .filter(
-        (cat) => cat.diagnosticConfidence >= 50 && cat.diagnosticConfidence < 75
+        cat => cat.diagnosticConfidence >= 50 && cat.diagnosticConfidence < 75
       )
       .slice(0, 3);
 
@@ -679,101 +682,101 @@ ${this.generateInterventionMatrixMarkdown(report.interventionMatrix)}
   ): string[] {
     const connections = [];
     const highRiskCategories = categoryAnalyses.filter(
-      (cat) => cat.riskLevel === "high" || cat.riskLevel === "critical"
+      cat => cat.riskLevel === 'high' || cat.riskLevel === 'critical'
     );
 
     // Look for common root cause patterns
     if (
-      highRiskCategories.some((cat) => cat.systemFocus === "digestive") &&
-      highRiskCategories.some((cat) => cat.systemFocus === "inflammation")
+      highRiskCategories.some(cat => cat.systemFocus === 'digestive') &&
+      highRiskCategories.some(cat => cat.systemFocus === 'inflammation')
     ) {
       connections.push(
-        "Gut dysfunction appears to be driving systemic inflammation"
+        'Gut dysfunction appears to be driving systemic inflammation'
       );
     }
 
     if (
-      highRiskCategories.some((cat) => cat.systemFocus === "energy") &&
-      highRiskCategories.some((cat) => cat.systemFocus === "hormonal")
+      highRiskCategories.some(cat => cat.systemFocus === 'energy') &&
+      highRiskCategories.some(cat => cat.systemFocus === 'hormonal')
     ) {
       connections.push(
-        "HPA axis dysfunction may be affecting multiple hormone systems"
+        'HPA axis dysfunction may be affecting multiple hormone systems'
       );
     }
 
     if (
-      highRiskCategories.some((cat) => cat.systemFocus === "metabolic") &&
-      highRiskCategories.some((cat) => cat.systemFocus === "inflammation")
+      highRiskCategories.some(cat => cat.systemFocus === 'metabolic') &&
+      highRiskCategories.some(cat => cat.systemFocus === 'inflammation')
     ) {
       connections.push(
-        "Metabolic dysfunction and inflammation are interconnected"
+        'Metabolic dysfunction and inflammation are interconnected'
       );
     }
 
     if (
-      highRiskCategories.some((cat) => cat.systemFocus === "detoxification") &&
-      highRiskCategories.some((cat) => cat.systemFocus === "neurological")
+      highRiskCategories.some(cat => cat.systemFocus === 'detoxification') &&
+      highRiskCategories.some(cat => cat.systemFocus === 'neurological')
     ) {
       connections.push(
-        "Impaired detoxification may be affecting neurological function"
+        'Impaired detoxification may be affecting neurological function'
       );
     }
 
     return connections.length > 0
       ? connections
-      : ["No clear root cause connections identified"];
+      : ['No clear root cause connections identified'];
   }
 
   private generateInterventionMatrix(
     systemAnalyses: SystemAnalysis[]
-  ): AssessmentAnalysisReport["interventionMatrix"] {
+  ): AssessmentAnalysisReport['interventionMatrix'] {
     const phase1 = systemAnalyses
-      .filter((s) => s.overallScore >= 3.5)
+      .filter(s => s.overallScore >= 3.5)
       .slice(0, 2)
       .map(
-        (s) =>
+        s =>
           `${s.systemName}: ${
-            s.interventionStrategy[0] || "Comprehensive support protocol"
+            s.interventionStrategy[0] || 'Comprehensive support protocol'
           }`
       );
 
     const phase2 = systemAnalyses
-      .filter((s) => s.overallScore >= 2.5 && s.overallScore < 3.5)
+      .filter(s => s.overallScore >= 2.5 && s.overallScore < 3.5)
       .slice(0, 3)
       .map(
-        (s) =>
+        s =>
           `${s.systemName}: ${
-            s.interventionStrategy[0] || "Optimization and support"
+            s.interventionStrategy[0] || 'Optimization and support'
           }`
       );
 
     const phase3 = systemAnalyses
-      .filter((s) => s.overallScore < 2.5)
-      .map((s) => `${s.systemName}: Maintenance and prevention protocols`);
+      .filter(s => s.overallScore < 2.5)
+      .map(s => `${s.systemName}: Maintenance and prevention protocols`);
 
     return {
       phase1:
         phase1.length > 0
           ? phase1
-          : ["Focus on symptom stabilization and immediate concerns"],
-      phase2: phase2.length > 0 ? phase2 : ["Continue optimization protocols"],
+          : ['Focus on symptom stabilization and immediate concerns'],
+      phase2: phase2.length > 0 ? phase2 : ['Continue optimization protocols'],
       phase3:
-        phase3.length > 0 ? phase3 : ["Long-term maintenance and prevention"],
+        phase3.length > 0 ? phase3 : ['Long-term maintenance and prevention'],
     };
   }
 
   private generateSummaryStats(
     categoryAnalyses: AssessmentAnalysisResult[],
     systemAnalyses: SystemAnalysis[]
-  ): AssessmentAnalysisReport["summary"] {
+  ): AssessmentAnalysisReport['summary'] {
     const criticalCategories = categoryAnalyses.filter(
-      (cat) => cat.riskLevel === "critical"
+      cat => cat.riskLevel === 'critical'
     ).length;
     const highRiskCategories = categoryAnalyses.filter(
-      (cat) => cat.riskLevel === "high"
+      cat => cat.riskLevel === 'high'
     ).length;
     const moderateRiskCategories = categoryAnalyses.filter(
-      (cat) => cat.riskLevel === "moderate"
+      cat => cat.riskLevel === 'moderate'
     ).length;
 
     const overallHealthScore =
@@ -819,21 +822,21 @@ ${this.generateInterventionMatrixMarkdown(report.interventionMatrix)}
 
   private generateSystemScoresTable(systemAnalyses: SystemAnalysis[]): string {
     if (!systemAnalyses.length) {
-      return "*No systems available for analysis*\n\n";
+      return '*No systems available for analysis*\n\n';
     }
 
     const tableRows = systemAnalyses
-      .map((system) => {
+      .map(system => {
         const riskIcon =
-          system.riskLevel === "critical"
-            ? "🔴"
-            : system.riskLevel === "high"
-            ? "🟠"
-            : system.riskLevel === "moderate"
-            ? "🟡"
-            : "🟢";
+          system.riskLevel === 'critical'
+            ? '🔴'
+            : system.riskLevel === 'high'
+              ? '🟠'
+              : system.riskLevel === 'moderate'
+                ? '🟡'
+                : '🟢';
 
-        const trend = "→"; // Would calculate from historical data
+        const trend = '→'; // Would calculate from historical data
         const riskLevel =
           system.riskLevel.charAt(0).toUpperCase() + system.riskLevel.slice(1);
 
@@ -841,7 +844,7 @@ ${this.generateInterventionMatrixMarkdown(report.interventionMatrix)}
           1
         )}/5 | N/A | ${trend} | ${riskIcon} ${riskLevel} |`;
       })
-      .join("\n");
+      .join('\n');
 
     return `| System | Current Score | Previous Score | Change | Risk Level |
 |---------|---------------|----------------|---------|------------|
@@ -854,31 +857,31 @@ ${tableRows}
     systemAnalyses: SystemAnalysis[]
   ): string {
     return systemAnalyses
-      .map((system) => {
+      .map(system => {
         const statusIcon =
-          system.riskLevel === "critical"
-            ? "🔴"
-            : system.riskLevel === "high"
-            ? "🟠"
-            : system.riskLevel === "moderate"
-            ? "🟡"
-            : "🟢";
+          system.riskLevel === 'critical'
+            ? '🔴'
+            : system.riskLevel === 'high'
+              ? '🟠'
+              : system.riskLevel === 'moderate'
+                ? '🟡'
+                : '🟢';
 
         const categoriesList = system.categories
-          .map((cat) => {
+          .map(cat => {
             const confidenceIcon =
               cat.diagnosticConfidence >= 80
-                ? "🎯"
+                ? '🎯'
                 : cat.diagnosticConfidence >= 60
-                ? "📊"
-                : "🔍";
+                  ? '📊'
+                  : '🔍';
 
             const trendIcon =
-              cat.trend === "improving"
-                ? "📈"
-                : cat.trend === "worsening"
-                ? "📉"
-                : "📊";
+              cat.trend === 'improving'
+                ? '📈'
+                : cat.trend === 'worsening'
+                  ? '📉'
+                  : '📊';
 
             return `  - **${cat.categoryName}**: ${cat.currentScore.toFixed(
               1
@@ -886,17 +889,17 @@ ${tableRows}
               cat.diagnosticConfidence
             }% confidence) ${confidenceIcon} ${trendIcon}`;
           })
-          .join("\n");
+          .join('\n');
 
         const keySymptomsList = system.categories
-          .flatMap((cat) => cat.keySymptoms.slice(0, 2))
+          .flatMap(cat => cat.keySymptoms.slice(0, 2))
           .slice(0, 4)
-          .map((symptom) => `  - ${symptom}`)
-          .join("\n");
+          .map(symptom => `  - ${symptom}`)
+          .join('\n');
 
         const interventionsList = system.interventionStrategy
-          .map((strategy) => `  - ${strategy}`)
-          .join("\n");
+          .map(strategy => `  - ${strategy}`)
+          .join('\n');
 
         const statsLine = `Critical: ${system.criticalCount} | High Risk: ${system.highRiskCount} | Moderate: ${system.moderateCount}`;
 
@@ -909,13 +912,13 @@ ${tableRows}
 ${categoriesList}
 
 **Key Problem Areas:**
-${keySymptomsList || "  - No significant symptoms identified"}
+${keySymptomsList || '  - No significant symptoms identified'}
 
 **Primary Concerns:**
 ${
   system.primaryConcerns.length > 0
-    ? system.primaryConcerns.map((concern) => `  - ${concern}`).join("\n")
-    : "  - No critical patterns identified"
+    ? system.primaryConcerns.map(concern => `  - ${concern}`).join('\n')
+    : '  - No critical patterns identified'
 }
 
 **Intervention Strategy:**
@@ -923,33 +926,33 @@ ${interventionsList}
 
 `;
       })
-      .join("\n");
+      .join('\n');
   }
 
   private generateCriticalFindings(
     criticalFindings: AssessmentAnalysisResult[]
   ): string {
     if (criticalFindings.length === 0) {
-      return "✅ **No critical findings identified in assessment analysis**\n- Focus on health optimization and prevention strategies\n\n";
+      return '✅ **No critical findings identified in assessment analysis**\n- Focus on health optimization and prevention strategies\n\n';
     }
 
     const criticalList = criticalFindings
-      .map((cat) => {
+      .map(cat => {
         const confidence =
           cat.diagnosticConfidence >= 80
-            ? "High"
+            ? 'High'
             : cat.diagnosticConfidence >= 60
-            ? "Moderate"
-            : "Low";
+              ? 'Moderate'
+              : 'Low';
 
         return `- 🔴 **${cat.categoryName}**: Score ${cat.currentScore.toFixed(
           1
         )}/5 (${confidence} confidence)
   - Pattern match: ${cat.patternMatch}%
-  - Key symptoms: ${cat.keySymptoms.slice(0, 2).join(", ")}
-  - Priority: ${cat.interventionPriority === 1 ? "Critical" : "High"}`;
+  - Key symptoms: ${cat.keySymptoms.slice(0, 2).join(', ')}
+  - Priority: ${cat.interventionPriority === 1 ? 'Critical' : 'High'}`;
       })
-      .join("\n\n");
+      .join('\n\n');
 
     return `## IMMEDIATE ATTENTION REQUIRED
 
@@ -961,79 +964,79 @@ ${criticalList}
   }
 
   private generatePatternAnalysisMarkdown(
-    insights: AssessmentAnalysisReport["patternInsights"]
+    insights: AssessmentAnalysisReport['patternInsights']
   ): string {
     const { highConfidencePatterns, emergingPatterns, rootCauseConnections } =
       insights;
 
-    let analysis = "";
+    let analysis = '';
 
     if (highConfidencePatterns.length > 0) {
-      analysis += "## HIGH CONFIDENCE PATTERNS\n";
+      analysis += '## HIGH CONFIDENCE PATTERNS\n';
       analysis +=
         highConfidencePatterns
-          .map((cat) => {
+          .map(cat => {
             return `**${cat.categoryName}** (${
               cat.diagnosticConfidence
             }% pattern match)
-- Root causes: ${cat.rootCauseIndicators.slice(0, 3).join(", ")}
+- Root causes: ${cat.rootCauseIndicators.slice(0, 3).join(', ')}
 - Intervention priority: ${
               cat.interventionPriority === 1
-                ? "Critical"
+                ? 'Critical'
                 : cat.interventionPriority === 2
-                ? "High"
-                : "Moderate"
+                  ? 'High'
+                  : 'Moderate'
             }`;
           })
-          .join("\n\n") + "\n\n";
+          .join('\n\n') + '\n\n';
     }
 
     if (emergingPatterns.length > 0) {
-      analysis += "## EMERGING PATTERNS\n";
+      analysis += '## EMERGING PATTERNS\n';
       analysis +=
         emergingPatterns
           .map(
-            (cat) =>
+            cat =>
               `- **${cat.categoryName}**: ${cat.diagnosticConfidence}% confidence`
           )
-          .join("\n") + "\n\n";
+          .join('\n') + '\n\n';
     }
 
     if (rootCauseConnections.length > 0) {
-      analysis += "## ROOT CAUSE CONNECTIONS\n";
+      analysis += '## ROOT CAUSE CONNECTIONS\n';
       analysis +=
-        rootCauseConnections.map((connection) => `- ${connection}`).join("\n") +
-        "\n\n";
+        rootCauseConnections.map(connection => `- ${connection}`).join('\n') +
+        '\n\n';
     }
 
     return (
       analysis ||
-      "- No clear patterns identified with sufficient confidence\n- Consider comprehensive follow-up assessment for pattern clarification\n\n"
+      '- No clear patterns identified with sufficient confidence\n- Consider comprehensive follow-up assessment for pattern clarification\n\n'
     );
   }
 
   private generateInterventionMatrixMarkdown(
-    matrix: AssessmentAnalysisReport["interventionMatrix"]
+    matrix: AssessmentAnalysisReport['interventionMatrix']
   ): string {
     return `**Phase 1 (Immediate - 0-4 weeks):**
 ${
   matrix.phase1.length > 0
-    ? matrix.phase1.map((item) => `- ${item}`).join("\n")
-    : "- Focus on symptom stabilization"
+    ? matrix.phase1.map(item => `- ${item}`).join('\n')
+    : '- Focus on symptom stabilization'
 }
 
 **Phase 2 (Building - 4-12 weeks):**
 ${
   matrix.phase2.length > 0
-    ? matrix.phase2.map((item) => `- ${item}`).join("\n")
-    : "- Continued optimization protocols"
+    ? matrix.phase2.map(item => `- ${item}`).join('\n')
+    : '- Continued optimization protocols'
 }
 
 **Phase 3 (Optimization - 3-6 months):**
 ${
   matrix.phase3.length > 0
-    ? matrix.phase3.map((item) => `- ${item}`).join("\n")
-    : "- Long-term maintenance and prevention"
+    ? matrix.phase3.map(item => `- ${item}`).join('\n')
+    : '- Long-term maintenance and prevention'
 }
 
 `;

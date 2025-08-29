@@ -1,15 +1,15 @@
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { prisma } from "@/lib/db";
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { prisma } from '@/lib/db';
 import type {
   JWTPayload,
   LoginCredentials,
   RegisterData,
   AuthResponse,
-} from "@/types";
+} from '@/types';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
@@ -38,7 +38,7 @@ export async function register({
   const existingUser = await prisma.user.findUnique({ where: { email } });
 
   if (existingUser) {
-    throw new Error("User already exists");
+    throw new Error('User already exists');
   }
 
   const hashedPassword = await hashPassword(password);
@@ -49,7 +49,7 @@ export async function register({
       email,
       password: hashedPassword,
       name,
-      role: "CLIENT",
+      role: 'CLIENT',
     },
   });
 
@@ -57,10 +57,10 @@ export async function register({
   const client = await prisma.client.create({
     data: {
       email,
-      firstName: name.split(" ")[0] || name,
-      lastName: name.split(" ").slice(1).join(" ") || "",
-      phone: "",
-      status: "ACTIVE",
+      firstName: name.split(' ')[0] || name,
+      lastName: name.split(' ').slice(1).join(' ') || '',
+      phone: '',
+      status: 'ACTIVE',
     },
   });
 
@@ -86,18 +86,18 @@ export async function login({
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user) {
-    throw new Error("Invalid credentials");
+    throw new Error('Invalid credentials');
   }
 
   const isValidPassword = await comparePassword(password, user.password);
 
   if (!isValidPassword) {
-    throw new Error("Invalid credentials");
+    throw new Error('Invalid credentials');
   }
 
   // Find associated client record if user is a CLIENT
   let clientId = user.id; // Default to user ID
-  if (user.role === "CLIENT") {
+  if (user.role === 'CLIENT') {
     const client = await prisma.client.findUnique({
       where: { email: user.email },
     });
@@ -143,14 +143,14 @@ export async function getUserFromToken(token: string) {
 }
 
 export async function verifyAuthToken(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new Error("No token provided");
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new Error('No token provided');
   }
 
   const token = authHeader.substring(7);
   const payload = verifyToken(token);
-  
+
   const user = await prisma.user.findUnique({
     where: { id: payload.userId },
     select: {
@@ -164,7 +164,7 @@ export async function verifyAuthToken(request: Request) {
   });
 
   if (!user) {
-    throw new Error("Invalid token");
+    throw new Error('Invalid token');
   }
 
   return user;

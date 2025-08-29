@@ -1,9 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { verifyAuthToken } from "@/lib/auth";
-import { sendProtocolEmail, sendFollowUpEmail } from "@/lib/services/email-service";
-import { generateProtocolPDFWithRetry } from "@/lib/services/pdf-service";
-import { createPDFAttachment, formatFileSize } from "@/lib/utils/email-helpers";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { verifyAuthToken } from '@/lib/auth';
+import {
+  sendProtocolEmail,
+  sendFollowUpEmail,
+} from '@/lib/services/email-service';
+import { generateProtocolPDFWithRetry } from '@/lib/services/pdf-service';
+import { createPDFAttachment, formatFileSize } from '@/lib/utils/email-helpers';
 import fs from 'fs/promises';
 
 // Response type for consistent API responses
@@ -28,7 +31,7 @@ export async function POST(
     const authUser = await verifyAuthToken(request);
     if (!authUser) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: "Unauthorized" },
+        { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
@@ -59,14 +62,14 @@ export async function POST(
           },
         },
         protocolSupplements: {
-          orderBy: { priority: "asc" },
+          orderBy: { priority: 'asc' },
         },
       },
     });
 
     if (!protocol) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: "Protocol not found" },
+        { success: false, error: 'Protocol not found' },
         { status: 404 }
       );
     }
@@ -80,13 +83,17 @@ export async function POST(
 
     if (allRecipients.length === 0) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: "No valid email recipients provided" },
+        { success: false, error: 'No valid email recipients provided' },
         { status: 400 }
       );
     }
 
     // Check if this is a follow-up email
-    const followUpType = body.followUpType as 'reminder' | 'check-in' | 'adjustment' | undefined;
+    const followUpType = body.followUpType as
+      | 'reminder'
+      | 'check-in'
+      | 'adjustment'
+      | undefined;
     const isFollowUp = !!followUpType;
 
     let pdfAttachment = null;
@@ -95,7 +102,7 @@ export async function POST(
     // Generate PDF attachment if requested (not for follow-up emails)
     if (!isFollowUp && body.includePDF !== false) {
       console.log('📄 Generating PDF attachment...');
-      
+
       // Check if PDF already exists in recent generations
       const existingPDFGeneration = await prisma.protocolGeneration.findFirst({
         where: {
@@ -105,7 +112,11 @@ export async function POST(
         orderBy: { createdAt: 'desc' },
       });
 
-      if (existingPDFGeneration && existingPDFGeneration.pdfUrl && body.useExistingPDF !== false) {
+      if (
+        existingPDFGeneration &&
+        existingPDFGeneration.pdfUrl &&
+        body.useExistingPDF !== false
+      ) {
         console.log('📄 Using existing PDF from recent generation');
         try {
           // Try to read existing PDF file
@@ -116,12 +127,12 @@ export async function POST(
           if (pdfPath.startsWith('./public/')) {
             const pdfBuffer = await fs.readFile(pdfPath);
             const generationData = existingPDFGeneration.generationData as any;
-            
+
             pdfAttachment = await createPDFAttachment(
               pdfBuffer,
               generationData?.filename || `${protocol.protocolName}.pdf`
             );
-            
+
             pdfMetadata = {
               filename: pdfAttachment.filename,
               size: pdfBuffer.length,
@@ -131,14 +142,17 @@ export async function POST(
             };
           }
         } catch (error) {
-          console.warn('❌ Could not read existing PDF, generating new one:', error);
+          console.warn(
+            '❌ Could not read existing PDF, generating new one:',
+            error
+          );
         }
       }
 
       // Generate new PDF if no existing one found or couldn't read it
       if (!pdfAttachment) {
         console.log('📄 Generating new PDF...');
-        
+
         // Transform protocol data for PDF generation
         const pdfProtocolData = {
           id: protocol.id,
@@ -158,11 +172,13 @@ export async function POST(
             lastName: protocol.client.lastName,
             email: protocol.client.email,
           },
-          analysis: protocol.analysis ? {
-            id: protocol.analysis.id,
-            analysisDate: protocol.analysis.analysisDate,
-            analysisVersion: protocol.analysis.analysisVersion,
-          } : undefined,
+          analysis: protocol.analysis
+            ? {
+                id: protocol.analysis.id,
+                analysisDate: protocol.analysis.analysisDate,
+                analysisVersion: protocol.analysis.analysisVersion,
+              }
+            : undefined,
           supplements: protocol.protocolSupplements.map(supplement => ({
             id: supplement.id,
             productName: supplement.productName,
@@ -172,7 +188,7 @@ export async function POST(
             priority: supplement.priority,
             isActive: supplement.isActive,
           })),
-          dailySchedule: protocol.dailySchedule as any || undefined,
+          dailySchedule: (protocol.dailySchedule as any) || undefined,
         };
 
         // Generate PDF
@@ -183,7 +199,7 @@ export async function POST(
             includeGreeting: body.includeGreeting !== false,
             includeSupplements: body.includeSupplements !== false,
             includeSchedule: body.includeSchedule !== false,
-            brandingConfig: protocol.brandingConfig as any || {
+            brandingConfig: (protocol.brandingConfig as any) || {
               theme: 'professional',
               primaryColor: '#10b981',
             },
@@ -192,7 +208,10 @@ export async function POST(
 
         if (!pdfResult.success || !pdfResult.fileMetadata) {
           return NextResponse.json<APIResponse>(
-            { success: false, error: `PDF generation failed: ${pdfResult.error}` },
+            {
+              success: false,
+              error: `PDF generation failed: ${pdfResult.error}`,
+            },
             { status: 500 }
           );
         }
@@ -207,7 +226,9 @@ export async function POST(
         } else {
           // For S3 URLs, we'd need to download the file first
           // For now, skip attachment if it's remote
-          console.warn('⚠️ Remote PDF URLs not supported for email attachments yet');
+          console.warn(
+            '⚠️ Remote PDF URLs not supported for email attachments yet'
+          );
         }
 
         pdfMetadata = {
@@ -232,32 +253,44 @@ export async function POST(
         name: protocol.protocolName,
         phase: protocol.protocolPhase || undefined,
         status: protocol.status,
-        supplementCount: protocol.protocolSupplements.filter(s => s.isActive).length,
+        supplementCount: protocol.protocolSupplements.filter(s => s.isActive)
+          .length,
         duration: protocol.durationWeeks || undefined,
         startDate: protocol.startDate || undefined,
       },
       practitioner: {
-        name: body.practitionerName || process.env.PRACTITIONER_NAME || 'Your Nutrition Practitioner',
+        name:
+          body.practitionerName ||
+          process.env.PRACTITIONER_NAME ||
+          'Your Nutrition Practitioner',
         title: body.practitionerTitle || process.env.PRACTITIONER_TITLE,
         email: body.practitionerEmail || process.env.PRACTITIONER_EMAIL,
         phone: body.practitionerPhone || process.env.PRACTITIONER_PHONE,
       },
       customMessage: body.customMessage,
-      attachments: pdfMetadata ? {
-        pdfFilename: pdfMetadata.filename,
-        pdfSize: pdfMetadata.sizeFormatted,
-        pdfPages: pdfMetadata.pages,
-      } : undefined,
+      attachments: pdfMetadata
+        ? {
+            pdfFilename: pdfMetadata.filename,
+            pdfSize: pdfMetadata.sizeFormatted,
+            pdfPages: pdfMetadata.pages,
+          }
+        : undefined,
       brandingConfig: {
-        primaryColor: body.primaryColor || protocol.brandingConfig?.primaryColor || '#10b981',
+        primaryColor:
+          body.primaryColor ||
+          protocol.brandingConfig?.primaryColor ||
+          '#10b981',
         logoUrl: body.logoUrl || process.env.PRACTICE_LOGO_URL,
-        practiceName: body.practiceName || process.env.PRACTICE_NAME || 'FNTP Nutrition Practice',
+        practiceName:
+          body.practiceName ||
+          process.env.PRACTICE_NAME ||
+          'FNTP Nutrition Practice',
       },
     };
 
     // Send email based on type
     let emailResult;
-    
+
     if (isFollowUp) {
       console.log(`📧 Sending follow-up email (${followUpType})`);
       emailResult = await sendFollowUpEmail({
@@ -284,7 +317,7 @@ export async function POST(
 
     if (!emailResult.success) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: emailResult.error || "Email sending failed" },
+        { success: false, error: emailResult.error || 'Email sending failed' },
         { status: 500 }
       );
     }
@@ -306,24 +339,24 @@ export async function POST(
           sentBy: authUser.id,
           sentAt: new Date().toISOString(),
           deliveryStatus: emailResult.deliveryStatus,
-          
+
           // Email content details
           subject: body.subject || emailResult.metadata?.subject,
           recipientCount: emailResult.recipientCount,
           hasCustomMessage: !!body.customMessage,
           includedPDF: !!pdfAttachment,
           pdfMetadata: pdfMetadata,
-          
+
           // Template and branding
           templateData: templateData,
           emailProvider: 'resend',
-          
+
           // Request details
           requestedBy: authUser.id,
           requestedAt: startTime,
           userAgent: request.headers.get('user-agent'),
           ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
-          
+
           // Performance metrics
           emailSendTime: emailResult.metadata?.sentAt,
           totalTime: Date.now() - startTime,
@@ -345,7 +378,7 @@ export async function POST(
         trackingId: emailResult.trackingId,
         status: emailResult.deliveryStatus,
         message: `Protocol email sent successfully`,
-        
+
         // Delivery information
         delivery: {
           sentAt: protocolGeneration.emailSentAt,
@@ -355,44 +388,52 @@ export async function POST(
           provider: 'resend',
           deliveryStatus: emailResult.deliveryStatus,
         },
-        
+
         // Protocol information
         protocol: {
           id: protocol.id,
           name: protocol.protocolName,
           clientName: `${protocol.client.firstName} ${protocol.client.lastName}`,
-          supplementCount: protocol.protocolSupplements.filter(s => s.isActive).length,
+          supplementCount: protocol.protocolSupplements.filter(s => s.isActive)
+            .length,
         },
-        
+
         // PDF attachment info
-        pdf: pdfMetadata ? {
-          included: true,
-          filename: pdfMetadata.filename,
-          size: pdfMetadata.sizeFormatted,
-          pages: pdfMetadata.pages,
-          source: pdfMetadata.source,
-        } : {
-          included: false,
-          reason: isFollowUp ? 'Follow-up emails do not include PDF attachments' : 'PDF attachment was disabled',
-        },
-        
+        pdf: pdfMetadata
+          ? {
+              included: true,
+              filename: pdfMetadata.filename,
+              size: pdfMetadata.sizeFormatted,
+              pages: pdfMetadata.pages,
+              source: pdfMetadata.source,
+            }
+          : {
+              included: false,
+              reason: isFollowUp
+                ? 'Follow-up emails do not include PDF attachments'
+                : 'PDF attachment was disabled',
+            },
+
         // Performance metrics
         performance: {
           totalTime: Date.now() - startTime,
           emailSendTime: emailResult.metadata?.sentAt,
-          pdfGenerationIncluded: !!pdfMetadata && pdfMetadata.source === 'generated',
+          pdfGenerationIncluded:
+            !!pdfMetadata && pdfMetadata.source === 'generated',
         },
       },
     });
-
   } catch (error: any) {
     const totalTime = Date.now() - startTime;
-    console.error(`❌ Protocol email sending failed after ${totalTime}ms:`, error);
-    
+    console.error(
+      `❌ Protocol email sending failed after ${totalTime}ms:`,
+      error
+    );
+
     return NextResponse.json<APIResponse>(
       {
         success: false,
-        error: "Failed to send protocol email",
+        error: 'Failed to send protocol email',
         details: error instanceof Error ? error.message : String(error),
         processingTime: totalTime,
       },
@@ -414,7 +455,7 @@ export async function GET(
     const authUser = await verifyAuthToken(request);
     if (!authUser) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: "Unauthorized" },
+        { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
@@ -423,11 +464,11 @@ export async function GET(
 
     // Fetch email delivery history
     const emailDeliveries = await prisma.protocolGeneration.findMany({
-      where: { 
+      where: {
         protocolId: id,
         emailSentAt: { not: null }, // Only email deliveries
       },
-      orderBy: { emailSentAt: "desc" },
+      orderBy: { emailSentAt: 'desc' },
       take: 20, // Last 20 email deliveries
     });
 
@@ -448,7 +489,7 @@ export async function GET(
 
     if (!protocol) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: "Protocol not found" },
+        { success: false, error: 'Protocol not found' },
         { status: 404 }
       );
     }
@@ -456,17 +497,18 @@ export async function GET(
     // Process email delivery data
     const deliveryHistory = emailDeliveries.map(delivery => {
       const generationData = delivery.generationData as any;
-      
+
       return {
         id: delivery.id,
         sentAt: delivery.emailSentAt,
         recipients: delivery.emailRecipients,
-        subject: generationData?.subject || `Protocol: ${protocol.protocolName}`,
+        subject:
+          generationData?.subject || `Protocol: ${protocol.protocolName}`,
         status: generationData?.deliveryDetails?.status || 'sent',
         emailId: generationData?.emailId,
         template: generationData?.template || 'professional',
         recipientCount: delivery.emailRecipients.length,
-        
+
         // Content details
         includedPDF: generationData?.includePDF,
         customMessage: !!generationData?.customMessage,
@@ -477,9 +519,8 @@ export async function GET(
     // Calculate delivery statistics
     const stats = {
       totalDeliveries: emailDeliveries.length,
-      uniqueRecipients: new Set(
-        emailDeliveries.flatMap(d => d.emailRecipients)
-      ).size,
+      uniqueRecipients: new Set(emailDeliveries.flatMap(d => d.emailRecipients))
+        .size,
       lastDelivery: emailDeliveries[0]?.emailSentAt || null,
       mostRecentRecipients: emailDeliveries[0]?.emailRecipients || [],
     };
@@ -497,13 +538,12 @@ export async function GET(
         statistics: stats,
       },
     });
-
   } catch (error: any) {
-    console.error("Error fetching email delivery history:", error);
+    console.error('Error fetching email delivery history:', error);
     return NextResponse.json<APIResponse>(
       {
         success: false,
-        error: "Failed to fetch email delivery history",
+        error: 'Failed to fetch email delivery history',
       },
       { status: 500 }
     );

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth-context';
 
 export default function AuthLayout({
   children,
@@ -15,10 +15,10 @@ export default function AuthLayout({
   useEffect(() => {
     if (!isLoading && user) {
       // User is already logged in, redirect based on role
-      if (user.role === "CLIENT") {
-        router.push("/dashboard");
+      if (user.role === 'CLIENT') {
+        router.push('/dashboard');
       } else {
-        router.push("/dashboard/clients");
+        router.push('/dashboard/clients');
       }
     }
   }, [user, isLoading, router]);

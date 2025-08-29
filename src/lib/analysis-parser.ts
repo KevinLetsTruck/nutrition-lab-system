@@ -18,7 +18,7 @@ const SECTION_PATTERNS = {
     /\*\*Executive Summary\*\*(.*?)(?=\*\*|$)/is,
     /EXECUTIVE SUMMARY(.*?)(?=\n\n|$)/is,
     /Executive Summary:(.*?)(?=\n\n|$)/is,
-    /Summary(.*?)(?=\n\n|Analysis|$)/is
+    /Summary(.*?)(?=\n\n|Analysis|$)/is,
   ],
   systemAnalysis: [
     /## System-by-System Analysis(.*?)(?=##|$)/is,
@@ -28,7 +28,7 @@ const SECTION_PATTERNS = {
     /SYSTEM ANALYSIS(.*?)(?=\n\n|$)/is,
     /System.*Analysis:(.*?)(?=\n\n|$)/is,
     /Pattern.*Analysis:(.*?)(?=\n\n|$)/is,
-    /Assessment:(.*?)(?=\n\n|Recommendations|$)/is
+    /Assessment:(.*?)(?=\n\n|Recommendations|$)/is,
   ],
   rootCauseAnalysis: [
     /## Root Cause Analysis(.*?)(?=##|$)/is,
@@ -36,7 +36,7 @@ const SECTION_PATTERNS = {
     /\*\*Root Cause\*\*(.*?)(?=\*\*|$)/is,
     /ROOT CAUSE(.*?)(?=\n\n|$)/is,
     /Root Cause:(.*?)(?=\n\n|$)/is,
-    /Primary.*Causes:(.*?)(?=\n\n|$)/is
+    /Primary.*Causes:(.*?)(?=\n\n|$)/is,
   ],
   protocolRecommendations: [
     /## Protocol Recommendations(.*?)(?=##|$)/is,
@@ -46,7 +46,7 @@ const SECTION_PATTERNS = {
     /PROTOCOL(.*?)(?=\n\n|$)/is,
     /Recommendations:(.*?)(?=\n\n|Monitoring|$)/is,
     /Treatment.*Plan:(.*?)(?=\n\n|$)/is,
-    /Protocol:(.*?)(?=\n\n|$)/is
+    /Protocol:(.*?)(?=\n\n|$)/is,
   ],
   monitoringPlan: [
     /## Monitoring Plan(.*?)(?=##|$)/is,
@@ -55,7 +55,7 @@ const SECTION_PATTERNS = {
     /\*\*Monitoring\*\*(.*?)(?=\*\*|$)/is,
     /MONITORING(.*?)(?=\n\n|$)/is,
     /Monitoring:(.*?)(?=\n\n|$)/is,
-    /Follow.*up:(.*?)(?=\n\n|$)/is
+    /Follow.*up:(.*?)(?=\n\n|$)/is,
   ],
   patientEducation: [
     /## Patient Education(.*?)(?=##|$)/is,
@@ -65,8 +65,8 @@ const SECTION_PATTERNS = {
     /PATIENT EDUCATION(.*?)(?=\n\n|$)/is,
     /Patient.*Education:(.*?)(?=\n\n|$)/is,
     /Client.*Education:(.*?)(?=\n\n|$)/is,
-    /Education:(.*?)(?=\n\n|$)/is
-  ]
+    /Education:(.*?)(?=\n\n|$)/is,
+  ],
 };
 
 function extractSection(text: string, patterns: RegExp[]): string | null {
@@ -83,9 +83,11 @@ function parseProtocolSection(protocolText: string): any {
   if (!protocolText) return null;
 
   const protocol: any = {};
-  
+
   // Extract supplements
-  const supplementsMatch = protocolText.match(/supplements?:?\s*(.*?)(?=diet|lifestyle|monitoring|$)/is);
+  const supplementsMatch = protocolText.match(
+    /supplements?:?\s*(.*?)(?=diet|lifestyle|monitoring|$)/is
+  );
   if (supplementsMatch) {
     const supplements = supplementsMatch[1]
       .split(/[-•]\s/)
@@ -95,7 +97,9 @@ function parseProtocolSection(protocolText: string): any {
   }
 
   // Extract dietary guidelines
-  const dietMatch = protocolText.match(/diet(?:ary)?:?\s*(.*?)(?=lifestyle|supplement|monitoring|$)/is);
+  const dietMatch = protocolText.match(
+    /diet(?:ary)?:?\s*(.*?)(?=lifestyle|supplement|monitoring|$)/is
+  );
   if (dietMatch) {
     const dietary = dietMatch[1]
       .split(/[-•]\s/)
@@ -105,7 +109,9 @@ function parseProtocolSection(protocolText: string): any {
   }
 
   // Extract lifestyle modifications
-  const lifestyleMatch = protocolText.match(/lifestyle:?\s*(.*?)(?=diet|supplement|monitoring|$)/is);
+  const lifestyleMatch = protocolText.match(
+    /lifestyle:?\s*(.*?)(?=diet|supplement|monitoring|$)/is
+  );
   if (lifestyleMatch) {
     const lifestyle = lifestyleMatch[1]
       .split(/[-•]\s/)
@@ -121,11 +127,20 @@ function parseSystemAnalysis(systemText: string): any {
   if (!systemText) return null;
 
   const systems: any = {};
-  
+
   // Common functional medicine systems
   const systemKeywords = [
-    'digestive', 'adrenal', 'thyroid', 'liver', 'detox', 'immune',
-    'cardiovascular', 'nervous', 'hormonal', 'reproductive', 'urinary'
+    'digestive',
+    'adrenal',
+    'thyroid',
+    'liver',
+    'detox',
+    'immune',
+    'cardiovascular',
+    'nervous',
+    'hormonal',
+    'reproductive',
+    'urinary',
   ];
 
   systemKeywords.forEach(system => {
@@ -141,7 +156,7 @@ function parseSystemAnalysis(systemText: string): any {
 
 export function parseClaudeAnalysis(analysisText: string): ParsedAnalysis {
   const parsed: ParsedAnalysis = {
-    fullAnalysis: analysisText
+    fullAnalysis: analysisText,
   };
 
   // Extract each section using pattern matching
@@ -149,9 +164,13 @@ export function parseClaudeAnalysis(analysisText: string): ParsedAnalysis {
     const extracted = extractSection(analysisText, patterns);
     if (extracted) {
       if (section === 'protocolRecommendations') {
-        parsed[section as keyof ParsedAnalysis] = parseProtocolSection(extracted) as any;
+        parsed[section as keyof ParsedAnalysis] = parseProtocolSection(
+          extracted
+        ) as any;
       } else if (section === 'systemAnalysis') {
-        parsed[section as keyof ParsedAnalysis] = parseSystemAnalysis(extracted) as any;
+        parsed[section as keyof ParsedAnalysis] = parseSystemAnalysis(
+          extracted
+        ) as any;
       } else {
         (parsed as any)[section] = extracted;
       }
@@ -170,21 +189,22 @@ export function validateAnalysis(analysis: ParsedAnalysis): string[] {
 
   // More lenient validation - allow import even if sections aren't detected
   // The full analysis text will still be stored for manual review
-  
+
   return errors;
 }
 
 export function generateAnalysisSummary(analysis: ParsedAnalysis): string {
   const sections = [];
-  
+
   if (analysis.executiveSummary) sections.push('Executive Summary');
   if (analysis.systemAnalysis) sections.push('System Analysis');
   if (analysis.rootCauseAnalysis) sections.push('Root Cause Analysis');
-  if (analysis.protocolRecommendations) sections.push('Protocol Recommendations');
+  if (analysis.protocolRecommendations)
+    sections.push('Protocol Recommendations');
   if (analysis.monitoringPlan) sections.push('Monitoring Plan');
   if (analysis.patientEducation) sections.push('Patient Education');
 
-  return sections.length > 0 
+  return sections.length > 0
     ? `Parsed ${sections.length} sections: ${sections.join(', ')}`
     : 'Full analysis text only (no structured sections detected)';
 }

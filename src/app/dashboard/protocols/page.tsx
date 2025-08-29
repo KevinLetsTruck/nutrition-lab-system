@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Plus, FlaskConical, BarChart3, Users, Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Breadcrumb } from "@/components/ui/breadcrumb";
-import { ProtocolList } from "@/components/protocols/ProtocolList";
-import { useAuth } from "@/lib/auth-context";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Plus, FlaskConical, BarChart3, Users, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
+import { ProtocolList } from '@/components/protocols/ProtocolList';
+import { useAuth } from '@/lib/auth-context';
 
 interface ProtocolStats {
   total: number;
@@ -30,19 +30,25 @@ export default function ProtocolsPage() {
 
   // Redirect if not authenticated
   if (!authLoading && !user) {
-    router.push("/login");
+    router.push('/login');
     return null;
   }
 
   if (authLoading) {
     return (
-      <div className="min-h-screen p-4" style={{ background: "var(--background)" }}>
+      <div
+        className="min-h-screen p-4"
+        style={{ background: 'var(--background)' }}
+      >
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-6"></div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow">
+              {[1, 2, 3, 4].map(i => (
+                <div
+                  key={i}
+                  className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow"
+                >
                   <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
                   <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
                 </div>
@@ -51,8 +57,11 @@ export default function ProtocolsPage() {
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow">
               <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
               <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                {[1, 2, 3].map(i => (
+                  <div
+                    key={i}
+                    className="h-16 bg-gray-200 dark:bg-gray-700 rounded"
+                  ></div>
                 ))}
               </div>
             </div>
@@ -64,7 +73,7 @@ export default function ProtocolsPage() {
 
   const breadcrumbItems = [
     {
-      label: "Protocols",
+      label: 'Protocols',
       icon: <FlaskConical className="h-4 w-4" />,
     },
   ];
@@ -74,7 +83,10 @@ export default function ProtocolsPage() {
   };
 
   return (
-    <div className="min-h-screen p-4" style={{ background: "var(--background)" }}>
+    <div
+      className="min-h-screen p-4"
+      style={{ background: 'var(--background)' }}
+    >
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -181,7 +193,7 @@ export default function ProtocolsPage() {
             </p>
           </div>
           <div className="p-6">
-            <ProtocolList 
+            <ProtocolList
               showAllClients={true}
               onStatsUpdate={handleStatsUpdate}
               pageSize={10}

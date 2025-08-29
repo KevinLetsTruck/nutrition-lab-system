@@ -18,8 +18,8 @@ async function getClient(id: string) {
         id: true,
         firstName: true,
         lastName: true,
-        email: true
-      }
+        email: true,
+      },
     });
 
     return client;
@@ -29,14 +29,16 @@ async function getClient(id: string) {
   }
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { id } = await params;
   const client = await getClient(id);
-  
+
   return {
-    title: client 
+    title: client
       ? `Analysis History - ${client.firstName} ${client.lastName}`
-      : 'Analysis History'
+      : 'Analysis History',
   };
 }
 
@@ -58,9 +60,12 @@ export default async function AnalysisHistoryPage({ params }: PageProps) {
             <Brain className="h-5 w-5 text-purple-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Analysis History</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Analysis History
+            </h1>
             <p className="text-gray-600">
-              Claude Desktop analyses for <span className="font-medium">{clientName}</span>
+              Claude Desktop analyses for{' '}
+              <span className="font-medium">{clientName}</span>
             </p>
           </div>
         </div>
@@ -72,7 +77,7 @@ export default async function AnalysisHistoryPage({ params }: PageProps) {
               Back to Client
             </Link>
           </Button>
-          
+
           <Button asChild>
             <Link href={`/dashboard/clients/${client.id}/analysis/import`}>
               <Plus className="h-4 w-4 mr-2" />

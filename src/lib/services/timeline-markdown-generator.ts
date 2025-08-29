@@ -13,33 +13,33 @@
  * - Enhanced Functional Medicine lab analysis
  */
 
-import type { LabAnalysisReport } from "./functional-medicine-lab-analysis";
-import { functionalMedicineLabAnalysis } from "./functional-medicine-lab-analysis";
-import type { AssessmentAnalysisReport } from "./functional-medicine-assessment-analysis";
-import { functionalMedicineAssessmentAnalysis } from "./functional-medicine-assessment-analysis";
+import type { LabAnalysisReport } from './functional-medicine-lab-analysis';
+import { functionalMedicineLabAnalysis } from './functional-medicine-lab-analysis';
+import type { AssessmentAnalysisReport } from './functional-medicine-assessment-analysis';
+import { functionalMedicineAssessmentAnalysis } from './functional-medicine-assessment-analysis';
 
 interface TimelineEvent {
   id: string;
   date: Date;
-  type: "assessment" | "document" | "note" | "protocol" | "status_change";
+  type: 'assessment' | 'document' | 'note' | 'protocol' | 'status_change';
   category: string;
   title: string;
   description: string;
-  severity?: "low" | "moderate" | "high" | "critical";
+  severity?: 'low' | 'moderate' | 'high' | 'critical';
   findings?: any;
   metadata?: Record<string, any>;
 }
 
 interface CriticalFinding {
   id: string;
-  category: "symptom" | "biomarker" | "trend" | "risk_factor";
-  severity: "moderate" | "high" | "critical";
+  category: 'symptom' | 'biomarker' | 'trend' | 'risk_factor';
+  severity: 'moderate' | 'high' | 'critical';
   title: string;
   description: string;
   firstObserved: Date;
   lastObserved: Date;
   frequency: number;
-  trend?: "improving" | "worsening" | "stable";
+  trend?: 'improving' | 'worsening' | 'stable';
   relatedEvents: string[];
 }
 
@@ -92,7 +92,7 @@ export class TimelineMarkdownGenerator {
       this.generateFooter(analysis),
     ];
 
-    return sections.join("\n\n---\n\n");
+    return sections.join('\n\n---\n\n');
   }
 
   /**
@@ -108,16 +108,16 @@ export class TimelineMarkdownGenerator {
     )} to ${this.formatDate(analysis.dateRange.endDate)}
 - **Total Health Events**: ${analysis.totalEvents}
 - **Critical Findings**: ${
-      analysis.criticalFindings.filter((f) => f.severity === "critical").length
+      analysis.criticalFindings.filter(f => f.severity === 'critical').length
     }
 - **High Priority Issues**: ${
-      analysis.criticalFindings.filter((f) => f.severity === "high").length
+      analysis.criticalFindings.filter(f => f.severity === 'high').length
     }
 - **Analysis Version**: ${analysis.analysisVersion}
 - **Generated**: ${this.formatDateTime(analysis.generatedAt)}
 
 ## Data Sources Included
-${analysis.dataSourcesIncluded.map((source) => `- ✅ ${source}`).join("\n")}
+${analysis.dataSourcesIncluded.map(source => `- ✅ ${source}`).join('\n')}
 
 ## Purpose
 This timeline provides a comprehensive chronological view of ${
@@ -134,21 +134,21 @@ This timeline provides a comprehensive chronological view of ${
    */
   private static generateExecutiveSummary(analysis: TimelineAnalysis): string {
     const criticalCount = analysis.criticalFindings.filter(
-      (f) => f.severity === "critical"
+      f => f.severity === 'critical'
     ).length;
     const highCount = analysis.criticalFindings.filter(
-      (f) => f.severity === "high"
+      f => f.severity === 'high'
     ).length;
     const timespan = this.calculateTimespan(
       analysis.dateRange.startDate,
       analysis.dateRange.endDate
     );
 
-    const protocolEvents = analysis.events.filter((e) => e.type === "protocol");
+    const protocolEvents = analysis.events.filter(e => e.type === 'protocol');
     const assessmentEvents = analysis.events.filter(
-      (e) => e.type === "assessment"
+      e => e.type === 'assessment'
     );
-    const documentEvents = analysis.events.filter((e) => e.type === "document");
+    const documentEvents = analysis.events.filter(e => e.type === 'document');
 
     return `# Executive Summary
 
@@ -161,21 +161,21 @@ This timeline provides a comprehensive chronological view of ${
 - **Assessment Events**: ${assessmentEvents.length}
 - **Treatment Protocols**: ${protocolEvents.length}
 - **Document Uploads**: ${documentEvents.length}
-- **Clinical Notes**: ${analysis.events.filter((e) => e.type === "note").length}
+- **Clinical Notes**: ${analysis.events.filter(e => e.type === 'note').length}
 
 ### Risk Assessment
 ${
   criticalCount > 0
     ? `- **🚨 CRITICAL ISSUES**: ${criticalCount} critical findings requiring immediate attention`
-    : ""
+    : ''
 }
 ${
   highCount > 0
     ? `- **⚠️ HIGH PRIORITY**: ${highCount} high-priority health concerns identified`
-    : ""
+    : ''
 }
 - **📊 MONITORING**: ${
-      analysis.criticalFindings.filter((f) => f.severity === "moderate").length
+      analysis.criticalFindings.filter(f => f.severity === 'moderate').length
     } items requiring ongoing monitoring
 
 ### Health Trajectory
@@ -187,37 +187,37 @@ ${this.generateHealthTrajectoryInsight(analysis)}`;
    */
   private static generateCriticalFindings(analysis: TimelineAnalysis): string {
     if (analysis.criticalFindings.length === 0) {
-      return "# Critical Findings\n\n✅ **No critical findings identified** - Overall health tracking appears stable.";
+      return '# Critical Findings\n\n✅ **No critical findings identified** - Overall health tracking appears stable.';
     }
 
-    let markdown = "# Critical Findings\n\n";
+    let markdown = '# Critical Findings\n\n';
 
     const criticalFindings = analysis.criticalFindings.filter(
-      (f) => f.severity === "critical"
+      f => f.severity === 'critical'
     );
     const highFindings = analysis.criticalFindings.filter(
-      (f) => f.severity === "high"
+      f => f.severity === 'high'
     );
     const moderateFindings = analysis.criticalFindings.filter(
-      (f) => f.severity === "moderate"
+      f => f.severity === 'moderate'
     );
 
     if (criticalFindings.length > 0) {
-      markdown += "## 🚨 Critical Issues\n\n";
+      markdown += '## 🚨 Critical Issues\n\n';
       criticalFindings.forEach((finding, index) => {
         markdown += this.generateFindingMarkdown(finding, index + 1);
       });
     }
 
     if (highFindings.length > 0) {
-      markdown += "## ⚠️ High Priority Issues\n\n";
+      markdown += '## ⚠️ High Priority Issues\n\n';
       highFindings.forEach((finding, index) => {
         markdown += this.generateFindingMarkdown(finding, index + 1);
       });
     }
 
     if (moderateFindings.length > 0) {
-      markdown += "## 📊 Monitoring Required\n\n";
+      markdown += '## 📊 Monitoring Required\n\n';
       moderateFindings.forEach((finding, index) => {
         markdown += this.generateFindingMarkdown(finding, index + 1);
       });
@@ -234,22 +234,22 @@ ${this.generateHealthTrajectoryInsight(analysis)}`;
     index: number
   ): string {
     const trendIcon =
-      finding.trend === "improving"
-        ? "📈"
-        : finding.trend === "worsening"
-        ? "📉"
-        : "➡️";
+      finding.trend === 'improving'
+        ? '📈'
+        : finding.trend === 'worsening'
+          ? '📉'
+          : '➡️';
 
     return `### ${index}. ${finding.title}
 
-**Category**: ${finding.category.replace("_", " ").toUpperCase()}  
+**Category**: ${finding.category.replace('_', ' ').toUpperCase()}  
 **Severity**: ${finding.severity.toUpperCase()}  
-**Trend**: ${trendIcon} ${finding.trend?.toUpperCase() || "STABLE"}  
+**Trend**: ${trendIcon} ${finding.trend?.toUpperCase() || 'STABLE'}  
 **Timeline**: ${this.formatDate(finding.firstObserved)} to ${this.formatDate(
       finding.lastObserved
     )}  
 **Frequency**: ${finding.frequency} occurrence${
-      finding.frequency !== 1 ? "s" : ""
+      finding.frequency !== 1 ? 's' : ''
     }
 
 ${finding.description}
@@ -266,22 +266,22 @@ ${finding.description}
    */
   private static generateHealthPhases(analysis: TimelineAnalysis): string {
     if (analysis.healthPhases.length === 0) {
-      return "# Health Phases\n\nNo distinct health phases identified in the current timeline.";
+      return '# Health Phases\n\nNo distinct health phases identified in the current timeline.';
     }
 
-    let markdown = "# Health Phases\n\n";
+    let markdown = '# Health Phases\n\n';
     markdown +=
-      "The health journey can be divided into the following distinct phases:\n\n";
+      'The health journey can be divided into the following distinct phases:\n\n';
 
     analysis.healthPhases.forEach((phase, index) => {
       const duration = phase.endDate
         ? this.calculateTimespan(phase.startDate, phase.endDate)
-        : "Ongoing";
+        : 'Ongoing';
 
       markdown += `## Phase ${index + 1}: ${phase.phase}
 
 **Timeline**: ${this.formatDate(phase.startDate)}${
-        phase.endDate ? ` - ${this.formatDate(phase.endDate)}` : " - Present"
+        phase.endDate ? ` - ${this.formatDate(phase.endDate)}` : ' - Present'
       }  
 **Duration**: ${duration}
 
@@ -301,9 +301,9 @@ ${phase.description}
   private static generateChronologicalTimeline(
     analysis: TimelineAnalysis
   ): string {
-    let markdown = "# Chronological Timeline\n\n";
+    let markdown = '# Chronological Timeline\n\n';
     markdown +=
-      "Complete chronological record of all health-related events:\n\n";
+      'Complete chronological record of all health-related events:\n\n';
 
     // Group events by month for better organization
     const eventsByMonth = this.groupEventsByMonth(analysis.events);
@@ -311,7 +311,7 @@ ${phase.description}
     Object.entries(eventsByMonth).forEach(([monthYear, events]) => {
       markdown += `## ${monthYear}\n\n`;
 
-      events.forEach((event) => {
+      events.forEach(event => {
         const severityIcon = this.getSeverityIcon(event.severity);
         const typeIcon = this.getTypeIcon(event.type);
 
@@ -320,7 +320,7 @@ ${typeIcon} **${event.category}** ${severityIcon}
 
 ${event.description}
 
-${event.findings ? this.formatFindings(event.findings) : ""}
+${event.findings ? this.formatFindings(event.findings) : ''}
 
 ---
 
@@ -337,23 +337,23 @@ ${event.findings ? this.formatFindings(event.findings) : ""}
   private static generateTreatmentProtocols(
     analysis: TimelineAnalysis
   ): string {
-    const protocolEvents = analysis.events.filter((e) => e.type === "protocol");
+    const protocolEvents = analysis.events.filter(e => e.type === 'protocol');
 
     if (protocolEvents.length === 0) {
-      return "# Treatment Protocols\n\nNo treatment protocols documented in the current timeline.";
+      return '# Treatment Protocols\n\nNo treatment protocols documented in the current timeline.';
     }
 
-    let markdown = "# Treatment Protocols\n\n";
+    let markdown = '# Treatment Protocols\n\n';
     markdown += `${protocolEvents.length} treatment protocol${
-      protocolEvents.length !== 1 ? "s" : ""
+      protocolEvents.length !== 1 ? 's' : ''
     } documented:\n\n`;
 
     protocolEvents.forEach((protocol, index) => {
       markdown += `## Protocol ${index + 1}: ${protocol.title}
 
 **Date Initiated**: ${this.formatDate(protocol.date)}  
-**Status**: ${protocol.findings?.status || "Unknown"}  
-${protocol.findings?.phase ? `**Phase**: ${protocol.findings.phase}` : ""}
+**Status**: ${protocol.findings?.status || 'Unknown'}  
+${protocol.findings?.phase ? `**Phase**: ${protocol.findings.phase}` : ''}
 
 ${protocol.description}
 
@@ -361,18 +361,18 @@ ${protocol.description}
 ${
   protocol.findings?.supplementCount
     ? `- **Supplements**: ${protocol.findings.supplementCount} prescribed`
-    : ""
+    : ''
 }
-${protocol.findings?.hasDietary ? `- **Dietary Guidelines**: Included` : ""}
+${protocol.findings?.hasDietary ? `- **Dietary Guidelines**: Included` : ''}
 ${
   protocol.findings?.hasLifestyle
     ? `- **Lifestyle Modifications**: Included`
-    : ""
+    : ''
 }
 ${
   protocol.findings?.effectivenessRating
     ? `- **Effectiveness Rating**: ${protocol.findings.effectivenessRating}/5`
-    : ""
+    : ''
 }
 
 `;
@@ -386,16 +386,16 @@ ${
    */
   private static generateAssessmentSummary(analysis: TimelineAnalysis): string {
     const assessmentEvents = analysis.events.filter(
-      (e) => e.type === "assessment"
+      e => e.type === 'assessment'
     );
 
     if (assessmentEvents.length === 0) {
-      return "# Assessment Summary\n\nNo formal assessments documented in the current timeline.";
+      return '# Assessment Summary\n\nNo formal assessments documented in the current timeline.';
     }
 
-    let markdown = "# Assessment Summary\n\n";
+    let markdown = '# Assessment Summary\n\n';
     markdown += `${assessmentEvents.length} health assessment${
-      assessmentEvents.length !== 1 ? "s" : ""
+      assessmentEvents.length !== 1 ? 's' : ''
     } completed:\n\n`;
 
     assessmentEvents.forEach((assessment, index) => {
@@ -406,7 +406,7 @@ ${
 
 ${assessment.description}
 
-${assessment.findings ? this.formatFindings(assessment.findings) : ""}
+${assessment.findings ? this.formatFindings(assessment.findings) : ''}
 
 `;
     });
@@ -499,21 +499,21 @@ ${assessment.findings ? this.formatFindings(assessment.findings) : ""}
    * Helper methods for formatting and calculations
    */
   private static formatDate(date: Date): string {
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
   }
 
   private static formatDateTime(date: Date): string {
-    return date.toLocaleString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZoneName: "short",
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short',
     });
   }
 
@@ -528,9 +528,9 @@ ${assessment.findings ? this.formatFindings(assessment.findings) : ""}
     const remainingDays = diffDays % 365;
     const months = Math.round(remainingDays / 30);
 
-    if (months === 0) return `${years} year${years !== 1 ? "s" : ""}`;
-    return `${years} year${years !== 1 ? "s" : ""} and ${months} month${
-      months !== 1 ? "s" : ""
+    if (months === 0) return `${years} year${years !== 1 ? 's' : ''}`;
+    return `${years} year${years !== 1 ? 's' : ''} and ${months} month${
+      months !== 1 ? 's' : ''
     }`;
   }
 
@@ -538,30 +538,30 @@ ${assessment.findings ? this.formatFindings(assessment.findings) : ""}
     analysis: TimelineAnalysis
   ): string {
     const criticalCount = analysis.criticalFindings.filter(
-      (f) => f.severity === "critical"
+      f => f.severity === 'critical'
     ).length;
     const improvingTrends = analysis.criticalFindings.filter(
-      (f) => f.trend === "improving"
+      f => f.trend === 'improving'
     ).length;
     const worseningTrends = analysis.criticalFindings.filter(
-      (f) => f.trend === "worsening"
+      f => f.trend === 'worsening'
     ).length;
 
     if (criticalCount > 0) {
       return `Health trajectory shows **${criticalCount} critical issue${
-        criticalCount !== 1 ? "s" : ""
+        criticalCount !== 1 ? 's' : ''
       }** requiring immediate attention.`;
     }
 
     if (improvingTrends > worseningTrends) {
       return `Health trajectory appears **POSITIVE** with ${improvingTrends} improving trend${
-        improvingTrends !== 1 ? "s" : ""
+        improvingTrends !== 1 ? 's' : ''
       } identified.`;
     }
 
     if (worseningTrends > improvingTrends) {
       return `Health trajectory shows **DECLINING PATTERNS** with ${worseningTrends} worsening trend${
-        worseningTrends !== 1 ? "s" : ""
+        worseningTrends !== 1 ? 's' : ''
       } requiring intervention.`;
     }
 
@@ -571,63 +571,66 @@ ${assessment.findings ? this.formatFindings(assessment.findings) : ""}
   private static groupEventsByMonth(
     events: TimelineEvent[]
   ): Record<string, TimelineEvent[]> {
-    return events.reduce((groups, event) => {
-      const monthYear = event.date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-      });
+    return events.reduce(
+      (groups, event) => {
+        const monthYear = event.date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+        });
 
-      if (!groups[monthYear]) groups[monthYear] = [];
-      groups[monthYear].push(event);
+        if (!groups[monthYear]) groups[monthYear] = [];
+        groups[monthYear].push(event);
 
-      return groups;
-    }, {} as Record<string, TimelineEvent[]>);
+        return groups;
+      },
+      {} as Record<string, TimelineEvent[]>
+    );
   }
 
   private static getSeverityIcon(severity?: string): string {
     switch (severity) {
-      case "critical":
-        return "🚨";
-      case "high":
-        return "⚠️";
-      case "moderate":
-        return "📊";
-      case "low":
-        return "📝";
+      case 'critical':
+        return '🚨';
+      case 'high':
+        return '⚠️';
+      case 'moderate':
+        return '📊';
+      case 'low':
+        return '📝';
       default:
-        return "📝";
+        return '📝';
     }
   }
 
   private static getTypeIcon(type: string): string {
     switch (type) {
-      case "assessment":
-        return "📋";
-      case "document":
-        return "📄";
-      case "note":
-        return "📝";
-      case "protocol":
-        return "💊";
-      case "status_change":
-        return "🔄";
+      case 'assessment':
+        return '📋';
+      case 'document':
+        return '📄';
+      case 'note':
+        return '📝';
+      case 'protocol':
+        return '💊';
+      case 'status_change':
+        return '🔄';
       default:
-        return "📌";
+        return '📌';
     }
   }
 
   private static formatFindings(findings: any): string {
-    if (!findings || typeof findings !== "object") return "";
+    if (!findings || typeof findings !== 'object') return '';
 
     const formatted = Object.entries(findings)
       .filter(([_, value]) => value !== null && value !== undefined)
       .map(
         ([key, value]) =>
-          `**${key.replace(/([A-Z])/g, " $1").toLowerCase()}**: ${value}`
+          `**${key.replace(/([A-Z])/g, ' $1').toLowerCase()}**: ${value}`
       )
-      .join("  \n");
+      .join('  \n');
 
-    return formatted ? `\n**Key Findings**:  \n${formatted}\n` : "";
+    return formatted ? `\n**Key Findings**:  \n${formatted}\n` : '';
   }
 
   /**
@@ -701,7 +704,7 @@ ${assessment.findings ? this.formatFindings(assessment.findings) : ""}
     if (analysis.totalEvents > 25) score += 10;
 
     // Add points for diverse data types
-    const eventTypes = new Set(analysis.events.map((e) => e.type));
+    const eventTypes = new Set(analysis.events.map(e => e.type));
     score += eventTypes.size * 5;
 
     // Add points for critical findings analysis

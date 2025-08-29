@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   Brain,
   Calendar,
@@ -24,10 +24,10 @@ import {
   AlertCircle,
   Activity,
   Clock,
-} from "lucide-react";
-import { formatDistanceToNow, format } from "date-fns";
-import { toast } from "sonner";
-import { useAuth } from "@/lib/auth-context";
+} from 'lucide-react';
+import { formatDistanceToNow, format } from 'date-fns';
+import { toast } from 'sonner';
+import { useAuth } from '@/lib/auth-context';
 
 interface Analysis {
   id: string;
@@ -95,14 +95,14 @@ export function AnalysisHistoryList({ clientId }: AnalysisHistoryListProps) {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch analysis history");
+        throw new Error('Failed to fetch analysis history');
       }
 
       const result = await response.json();
       setData(result);
     } catch (err: any) {
       setError(err.message);
-      toast.error("Failed to load analysis history");
+      toast.error('Failed to load analysis history');
     } finally {
       setLoading(false);
     }
@@ -125,32 +125,32 @@ export function AnalysisHistoryList({ clientId }: AnalysisHistoryListProps) {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch analysis details");
+        throw new Error('Failed to fetch analysis details');
       }
 
       const analysisData = await response.json();
       setAnalysisDetails(analysisData);
     } catch (err: any) {
-      toast.error("Failed to load analysis details");
+      toast.error('Failed to load analysis details');
       setViewingAnalysis(null);
     } finally {
       setLoadingAnalysis(false);
     }
   };
 
-  const getSectionBadges = (sections: Analysis["sections"]) => {
+  const getSectionBadges = (sections: Analysis['sections']) => {
     const availableSections = Object.entries(sections)
       .filter(([_, available]) => available)
       .map(([section]) => section);
 
-    return availableSections.map((section) => {
+    return availableSections.map(section => {
       const sectionNames: Record<string, string> = {
-        executiveSummary: "Summary",
-        systemAnalysis: "Systems",
-        rootCauseAnalysis: "Root Cause",
-        protocolRecommendations: "Protocol",
-        monitoringPlan: "Monitoring",
-        patientEducation: "Education",
+        executiveSummary: 'Summary',
+        systemAnalysis: 'Systems',
+        rootCauseAnalysis: 'Root Cause',
+        protocolRecommendations: 'Protocol',
+        monitoringPlan: 'Monitoring',
+        patientEducation: 'Education',
       };
 
       return (
@@ -163,12 +163,12 @@ export function AnalysisHistoryList({ clientId }: AnalysisHistoryListProps) {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "archived":
-        return "bg-gray-100 text-gray-800";
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'archived':
+        return 'bg-gray-100 text-gray-800';
       default:
-        return "bg-blue-100 text-blue-800";
+        return 'bg-blue-100 text-blue-800';
     }
   };
 
@@ -278,8 +278,8 @@ export function AnalysisHistoryList({ clientId }: AnalysisHistoryListProps) {
                 <div className="flex items-center gap-2">
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => handleViewAnalysis(analysis.id)}
                       >
@@ -290,10 +290,15 @@ export function AnalysisHistoryList({ clientId }: AnalysisHistoryListProps) {
                     <DialogContent className="max-w-4xl max-h-[80vh]">
                       <DialogHeader>
                         <DialogTitle>
-                          Claude Analysis - {format(new Date(analysis.analysisDate), "MMM dd, yyyy")}
+                          Claude Analysis -{' '}
+                          {format(
+                            new Date(analysis.analysisDate),
+                            'MMM dd, yyyy'
+                          )}
                         </DialogTitle>
                         <DialogDescription>
-                          Version {analysis.analysisVersion} • {analysis.analysisLength.toLocaleString()} characters
+                          Version {analysis.analysisVersion} •{' '}
+                          {analysis.analysisLength.toLocaleString()} characters
                         </DialogDescription>
                       </DialogHeader>
                       <div className="h-[60vh] w-full overflow-y-auto">

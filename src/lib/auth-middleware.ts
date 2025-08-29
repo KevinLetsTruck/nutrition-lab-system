@@ -1,11 +1,11 @@
-import { NextRequest } from "next/server";
-import { verifyToken } from "./auth";
+import { NextRequest } from 'next/server';
+import { verifyToken } from './auth';
 
 export async function auth(req: NextRequest) {
   try {
-    const authHeader = req.headers.get("authorization");
+    const authHeader = req.headers.get('authorization');
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return { authenticated: false };
     }
 

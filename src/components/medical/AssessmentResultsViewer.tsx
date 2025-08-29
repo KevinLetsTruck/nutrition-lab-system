@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { AlertCircle, TrendingUp, Info } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { AlertCircle, TrendingUp, Info } from 'lucide-react';
 
 interface AssessmentResultsViewerProps {
   documentId: string;
@@ -14,7 +14,7 @@ interface NAQSection {
   score: number;
   maxPossible: number;
   percentage: number;
-  severity: "low" | "moderate" | "high" | "critical";
+  severity: 'low' | 'moderate' | 'high' | 'critical';
   interpretation: string;
 }
 
@@ -44,13 +44,13 @@ export default function AssessmentResultsViewer({
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch analysis");
+        throw new Error('Failed to fetch analysis');
       }
 
       const data = await response.json();
       setAnalysis(data.analysis);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -58,31 +58,31 @@ export default function AssessmentResultsViewer({
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case "critical":
-        return "bg-red-500";
-      case "high":
-        return "bg-orange-500";
-      case "moderate":
-        return "bg-yellow-500";
-      case "low":
-        return "bg-green-500";
+      case 'critical':
+        return 'bg-red-500';
+      case 'high':
+        return 'bg-orange-500';
+      case 'moderate':
+        return 'bg-yellow-500';
+      case 'low':
+        return 'bg-green-500';
       default:
-        return "bg-gray-500";
+        return 'bg-gray-500';
     }
   };
 
   const getSeverityTextColor = (severity: string) => {
     switch (severity) {
-      case "critical":
-        return "text-red-600";
-      case "high":
-        return "text-orange-600";
-      case "moderate":
-        return "text-yellow-600";
-      case "low":
-        return "text-green-600";
+      case 'critical':
+        return 'text-red-600';
+      case 'high':
+        return 'text-orange-600';
+      case 'moderate':
+        return 'text-yellow-600';
+      case 'low':
+        return 'text-green-600';
       default:
-        return "text-gray-600";
+        return 'text-gray-600';
     }
   };
 
@@ -173,13 +173,13 @@ export default function AssessmentResultsViewer({
                   className={`px-2 py-1 text-xs font-medium rounded ${getSeverityTextColor(
                     section.severity
                   )} ${
-                    section.severity === "critical"
-                      ? "bg-red-100"
-                      : section.severity === "high"
-                      ? "bg-orange-100"
-                      : section.severity === "moderate"
-                      ? "bg-yellow-100"
-                      : "bg-green-100"
+                    section.severity === 'critical'
+                      ? 'bg-red-100'
+                      : section.severity === 'high'
+                        ? 'bg-orange-100'
+                        : section.severity === 'moderate'
+                          ? 'bg-yellow-100'
+                          : 'bg-green-100'
                   }`}
                 >
                   {section.severity.toUpperCase()}

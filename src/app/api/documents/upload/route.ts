@@ -1,9 +1,9 @@
 // Simple Document Upload API Route
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import jwt from "jsonwebtoken";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import jwt from 'jsonwebtoken';
+import { writeFile, mkdir } from 'fs/promises';
+import path from 'path';
 
 interface AuthPayload {
   id: string;
@@ -12,10 +12,10 @@ interface AuthPayload {
 }
 
 async function verifyAuthToken(request: NextRequest): Promise<AuthPayload> {
-  const authHeader = request.headers.get("authorization");
+  const authHeader = request.headers.get('authorization');
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new Error("Authentication Error: No valid authorization header");
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new Error('Authentication Error: No valid authorization header');
   }
 
   const token = authHeader.substring(7);
@@ -24,8 +24,8 @@ async function verifyAuthToken(request: NextRequest): Promise<AuthPayload> {
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as AuthPayload;
     return payload;
   } catch (error) {
-    console.error("Token verification failed:", error);
-    throw new Error("Authentication Error: Invalid or expired token");
+    console.error('Token verification failed:', error);
+    throw new Error('Authentication Error: Invalid or expired token');
   }
 }
 
@@ -40,17 +40,17 @@ export async function POST(request: NextRequest) {
 
     // Parse form data
     const formData = await request.formData();
-    clientId = formData.get("clientId") as string;
-    const documentType = formData.get("documentType") as string;
-    const labType = formData.get("labType") as string | null;
-    const file = formData.get("file") as File;
+    clientId = formData.get('clientId') as string;
+    const documentType = formData.get('documentType') as string;
+    const labType = formData.get('labType') as string | null;
+    const file = formData.get('file') as File;
 
     if (!clientId || !documentType || !file) {
       return NextResponse.json(
         {
           success: false,
           error:
-            "Missing required fields: clientId, documentType, and file are mandatory.",
+            'Missing required fields: clientId, documentType, and file are mandatory.',
         },
         { status: 400 }
       );
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "File validation failed",
+          error: 'File validation failed',
           details: validation.errors,
         },
         { status: 400 }
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "Client not found",
+          error: 'Client not found',
         },
         { status: 404 }
       );
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
         originalFileName: file.name,
         s3Url: uploadResult.url,
         s3Key: uploadResult.id,
-        status: "PENDING",
+        status: 'PENDING',
         metadata: {
           fileName: secureFileName,
           fileType: file.type,
@@ -131,9 +131,9 @@ export async function POST(request: NextRequest) {
     await prisma.processingQueue.create({
       data: {
         documentId: document.id,
-        jobType: "ocr",
+        jobType: 'ocr',
         priority: 5,
-        status: "QUEUED",
+        status: 'QUEUED',
       },
     });
 
@@ -154,27 +154,27 @@ export async function POST(request: NextRequest) {
           },
           uploadResult,
         },
-        message: "Document uploaded and queued for processing",
+        message: 'Document uploaded and queued for processing',
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Document upload error:", error);
+    console.error('Document upload error:', error);
 
     // Log error (simplified error logging)
     if (user) {
       console.error(
         `Document upload failed for user ${user.email}: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message : 'Unknown error'
         }`
       );
     }
 
-    if (error instanceof Error && error.message.includes("Authentication")) {
+    if (error instanceof Error && error.message.includes('Authentication')) {
       return NextResponse.json(
         {
           success: false,
-          error: "Authentication failed",
+          error: 'Authentication failed',
           details: error.message,
         },
         { status: 401 }
@@ -184,8 +184,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: "Document upload failed",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: 'Document upload failed',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -196,11 +196,11 @@ export async function GET(request: NextRequest) {
   try {
     const user = await verifyAuthToken(request);
     const { searchParams } = new URL(request.url);
-    const clientId = searchParams.get("clientId");
-    const documentType = searchParams.get("documentType");
-    const status = searchParams.get("status");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const offset = parseInt(searchParams.get("offset") || "0");
+    const clientId = searchParams.get('clientId');
+    const documentType = searchParams.get('documentType');
+    const status = searchParams.get('status');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const offset = parseInt(searchParams.get('offset') || '0');
 
     const where: any = {};
 
@@ -234,7 +234,7 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: { uploadDate: "desc" },
+      orderBy: { uploadDate: 'desc' },
       take: limit,
       skip: offset,
     });
@@ -254,16 +254,16 @@ export async function GET(request: NextRequest) {
           hasMore: offset + limit < total,
         },
       },
-      message: "Documents retrieved successfully",
+      message: 'Documents retrieved successfully',
     });
   } catch (error) {
-    console.error("Document list error:", error);
+    console.error('Document list error:', error);
 
-    if (error instanceof Error && error.message.includes("Authentication")) {
+    if (error instanceof Error && error.message.includes('Authentication')) {
       return NextResponse.json(
         {
           success: false,
-          error: "Authentication failed",
+          error: 'Authentication failed',
           details: error.message,
         },
         { status: 401 }
@@ -273,8 +273,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to retrieve documents",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: 'Failed to retrieve documents',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

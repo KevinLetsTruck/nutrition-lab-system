@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Search, User, Clock, CheckCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useAuth } from "@/lib/auth-context";
+import { useState, useEffect } from 'react';
+import { Search, User, Clock, CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useAuth } from '@/lib/auth-context';
 
 interface Client {
   id: string;
@@ -32,18 +32,18 @@ export function ClientSelector({
   onSelectClient,
   disabled = false,
   showAnalysisOnly = false,
-  className = "",
+  className = '',
 }: ClientSelectorProps) {
   const { user } = useAuth();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
   const filteredClients = clients.filter(
-    (client) =>
+    client =>
       client.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -52,12 +52,12 @@ export function ClientSelector({
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem('token');
         if (!token) return;
 
-        let endpoint = "/api/clients";
+        let endpoint = '/api/clients';
         if (showAnalysisOnly) {
-          endpoint += "?hasAnalysis=true";
+          endpoint += '?hasAnalysis=true';
         }
 
         const response = await fetch(endpoint, {
@@ -67,13 +67,13 @@ export function ClientSelector({
         });
 
         if (!response.ok) {
-          throw new Error("Failed to fetch clients");
+          throw new Error('Failed to fetch clients');
         }
 
         const data = await response.json();
         setClients(data.clients || data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load clients");
+        setError(err instanceof Error ? err.message : 'Failed to load clients');
       } finally {
         setLoading(false);
       }
@@ -85,7 +85,7 @@ export function ClientSelector({
   // Set selected client when selectedClientId changes
   useEffect(() => {
     if (selectedClientId) {
-      const client = clients.find((c) => c.id === selectedClientId);
+      const client = clients.find(c => c.id === selectedClientId);
       if (client) {
         setSelectedClient(client);
       }
@@ -96,7 +96,7 @@ export function ClientSelector({
     setSelectedClient(client);
     onSelectClient(client);
     setIsOpen(false);
-    setSearchTerm("");
+    setSearchTerm('');
   };
 
   const handleClearSelection = () => {
@@ -105,26 +105,26 @@ export function ClientSelector({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   };
 
   const getStatusColor = (status: string) => {
     switch (status.toUpperCase()) {
-      case "ACTIVE":
-      case "ONGOING":
-        return "text-green-600 dark:text-green-400";
-      case "SCHEDULED":
-        return "text-blue-600 dark:text-blue-400";
-      case "INITIAL_INTERVIEW_COMPLETED":
-        return "text-purple-600 dark:text-purple-400";
-      case "ASSESSMENT_COMPLETED":
-        return "text-yellow-600 dark:text-yellow-400";
+      case 'ACTIVE':
+      case 'ONGOING':
+        return 'text-green-600 dark:text-green-400';
+      case 'SCHEDULED':
+        return 'text-blue-600 dark:text-blue-400';
+      case 'INITIAL_INTERVIEW_COMPLETED':
+        return 'text-purple-600 dark:text-purple-400';
+      case 'ASSESSMENT_COMPLETED':
+        return 'text-yellow-600 dark:text-yellow-400';
       default:
-        return "text-gray-600 dark:text-gray-400";
+        return 'text-gray-600 dark:text-gray-400';
     }
   };
 
@@ -157,13 +157,14 @@ export function ClientSelector({
   return (
     <div className={`space-y-2 ${className}`}>
       <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-        Select Client {showAnalysisOnly && "(with Analysis)"}
+        Select Client {showAnalysisOnly && '(with Analysis)'}
       </label>
-      
+
       {selectedClient ? (
         <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded">
           <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-            {selectedClient.firstName.charAt(0)}{selectedClient.lastName.charAt(0)}
+            {selectedClient.firstName.charAt(0)}
+            {selectedClient.lastName.charAt(0)}
           </div>
           <div className="flex-1">
             <p className="font-medium text-gray-900 dark:text-gray-100">
@@ -191,7 +192,7 @@ export function ClientSelector({
             className="w-full justify-start"
           >
             <User className="h-4 w-4 mr-2" />
-            {isOpen ? "Select a client..." : "Choose client"}
+            {isOpen ? 'Select a client...' : 'Choose client'}
           </Button>
 
           {isOpen && (
@@ -202,19 +203,19 @@ export function ClientSelector({
                   <Input
                     placeholder="Search clients..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={e => setSearchTerm(e.target.value)}
                     className="pl-9"
                   />
                 </div>
               </div>
-              
+
               <div className="max-h-60 overflow-y-auto">
                 {filteredClients.length === 0 ? (
                   <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-                    {searchTerm ? "No clients found" : "No clients available"}
+                    {searchTerm ? 'No clients found' : 'No clients available'}
                   </div>
                 ) : (
-                  filteredClients.map((client) => (
+                  filteredClients.map(client => (
                     <button
                       key={client.id}
                       onClick={() => handleSelectClient(client)}
@@ -222,15 +223,20 @@ export function ClientSelector({
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                          {client.firstName.charAt(0)}{client.lastName.charAt(0)}
+                          {client.firstName.charAt(0)}
+                          {client.lastName.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
                               {client.firstName} {client.lastName}
                             </p>
-                            <span className={`text-xs ${getStatusColor(client.status)}`}>
-                              {client.status === "ONGOING" ? "Active" : client.status}
+                            <span
+                              className={`text-xs ${getStatusColor(client.status)}`}
+                            >
+                              {client.status === 'ONGOING'
+                                ? 'Active'
+                                : client.status}
                             </span>
                           </div>
                           <div className="flex items-center gap-4 mt-1">

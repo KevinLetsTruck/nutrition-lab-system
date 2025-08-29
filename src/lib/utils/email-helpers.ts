@@ -30,7 +30,7 @@ export interface EmailAttachment {
 }
 
 // Email delivery status
-export type EmailDeliveryStatus = 
+export type EmailDeliveryStatus =
   | 'pending'
   | 'sending'
   | 'sent'
@@ -103,14 +103,16 @@ export function validateEmail(email: string): boolean {
 /**
  * Validate and clean email recipients
  */
-export function validateAndCleanRecipients(recipients: (string | EmailRecipient)[]): EmailRecipient[] {
+export function validateAndCleanRecipients(
+  recipients: (string | EmailRecipient)[]
+): EmailRecipient[] {
   const cleanedRecipients: EmailRecipient[] = [];
-  
+
   for (const recipient of recipients) {
     let email: string;
     let name: string | undefined;
     let relationship: EmailRecipient['relationship'] = 'other';
-    
+
     if (typeof recipient === 'string') {
       email = recipient.trim();
     } else {
@@ -118,10 +120,14 @@ export function validateAndCleanRecipients(recipients: (string | EmailRecipient)
       name = recipient.name?.trim();
       relationship = recipient.relationship || 'other';
     }
-    
+
     if (validateEmail(email)) {
       // Check for duplicates
-      if (!cleanedRecipients.some(r => r.email.toLowerCase() === email.toLowerCase())) {
+      if (
+        !cleanedRecipients.some(
+          r => r.email.toLowerCase() === email.toLowerCase()
+        )
+      ) {
         cleanedRecipients.push({
           email: email.toLowerCase(),
           name,
@@ -130,7 +136,7 @@ export function validateAndCleanRecipients(recipients: (string | EmailRecipient)
       }
     }
   }
-  
+
   return cleanedRecipients;
 }
 
@@ -155,7 +161,7 @@ export function generateEmailSubject(
   if (customSubject) {
     return customSubject;
   }
-  
+
   return `Your Personalized Protocol: ${protocolName} - ${clientName}`;
 }
 
@@ -183,7 +189,7 @@ export async function createPDFAttachmentFromFile(
 ): Promise<EmailAttachment> {
   const buffer = await fs.readFile(filePath);
   const attachmentFilename = filename || path.basename(filePath);
-  
+
   return createPDFAttachment(buffer, attachmentFilename);
 }
 
@@ -192,18 +198,21 @@ export async function createPDFAttachmentFromFile(
  */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
-  
+
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
 /**
  * Generate unique email tracking ID
  */
-export function generateEmailTrackingId(protocolId: string, clientId: string): string {
+export function generateEmailTrackingId(
+  protocolId: string,
+  clientId: string
+): string {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(2, 8);
   return `protocol_${protocolId}_${clientId}_${timestamp}_${random}`;
@@ -220,40 +229,49 @@ export function extractEmailDomain(email: string): string {
 /**
  * Categorize email by domain (for analytics)
  */
-export function categorizeEmailDomain(email: string): 'personal' | 'business' | 'medical' | 'other' {
+export function categorizeEmailDomain(
+  email: string
+): 'personal' | 'business' | 'medical' | 'other' {
   const domain = extractEmailDomain(email);
-  
+
   // Personal email providers
   const personalDomains = [
-    'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 
-    'icloud.com', 'aol.com', 'live.com', 'msn.com'
+    'gmail.com',
+    'yahoo.com',
+    'hotmail.com',
+    'outlook.com',
+    'icloud.com',
+    'aol.com',
+    'live.com',
+    'msn.com',
   ];
-  
+
   // Medical/healthcare domains
-  const medicalDomains = [
-    '.health', '.medical', '.clinic', '.hospital', '.md'
-  ];
-  
+  const medicalDomains = ['.health', '.medical', '.clinic', '.hospital', '.md'];
+
   if (personalDomains.includes(domain)) {
     return 'personal';
   }
-  
+
   if (medicalDomains.some(medDomain => domain.includes(medDomain))) {
     return 'medical';
   }
-  
+
   // Business domains (non-personal, non-medical)
   if (domain && !personalDomains.includes(domain)) {
     return 'business';
   }
-  
+
   return 'other';
 }
 
 /**
  * Create email preview text
  */
-export function generateEmailPreviewText(protocolName: string, supplementCount: number): string {
+export function generateEmailPreviewText(
+  protocolName: string,
+  supplementCount: number
+): string {
   return `Your ${protocolName} includes ${supplementCount} prioritized supplements and detailed implementation guidance.`;
 }
 
@@ -273,7 +291,10 @@ export function sanitizeHtmlForEmail(html: string): string {
 /**
  * Generate unsubscribe link
  */
-export function generateUnsubscribeLink(clientEmail: string, trackingId: string): string {
+export function generateUnsubscribeLink(
+  clientEmail: string,
+  trackingId: string
+): string {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const encodedEmail = encodeURIComponent(clientEmail);
   return `${baseUrl}/unsubscribe?email=${encodedEmail}&id=${trackingId}`;
@@ -323,7 +344,7 @@ export function parseResendWebhookPayload(payload: any): {
     if (!payload || !payload.type || !payload.data) {
       return null;
     }
-    
+
     const eventTypeMapping: Record<string, EmailDeliveryStatus> = {
       'email.sent': 'sent',
       'email.delivered': 'delivered',
@@ -333,16 +354,18 @@ export function parseResendWebhookPayload(payload: any): {
       'email.clicked': 'delivered', // Consider clicked as delivered
       'email.opened': 'delivered', // Consider opened as delivered
     };
-    
+
     const eventType = eventTypeMapping[payload.type];
     if (!eventType) {
       return null;
     }
-    
+
     return {
       messageId: payload.data.message_id || payload.data.email_id,
       eventType,
-      timestamp: new Date(payload.created_at || payload.timestamp || Date.now()),
+      timestamp: new Date(
+        payload.created_at || payload.timestamp || Date.now()
+      ),
       email: payload.data.to || payload.data.email,
       reason: payload.data.reason || payload.data.error,
     };
@@ -370,7 +393,7 @@ export function formatDeliveryStatus(status: EmailDeliveryStatus): {
     complained: { label: 'Complained', color: 'orange', icon: '🚨' },
     unsubscribed: { label: 'Unsubscribed', color: 'gray', icon: '🚫' },
   };
-  
+
   return statusMap[status] || statusMap.pending;
 }
 
@@ -379,7 +402,7 @@ export function formatDeliveryStatus(status: EmailDeliveryStatus): {
  */
 export function validateResendApiKey(apiKey?: string): boolean {
   if (!apiKey) return false;
-  
+
   // Resend API keys start with 're_' followed by alphanumeric characters
   return /^re_[a-zA-Z0-9]+$/.test(apiKey);
 }
@@ -415,24 +438,31 @@ export function checkEmailLimits(
 } {
   const limits = getEmailLimits();
   const errors: string[] = [];
-  
+
   if (recipientCount > limits.recipientLimit) {
-    errors.push(`Too many recipients (${recipientCount}). Maximum allowed: ${limits.recipientLimit}`);
+    errors.push(
+      `Too many recipients (${recipientCount}). Maximum allowed: ${limits.recipientLimit}`
+    );
   }
-  
+
   if (dailySent >= limits.dailyLimit) {
     errors.push(`Daily email limit reached (${limits.dailyLimit})`);
   }
-  
+
   if (monthlySent >= limits.monthlyLimit) {
     errors.push(`Monthly email limit reached (${limits.monthlyLimit})`);
   }
-  
-  const totalAttachmentSize = attachmentSizes.reduce((sum, size) => sum + size, 0);
+
+  const totalAttachmentSize = attachmentSizes.reduce(
+    (sum, size) => sum + size,
+    0
+  );
   if (totalAttachmentSize > limits.attachmentSizeLimit) {
-    errors.push(`Attachment size too large (${formatFileSize(totalAttachmentSize)}). Maximum: ${formatFileSize(limits.attachmentSizeLimit)}`);
+    errors.push(
+      `Attachment size too large (${formatFileSize(totalAttachmentSize)}). Maximum: ${formatFileSize(limits.attachmentSizeLimit)}`
+    );
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors,

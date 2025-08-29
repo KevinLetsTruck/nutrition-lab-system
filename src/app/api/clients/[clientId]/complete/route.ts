@@ -1,7 +1,7 @@
 // Combined API endpoint for client detail page - all data in one request
-import { NextRequest, NextResponse } from "next/server";
-import { verifyAuthToken } from "@/lib/auth";
-import { prisma } from "@/lib/db";
+import { NextRequest, NextResponse } from 'next/server';
+import { verifyAuthToken } from '@/lib/auth';
+import { prisma } from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
@@ -16,7 +16,7 @@ export async function GET(
       where: { id: clientId },
       include: {
         documents: {
-          orderBy: { uploadedAt: "desc" },
+          orderBy: { uploadedAt: 'desc' },
           take: 50, // Limit to recent documents
           select: {
             id: true,
@@ -31,7 +31,7 @@ export async function GET(
           },
         },
         notes: {
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
           take: 100, // Limit to recent notes
           select: {
             id: true,
@@ -56,21 +56,20 @@ export async function GET(
     });
 
     if (!clientData) {
-      return NextResponse.json({ error: "Client not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
     // Calculate note counts by type
     const noteCounts = {
-      interview: clientData.notes.filter((n) => n.noteType === "INTERVIEW")
+      interview: clientData.notes.filter(n => n.noteType === 'INTERVIEW')
         .length,
-      coaching: clientData.notes.filter((n) => n.noteType === "COACHING")
-        .length,
+      coaching: clientData.notes.filter(n => n.noteType === 'COACHING').length,
     };
 
     // Separate notes by type for easier client-side processing
     const notesByType = {
-      interview: clientData.notes.filter((n) => n.noteType === "INTERVIEW"),
-      coaching: clientData.notes.filter((n) => n.noteType === "COACHING"),
+      interview: clientData.notes.filter(n => n.noteType === 'INTERVIEW'),
+      coaching: clientData.notes.filter(n => n.noteType === 'COACHING'),
     };
 
     return NextResponse.json({
@@ -100,16 +99,16 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error("Error fetching complete client data:", error);
-    console.error("Full error details:", {
-      name: error instanceof Error ? error.name : "Unknown",
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : "No stack trace",
+    console.error('Error fetching complete client data:', error);
+    console.error('Full error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace',
     });
     return NextResponse.json(
       {
-        error: "Failed to fetch client data",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: 'Failed to fetch client data',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

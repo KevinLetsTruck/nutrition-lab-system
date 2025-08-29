@@ -1,29 +1,29 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import {
   CheckCircle2,
   AlertCircle,
   Brain,
   FileText,
   Activity,
-} from "lucide-react";
-import { toast } from "sonner";
-import { useAuth } from "@/lib/auth-context";
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { useAuth } from '@/lib/auth-context';
 
 interface AnalysisImportFormProps {
   clientId: string;
@@ -43,9 +43,9 @@ export function AnalysisImportForm({
 }: AnalysisImportFormProps) {
   const { token } = useAuth();
   const router = useRouter();
-  const [analysisText, setAnalysisText] = useState("");
-  const [practitionerNotes, setPractitionerNotes] = useState("");
-  const [analysisVersion, setAnalysisVersion] = useState("v1.0");
+  const [analysisText, setAnalysisText] = useState('');
+  const [practitionerNotes, setPractitionerNotes] = useState('');
+  const [analysisVersion, setAnalysisVersion] = useState('v1.0');
   const [isImporting, setIsImporting] = useState(false);
   const [preview, setPreview] = useState<ParsePreview | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -57,28 +57,28 @@ export function AnalysisImportForm({
     let sectionsDetected = 0;
 
     // Check for common Claude analysis sections
-    if (text.includes("Executive Summary") || text.includes("## Executive")) {
-      sections.push("Executive Summary");
+    if (text.includes('Executive Summary') || text.includes('## Executive')) {
+      sections.push('Executive Summary');
       sectionsDetected++;
     }
-    if (text.includes("System Analysis") || text.includes("Pattern Analysis")) {
-      sections.push("System Analysis");
+    if (text.includes('System Analysis') || text.includes('Pattern Analysis')) {
+      sections.push('System Analysis');
       sectionsDetected++;
     }
-    if (text.includes("Root Cause") || text.includes("## Root")) {
-      sections.push("Root Cause Analysis");
+    if (text.includes('Root Cause') || text.includes('## Root')) {
+      sections.push('Root Cause Analysis');
       sectionsDetected++;
     }
-    if (text.includes("Protocol") || text.includes("Recommendations")) {
-      sections.push("Protocol Recommendations");
+    if (text.includes('Protocol') || text.includes('Recommendations')) {
+      sections.push('Protocol Recommendations');
       sectionsDetected++;
     }
-    if (text.includes("Monitoring") || text.includes("Follow-up")) {
-      sections.push("Monitoring Plan");
+    if (text.includes('Monitoring') || text.includes('Follow-up')) {
+      sections.push('Monitoring Plan');
       sectionsDetected++;
     }
-    if (text.includes("Patient Education") || text.includes("Education")) {
-      sections.push("Patient Education");
+    if (text.includes('Patient Education') || text.includes('Education')) {
+      sections.push('Patient Education');
       sectionsDetected++;
     }
 
@@ -105,17 +105,17 @@ export function AnalysisImportForm({
 
   const handleImport = async () => {
     if (!token) {
-      toast.error("Authentication required");
+      toast.error('Authentication required');
       return;
     }
 
     if (!analysisText.trim()) {
-      setError("Analysis text is required");
+      setError('Analysis text is required');
       return;
     }
 
     if (analysisText.length < 100) {
-      setError("Analysis text is too short (minimum 100 characters)");
+      setError('Analysis text is too short (minimum 100 characters)');
       return;
     }
 
@@ -124,9 +124,9 @@ export function AnalysisImportForm({
 
     try {
       const response = await fetch(`/api/clients/${clientId}/analysis/import`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
@@ -138,26 +138,26 @@ export function AnalysisImportForm({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to import analysis");
+        throw new Error(errorData.error || 'Failed to import analysis');
       }
 
       const data = await response.json();
 
-      toast.success("Claude analysis imported successfully!", {
+      toast.success('Claude analysis imported successfully!', {
         description: `${data.analysis.sectionsDetected} sections detected and parsed`,
       });
 
       // Reset form
-      setAnalysisText("");
-      setPractitionerNotes("");
+      setAnalysisText('');
+      setPractitionerNotes('');
       setPreview(null);
 
       // Navigate to analysis history after successful import
       router.push(`/dashboard/clients/${clientId}/analysis/history`);
     } catch (err: any) {
-      console.error("Import error:", err);
+      console.error('Import error:', err);
       setError(err.message);
-      toast.error("Failed to import analysis", {
+      toast.error('Failed to import analysis', {
         description: err.message,
       });
     } finally {
@@ -176,7 +176,7 @@ export function AnalysisImportForm({
             Import Claude Analysis
           </h1>
           <p className="text-gray-600">
-            Import analysis for{" "}
+            Import analysis for{' '}
             <span className="font-medium">{clientName}</span>
           </p>
         </div>
@@ -205,7 +205,7 @@ export function AnalysisImportForm({
               id="analysis-text"
               placeholder="Paste Claude Desktop analysis here..."
               value={analysisText}
-              onChange={(e) => handleAnalysisChange(e.target.value)}
+              onChange={e => handleAnalysisChange(e.target.value)}
               className="min-h-[300px] mt-2"
               disabled={isImporting}
             />
@@ -221,7 +221,7 @@ export function AnalysisImportForm({
                 <div className="flex items-center justify-between">
                   <span>{preview.summary}</span>
                   <div className="flex flex-wrap gap-1">
-                    {preview.sections.map((section) => (
+                    {preview.sections.map(section => (
                       <Badge
                         key={section}
                         variant="secondary"
@@ -244,7 +244,7 @@ export function AnalysisImportForm({
               <Input
                 id="version"
                 value={analysisVersion}
-                onChange={(e) => setAnalysisVersion(e.target.value)}
+                onChange={e => setAnalysisVersion(e.target.value)}
                 placeholder="v1.0"
                 className="mt-2"
                 disabled={isImporting}
@@ -263,7 +263,7 @@ export function AnalysisImportForm({
               id="practitioner-notes"
               placeholder="Add your clinical observations, adjustments, or additional context..."
               value={practitionerNotes}
-              onChange={(e) => setPractitionerNotes(e.target.value)}
+              onChange={e => setPractitionerNotes(e.target.value)}
               className="mt-2 min-h-[100px]"
               disabled={isImporting}
             />

@@ -1,9 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { verifyAuthToken } from "@/lib/auth";
-import { generateProtocolPDFWithRetry } from "@/lib/services/pdf-service";
-import { formatFileSize } from "@/lib/utils/pdf-helpers";
-import { type PDFProtocolData, type PDFTemplateOptions } from "@/lib/templates/protocol-pdf-template";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { verifyAuthToken } from '@/lib/auth';
+import { generateProtocolPDFWithRetry } from '@/lib/services/pdf-service';
+import { formatFileSize } from '@/lib/utils/pdf-helpers';
+import {
+  type PDFProtocolData,
+  type PDFTemplateOptions,
+} from '@/lib/templates/protocol-pdf-template';
 
 // Response type for consistent API responses
 interface APIResponse<T = any> {
@@ -27,7 +30,7 @@ export async function POST(
     const authUser = await verifyAuthToken(request);
     if (!authUser) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: "Unauthorized" },
+        { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
@@ -58,14 +61,14 @@ export async function POST(
           },
         },
         protocolSupplements: {
-          orderBy: { priority: "asc" },
+          orderBy: { priority: 'asc' },
         },
       },
     });
 
     if (!protocol) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: "Protocol not found" },
+        { success: false, error: 'Protocol not found' },
         { status: 404 }
       );
     }
@@ -89,11 +92,13 @@ export async function POST(
         lastName: protocol.client.lastName,
         email: protocol.client.email,
       },
-      analysis: protocol.analysis ? {
-        id: protocol.analysis.id,
-        analysisDate: protocol.analysis.analysisDate,
-        analysisVersion: protocol.analysis.analysisVersion,
-      } : undefined,
+      analysis: protocol.analysis
+        ? {
+            id: protocol.analysis.id,
+            analysisDate: protocol.analysis.analysisDate,
+            analysisVersion: protocol.analysis.analysisVersion,
+          }
+        : undefined,
       supplements: protocol.protocolSupplements.map(supplement => ({
         id: supplement.id,
         productName: supplement.productName,
@@ -103,7 +108,7 @@ export async function POST(
         priority: supplement.priority,
         isActive: supplement.isActive,
       })),
-      dailySchedule: protocol.dailySchedule as any || undefined,
+      dailySchedule: (protocol.dailySchedule as any) || undefined,
     };
 
     // Configure PDF template options from request body
@@ -112,7 +117,8 @@ export async function POST(
       includeGreeting: body.includeGreeting !== false,
       includeSupplements: body.includeSupplements !== false,
       includeDietaryGuidelines: body.includeDietaryGuidelines !== false,
-      includeLifestyleModifications: body.includeLifestyleModifications !== false,
+      includeLifestyleModifications:
+        body.includeLifestyleModifications !== false,
       includeSchedule: body.includeSchedule !== false,
       brandingConfig: {
         theme: body.theme || 'professional',
@@ -130,9 +136,12 @@ export async function POST(
     });
 
     if (!result.success) {
-      console.error(`❌ PDF generation failed for protocol ${id}:`, result.error);
+      console.error(
+        `❌ PDF generation failed for protocol ${id}:`,
+        result.error
+      );
       return NextResponse.json<APIResponse>(
-        { success: false, error: result.error || "PDF generation failed" },
+        { success: false, error: result.error || 'PDF generation failed' },
         { status: 500 }
       );
     }
@@ -151,25 +160,26 @@ export async function POST(
           requestedBy: authUser.id,
           requestedAt: startTime,
           generatedAt: fileMetadata.generatedAt.toISOString(),
-          
+
           // Template options used
           templateOptions: templateOptions,
-          
+
           // File information
           filename: fileMetadata.filename,
           filePath: fileMetadata.filePath,
           fileSize: fileMetadata.size,
           pageCount: fileMetadata.pages,
-          
+
           // Protocol metadata
           protocolName: protocol.protocolName,
           clientName: `${protocol.client.firstName} ${protocol.client.lastName}`,
-          supplementCount: protocolData.supplements.filter(s => s.isActive).length,
-          
+          supplementCount: protocolData.supplements.filter(s => s.isActive)
+            .length,
+
           // Performance metrics
           generationTime: result.generationTime,
           templateSize: result.debugInfo?.templateSize,
-          
+
           // Request details
           userAgent: request.headers.get('user-agent'),
           ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
@@ -178,7 +188,9 @@ export async function POST(
     });
 
     const totalTime = Date.now() - startTime;
-    console.log(`✅ PDF generation completed in ${totalTime}ms for protocol ${id}`);
+    console.log(
+      `✅ PDF generation completed in ${totalTime}ms for protocol ${id}`
+    );
 
     return NextResponse.json<APIResponse>({
       success: true,
@@ -187,7 +199,7 @@ export async function POST(
         pdfUrl: fileMetadata.url,
         status: 'generated',
         message: 'PDF generation completed successfully',
-        
+
         // File metadata
         file: {
           filename: fileMetadata.filename,
@@ -197,15 +209,16 @@ export async function POST(
           pages: fileMetadata.pages,
           generatedAt: fileMetadata.generatedAt,
         },
-        
+
         // Protocol information
         protocol: {
           id: protocol.id,
           name: protocol.protocolName,
           clientName: `${protocol.client.firstName} ${protocol.client.lastName}`,
-          supplementCount: protocolData.supplements.filter(s => s.isActive).length,
+          supplementCount: protocolData.supplements.filter(s => s.isActive)
+            .length,
         },
-        
+
         // Performance metrics
         performance: {
           generationTime: result.generationTime,
@@ -213,7 +226,7 @@ export async function POST(
           templateSize: result.debugInfo?.templateSize,
           pdfSize: result.debugInfo?.pdfSize,
         },
-        
+
         // Download information
         download: {
           url: fileMetadata.url,
@@ -223,15 +236,14 @@ export async function POST(
         },
       },
     });
-
   } catch (error: any) {
     const totalTime = Date.now() - startTime;
     console.error(`❌ PDF generation error after ${totalTime}ms:`, error);
-    
+
     return NextResponse.json<APIResponse>(
       {
         success: false,
-        error: "Failed to generate PDF",
+        error: 'Failed to generate PDF',
         details: error instanceof Error ? error.message : String(error),
         generationTime: totalTime,
       },
@@ -253,7 +265,7 @@ export async function GET(
     const authUser = await verifyAuthToken(request);
     if (!authUser) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: "Unauthorized" },
+        { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
@@ -263,7 +275,7 @@ export async function GET(
     // Fetch protocol generation history
     const generations = await prisma.protocolGeneration.findMany({
       where: { protocolId: id },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       take: 10, // Last 10 generations
     });
 
@@ -283,7 +295,7 @@ export async function GET(
 
     if (!protocol) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: "Protocol not found" },
+        { success: false, error: 'Protocol not found' },
         { status: 404 }
       );
     }
@@ -305,13 +317,12 @@ export async function GET(
         totalGenerations: generations.length,
       },
     });
-
   } catch (error: any) {
-    console.error("Error fetching PDF generations:", error);
+    console.error('Error fetching PDF generations:', error);
     return NextResponse.json<APIResponse>(
       {
         success: false,
-        error: "Failed to fetch PDF generations",
+        error: 'Failed to fetch PDF generations',
       },
       { status: 500 }
     );

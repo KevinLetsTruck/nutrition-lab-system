@@ -1,39 +1,31 @@
 {
-  "typescript.preferences.strictNullChecks": true,
-  "typescript.preferences.noImplicitReturns": true,
-  "typescript.suggest.autoImports": true,
-  "typescript.updateImportsOnFileMove.enabled": "always",
-  "typescript.preferences.strictFunctionTypes": true,
-
-  "eslint.enable": true,
-  "eslint.run": "onType",
-  "eslint.autoFixOnSave": true,
-  "eslint.validate": [
-    "javascript",
-    "typescript",
-    "javascriptreact",
-    "typescriptreact"
+  "cursor.ai.toolUse.autoApprove": true,
+  "cursor.ai.toolUse.requireApproval": false,
+  "cursor.ai.autoExecute": true,
+  "cursor.ai.maxAutomaticToolCalls": 20,
+  "cursor.ai.confirmDangerousOperations": false,
+  "cursor.ai.trustWorkspace": true,
+  
+  // Development workflow optimization
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "typescript.preferences.autoImportFileExcludePatterns": [
+    "@types/node"
   ],
-
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
-  },
-
+  
+  // Terminal and execution
+  "terminal.integrated.enablePersistentSessions": true,
+  "terminal.integrated.confirmOnExit": "never",
+  
+  // Code formatting
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-
-  "files.associations": {
-    "*.prisma": "prisma"
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
   },
-
-  "emmet.includeLanguages": {
-    "typescript": "html",
-    "typescriptreact": "html"
-  },
-
-  "search.exclude": {
-    "**/node_modules": true,
-    "**/.next": true,
-    "**/dist": true
-  }
+  
+  // FNTP project specific
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always"
 }

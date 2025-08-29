@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import {
   AlertTriangle,
   TrendingUp,
@@ -12,7 +12,7 @@ import {
   Heart,
   Zap,
   Shield,
-} from "lucide-react";
+} from 'lucide-react';
 
 interface SymptomBurdenViewerProps {
   documentId: string;
@@ -50,13 +50,13 @@ export default function SymptomBurdenViewer({
       const response = await fetch(
         `/api/medical/documents/${documentId}/lab-values`
       );
-      if (!response.ok) throw new Error("Failed to fetch data");
+      if (!response.ok) throw new Error('Failed to fetch data');
 
       const data = await response.json();
 
       // Extract total burden
       const totalBurdenValue = data.labValues.find(
-        (lv: any) => lv.standardName === "total_symptom_burden"
+        (lv: any) => lv.standardName === 'total_symptom_burden'
       );
       if (totalBurdenValue) {
         setTotalBurden(totalBurdenValue.value);
@@ -64,7 +64,7 @@ export default function SymptomBurdenViewer({
 
       // Extract deficiencies
       const deficiencyData = data.labValues
-        .filter((lv: any) => lv.standardName === "nutritional_deficiency")
+        .filter((lv: any) => lv.standardName === 'nutritional_deficiency')
         .map((lv: any) => {
           const metadata = lv.metadata || {};
           return {
@@ -72,7 +72,7 @@ export default function SymptomBurdenViewer({
             score: lv.value || metadata.score || 0,
             totalPossible: metadata.totalPossible || 100,
             percentage: metadata.percentage || 0,
-            severity: lv.flag || "normal",
+            severity: lv.flag || 'normal',
           };
         })
         .sort(
@@ -83,7 +83,7 @@ export default function SymptomBurdenViewer({
 
       // Extract conditions
       const conditionData = data.labValues
-        .filter((lv: any) => lv.standardName === "symptom_condition")
+        .filter((lv: any) => lv.standardName === 'symptom_condition')
         .map((lv: any) => {
           const metadata = lv.metadata || {};
           return {
@@ -99,7 +99,7 @@ export default function SymptomBurdenViewer({
 
       setConditions(conditionData);
     } catch (error) {
-      console.error("Error fetching symptom burden data:", error);
+      console.error('Error fetching symptom burden data:', error);
     } finally {
       setLoading(false);
     }
@@ -107,32 +107,32 @@ export default function SymptomBurdenViewer({
 
   const getIcon = (name: string) => {
     const lowerName = name.toLowerCase();
-    if (lowerName.includes("fatty") || lowerName.includes("omega"))
+    if (lowerName.includes('fatty') || lowerName.includes('omega'))
       return <Pill className="h-4 w-4" />;
-    if (lowerName.includes("vitamin") || lowerName.includes("mineral"))
+    if (lowerName.includes('vitamin') || lowerName.includes('mineral'))
       return <Zap className="h-4 w-4" />;
-    if (lowerName.includes("adrenal") || lowerName.includes("stress"))
+    if (lowerName.includes('adrenal') || lowerName.includes('stress'))
       return <Brain className="h-4 w-4" />;
-    if (lowerName.includes("cardio") || lowerName.includes("heart"))
+    if (lowerName.includes('cardio') || lowerName.includes('heart'))
       return <Heart className="h-4 w-4" />;
-    if (lowerName.includes("immune")) return <Shield className="h-4 w-4" />;
-    if (lowerName.includes("liver") || lowerName.includes("toxic"))
+    if (lowerName.includes('immune')) return <Shield className="h-4 w-4" />;
+    if (lowerName.includes('liver') || lowerName.includes('toxic'))
       return <Activity className="h-4 w-4" />;
     return <TrendingUp className="h-4 w-4" />;
   };
 
   const getSeverityColor = (percentage: number) => {
-    if (percentage >= 50) return "bg-red-500";
-    if (percentage >= 40) return "bg-orange-500";
-    if (percentage >= 25) return "bg-yellow-500";
-    return "bg-green-500";
+    if (percentage >= 50) return 'bg-red-500';
+    if (percentage >= 40) return 'bg-orange-500';
+    if (percentage >= 25) return 'bg-yellow-500';
+    return 'bg-green-500';
   };
 
   const getSeverityTextColor = (percentage: number) => {
-    if (percentage >= 50) return "text-red-600";
-    if (percentage >= 40) return "text-orange-600";
-    if (percentage >= 25) return "text-yellow-600";
-    return "text-green-600";
+    if (percentage >= 50) return 'text-red-600';
+    if (percentage >= 40) return 'text-orange-600';
+    if (percentage >= 25) return 'text-yellow-600';
+    return 'text-green-600';
   };
 
   if (loading) {
@@ -161,10 +161,10 @@ export default function SymptomBurdenViewer({
               </p>
               <p className="text-sm text-orange-600 mt-2">
                 {totalBurden > 500
-                  ? "High symptom burden - comprehensive support needed"
+                  ? 'High symptom burden - comprehensive support needed'
                   : totalBurden > 300
-                  ? "Moderate symptom burden - targeted interventions recommended"
-                  : "Low to moderate symptom burden"}
+                    ? 'Moderate symptom burden - targeted interventions recommended'
+                    : 'Low to moderate symptom burden'}
               </p>
             </div>
           </CardContent>

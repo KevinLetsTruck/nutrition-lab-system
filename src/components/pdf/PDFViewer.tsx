@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import * as pdfjsLib from "pdfjs-dist";
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import * as pdfjsLib from 'pdfjs-dist';
 
 // Configure PDF.js worker - done in useEffect to avoid hydration mismatch
 
 export interface Annotation {
   id: string;
   pageNumber: number;
-  type: "highlight" | "note" | "drawing" | "text";
+  type: 'highlight' | 'note' | 'drawing' | 'text';
   coordinates: { x: number; y: number; width?: number; height?: number };
   content: string;
   color: string;
@@ -20,7 +20,7 @@ export interface PDFViewerProps {
   documentId: string;
   documentUrl: string;
   documentName: string;
-  documentType: "lab_report" | "protocol" | "assessment" | "intake" | "other";
+  documentType: 'lab_report' | 'protocol' | 'assessment' | 'intake' | 'other';
   uploadedDate: Date;
   clientId: string;
   onClose: () => void;
@@ -42,7 +42,7 @@ interface PDFViewerState {
   searchTerm: string;
   searchResults: any[];
   annotations: Annotation[];
-  sidebarTab: "thumbnails" | "annotations" | "search";
+  sidebarTab: 'thumbnails' | 'annotations' | 'search';
   showSidebar: boolean;
   isFullscreen: boolean;
 }
@@ -59,7 +59,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
   allowDownload = true,
   allowPrint = true,
   allowShare = false,
-  className = "",
+  className = '',
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -71,10 +71,10 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
     scale: 1,
     isLoading: true,
     error: null,
-    searchTerm: "",
+    searchTerm: '',
     searchResults: [],
     annotations: [],
-    sidebarTab: "thumbnails",
+    sidebarTab: 'thumbnails',
     showSidebar: true,
     isFullscreen: false,
   });
@@ -82,23 +82,23 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
   // Load PDF document
   useEffect(() => {
     // Configure PDF.js worker on client side only
-    if (typeof window !== "undefined") {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
+    if (typeof window !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
     }
 
     const loadPDF = async () => {
       try {
-        setState((prev) => ({ ...prev, isLoading: true, error: null }));
+        setState(prev => ({ ...prev, isLoading: true, error: null }));
 
         const loadingTask = pdfjsLib.getDocument({
           url: documentUrl,
-          cMapUrl: "/cmaps/",
+          cMapUrl: '/cmaps/',
           cMapPacked: true,
         });
 
         const pdf = await loadingTask.promise;
 
-        setState((prev) => ({
+        setState(prev => ({
           ...prev,
           pdf,
           totalPages: pdf.numPages,
@@ -108,10 +108,10 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
         // Render first page
         renderPage(1, pdf);
       } catch (error) {
-        console.error("Error loading PDF:", error);
-        setState((prev) => ({
+        console.error('Error loading PDF:', error);
+        setState(prev => ({
           ...prev,
-          error: "Failed to load PDF document",
+          error: 'Failed to load PDF document',
           isLoading: false,
         }));
       }
@@ -132,7 +132,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
         const page = await pdf.getPage(pageNum);
         const viewport = page.getViewport({ scale: state.scale });
         const canvas = canvasRef.current;
-        const context = canvas.getContext("2d");
+        const context = canvas.getContext('2d');
 
         if (!context) return;
 
@@ -146,7 +146,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
 
         await page.render(renderContext).promise;
       } catch (error) {
-        console.error("Error rendering page:", error);
+        console.error('Error rendering page:', error);
       }
     },
     [state.pdf, state.scale]
@@ -156,7 +156,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
   const goToPage = useCallback(
     (pageNum: number) => {
       if (pageNum >= 1 && pageNum <= state.totalPages) {
-        setState((prev) => ({ ...prev, currentPage: pageNum }));
+        setState(prev => ({ ...prev, currentPage: pageNum }));
         renderPage(pageNum);
       }
     },
@@ -178,13 +178,13 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
   // Zoom functions
   const zoomIn = useCallback(() => {
     const newScale = Math.min(state.scale * 1.25, 3);
-    setState((prev) => ({ ...prev, scale: newScale }));
+    setState(prev => ({ ...prev, scale: newScale }));
     renderPage(state.currentPage);
   }, [state.scale, state.currentPage, renderPage]);
 
   const zoomOut = useCallback(() => {
     const newScale = Math.max(state.scale / 1.25, 0.5);
-    setState((prev) => ({ ...prev, scale: newScale }));
+    setState(prev => ({ ...prev, scale: newScale }));
     renderPage(state.currentPage);
   }, [state.scale, state.currentPage, renderPage]);
 
@@ -192,13 +192,13 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
     (newScale: number | string) => {
       let scale: number;
 
-      if (typeof newScale === "string") {
-        if (newScale === "fit" && containerRef.current && canvasRef.current) {
+      if (typeof newScale === 'string') {
+        if (newScale === 'fit' && containerRef.current && canvasRef.current) {
           const containerWidth = containerRef.current.clientWidth - 48; // padding
           const canvasWidth = canvasRef.current.width;
           scale = containerWidth / canvasWidth;
         } else if (
-          newScale === "page" &&
+          newScale === 'page' &&
           containerRef.current &&
           canvasRef.current
         ) {
@@ -217,7 +217,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
         scale = newScale;
       }
 
-      setState((prev) => ({ ...prev, scale }));
+      setState(prev => ({ ...prev, scale }));
       renderPage(state.currentPage);
     },
     [state.currentPage, renderPage]
@@ -226,7 +226,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
   // Search functionality
   const performSearch = useCallback(async () => {
     if (!state.pdf || !state.searchTerm.trim()) {
-      setState((prev) => ({ ...prev, searchResults: [] }));
+      setState(prev => ({ ...prev, searchResults: [] }));
       return;
     }
 
@@ -237,7 +237,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
       for (let i = 1; i <= state.totalPages; i++) {
         const page = await state.pdf.getPage(i);
         const textContent = await page.getTextContent();
-        const text = textContent.items.map((item: any) => item.str).join(" ");
+        const text = textContent.items.map((item: any) => item.str).join(' ');
 
         if (text.toLowerCase().includes(searchTerm)) {
           const startIndex = text.toLowerCase().indexOf(searchTerm);
@@ -254,16 +254,16 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
         }
       }
 
-      setState((prev) => ({ ...prev, searchResults: results }));
+      setState(prev => ({ ...prev, searchResults: results }));
     } catch (error) {
-      console.error("Error searching PDF:", error);
+      console.error('Error searching PDF:', error);
     }
   }, [state.pdf, state.searchTerm, state.totalPages]);
 
   // Download functionality
   const downloadPDF = useCallback(() => {
-    if (typeof document !== "undefined") {
-      const link = document.createElement("a");
+    if (typeof document !== 'undefined') {
+      const link = document.createElement('a');
       link.href = documentUrl;
       link.download = documentName;
       document.body.appendChild(link);
@@ -274,10 +274,10 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
 
   // Print functionality
   const printPDF = useCallback(() => {
-    if (typeof window !== "undefined") {
-      const printWindow = window.open(documentUrl, "_blank");
+    if (typeof window !== 'undefined') {
+      const printWindow = window.open(documentUrl, '_blank');
       if (printWindow) {
-        printWindow.addEventListener("load", () => {
+        printWindow.addEventListener('load', () => {
           printWindow.print();
         });
       }
@@ -290,37 +290,37 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
       if (e.target instanceof HTMLInputElement) return;
 
       switch (e.key) {
-        case "ArrowLeft":
+        case 'ArrowLeft':
           e.preventDefault();
           prevPage();
           break;
-        case "ArrowRight":
+        case 'ArrowRight':
           e.preventDefault();
           nextPage();
           break;
-        case "Escape":
+        case 'Escape':
           e.preventDefault();
           onClose();
           break;
-        case "+":
-        case "=":
+        case '+':
+        case '=':
           e.preventDefault();
           zoomIn();
           break;
-        case "-":
+        case '-':
           e.preventDefault();
           zoomOut();
           break;
       }
     };
 
-    if (typeof window !== "undefined") {
-      window.addEventListener("keydown", handleKeyPress);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('keydown', handleKeyPress);
     }
 
     return () => {
-      if (typeof window !== "undefined") {
-        window.removeEventListener("keydown", handleKeyPress);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('keydown', handleKeyPress);
       }
     };
   }, [prevPage, nextPage, onClose, zoomIn, zoomOut]);

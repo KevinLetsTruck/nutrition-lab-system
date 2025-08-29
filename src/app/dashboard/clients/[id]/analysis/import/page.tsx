@@ -22,9 +22,9 @@ async function getClient(id: string) {
         clientAnalyses: {
           select: { id: true, analysisDate: true },
           orderBy: { analysisDate: 'desc' },
-          take: 5
-        }
-      }
+          take: 5,
+        },
+      },
     });
 
     return client;
@@ -34,14 +34,16 @@ async function getClient(id: string) {
   }
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { id } = await params;
   const client = await getClient(id);
-  
+
   return {
-    title: client 
+    title: client
       ? `Import Analysis - ${client.firstName} ${client.lastName}`
-      : 'Import Analysis'
+      : 'Import Analysis',
   };
 }
 
@@ -65,7 +67,7 @@ export default async function ImportAnalysisPage({ params }: PageProps) {
               Back to Client
             </Link>
           </Button>
-          
+
           {client.clientAnalyses.length > 0 && (
             <Button variant="outline" size="sm" asChild>
               <Link href={`/dashboard/clients/${client.id}/analysis/history`}>
@@ -78,26 +80,25 @@ export default async function ImportAnalysisPage({ params }: PageProps) {
 
         {client.clientAnalyses.length > 0 && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-medium text-blue-900 mb-2">Previous Analyses</h3>
+            <h3 className="font-medium text-blue-900 mb-2">
+              Previous Analyses
+            </h3>
             <p className="text-sm text-blue-700">
-              This client has {client.clientAnalyses.length} previous analysis(es). 
-              Consider reviewing the{' '}
-              <Link 
+              This client has {client.clientAnalyses.length} previous
+              analysis(es). Consider reviewing the{' '}
+              <Link
                 href={`/dashboard/clients/${client.id}/analysis/history`}
                 className="underline font-medium"
               >
                 analysis history
-              </Link>
-              {' '}to track progress and compare patterns.
+              </Link>{' '}
+              to track progress and compare patterns.
             </p>
           </div>
         )}
       </div>
 
-      <AnalysisImportForm 
-        clientId={client.id}
-        clientName={clientName}
-      />
+      <AnalysisImportForm clientId={client.id} clientName={clientName} />
     </div>
   );
 }

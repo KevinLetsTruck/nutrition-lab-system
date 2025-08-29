@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Save, ChevronLeft, ChevronRight, CheckCircle } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Save, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
 
 interface NAQResponseEntryProps {
   documentId: string;
@@ -19,29 +19,29 @@ interface NAQQuestion {
 }
 
 const NAQ_SECTIONS = [
-  { name: "Diet", start: 1, end: 20 },
-  { name: "Lifestyle", start: 21, end: 24 },
-  { name: "Medications", start: 25, end: 51 },
-  { name: "Upper Gastrointestinal", start: 52, end: 70 },
-  { name: "Liver & Gallbladder", start: 71, end: 98 },
-  { name: "Small Intestine", start: 99, end: 115 },
-  { name: "Large Intestine", start: 116, end: 135 },
-  { name: "Mineral Needs", start: 136, end: 164 },
-  { name: "Essential Fatty Acids", start: 165, end: 172 },
-  { name: "Sugar Handling", start: 173, end: 185 },
-  { name: "Vitamin Need", start: 186, end: 212 },
-  { name: "Adrenal", start: 213, end: 238 },
-  { name: "Pituitary", start: 239, end: 251 },
-  { name: "Thyroid", start: 252, end: 267 },
-  { name: "Female Reproductive", start: 277, end: 296 },
-  { name: "Cardiovascular", start: 297, end: 306 },
-  { name: "Kidney & Bladder", start: 307, end: 311 },
-  { name: "Immune System", start: 312, end: 318 },
+  { name: 'Diet', start: 1, end: 20 },
+  { name: 'Lifestyle', start: 21, end: 24 },
+  { name: 'Medications', start: 25, end: 51 },
+  { name: 'Upper Gastrointestinal', start: 52, end: 70 },
+  { name: 'Liver & Gallbladder', start: 71, end: 98 },
+  { name: 'Small Intestine', start: 99, end: 115 },
+  { name: 'Large Intestine', start: 116, end: 135 },
+  { name: 'Mineral Needs', start: 136, end: 164 },
+  { name: 'Essential Fatty Acids', start: 165, end: 172 },
+  { name: 'Sugar Handling', start: 173, end: 185 },
+  { name: 'Vitamin Need', start: 186, end: 212 },
+  { name: 'Adrenal', start: 213, end: 238 },
+  { name: 'Pituitary', start: 239, end: 251 },
+  { name: 'Thyroid', start: 252, end: 267 },
+  { name: 'Female Reproductive', start: 277, end: 296 },
+  { name: 'Cardiovascular', start: 297, end: 306 },
+  { name: 'Kidney & Bladder', start: 307, end: 311 },
+  { name: 'Immune System', start: 312, end: 318 },
 ];
 
 export default function NAQResponseEntry({
   documentId,
-  clientName = "Client",
+  clientName = 'Client',
 }: NAQResponseEntryProps) {
   const [questions, setQuestions] = useState<NAQQuestion[]>([]);
   const [currentSection, setCurrentSection] = useState(0);
@@ -60,20 +60,20 @@ export default function NAQResponseEntry({
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch questions");
+        throw new Error('Failed to fetch questions');
       }
 
       const data = await response.json();
 
       // Transform lab values into questions format
       const naqQuestions: NAQQuestion[] = data.labValues
-        .filter((lv: any) => lv.standardName === "naq_question")
+        .filter((lv: any) => lv.standardName === 'naq_question')
         .map((lv: any) => ({
           id: lv.id,
           questionNumber:
-            lv.questionNumber || parseInt(lv.testName.replace("NAQ Q", "")),
-          symptomText: lv.valueText || lv.symptomText || "",
-          section: lv.category || "General",
+            lv.questionNumber || parseInt(lv.testName.replace('NAQ Q', '')),
+          symptomText: lv.valueText || lv.symptomText || '',
+          section: lv.category || 'General',
           value: lv.value,
         }))
         .sort(
@@ -87,24 +87,24 @@ export default function NAQResponseEntry({
       const sectionsWithResponses = new Set<number>();
       NAQ_SECTIONS.forEach((section, index) => {
         const sectionQuestions = naqQuestions.filter(
-          (q) =>
+          q =>
             q.questionNumber >= section.start && q.questionNumber <= section.end
         );
-        if (sectionQuestions.some((q) => q.value !== null)) {
+        if (sectionQuestions.some(q => q.value !== null)) {
           sectionsWithResponses.add(index);
         }
       });
       setSavedSections(sectionsWithResponses);
     } catch (error) {
-      console.error("Error fetching questions:", error);
+      console.error('Error fetching questions:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const updateResponse = (questionId: string, value: number) => {
-    setQuestions((prev) =>
-      prev.map((q) => (q.id === questionId ? { ...q, value } : q))
+    setQuestions(prev =>
+      prev.map(q => (q.id === questionId ? { ...q, value } : q))
     );
   };
 
@@ -114,7 +114,7 @@ export default function NAQResponseEntry({
     try {
       const section = NAQ_SECTIONS[currentSection];
       const sectionQuestions = questions.filter(
-        (q) =>
+        q =>
           q.questionNumber >= section.start && q.questionNumber <= section.end
       );
 
@@ -122,22 +122,22 @@ export default function NAQResponseEntry({
       for (const question of sectionQuestions) {
         if (question.value !== null) {
           await fetch(`/api/medical/lab-values/${question.id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ value: question.value }),
           });
         }
       }
 
       // Add section to saved set
-      setSavedSections((prev) => new Set([...prev, currentSection]));
+      setSavedSections(prev => new Set([...prev, currentSection]));
 
       // If not the last section, go to next
       if (currentSection < NAQ_SECTIONS.length - 1) {
         setCurrentSection(currentSection + 1);
       }
     } catch (error) {
-      console.error("Error saving responses:", error);
+      console.error('Error saving responses:', error);
     } finally {
       setSaving(false);
     }
@@ -153,7 +153,7 @@ export default function NAQResponseEntry({
 
   const section = NAQ_SECTIONS[currentSection];
   const sectionQuestions = questions.filter(
-    (q) => q.questionNumber >= section.start && q.questionNumber <= section.end
+    q => q.questionNumber >= section.start && q.questionNumber <= section.end
   );
 
   return (
@@ -166,7 +166,7 @@ export default function NAQResponseEntry({
         <CardContent>
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-600">
-              Section {currentSection + 1} of {NAQ_SECTIONS.length}:{" "}
+              Section {currentSection + 1} of {NAQ_SECTIONS.length}:{' '}
               {section.name}
             </p>
             <div className="flex gap-2">
@@ -176,10 +176,10 @@ export default function NAQResponseEntry({
                   onClick={() => setCurrentSection(index)}
                   className={`w-3 h-3 rounded-full transition-colors ${
                     index === currentSection
-                      ? "bg-blue-600"
+                      ? 'bg-blue-600'
                       : savedSections.has(index)
-                      ? "bg-green-600"
-                      : "bg-gray-300"
+                        ? 'bg-green-600'
+                        : 'bg-gray-300'
                   }`}
                   title={NAQ_SECTIONS[index].name}
                 />
@@ -200,7 +200,7 @@ export default function NAQResponseEntry({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {sectionQuestions.map((question) => (
+          {sectionQuestions.map(question => (
             <div key={question.id} className="space-y-2">
               <div className="flex items-start gap-3">
                 <span className="font-medium text-gray-700 w-12">
@@ -211,14 +211,14 @@ export default function NAQResponseEntry({
                 </span>
               </div>
               <div className="flex gap-4 ml-12">
-                {[0, 1, 2, 3].map((value) => (
+                {[0, 1, 2, 3].map(value => (
                   <button
                     key={value}
                     onClick={() => updateResponse(question.id, value)}
                     className={`w-12 h-12 rounded-full border-2 font-medium transition-all ${
                       question.value === value
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "bg-white text-gray-700 border-gray-300 hover:border-gray-400"
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
                     }`}
                   >
                     {value}
@@ -251,10 +251,10 @@ export default function NAQResponseEntry({
 
         <Button
           onClick={saveResponses}
-          disabled={saving || sectionQuestions.every((q) => q.value === null)}
+          disabled={saving || sectionQuestions.every(q => q.value === null)}
         >
           {saving ? (
-            "Saving..."
+            'Saving...'
           ) : (
             <>
               <Save className="h-4 w-4 mr-1" />
@@ -278,12 +278,12 @@ export default function NAQResponseEntry({
         <CardContent className="pt-6">
           <div className="text-sm text-gray-600">
             <p>
-              Questions answered in this section:{" "}
-              {sectionQuestions.filter((q) => q.value !== null).length} /{" "}
+              Questions answered in this section:{' '}
+              {sectionQuestions.filter(q => q.value !== null).length} /{' '}
               {sectionQuestions.length}
             </p>
             <p>
-              Total sections completed: {savedSections.size} /{" "}
+              Total sections completed: {savedSections.size} /{' '}
               {NAQ_SECTIONS.length}
             </p>
           </div>

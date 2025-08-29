@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useAuth } from "@/lib/auth-context";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useAuth } from '@/lib/auth-context';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
+} from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 
 interface Client {
   id: string;
@@ -36,7 +36,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [client, setClient] = useState<Client | null>(null);
 
   // Fetch existing client data
@@ -44,7 +44,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
     async function fetchClient() {
       try {
         if (!token) {
-          router.push("/login");
+          router.push('/login');
           return;
         }
 
@@ -56,17 +56,17 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
 
         if (!response.ok) {
           if (response.status === 401) {
-            localStorage.removeItem("token");
-            router.push("/login");
+            localStorage.removeItem('token');
+            router.push('/login');
             return;
           }
-          throw new Error("Failed to fetch client data");
+          throw new Error('Failed to fetch client data');
         }
 
         const clientData = await response.json();
         setClient(clientData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load client");
+        setError(err instanceof Error ? err.message : 'Failed to load client');
       } finally {
         setFetchLoading(false);
       }
@@ -80,30 +80,30 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setError('');
 
     const formData = new FormData(e.currentTarget);
     const data = {
-      firstName: formData.get("firstName"),
-      lastName: formData.get("lastName"),
-      email: formData.get("email"),
-      phone: formData.get("phone") || undefined,
-      dateOfBirth: formData.get("dateOfBirth") || undefined,
-      gender: formData.get("gender") || undefined,
-      isTruckDriver: formData.get("isTruckDriver") === "on",
-      healthGoals: formData.get("healthGoals") || undefined,
+      firstName: formData.get('firstName'),
+      lastName: formData.get('lastName'),
+      email: formData.get('email'),
+      phone: formData.get('phone') || undefined,
+      dateOfBirth: formData.get('dateOfBirth') || undefined,
+      gender: formData.get('gender') || undefined,
+      isTruckDriver: formData.get('isTruckDriver') === 'on',
+      healthGoals: formData.get('healthGoals') || undefined,
     };
 
     try {
       if (!token) {
-        router.push("/login");
+        router.push('/login');
         return;
       }
 
       const response = await fetch(`/api/clients/${params.id}`, {
-        method: "PUT",
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
@@ -111,17 +111,17 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
 
       if (!response.ok) {
         if (response.status === 401) {
-          localStorage.removeItem("token");
-          router.push("/login");
+          localStorage.removeItem('token');
+          router.push('/login');
           return;
         }
         const result = await response.json();
-        throw new Error(result.error || "Failed to update client");
+        throw new Error(result.error || 'Failed to update client');
       }
 
       router.push(`/dashboard/clients/${params.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -159,16 +159,16 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
 
   // Helper function to format date for input
   const formatDateForInput = (dateString?: string) => {
-    if (!dateString) return "";
+    if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toISOString().split("T")[0];
+    return date.toISOString().split('T')[0];
   };
 
   // Helper function to get health goals as string
   const getHealthGoalsString = (healthGoals?: string | string[]) => {
-    if (!healthGoals) return "";
+    if (!healthGoals) return '';
     if (Array.isArray(healthGoals)) {
-      return healthGoals.join(", ");
+      return healthGoals.join(', ');
     }
     return healthGoals;
   };
@@ -259,7 +259,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                         type="tel"
                         name="phone"
                         id="phone"
-                        defaultValue={client.phone || ""}
+                        defaultValue={client.phone || ''}
                         className="mt-1"
                       />
                     </div>
@@ -281,7 +281,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                       <Label htmlFor="gender" className="text-gray-300">
                         Gender
                       </Label>
-                      <Select name="gender" defaultValue={client.gender || ""}>
+                      <Select name="gender" defaultValue={client.gender || ''}>
                         <SelectTrigger className="mt-1">
                           <SelectValue placeholder="Select gender" />
                         </SelectTrigger>
@@ -351,7 +351,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                     disabled={loading}
                     className="bg-brand-green hover:bg-brand-green/90 border-brand-green"
                   >
-                    {loading ? "Updating..." : "Update Client"}
+                    {loading ? 'Updating...' : 'Update Client'}
                   </Button>
                 </div>
               </div>

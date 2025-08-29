@@ -9,7 +9,7 @@ The theme system provides a centralized way to manage colors across the applicat
 ### Import the theme
 
 ```typescript
-import { theme } from "@/lib/theme/colors";
+import { theme } from '@/lib/theme/colors';
 ```
 
 ### Using theme colors in components
@@ -87,7 +87,7 @@ import { theme } from "@/lib/theme/colors";
 ## Complete Component Example
 
 ```tsx
-import { theme } from "@/lib/theme/colors";
+import { theme } from '@/lib/theme/colors';
 
 export function ExampleCard() {
   return (
@@ -145,8 +145,8 @@ The theme system is designed to support multiple themes. To add a light theme:
 // In colors.ts
 export const lightTheme = {
   bg: {
-    primary: "bg-white",
-    secondary: "bg-gray-50",
+    primary: 'bg-white',
+    secondary: 'bg-gray-50',
     // ... etc
   },
 };

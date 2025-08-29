@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, FlaskConical, Plus, Brain } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Breadcrumb } from "@/components/ui/breadcrumb";
-import { ClientSelector } from "@/components/protocols/ClientSelector";
-import { ProtocolBuilder } from "@/components/protocols/ProtocolBuilder";
-import { useAuth } from "@/lib/auth-context";
-import { toast } from "sonner";
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft, FlaskConical, Plus, Brain } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
+import { ClientSelector } from '@/components/protocols/ClientSelector';
+import { ProtocolBuilder } from '@/components/protocols/ProtocolBuilder';
+import { useAuth } from '@/lib/auth-context';
+import { toast } from 'sonner';
 
 interface Client {
   id: string;
@@ -36,24 +36,26 @@ export default function CreateProtocolPage() {
   const { user, loading: authLoading } = useAuth();
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [clientAnalyses, setClientAnalyses] = useState<ClientAnalysis[]>([]);
-  const [selectedAnalysisId, setSelectedAnalysisId] = useState<string | undefined>();
+  const [selectedAnalysisId, setSelectedAnalysisId] = useState<
+    string | undefined
+  >();
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<"client" | "builder">("client");
+  const [step, setStep] = useState<'client' | 'builder'>('client');
 
   // Get initial client ID from URL params (for direct linking)
-  const initialClientId = searchParams.get("clientId");
-  const fromAnalysisId = searchParams.get("analysisId");
+  const initialClientId = searchParams.get('clientId');
+  const fromAnalysisId = searchParams.get('analysisId');
 
   // Redirect if not authenticated
   if (!authLoading && !user) {
-    router.push("/login");
+    router.push('/login');
     return null;
   }
 
   useEffect(() => {
     if (fromAnalysisId) {
       setSelectedAnalysisId(fromAnalysisId);
-      setStep("builder");
+      setStep('builder');
     }
   }, [fromAnalysisId]);
 
@@ -66,7 +68,7 @@ export default function CreateProtocolPage() {
       }
 
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem('token');
         const response = await fetch(
           `/api/clients/${selectedClient.id}/analysis/history`,
           {
@@ -81,7 +83,7 @@ export default function CreateProtocolPage() {
           setClientAnalyses(data.analyses || []);
         }
       } catch (error) {
-        console.error("Failed to fetch client analyses:", error);
+        console.error('Failed to fetch client analyses:', error);
       }
     };
 
@@ -92,32 +94,35 @@ export default function CreateProtocolPage() {
     setSelectedClient(client);
     setSelectedAnalysisId(undefined);
     if (client) {
-      setStep("builder");
+      setStep('builder');
     } else {
-      setStep("client");
+      setStep('client');
     }
   };
 
   const handleProtocolCreated = (protocolId: string) => {
-    toast.success("Protocol created successfully!");
+    toast.success('Protocol created successfully!');
     router.push(`/dashboard/protocols/${protocolId}`);
   };
 
   const breadcrumbItems = [
     {
-      label: "Protocols",
-      href: "/dashboard/protocols",
+      label: 'Protocols',
+      href: '/dashboard/protocols',
       icon: <FlaskConical className="h-4 w-4" />,
     },
     {
-      label: "Create Protocol",
+      label: 'Create Protocol',
       icon: <Plus className="h-4 w-4" />,
     },
   ];
 
   if (authLoading) {
     return (
-      <div className="min-h-screen p-4" style={{ background: "var(--background)" }}>
+      <div
+        className="min-h-screen p-4"
+        style={{ background: 'var(--background)' }}
+      >
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-6"></div>
@@ -133,7 +138,10 @@ export default function CreateProtocolPage() {
   }
 
   return (
-    <div className="min-h-screen p-4" style={{ background: "var(--background)" }}>
+    <div
+      className="min-h-screen p-4"
+      style={{ background: 'var(--background)' }}
+    >
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -143,10 +151,9 @@ export default function CreateProtocolPage() {
               Create New Protocol
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
-              {step === "client" 
-                ? "Select a client to create a personalized protocol"
-                : `Create protocol for ${selectedClient?.firstName} ${selectedClient?.lastName}`
-              }
+              {step === 'client'
+                ? 'Select a client to create a personalized protocol'
+                : `Create protocol for ${selectedClient?.firstName} ${selectedClient?.lastName}`}
             </p>
           </div>
           <Button variant="ghost" asChild>
@@ -158,16 +165,17 @@ export default function CreateProtocolPage() {
         </div>
 
         {/* Content */}
-        {step === "client" ? (
+        {step === 'client' ? (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
             <div className="max-w-2xl">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                 Select Client
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Choose the client you want to create a protocol for. Clients with existing analyses will be prioritized.
+                Choose the client you want to create a protocol for. Clients
+                with existing analyses will be prioritized.
               </p>
-              
+
               <ClientSelector
                 selectedClientId={initialClientId || undefined}
                 onSelectClient={handleClientSelect}
@@ -186,24 +194,31 @@ export default function CreateProtocolPage() {
                       {clientAnalyses.length > 0 ? (
                         <div>
                           <p className="text-blue-700 dark:text-blue-300 text-sm mb-3">
-                            This client has {clientAnalyses.length} analysis{clientAnalyses.length > 1 ? "es" : ""} available. 
-                            You can create a protocol from scratch or base it on an existing analysis.
+                            This client has {clientAnalyses.length} analysis
+                            {clientAnalyses.length > 1 ? 'es' : ''} available.
+                            You can create a protocol from scratch or base it on
+                            an existing analysis.
                           </p>
                           <div className="space-y-2">
-                            {clientAnalyses.slice(0, 3).map((analysis) => (
+                            {clientAnalyses.slice(0, 3).map(analysis => (
                               <div
                                 key={analysis.id}
                                 className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border"
                               >
                                 <div>
                                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                    Analysis from {new Date(analysis.analysisDate).toLocaleDateString()}
+                                    Analysis from{' '}
+                                    {new Date(
+                                      analysis.analysisDate
+                                    ).toLocaleDateString()}
                                   </p>
                                   <p className="text-xs text-gray-600 dark:text-gray-400">
-                                    {analysis.executiveSummary ? 
-                                      analysis.executiveSummary.substring(0, 80) + "..." :
-                                      "Click to use this analysis"
-                                    }
+                                    {analysis.executiveSummary
+                                      ? analysis.executiveSummary.substring(
+                                          0,
+                                          80
+                                        ) + '...'
+                                      : 'Click to use this analysis'}
                                   </p>
                                 </div>
                                 <Button
@@ -211,7 +226,7 @@ export default function CreateProtocolPage() {
                                   variant="outline"
                                   onClick={() => {
                                     setSelectedAnalysisId(analysis.id);
-                                    setStep("builder");
+                                    setStep('builder');
                                   }}
                                 >
                                   Use This Analysis
@@ -222,23 +237,19 @@ export default function CreateProtocolPage() {
                         </div>
                       ) : (
                         <p className="text-blue-700 dark:text-blue-300 text-sm">
-                          No analyses found for this client. You can create a protocol from scratch 
-                          or import a Claude analysis first.
+                          No analyses found for this client. You can create a
+                          protocol from scratch or import a Claude analysis
+                          first.
                         </p>
                       )}
                       <div className="flex gap-2 mt-4">
-                        <Button
-                          onClick={() => setStep("builder")}
-                          size="sm"
-                        >
+                        <Button onClick={() => setStep('builder')} size="sm">
                           Create from Scratch
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          asChild
-                        >
-                          <Link href={`/dashboard/clients/${selectedClient.id}/analysis/import`}>
+                        <Button variant="outline" size="sm" asChild>
+                          <Link
+                            href={`/dashboard/clients/${selectedClient.id}/analysis/import`}
+                          >
                             Import Analysis First
                           </Link>
                         </Button>
@@ -258,13 +269,11 @@ export default function CreateProtocolPage() {
                     Protocol Builder
                   </h2>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Create a personalized protocol for {selectedClient?.firstName} {selectedClient?.lastName}
+                    Create a personalized protocol for{' '}
+                    {selectedClient?.firstName} {selectedClient?.lastName}
                   </p>
                 </div>
-                <Button
-                  variant="ghost"
-                  onClick={() => setStep("client")}
-                >
+                <Button variant="ghost" onClick={() => setStep('client')}>
                   Change Client
                 </Button>
               </div>
@@ -274,7 +283,7 @@ export default function CreateProtocolPage() {
                 <ProtocolBuilder
                   clientId={selectedClient.id}
                   analysisId={selectedAnalysisId}
-                  mode={selectedAnalysisId ? "create-from-analysis" : "create"}
+                  mode={selectedAnalysisId ? 'create-from-analysis' : 'create'}
                   onProtocolCreated={handleProtocolCreated}
                   autoSave={true}
                 />

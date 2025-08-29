@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { X, Upload, FileText, Trash2 } from "lucide-react";
+import { useState } from 'react';
+import { X, Upload, FileText, Trash2 } from 'lucide-react';
 
 interface DocumentUploadModalProps {
   isOpen: boolean;
@@ -22,12 +22,12 @@ export default function DocumentUploadModal({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
-      setSelectedFiles((prev) => [...prev, ...newFiles]);
+      setSelectedFiles(prev => [...prev, ...newFiles]);
     }
   };
 
   const removeFile = (index: number) => {
-    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,7 +41,7 @@ export default function DocumentUploadModal({
       setSelectedFiles([]);
       onClose();
     } catch (error) {
-      console.error("Upload failed:", error);
+      console.error('Upload failed:', error);
     } finally {
       setUploading(false);
     }
@@ -55,10 +55,10 @@ export default function DocumentUploadModal({
   };
 
   const formatFileSize = (bytes: number) => {
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    if (bytes === 0) return "0 Bytes";
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    if (bytes === 0) return '0 Bytes';
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + " " + sizes[i];
+    return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
   if (!isOpen) return null;
@@ -164,9 +164,9 @@ export default function DocumentUploadModal({
             >
               <Upload className="w-4 h-4 mr-2" />
               {uploading
-                ? "Uploading..."
+                ? 'Uploading...'
                 : `Upload ${
-                    selectedFiles.length > 0 ? `(${selectedFiles.length})` : ""
+                    selectedFiles.length > 0 ? `(${selectedFiles.length})` : ''
                   }`}
             </button>
           </div>

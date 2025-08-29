@@ -9,26 +9,26 @@
  * - GET: Retrieve existing export or generate if not exists
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { verifyAuthToken } from "@/lib/auth";
-import { TimelineAnalysisService } from "@/lib/services/timeline-analysis";
-import { TimelineMarkdownGenerator } from "@/lib/services/timeline-markdown-generator";
-import { z } from "zod";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { verifyAuthToken } from '@/lib/auth';
+import { TimelineAnalysisService } from '@/lib/services/timeline-analysis';
+import { TimelineMarkdownGenerator } from '@/lib/services/timeline-markdown-generator';
+import { z } from 'zod';
 
 // Validation schema for timeline export requests
 const timelineExportSchema = z.object({
   timelineType: z
     .enum([
-      "COMPREHENSIVE",
-      "FOCUSED",
-      "SYMPTOMS",
-      "TREATMENTS",
-      "ASSESSMENTS",
-      "PROTOCOL_DEVELOPMENT",
+      'COMPREHENSIVE',
+      'FOCUSED',
+      'SYMPTOMS',
+      'TREATMENTS',
+      'ASSESSMENTS',
+      'PROTOCOL_DEVELOPMENT',
     ])
-    .default("COMPREHENSIVE"),
-  format: z.enum(["markdown", "json"]).default("markdown"),
+    .default('COMPREHENSIVE'),
+  format: z.enum(['markdown', 'json']).default('markdown'),
   includeMetadata: z.boolean().default(true),
 
   // Granular control options
@@ -66,7 +66,7 @@ export async function POST(
     });
 
     if (!client) {
-      return NextResponse.json({ error: "Client not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
     // Parse and validate request body
@@ -78,12 +78,12 @@ export async function POST(
       where: {
         clientId,
         exportType: validatedData.timelineType,
-        status: "COMPLETED",
+        status: 'COMPLETED',
         createdAt: {
           gte: new Date(Date.now() - 60 * 60 * 1000), // 1 hour ago
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
 
     if (existingExport && existingExport.markdownContent) {
@@ -100,12 +100,12 @@ export async function POST(
       data: {
         clientId,
         exportType: validatedData.timelineType,
-        status: "PENDING",
+        status: 'PENDING',
         requestedBy: user.id,
         fileName: `${client.firstName}-${
           client.lastName
         }-timeline-${Date.now()}.md`,
-        analysisVersion: "v1.0",
+        analysisVersion: 'v1.0',
         hipaaRelevant: true,
       },
     });
@@ -113,7 +113,7 @@ export async function POST(
     // Update status to processing
     await prisma.timelineExport.update({
       where: { id: timelineExport.id },
-      data: { status: "PROCESSING" },
+      data: { status: 'PROCESSING' },
     });
 
     try {
@@ -159,7 +159,7 @@ export async function POST(
           suboptimalValues: analysis.labAnalysis.summary.suboptimalValues,
           optimalValues: analysis.labAnalysis.summary.optimalValues,
           systemsAnalyzed: analysis.labAnalysis.summary.systemsAnalyzed,
-          systemStatuses: analysis.labAnalysis.systemAnalyses.map((system) => ({
+          systemStatuses: analysis.labAnalysis.systemAnalyses.map(system => ({
             system: system.systemName,
             category: system.category,
             status: system.overallStatus,
@@ -170,7 +170,7 @@ export async function POST(
           protocolPriorities:
             analysis.labAnalysis.protocolInsights.immediatePriorities.length,
           fmRangesApplied: true,
-          analysisVersion: "v2.0-functional-medicine",
+          analysisVersion: 'v2.0-functional-medicine',
         };
         console.log(
           `🔬 Lab analysis complete: ${analysis.labAnalysis.summary.totalTests} tests, ${analysis.labAnalysis.summary.systemsAnalyzed} systems`
@@ -192,7 +192,7 @@ export async function POST(
           overallHealthScore:
             analysis.assessmentAnalysis.summary.overallHealthScore,
           systemStatuses: analysis.assessmentAnalysis.systemAnalyses.map(
-            (system) => ({
+            system => ({
               system: system.systemName,
               systemFocus: system.systemFocus,
               overallScore: system.overallScore,
@@ -217,7 +217,7 @@ export async function POST(
               analysis.assessmentAnalysis.interventionMatrix.phase3.length,
           },
           fmCategoriesApplied: true,
-          analysisVersion: "v3.0-assessment-categorization",
+          analysisVersion: 'v3.0-assessment-categorization',
         };
         console.log(
           `🎯 Assessment analysis complete: ${analysis.assessmentAnalysis.summary.totalCategories} categories, ${analysis.assessmentAnalysis.summary.systemsAnalyzed} systems`
@@ -228,7 +228,7 @@ export async function POST(
       const completedExport = await prisma.timelineExport.update({
         where: { id: timelineExport.id },
         data: {
-          status: "COMPLETED",
+          status: 'COMPLETED',
           timelineData: analysis as any, // Store full analysis as JSON
           criticalFindings: analysis.criticalFindings as any,
           labAnalysisData: labAnalysisData as any, // Enhanced lab analysis tracking
@@ -243,12 +243,12 @@ export async function POST(
           processingTime,
           analysisVersion:
             analysis.assessmentAnalysis && analysis.labAnalysis
-              ? "v3.0-comprehensive-enhanced"
+              ? 'v3.0-comprehensive-enhanced'
               : analysis.assessmentAnalysis
-              ? "v3.0-assessment-enhanced"
-              : analysis.labAnalysis
-              ? "v2.0-lab-enhanced"
-              : "v1.0",
+                ? 'v3.0-assessment-enhanced'
+                : analysis.labAnalysis
+                  ? 'v2.0-lab-enhanced'
+                  : 'v1.0',
         },
       });
 
@@ -257,7 +257,7 @@ export async function POST(
       );
 
       // Return appropriate format
-      if (validatedData.format === "json") {
+      if (validatedData.format === 'json') {
         return NextResponse.json({
           export: completedExport,
           analysis: validatedData.includeMetadata ? analysis : undefined,
@@ -269,24 +269,24 @@ export async function POST(
       return new NextResponse(markdownContent, {
         status: 200,
         headers: {
-          "Content-Type": "text/markdown; charset=utf-8",
-          "Content-Disposition": `attachment; filename="${completedExport.fileName}"`,
-          "X-Export-ID": completedExport.id,
-          "X-Processing-Time": processingTime.toString(),
+          'Content-Type': 'text/markdown; charset=utf-8',
+          'Content-Disposition': `attachment; filename="${completedExport.fileName}"`,
+          'X-Export-ID': completedExport.id,
+          'X-Processing-Time': processingTime.toString(),
         },
       });
     } catch (analysisError) {
-      console.error("Timeline analysis failed:", analysisError);
+      console.error('Timeline analysis failed:', analysisError);
 
       // Update export record with error
       await prisma.timelineExport.update({
         where: { id: timelineExport.id },
         data: {
-          status: "FAILED",
+          status: 'FAILED',
           errorMessage:
             analysisError instanceof Error
               ? analysisError.message
-              : "Analysis failed",
+              : 'Analysis failed',
           processingTime: Date.now() - startTime,
         },
       });
@@ -294,13 +294,13 @@ export async function POST(
       throw analysisError;
     }
   } catch (error) {
-    console.error("Timeline export error:", error);
+    console.error('Timeline export error:', error);
 
     // Handle authentication errors
     if (
       error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
+      (error.message.includes('authorization') ||
+        error.message.includes('token'))
     ) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
@@ -309,8 +309,8 @@ export async function POST(
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: "Invalid request parameters",
-          details: error.errors.map((e) => `${e.path.join(".")}: ${e.message}`),
+          error: 'Invalid request parameters',
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`),
         },
         { status: 400 }
       );
@@ -319,8 +319,8 @@ export async function POST(
     // Generic server error
     return NextResponse.json(
       {
-        error: "Timeline export failed",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: 'Timeline export failed',
+        details: error instanceof Error ? error.message : 'Unknown error',
         processingTime: Date.now() - startTime,
       },
       { status: 500 }
@@ -340,9 +340,9 @@ export async function GET(
     // Parse query parameters
     const searchParams = request.nextUrl.searchParams;
     const timelineType =
-      (searchParams.get("timelineType") as any) || "COMPREHENSIVE";
-    const format = searchParams.get("format") || "markdown";
-    const exportId = searchParams.get("exportId");
+      (searchParams.get('timelineType') as any) || 'COMPREHENSIVE';
+    const format = searchParams.get('format') || 'markdown';
+    const exportId = searchParams.get('exportId');
 
     // Validate client exists
     const client = await prisma.client.findUnique({
@@ -351,7 +351,7 @@ export async function GET(
     });
 
     if (!client) {
-      return NextResponse.json({ error: "Client not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
     // Get specific export if ID provided
@@ -365,12 +365,12 @@ export async function GET(
 
       if (!specificExport) {
         return NextResponse.json(
-          { error: "Export not found" },
+          { error: 'Export not found' },
           { status: 404 }
         );
       }
 
-      if (specificExport.status !== "COMPLETED") {
+      if (specificExport.status !== 'COMPLETED') {
         return NextResponse.json({
           export: specificExport,
           message: `Export status: ${specificExport.status}`,
@@ -378,7 +378,7 @@ export async function GET(
       }
 
       // Return specific export
-      if (format === "json") {
+      if (format === 'json') {
         return NextResponse.json({
           export: specificExport,
           analysis: specificExport.timelineData,
@@ -388,9 +388,9 @@ export async function GET(
       return new NextResponse(specificExport.markdownContent, {
         status: 200,
         headers: {
-          "Content-Type": "text/markdown; charset=utf-8",
-          "Content-Disposition": `attachment; filename="${specificExport.fileName}"`,
-          "X-Export-ID": specificExport.id,
+          'Content-Type': 'text/markdown; charset=utf-8',
+          'Content-Disposition': `attachment; filename="${specificExport.fileName}"`,
+          'X-Export-ID': specificExport.id,
         },
       });
     }
@@ -400,14 +400,14 @@ export async function GET(
       where: {
         clientId,
         exportType: timelineType,
-        status: "COMPLETED",
+        status: 'COMPLETED',
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
 
     if (recentExport) {
       // Return existing export
-      if (format === "json") {
+      if (format === 'json') {
         return NextResponse.json({
           export: recentExport,
           analysis: recentExport.timelineData,
@@ -418,17 +418,17 @@ export async function GET(
       return new NextResponse(recentExport.markdownContent, {
         status: 200,
         headers: {
-          "Content-Type": "text/markdown; charset=utf-8",
-          "Content-Disposition": `attachment; filename="${recentExport.fileName}"`,
-          "X-Export-ID": recentExport.id,
-          "X-From-Cache": "true",
+          'Content-Type': 'text/markdown; charset=utf-8',
+          'Content-Disposition': `attachment; filename="${recentExport.fileName}"`,
+          'X-Export-ID': recentExport.id,
+          'X-From-Cache': 'true',
         },
       });
     }
 
     // No existing export, generate new one
     const generateRequest = new Request(request.url, {
-      method: "POST",
+      method: 'POST',
       headers: request.headers,
       body: JSON.stringify({
         timelineType,
@@ -439,21 +439,21 @@ export async function GET(
 
     return await this.POST(generateRequest, { params });
   } catch (error) {
-    console.error("Timeline export GET error:", error);
+    console.error('Timeline export GET error:', error);
 
     // Handle authentication errors
     if (
       error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
+      (error.message.includes('authorization') ||
+        error.message.includes('token'))
     ) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
     return NextResponse.json(
       {
-        error: "Failed to retrieve timeline export",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: 'Failed to retrieve timeline export',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -471,11 +471,11 @@ export async function DELETE(
     const { clientId } = await params;
 
     const searchParams = request.nextUrl.searchParams;
-    const exportId = searchParams.get("exportId");
+    const exportId = searchParams.get('exportId');
 
     if (!exportId) {
       return NextResponse.json(
-        { error: "Export ID is required" },
+        { error: 'Export ID is required' },
         { status: 400 }
       );
     }
@@ -487,7 +487,7 @@ export async function DELETE(
     });
 
     if (!client) {
-      return NextResponse.json({ error: "Client not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
     // Delete the export
@@ -499,7 +499,7 @@ export async function DELETE(
     });
 
     return NextResponse.json({
-      message: "Timeline export deleted successfully",
+      message: 'Timeline export deleted successfully',
       deletedExport: {
         id: deletedExport.id,
         fileName: deletedExport.fileName,
@@ -507,13 +507,13 @@ export async function DELETE(
       },
     });
   } catch (error) {
-    console.error("Timeline export DELETE error:", error);
+    console.error('Timeline export DELETE error:', error);
 
     // Handle authentication errors
     if (
       error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
+      (error.message.includes('authorization') ||
+        error.message.includes('token'))
     ) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
@@ -521,18 +521,18 @@ export async function DELETE(
     // Handle record not found
     if (
       error instanceof Error &&
-      error.message.includes("Record to delete does not exist")
+      error.message.includes('Record to delete does not exist')
     ) {
       return NextResponse.json(
-        { error: "Export not found or already deleted" },
+        { error: 'Export not found or already deleted' },
         { status: 404 }
       );
     }
 
     return NextResponse.json(
       {
-        error: "Failed to delete timeline export",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: 'Failed to delete timeline export',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

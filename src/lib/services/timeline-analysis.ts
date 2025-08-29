@@ -11,40 +11,40 @@
  * - Multiple timeline types (comprehensive, focused, symptoms, etc.)
  */
 
-import { prisma } from "@/lib/db";
-import type { TimelineType } from "@prisma/client";
-import { ProtocolTimelineGenerator } from "./protocol-timeline-generator";
+import { prisma } from '@/lib/db';
+import type { TimelineType } from '@prisma/client';
+import { ProtocolTimelineGenerator } from './protocol-timeline-generator';
 import {
   functionalMedicineLabAnalysis,
   type LabAnalysisReport,
-} from "./functional-medicine-lab-analysis";
+} from './functional-medicine-lab-analysis';
 import {
   functionalMedicineAssessmentAnalysis,
   type AssessmentAnalysisReport,
-} from "./functional-medicine-assessment-analysis";
+} from './functional-medicine-assessment-analysis';
 
 interface TimelineEvent {
   id: string;
   date: Date;
-  type: "assessment" | "document" | "note" | "protocol" | "status_change";
+  type: 'assessment' | 'document' | 'note' | 'protocol' | 'status_change';
   category: string;
   title: string;
   description: string;
-  severity?: "low" | "moderate" | "high" | "critical";
+  severity?: 'low' | 'moderate' | 'high' | 'critical';
   findings?: any;
   metadata?: Record<string, any>;
 }
 
 interface CriticalFinding {
   id: string;
-  category: "symptom" | "biomarker" | "trend" | "risk_factor";
-  severity: "moderate" | "high" | "critical";
+  category: 'symptom' | 'biomarker' | 'trend' | 'risk_factor';
+  severity: 'moderate' | 'high' | 'critical';
   title: string;
   description: string;
   firstObserved: Date;
   lastObserved: Date;
   frequency: number;
-  trend?: "improving" | "worsening" | "stable";
+  trend?: 'improving' | 'worsening' | 'stable';
   relatedEvents: string[];
 }
 
@@ -94,7 +94,7 @@ export class TimelineAnalysisService {
    */
   static async generateTimelineAnalysis(
     clientId: string,
-    timelineType: TimelineType = "COMPREHENSIVE",
+    timelineType: TimelineType = 'COMPREHENSIVE',
     options: TimelineOptions = {}
   ): Promise<TimelineAnalysis> {
     const startTime = Date.now();
@@ -108,7 +108,7 @@ export class TimelineAnalysisService {
       }
 
       // Handle protocol development timeline type with specialized generator
-      if (timelineType === "PROTOCOL_DEVELOPMENT") {
+      if (timelineType === 'PROTOCOL_DEVELOPMENT') {
         return await this.generateProtocolDevelopmentAnalysis(
           clientData,
           options
@@ -169,19 +169,19 @@ export class TimelineAnalysisService {
       // Track which data sources were included
       const dataSourcesIncluded = [];
       if (options.includeAssessments !== false)
-        dataSourcesIncluded.push("Assessments");
+        dataSourcesIncluded.push('Assessments');
       if (options.includeDocuments !== false)
-        dataSourcesIncluded.push("Documents");
+        dataSourcesIncluded.push('Documents');
       if (options.includeMedicalDocuments !== false)
-        dataSourcesIncluded.push("Medical Documents");
+        dataSourcesIncluded.push('Medical Documents');
       if (options.includeNotes !== false)
-        dataSourcesIncluded.push("Clinical Notes");
+        dataSourcesIncluded.push('Clinical Notes');
       if (options.includeProtocols !== false)
-        dataSourcesIncluded.push("Protocols");
+        dataSourcesIncluded.push('Protocols');
       if (options.includeStatusChanges !== false)
-        dataSourcesIncluded.push("Status Changes");
+        dataSourcesIncluded.push('Status Changes');
       if (options.includeAIAnalyses !== false)
-        dataSourcesIncluded.push("AI Analyses");
+        dataSourcesIncluded.push('AI Analyses');
 
       const analysis: TimelineAnalysis = {
         clientId,
@@ -199,12 +199,12 @@ export class TimelineAnalysisService {
         assessmentAnalysis, // Enhanced functional medicine assessment analysis
         analysisVersion:
           assessmentAnalysis && labAnalysis
-            ? "v3.0-comprehensive-enhanced"
+            ? 'v3.0-comprehensive-enhanced'
             : assessmentAnalysis
-            ? "v3.0-assessment-enhanced"
-            : labAnalysis
-            ? "v2.0-lab-enhanced"
-            : "v1.0",
+              ? 'v3.0-assessment-enhanced'
+              : labAnalysis
+                ? 'v2.0-lab-enhanced'
+                : 'v1.0',
         generatedAt: new Date(),
         dataSourcesIncluded,
       };
@@ -217,10 +217,10 @@ export class TimelineAnalysisService {
 
       return analysis;
     } catch (error) {
-      console.error("Timeline analysis generation failed:", error);
+      console.error('Timeline analysis generation failed:', error);
       throw new Error(
         `Failed to generate timeline analysis: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message : 'Unknown error'
         }`
       );
     }
@@ -253,32 +253,32 @@ export class TimelineAnalysisService {
       timelineData.assessments = this.filterByDateRange(
         timelineData.assessments,
         options.dateRange,
-        "startedAt"
+        'startedAt'
       );
       timelineData.protocols = this.filterByDateRange(
         timelineData.protocols,
         options.dateRange,
-        "createdAt"
+        'createdAt'
       );
       timelineData.clinicalNotes = this.filterByDateRange(
         timelineData.clinicalNotes,
         options.dateRange,
-        "createdAt"
+        'createdAt'
       );
       timelineData.statusChanges = this.filterByDateRange(
         timelineData.statusChanges,
         options.dateRange,
-        "createdAt"
+        'createdAt'
       );
       timelineData.aiAnalyses = this.filterByDateRange(
         timelineData.aiAnalyses,
         options.dateRange,
-        "analysisDate"
+        'analysisDate'
       );
       timelineData.medicalDocuments = this.filterByDateRange(
         timelineData.medicalDocuments,
         options.dateRange,
-        "uploadDate"
+        'uploadDate'
       );
     }
 
@@ -301,19 +301,19 @@ export class TimelineAnalysisService {
     // Track data sources
     const dataSourcesIncluded = [];
     if (timelineData.assessments.length > 0)
-      dataSourcesIncluded.push("Assessments");
+      dataSourcesIncluded.push('Assessments');
     if (timelineData.medicalDocuments.length > 0)
-      dataSourcesIncluded.push("Medical Documents");
+      dataSourcesIncluded.push('Medical Documents');
     if (timelineData.labResults.length > 0)
-      dataSourcesIncluded.push("Lab Results");
+      dataSourcesIncluded.push('Lab Results');
     if (timelineData.clinicalNotes.length > 0)
-      dataSourcesIncluded.push("Clinical Notes");
+      dataSourcesIncluded.push('Clinical Notes');
     if (timelineData.protocols.length > 0)
-      dataSourcesIncluded.push("Protocols");
+      dataSourcesIncluded.push('Protocols');
     if (timelineData.statusChanges.length > 0)
-      dataSourcesIncluded.push("Status Changes");
+      dataSourcesIncluded.push('Status Changes');
     if (timelineData.aiAnalyses.length > 0)
-      dataSourcesIncluded.push("AI Analyses");
+      dataSourcesIncluded.push('AI Analyses');
 
     // Return in TimelineAnalysis format for consistency
     return {
@@ -331,7 +331,7 @@ export class TimelineAnalysisService {
       events: [], // Protocol development doesn't use standard events format
       criticalFindings: [], // Handled within protocol markdown
       healthPhases: [], // Handled within protocol markdown
-      analysisVersion: "v2.0-protocol-development",
+      analysisVersion: 'v2.0-protocol-development',
       generatedAt: new Date(),
       dataSourcesIncluded,
       protocolMarkdown, // Add the generated protocol markdown
@@ -342,7 +342,7 @@ export class TimelineAnalysisService {
    * Extract lab results from medical documents
    */
   private static extractLabResults(medicalDocuments: any[]): any[] {
-    return medicalDocuments.flatMap((doc) =>
+    return medicalDocuments.flatMap(doc =>
       (doc.labValues || []).map((lab: any) => ({
         ...lab,
         testDate: lab.collectionDate || doc.uploadDate,
@@ -358,7 +358,7 @@ export class TimelineAnalysisService {
     dateRange: { startDate: Date; endDate: Date },
     dateField: string
   ): any[] {
-    return items.filter((item) => {
+    return items.filter(item => {
       const itemDate = new Date(item[dateField]);
       return itemDate >= dateRange.startDate && itemDate <= dateRange.endDate;
     });
@@ -418,45 +418,45 @@ export class TimelineAnalysisService {
           include: {
             responses: true,
           },
-          orderBy: { startedAt: "asc" },
+          orderBy: { startedAt: 'asc' },
         },
 
         // Documents and analysis
         documents: {
-          orderBy: { uploadedAt: "asc" },
+          orderBy: { uploadedAt: 'asc' },
         },
         medicalDocuments: {
           include: {
             analysis: true,
             labValues: true,
           },
-          orderBy: { uploadDate: "asc" },
+          orderBy: { uploadDate: 'asc' },
         },
 
         // Notes (clinical observations)
         notes: {
-          orderBy: { createdAt: "asc" },
+          orderBy: { createdAt: 'asc' },
         },
 
         // Status changes
         statuses: {
-          orderBy: { createdAt: "asc" },
+          orderBy: { createdAt: 'asc' },
         },
 
         // Protocols and treatments
         protocols: {
-          orderBy: { createdAt: "asc" },
+          orderBy: { createdAt: 'asc' },
         },
         enhancedProtocols: {
           include: {
             protocolSupplements: true,
           },
-          orderBy: { createdAt: "asc" },
+          orderBy: { createdAt: 'asc' },
         },
 
         // AI analyses
         clientAnalyses: {
-          orderBy: { analysisDate: "asc" },
+          orderBy: { analysisDate: 'asc' },
         },
       },
     });
@@ -490,10 +490,10 @@ export class TimelineAnalysisService {
         events.push({
           id: `assessment-${assessment.id}`,
           date: assessment.startedAt,
-          type: "assessment",
-          category: "Health Assessment",
+          type: 'assessment',
+          category: 'Health Assessment',
           title: `${
-            assessment.status === "completed" ? "Completed" : "Started"
+            assessment.status === 'completed' ? 'Completed' : 'Started'
           } Health Assessment`,
           description: `Assessment ${assessment.status} with ${
             assessment.responses?.length || 0
@@ -518,13 +518,13 @@ export class TimelineAnalysisService {
         events.push({
           id: `document-${doc.id}`,
           date: doc.uploadedAt,
-          type: "document",
-          category: doc.documentType || "Unknown Document",
+          type: 'document',
+          category: doc.documentType || 'Unknown Document',
           title: `Document Uploaded: ${doc.fileName}`,
           description: `${
-            doc.documentType || "Document"
+            doc.documentType || 'Document'
           } uploaded - ${this.formatFileSize(doc.fileSize)}`,
-          severity: doc.analysisStatus === "FAILED" ? "high" : "low",
+          severity: doc.analysisStatus === 'FAILED' ? 'high' : 'low',
           findings: {
             documentType: doc.documentType,
             analysisStatus: doc.analysisStatus,
@@ -548,16 +548,16 @@ export class TimelineAnalysisService {
         events.push({
           id: `medical-${medDoc.id}`,
           date: medDoc.uploadDate,
-          type: "document",
-          category: "Medical Document",
+          type: 'document',
+          category: 'Medical Document',
           title: `Lab Results: ${medDoc.originalFileName}`,
           description: `${medDoc.documentType} processed - ${labValueCount} lab values extracted`,
           severity:
-            medDoc.status === "FAILED"
-              ? "high"
+            medDoc.status === 'FAILED'
+              ? 'high'
               : labValueCount > 0
-              ? "moderate"
-              : "low",
+                ? 'moderate'
+                : 'low',
           findings: {
             status: medDoc.status,
             labValueCount,
@@ -580,15 +580,15 @@ export class TimelineAnalysisService {
         events.push({
           id: `note-${note.id}`,
           date: note.createdAt,
-          type: "note",
+          type: 'note',
           category: `${note.noteType} Note`,
           title: note.title || `${note.noteType} Session`,
           description: this.extractNoteDescription(note),
           severity: note.isImportant
-            ? "high"
+            ? 'high'
             : note.followUpNeeded
-            ? "moderate"
-            : "low",
+              ? 'moderate'
+              : 'low',
           findings: {
             noteType: note.noteType,
             isImportant: note.isImportant,
@@ -611,9 +611,9 @@ export class TimelineAnalysisService {
         events.push({
           id: `status-${status.id}`,
           date: status.createdAt,
-          type: "status_change",
-          category: "Status Update",
-          title: `Status: ${status.status.replace("_", " ").toLowerCase()}`,
+          type: 'status_change',
+          category: 'Status Update',
+          title: `Status: ${status.status.replace('_', ' ').toLowerCase()}`,
           description:
             status.notes || `Client status changed to ${status.status}`,
           severity: this.getStatusSeverity(status.status),
@@ -637,13 +637,13 @@ export class TimelineAnalysisService {
         events.push({
           id: `protocol-${protocol.id}`,
           date: protocol.createdAt,
-          type: "protocol",
-          category: "Treatment Protocol",
+          type: 'protocol',
+          category: 'Treatment Protocol',
           title: protocol.protocolName,
           description: `Protocol ${protocol.status} - ${
             Object.keys(protocol.supplements || {}).length
           } supplements`,
-          severity: protocol.status === "active" ? "moderate" : "low",
+          severity: protocol.status === 'active' ? 'moderate' : 'low',
           findings: {
             status: protocol.status,
             supplementCount: Object.keys(protocol.supplements || {}).length,
@@ -664,13 +664,13 @@ export class TimelineAnalysisService {
         events.push({
           id: `enhanced-protocol-${enhProtocol.id}`,
           date: enhProtocol.createdAt,
-          type: "protocol",
-          category: "Enhanced Protocol",
+          type: 'protocol',
+          category: 'Enhanced Protocol',
           title: enhProtocol.protocolName,
           description: `${
-            enhProtocol.protocolPhase || "Protocol"
+            enhProtocol.protocolPhase || 'Protocol'
           } - ${supplementCount} supplements`,
-          severity: enhProtocol.currentStatus === "active" ? "moderate" : "low",
+          severity: enhProtocol.currentStatus === 'active' ? 'moderate' : 'low',
           findings: {
             status: enhProtocol.currentStatus,
             phase: enhProtocol.protocolPhase,
@@ -692,13 +692,13 @@ export class TimelineAnalysisService {
         events.push({
           id: `analysis-${analysis.id}`,
           date: analysis.analysisDate,
-          type: "assessment",
-          category: "AI Analysis",
+          type: 'assessment',
+          category: 'AI Analysis',
           title: `AI Health Analysis (${analysis.analysisVersion})`,
           description:
             analysis.executiveSummary ||
-            "Comprehensive AI health analysis completed",
-          severity: "high",
+            'Comprehensive AI health analysis completed',
+          severity: 'high',
           findings: {
             version: analysis.analysisVersion,
             status: analysis.status,
@@ -714,9 +714,7 @@ export class TimelineAnalysisService {
       }
     }
 
-    return events.filter((event) =>
-      this.shouldIncludeEvent(event, timelineType)
-    );
+    return events.filter(event => this.shouldIncludeEvent(event, timelineType));
   }
 
   /**
@@ -727,40 +725,40 @@ export class TimelineAnalysisService {
     timelineType: TimelineType
   ): boolean {
     switch (timelineType) {
-      case "FOCUSED":
+      case 'FOCUSED':
         return (
-          event.severity === "high" ||
-          event.severity === "critical" ||
-          event.type === "protocol" ||
-          event.type === "assessment"
+          event.severity === 'high' ||
+          event.severity === 'critical' ||
+          event.type === 'protocol' ||
+          event.type === 'assessment'
         );
 
-      case "SYMPTOMS":
+      case 'SYMPTOMS':
         return (
-          event.category.toLowerCase().includes("symptom") ||
-          event.description.toLowerCase().includes("symptom") ||
-          event.type === "note"
+          event.category.toLowerCase().includes('symptom') ||
+          event.description.toLowerCase().includes('symptom') ||
+          event.type === 'note'
         );
 
-      case "TREATMENTS":
+      case 'TREATMENTS':
         return (
-          event.type === "protocol" ||
-          event.category.toLowerCase().includes("treatment") ||
-          event.category.toLowerCase().includes("protocol")
+          event.type === 'protocol' ||
+          event.category.toLowerCase().includes('treatment') ||
+          event.category.toLowerCase().includes('protocol')
         );
 
-      case "ASSESSMENTS":
+      case 'ASSESSMENTS':
         return (
-          event.type === "assessment" ||
-          event.category.toLowerCase().includes("analysis") ||
-          event.category.toLowerCase().includes("assessment")
+          event.type === 'assessment' ||
+          event.category.toLowerCase().includes('analysis') ||
+          event.category.toLowerCase().includes('assessment')
         );
 
-      case "PROTOCOL_DEVELOPMENT":
+      case 'PROTOCOL_DEVELOPMENT':
         // For protocol development, include all relevant data for comprehensive analysis
         return true;
 
-      case "COMPREHENSIVE":
+      case 'COMPREHENSIVE':
       default:
         return true;
     }
@@ -784,29 +782,29 @@ export class TimelineAnalysisService {
         const lastEvent = categoryEvents[categoryEvents.length - 1];
 
         findings.push({
-          id: `pattern-${category.toLowerCase().replace(/\s+/g, "-")}`,
-          category: "trend",
-          severity: "moderate",
+          id: `pattern-${category.toLowerCase().replace(/\s+/g, '-')}`,
+          category: 'trend',
+          severity: 'moderate',
           title: `Recurring ${category} Issues`,
           description: `Multiple ${category.toLowerCase()} events observed over time`,
           firstObserved: firstEvent.date,
           lastObserved: lastEvent.date,
           frequency: categoryEvents.length,
           trend: this.determineTrend(categoryEvents),
-          relatedEvents: categoryEvents.map((e) => e.id),
+          relatedEvents: categoryEvents.map(e => e.id),
         });
       }
     }
 
     // Identify high-severity events as critical findings
     const highSeverityEvents = events.filter(
-      (e) => e.severity === "high" || e.severity === "critical"
+      e => e.severity === 'high' || e.severity === 'critical'
     );
     for (const event of highSeverityEvents) {
       findings.push({
         id: `critical-${event.id}`,
-        category: "risk_factor",
-        severity: event.severity === "critical" ? "critical" : "high",
+        category: 'risk_factor',
+        severity: event.severity === 'critical' ? 'critical' : 'high',
         title: event.title,
         description: event.description,
         firstObserved: event.date,
@@ -835,39 +833,39 @@ export class TimelineAnalysisService {
 
     // Simple phase identification based on major events
     const majorEvents = events.filter(
-      (e) =>
-        e.type === "protocol" ||
-        e.type === "assessment" ||
-        e.severity === "high" ||
-        e.severity === "critical"
+      e =>
+        e.type === 'protocol' ||
+        e.type === 'assessment' ||
+        e.severity === 'high' ||
+        e.severity === 'critical'
     );
 
     if (majorEvents.length > 0) {
       phases.push({
-        phase: "Initial Assessment",
+        phase: 'Initial Assessment',
         startDate: events[0].date,
         endDate: majorEvents[0]?.date,
-        description: "Initial health assessment and data collection phase",
-        keyEvents: events.slice(0, 3).map((e) => e.id),
+        description: 'Initial health assessment and data collection phase',
+        keyEvents: events.slice(0, 3).map(e => e.id),
       });
 
       if (majorEvents.length > 1) {
         phases.push({
-          phase: "Active Treatment",
+          phase: 'Active Treatment',
           startDate: majorEvents[0].date,
           endDate: majorEvents[majorEvents.length - 1].date,
-          description: "Treatment protocol implementation and monitoring",
-          keyEvents: majorEvents.map((e) => e.id),
+          description: 'Treatment protocol implementation and monitoring',
+          keyEvents: majorEvents.map(e => e.id),
         });
       }
 
       if (events.length > majorEvents.length) {
         phases.push({
-          phase: "Ongoing Monitoring",
+          phase: 'Ongoing Monitoring',
           startDate:
             majorEvents[majorEvents.length - 1]?.date || events[0].date,
-          description: "Continued monitoring and protocol adjustments",
-          keyEvents: events.slice(-3).map((e) => e.id),
+          description: 'Continued monitoring and protocol adjustments',
+          keyEvents: events.slice(-3).map(e => e.id),
         });
       }
     }
@@ -879,11 +877,11 @@ export class TimelineAnalysisService {
    * Helper methods
    */
   private static formatFileSize(bytes: number): string {
-    if (bytes === 0) return "0 Bytes";
+    if (bytes === 0) return '0 Bytes';
     const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
   private static extractNoteDescription(note: any): string {
@@ -893,38 +891,41 @@ export class TimelineAnalysisService {
     if (note.goals) parts.push(`Goals: ${note.goals.slice(0, 100)}`);
     if (note.generalNotes) parts.push(note.generalNotes.slice(0, 100));
 
-    return parts.join(" | ") || "Clinical note recorded";
+    return parts.join(' | ') || 'Clinical note recorded';
   }
 
   private static getStatusSeverity(
     status: string
-  ): "low" | "moderate" | "high" | "critical" {
-    const highSeverityStatuses = ["DOCS_UPLOADED", "SCHEDULED", "ONGOING"];
+  ): 'low' | 'moderate' | 'high' | 'critical' {
+    const highSeverityStatuses = ['DOCS_UPLOADED', 'SCHEDULED', 'ONGOING'];
     const moderateSeverityStatuses = [
-      "ASSESSMENT_COMPLETED",
-      "INITIAL_INTERVIEW_COMPLETED",
+      'ASSESSMENT_COMPLETED',
+      'INITIAL_INTERVIEW_COMPLETED',
     ];
 
-    if (highSeverityStatuses.includes(status)) return "high";
-    if (moderateSeverityStatuses.includes(status)) return "moderate";
-    return "low";
+    if (highSeverityStatuses.includes(status)) return 'high';
+    if (moderateSeverityStatuses.includes(status)) return 'moderate';
+    return 'low';
   }
 
   private static groupEventsByCategory(
     events: TimelineEvent[]
   ): Record<string, TimelineEvent[]> {
-    return events.reduce((groups, event) => {
-      const category = event.category;
-      if (!groups[category]) groups[category] = [];
-      groups[category].push(event);
-      return groups;
-    }, {} as Record<string, TimelineEvent[]>);
+    return events.reduce(
+      (groups, event) => {
+        const category = event.category;
+        if (!groups[category]) groups[category] = [];
+        groups[category].push(event);
+        return groups;
+      },
+      {} as Record<string, TimelineEvent[]>
+    );
   }
 
   private static determineTrend(
     events: TimelineEvent[]
-  ): "improving" | "worsening" | "stable" {
-    if (events.length < 2) return "stable";
+  ): 'improving' | 'worsening' | 'stable' {
+    if (events.length < 2) return 'stable';
 
     // Simple trend analysis based on event severity over time
     const recentEvents = events.slice(-3);
@@ -933,17 +934,17 @@ export class TimelineAnalysisService {
     const recentSeverityScore =
       recentEvents.reduce((score, event) => {
         const severityScores = { low: 1, moderate: 2, high: 3, critical: 4 };
-        return score + (severityScores[event.severity || "low"] || 1);
+        return score + (severityScores[event.severity || 'low'] || 1);
       }, 0) / recentEvents.length;
 
     const olderSeverityScore =
       olderEvents.reduce((score, event) => {
         const severityScores = { low: 1, moderate: 2, high: 3, critical: 4 };
-        return score + (severityScores[event.severity || "low"] || 1);
+        return score + (severityScores[event.severity || 'low'] || 1);
       }, 0) / olderEvents.length;
 
-    if (recentSeverityScore < olderSeverityScore - 0.5) return "improving";
-    if (recentSeverityScore > olderSeverityScore + 0.5) return "worsening";
-    return "stable";
+    if (recentSeverityScore < olderSeverityScore - 0.5) return 'improving';
+    if (recentSeverityScore > olderSeverityScore + 0.5) return 'worsening';
+    return 'stable';
   }
 }

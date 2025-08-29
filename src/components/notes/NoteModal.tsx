@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { X, Save, Star, AlertCircle, Trash2 } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { X, Save, Star, AlertCircle, Trash2 } from 'lucide-react';
 
 interface Note {
   id?: string;
-  noteType: "INTERVIEW" | "COACHING";
+  noteType: 'INTERVIEW' | 'COACHING';
   title?: string;
   chiefComplaints?: string;
   healthHistory?: string;
@@ -23,23 +23,23 @@ interface Note {
 interface NoteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (note: Omit<Note, "id">) => void;
+  onSubmit: (note: Omit<Note, 'id'>) => void;
   onDelete?: (noteId: string) => void;
   clientId: string;
-  noteType: "INTERVIEW" | "COACHING";
+  noteType: 'INTERVIEW' | 'COACHING';
   initialData?: Note;
   isEditing?: boolean;
 }
 
 // Helper function to generate consistent timestamp
 const generateTimestamp = () => {
-  return new Date().toLocaleString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
+  return new Date().toLocaleString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
     hour12: true,
   });
 };
@@ -54,20 +54,20 @@ export default function NoteModal({
   initialData,
   isEditing = false,
 }: NoteModalProps) {
-  const [formData, setFormData] = useState<Omit<Note, "id">>({
+  const [formData, setFormData] = useState<Omit<Note, 'id'>>({
     noteType,
     title: isEditing
       ? initialData?.title || generateTimestamp()
       : generateTimestamp(),
-    chiefComplaints: "",
-    healthHistory: "",
-    currentMedications: "",
-    goals: "",
-    protocolAdjustments: "",
-    complianceNotes: "",
-    progressMetrics: "",
-    nextSteps: "",
-    generalNotes: "",
+    chiefComplaints: '',
+    healthHistory: '',
+    currentMedications: '',
+    goals: '',
+    protocolAdjustments: '',
+    complianceNotes: '',
+    progressMetrics: '',
+    nextSteps: '',
+    generalNotes: '',
     isImportant: false,
     followUpNeeded: false,
   });
@@ -78,32 +78,32 @@ export default function NoteModal({
     if (initialData && isEditing) {
       setFormData({
         noteType: initialData.noteType,
-        title: initialData.title || "",
-        chiefComplaints: initialData.chiefComplaints || "",
-        healthHistory: initialData.healthHistory || "",
-        currentMedications: initialData.currentMedications || "",
-        goals: initialData.goals || "",
-        protocolAdjustments: initialData.protocolAdjustments || "",
-        complianceNotes: initialData.complianceNotes || "",
-        progressMetrics: initialData.progressMetrics || "",
-        nextSteps: initialData.nextSteps || "",
-        generalNotes: initialData.generalNotes || "",
+        title: initialData.title || '',
+        chiefComplaints: initialData.chiefComplaints || '',
+        healthHistory: initialData.healthHistory || '',
+        currentMedications: initialData.currentMedications || '',
+        goals: initialData.goals || '',
+        protocolAdjustments: initialData.protocolAdjustments || '',
+        complianceNotes: initialData.complianceNotes || '',
+        progressMetrics: initialData.progressMetrics || '',
+        nextSteps: initialData.nextSteps || '',
+        generalNotes: initialData.generalNotes || '',
         isImportant: initialData.isImportant,
         followUpNeeded: initialData.followUpNeeded,
       });
     } else {
       setFormData({
         noteType,
-        title: "",
-        chiefComplaints: "",
-        healthHistory: "",
-        currentMedications: "",
-        goals: "",
-        protocolAdjustments: "",
-        complianceNotes: "",
-        progressMetrics: "",
-        nextSteps: "",
-        generalNotes: "",
+        title: '',
+        chiefComplaints: '',
+        healthHistory: '',
+        currentMedications: '',
+        goals: '',
+        protocolAdjustments: '',
+        complianceNotes: '',
+        progressMetrics: '',
+        nextSteps: '',
+        generalNotes: '',
         isImportant: false,
         followUpNeeded: false,
       });
@@ -120,10 +120,10 @@ export default function NoteModal({
   };
 
   const handleInputChange = (
-    field: keyof Omit<Note, "id">,
+    field: keyof Omit<Note, 'id'>,
     value: string | boolean
   ) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [field]: value,
     }));
@@ -144,8 +144,8 @@ export default function NoteModal({
       <div className="bg-card border border-border rounded-lg shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-border">
           <h2 className="text-xl font-semibold text-foreground">
-            {isEditing ? "Edit" : "Create"}{" "}
-            {noteType === "INTERVIEW" ? "Interview" : "Coaching"} Note
+            {isEditing ? 'Edit' : 'Create'}{' '}
+            {noteType === 'INTERVIEW' ? 'Interview' : 'Coaching'} Note
           </h2>
           <button
             onClick={onClose}
@@ -167,7 +167,7 @@ export default function NoteModal({
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Automatically generated timestamp for this{" "}
+              Automatically generated timestamp for this{' '}
               {noteType.toLowerCase()} session
             </p>
           </div>
@@ -175,19 +175,17 @@ export default function NoteModal({
           {/* Single Note Content Field */}
           <div>
             <label className="block text-sm font-medium mb-2 text-muted-foreground">
-              {noteType === "INTERVIEW" ? "Interview" : "Coaching"} Notes
+              {noteType === 'INTERVIEW' ? 'Interview' : 'Coaching'} Notes
             </label>
             <textarea
               value={formData.generalNotes}
-              onChange={(e) =>
-                handleInputChange("generalNotes", e.target.value)
-              }
+              onChange={e => handleInputChange('generalNotes', e.target.value)}
               rows={12}
               className="w-full px-4 py-3 rounded-xl bg-background border border-border text-foreground focus:ring-2 focus:ring-primary focus:outline-none transition-all resize-none hover:border-primary/50"
               placeholder={
-                noteType === "INTERVIEW"
-                  ? "Enter interview notes, health concerns, medical history, medications, goals, and observations..."
-                  : "Enter coaching notes, protocol adjustments, compliance observations, progress metrics, next steps, and recommendations..."
+                noteType === 'INTERVIEW'
+                  ? 'Enter interview notes, health concerns, medical history, medications, goals, and observations...'
+                  : 'Enter coaching notes, protocol adjustments, compliance observations, progress metrics, next steps, and recommendations...'
               }
             />
           </div>
@@ -198,8 +196,8 @@ export default function NoteModal({
               <input
                 type="checkbox"
                 checked={formData.isImportant}
-                onChange={(e) =>
-                  handleInputChange("isImportant", e.target.checked)
+                onChange={e =>
+                  handleInputChange('isImportant', e.target.checked)
                 }
                 className="mr-2 w-4 h-4 text-primary bg-background border-border rounded focus:ring-primary focus:ring-2"
               />
@@ -211,8 +209,8 @@ export default function NoteModal({
               <input
                 type="checkbox"
                 checked={formData.followUpNeeded}
-                onChange={(e) =>
-                  handleInputChange("followUpNeeded", e.target.checked)
+                onChange={e =>
+                  handleInputChange('followUpNeeded', e.target.checked)
                 }
                 className="mr-2 w-4 h-4 text-primary bg-background border-border rounded focus:ring-primary focus:ring-2"
               />
@@ -251,7 +249,7 @@ export default function NoteModal({
                 className="flex items-center px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
               >
                 <Save className="w-4 h-4 mr-2" />
-                {isEditing ? "Update" : "Create"} Note
+                {isEditing ? 'Update' : 'Create'} Note
               </button>
             </div>
           </div>
@@ -277,7 +275,7 @@ export default function NoteModal({
             </div>
 
             <p className="mb-6 text-foreground">
-              Are you sure you want to delete this {noteType.toLowerCase()}{" "}
+              Are you sure you want to delete this {noteType.toLowerCase()}{' '}
               note?
               {formData.title && (
                 <span className="font-medium"> "{formData.title}"</span>

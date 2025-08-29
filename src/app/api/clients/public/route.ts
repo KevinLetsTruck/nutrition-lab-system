@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,12 +27,12 @@ export async function POST(req: NextRequest) {
           firstName,
           lastName,
           email,
-          phone: phone || "",
+          phone: phone || '',
           gender,
           dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-          currentMedications: currentMedications || "",
-          currentSupplements: currentSupplements || "",
-          status: "ACTIVE",
+          currentMedications: currentMedications || '',
+          currentSupplements: currentSupplements || '',
+          status: 'ACTIVE',
         },
       });
     } else {
@@ -61,11 +61,11 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error creating/updating client:", error);
+    console.error('Error creating/updating client:', error);
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to process client information",
+        error: 'Failed to process client information',
       },
       { status: 500 }
     );

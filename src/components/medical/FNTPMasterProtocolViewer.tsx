@@ -4,13 +4,13 @@
  * Kevin Rutherford, FNTP - Truck Driver Health Optimization
  */
 
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface FNTPMasterProtocolViewerProps {
   documentId: string;
@@ -102,7 +102,7 @@ export default function FNTPMasterProtocolViewer({
   const [protocol, setProtocol] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState('overview');
 
   const fetchProtocol = async (forceRegenerate = false) => {
     setLoading(true);
@@ -112,28 +112,28 @@ export default function FNTPMasterProtocolViewer({
       const url = `/api/medical/documents/${documentId}/fntp-master-protocol`;
       const options = forceRegenerate
         ? {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               forceRegenerate: true,
               options: { includeDecisionTrees: true },
             }),
           }
         : {
-            method: "GET",
+            method: 'GET',
           };
 
       const response = await fetch(url, options);
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch protocol");
+        throw new Error(data.error || 'Failed to fetch protocol');
       }
 
       setProtocol(data.masterProtocol || data);
       onProtocolGenerated?.(data.masterProtocol || data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -147,35 +147,35 @@ export default function FNTPMasterProtocolViewer({
 
   const getRootCauseColor = (rootCause: string) => {
     const colors = {
-      gut_dysfunction: "bg-orange-100 text-orange-800",
-      hpa_axis_dysfunction: "bg-purple-100 text-purple-800",
-      metabolic_dysfunction: "bg-red-100 text-red-800",
-      inflammation_immune: "bg-yellow-100 text-yellow-800",
-      cardiovascular_risk: "bg-blue-100 text-blue-800",
-      detoxification_impairment: "bg-green-100 text-green-800",
+      gut_dysfunction: 'bg-orange-100 text-orange-800',
+      hpa_axis_dysfunction: 'bg-purple-100 text-purple-800',
+      metabolic_dysfunction: 'bg-red-100 text-red-800',
+      inflammation_immune: 'bg-yellow-100 text-yellow-800',
+      cardiovascular_risk: 'bg-blue-100 text-blue-800',
+      detoxification_impairment: 'bg-green-100 text-green-800',
     };
     return (
-      colors[rootCause as keyof typeof colors] || "bg-gray-100 text-gray-800"
+      colors[rootCause as keyof typeof colors] || 'bg-gray-100 text-gray-800'
     );
   };
 
   const getPriorityColor = (priority: number) => {
     const colors = {
-      1: "bg-red-500",
-      2: "bg-orange-500",
-      3: "bg-yellow-500",
-      4: "bg-blue-500",
+      1: 'bg-red-500',
+      2: 'bg-orange-500',
+      3: 'bg-yellow-500',
+      4: 'bg-blue-500',
     };
-    return colors[priority as keyof typeof colors] || "bg-gray-500";
+    return colors[priority as keyof typeof colors] || 'bg-gray-500';
   };
 
   const getSourceBadgeColor = (source: string) => {
     const colors = {
-      letstruck: "bg-green-100 text-green-800 border-green-300",
-      biotics: "bg-blue-100 text-blue-800 border-blue-300",
-      fullscript: "bg-purple-100 text-purple-800 border-purple-300",
+      letstruck: 'bg-green-100 text-green-800 border-green-300',
+      biotics: 'bg-blue-100 text-blue-800 border-blue-300',
+      fullscript: 'bg-purple-100 text-purple-800 border-purple-300',
     };
-    return colors[source as keyof typeof colors] || "bg-gray-100 text-gray-800";
+    return colors[source as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
   if (loading) {
@@ -272,7 +272,7 @@ export default function FNTPMasterProtocolViewer({
                   rootCause.primary
                 )} px-3 py-2 text-sm`}
               >
-                {rootCause.primary.replace("_", " ").toUpperCase()}
+                {rootCause.primary.replace('_', ' ').toUpperCase()}
               </Badge>
               <p className="text-gray-700 mt-2 text-sm">
                 {rootCause.description}
@@ -413,7 +413,7 @@ export default function FNTPMasterProtocolViewer({
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                             <div>
                               <span className="font-medium text-sm">
-                                Dosage:{" "}
+                                Dosage:{' '}
                               </span>
                               <span className="text-sm">
                                 {supplement.dosage}
@@ -421,7 +421,7 @@ export default function FNTPMasterProtocolViewer({
                             </div>
                             <div>
                               <span className="font-medium text-sm">
-                                Timing:{" "}
+                                Timing:{' '}
                               </span>
                               <span className="text-sm">
                                 {supplement.timing}
@@ -429,7 +429,7 @@ export default function FNTPMasterProtocolViewer({
                             </div>
                             <div>
                               <span className="font-medium text-sm">
-                                Duration:{" "}
+                                Duration:{' '}
                               </span>
                               <span className="text-sm">
                                 {supplement.duration}
@@ -437,7 +437,7 @@ export default function FNTPMasterProtocolViewer({
                             </div>
                             <div>
                               <span className="font-medium text-sm">
-                                Priority:{" "}
+                                Priority:{' '}
                               </span>
                               <span className="text-sm">
                                 {supplement.priority}
@@ -447,7 +447,7 @@ export default function FNTPMasterProtocolViewer({
 
                           <div className="mb-3">
                             <span className="font-medium text-sm">
-                              Purpose:{" "}
+                              Purpose:{' '}
                             </span>
                             <span className="text-sm text-gray-700">
                               {supplement.purpose}
@@ -456,7 +456,7 @@ export default function FNTPMasterProtocolViewer({
 
                           <div className="bg-blue-50 rounded p-3 mb-3">
                             <span className="font-medium text-sm text-blue-800">
-                              Trucker Instructions:{" "}
+                              Trucker Instructions:{' '}
                             </span>
                             <span className="text-sm text-blue-700">
                               {supplement.truckerInstructions}
@@ -468,7 +468,7 @@ export default function FNTPMasterProtocolViewer({
                               variant="outline"
                               size="sm"
                               onClick={() =>
-                                window.open(supplement.product.url, "_blank")
+                                window.open(supplement.product.url, '_blank')
                               }
                             >
                               View Product
@@ -506,7 +506,7 @@ export default function FNTPMasterProtocolViewer({
                               {lifestyle.recommendation}
                             </p>
                             <p className="text-sm text-gray-600 mt-1">
-                              <span className="font-medium">For truckers:</span>{" "}
+                              <span className="font-medium">For truckers:</span>{' '}
                               {lifestyle.truckerSpecific}
                             </p>
                           </div>
@@ -529,11 +529,11 @@ export default function FNTPMasterProtocolViewer({
                           >
                             <Badge
                               className={
-                                monitor.type === "red_flag"
-                                  ? "bg-red-100 text-red-800"
-                                  : monitor.type === "metric"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : "bg-green-100 text-green-800"
+                                monitor.type === 'red_flag'
+                                  ? 'bg-red-100 text-red-800'
+                                  : monitor.type === 'metric'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-green-100 text-green-800'
                               }
                             >
                               {monitor.type}
@@ -543,20 +543,20 @@ export default function FNTPMasterProtocolViewer({
                                 {monitor.description}
                               </p>
                               <p className="text-xs text-gray-600 mt-1">
-                                <span className="font-medium">Frequency:</span>{" "}
+                                <span className="font-medium">Frequency:</span>{' '}
                                 {monitor.frequency}
                                 {monitor.target && (
                                   <>
                                     <span className="ml-3 font-medium">
                                       Target:
-                                    </span>{" "}
+                                    </span>{' '}
                                     {monitor.target}
                                   </>
                                 )}
                               </p>
                               {monitor.action && (
                                 <p className="text-xs text-red-600 mt-1">
-                                  <span className="font-medium">Action:</span>{" "}
+                                  <span className="font-medium">Action:</span>{' '}
                                   {monitor.action}
                                 </p>
                               )}
@@ -614,7 +614,7 @@ export default function FNTPMasterProtocolViewer({
                         ([key, items]) => (
                           <div key={key} className="border rounded-lg p-4">
                             <h4 className="font-semibold mb-3 capitalize text-blue-600">
-                              {key.replace(/([A-Z])/g, " $1").trim()}
+                              {key.replace(/([A-Z])/g, ' $1').trim()}
                             </h4>
                             <ul className="space-y-2">
                               {items.map((item: string, index: number) => (

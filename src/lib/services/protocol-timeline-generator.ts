@@ -24,8 +24,8 @@ interface TimelineData {
 }
 
 interface CriticalFinding {
-  type: "assessment" | "lab" | "clinical" | "trend";
-  severity: "high" | "critical";
+  type: 'assessment' | 'lab' | 'clinical' | 'trend';
+  severity: 'high' | 'critical';
   finding: string;
   context: string;
   protocolImplication: string;
@@ -34,8 +34,8 @@ interface CriticalFinding {
 
 interface ProgressTrend {
   system: string;
-  direction: "improving" | "declining" | "stable";
-  significance: "minor" | "moderate" | "major";
+  direction: 'improving' | 'declining' | 'stable';
+  significance: 'minor' | 'moderate' | 'major';
   timeframe: string;
   dataPoints: any[];
   protocolRecommendation: string;
@@ -119,14 +119,14 @@ ${
   statusChanges.length > 0
     ? `### 📈 Status Progression Timeline
 ${this.generateStatusProgressionTimeline(statusChanges)}`
-    : ""
+    : ''
 }
 
 ${
   aiAnalyses.length > 0
     ? `### 🤖 AI Analysis Insights
 ${this.generateAIInsightsTimeline(aiAnalyses)}`
-    : ""
+    : ''
 }
 
 ---
@@ -147,17 +147,17 @@ ${this.generateCriticalFindingsForProtocol(criticalFindings)}
 
 ### Client Profile Analysis
 - **Demographics**: ${protocolContext.clientProfile}
-- **Primary Health Concerns**: ${protocolContext.primaryConcerns.join(", ")}
-- **System Priorities**: ${protocolContext.systemPriorities.join(", ")}
-- **Compliance Profile**: ${protocolContext.complianceFactors.join(", ")}
+- **Primary Health Concerns**: ${protocolContext.primaryConcerns.join(', ')}
+- **System Priorities**: ${protocolContext.systemPriorities.join(', ')}
+- **Compliance Profile**: ${protocolContext.complianceFactors.join(', ')}
 
 ### Treatment Readiness Assessment
-- **Timeline Constraints**: ${protocolContext.timelineConstraints.join(", ")}
+- **Timeline Constraints**: ${protocolContext.timelineConstraints.join(', ')}
 - **Previous Treatment Response**: ${protocolContext.treatmentHistory.join(
-      ", "
+      ', '
     )}
-- **Contraindications**: ${protocolContext.contraindications.join(", ")}
-- **Success Indicators**: ${protocolContext.successIndicators.join(", ")}
+- **Contraindications**: ${protocolContext.contraindications.join(', ')}
+- **Success Indicators**: ${protocolContext.successIndicators.join(', ')}
 
 ### Protocol Development Priorities
 ${this.generateProtocolPriorities(
@@ -234,14 +234,14 @@ ${this.generateRiskMitigation(criticalFindings, protocolContext)}
         for (const response of latestAssessment.responses) {
           if (this.isCriticalAssessmentResponse(response)) {
             findings.push({
-              type: "assessment",
+              type: 'assessment',
               severity: this.getResponseSeverity(response),
               finding: this.formatAssessmentFinding(response),
               context: `Assessment completed ${new Date(
                 latestAssessment.createdAt
               ).toLocaleDateString()}`,
               protocolImplication: this.getProtocolImplication(response),
-              timelineRelevance: "Current health status indicator",
+              timelineRelevance: 'Current health status indicator',
             });
           }
         }
@@ -251,13 +251,13 @@ ${this.generateRiskMitigation(criticalFindings, protocolContext)}
     // Lab results critical findings
     const allLabValues = [
       ...labResults,
-      ...medicalDocuments.flatMap((doc) => doc.labValues || []),
+      ...medicalDocuments.flatMap(doc => doc.labValues || []),
     ];
 
     for (const lab of allLabValues) {
       if (this.isCriticalLabValue(lab)) {
         findings.push({
-          type: "lab",
+          type: 'lab',
           severity: this.getLabSeverity(lab),
           finding: `${lab.testName}: ${lab.value} ${lab.unit} (Ref: ${lab.referenceRange})`,
           context: `Lab collected ${new Date(
@@ -277,8 +277,8 @@ ${this.generateRiskMitigation(criticalFindings, protocolContext)}
 
     return findings.sort(
       (a, b) =>
-        (b.severity === "critical" ? 2 : 1) -
-        (a.severity === "critical" ? 2 : 1)
+        (b.severity === 'critical' ? 2 : 1) -
+        (a.severity === 'critical' ? 2 : 1)
     );
   }
 
@@ -294,13 +294,13 @@ ${this.generateRiskMitigation(criticalFindings, protocolContext)}
     if (assessments.length < 2) {
       return [
         {
-          system: "Overall Health",
-          direction: "stable",
-          significance: "minor",
-          timeframe: "Baseline established",
+          system: 'Overall Health',
+          direction: 'stable',
+          significance: 'minor',
+          timeframe: 'Baseline established',
           dataPoints: assessments,
           protocolRecommendation:
-            "Establish comprehensive baseline assessment tracking",
+            'Establish comprehensive baseline assessment tracking',
         },
       ];
     }
@@ -366,21 +366,21 @@ ${this.generateRiskMitigation(criticalFindings, protocolContext)}
     assessments: any[],
     progressTrends: ProgressTrend[]
   ): string {
-    if (assessments.length === 0) return "No assessment history available.";
+    if (assessments.length === 0) return 'No assessment history available.';
 
     return assessments
       .map((assessment, index) => {
         const date = new Date(assessment.createdAt).toLocaleDateString();
         const responseCount = assessment.responses?.length || 0;
         const trendIndicator =
-          index === 0 ? this.getTrendIndicator(progressTrends) : "";
+          index === 0 ? this.getTrendIndicator(progressTrends) : '';
 
         return `**${date}** - ${
           assessment.status
         } Assessment (${responseCount} responses) ${trendIndicator}
   ${this.formatAssessmentInsights(assessment)}`;
       })
-      .join("\n\n");
+      .join('\n\n');
   }
 
   private static generateLabResultsTimeline(
@@ -389,18 +389,18 @@ ${this.generateRiskMitigation(criticalFindings, protocolContext)}
   ): string {
     const allLabs = [
       ...labResults,
-      ...medicalDocuments.flatMap((doc) => doc.labValues || []),
+      ...medicalDocuments.flatMap(doc => doc.labValues || []),
     ].sort(
       (a, b) =>
         new Date(b.collectionDate || b.testDate).getTime() -
         new Date(a.collectionDate || a.testDate).getTime()
     );
 
-    if (allLabs.length === 0) return "No lab results available.";
+    if (allLabs.length === 0) return 'No lab results available.';
 
     return allLabs
       .slice(0, 10)
-      .map((lab) => {
+      .map(lab => {
         const date = new Date(
           lab.collectionDate || lab.testDate
         ).toLocaleDateString();
@@ -408,40 +408,40 @@ ${this.generateRiskMitigation(criticalFindings, protocolContext)}
 
         return `**${date}** - ${lab.testName}: ${lab.value} ${lab.unit} ${status}`;
       })
-      .join("\n");
+      .join('\n');
   }
 
   private static generateProtocolTimeline(
     protocols: any[],
     treatmentHistory: string[]
   ): string {
-    if (protocols.length === 0) return "No protocol history available.";
+    if (protocols.length === 0) return 'No protocol history available.';
 
     return protocols
       .map((protocol, index) => {
         const date = new Date(protocol.createdAt).toLocaleDateString();
         const effectiveness = this.assessProtocolEffectiveness(protocol);
 
-        return `**${date}** - ${protocol.protocolName || "Protocol"} (${
+        return `**${date}** - ${protocol.protocolName || 'Protocol'} (${
           protocol.status
         })
   ${this.formatProtocolDetails(protocol)}
   ${effectiveness}`;
       })
-      .join("\n\n");
+      .join('\n\n');
   }
 
   private static generateClinicalNotesTimeline(clinicalNotes: any[]): string {
-    if (clinicalNotes.length === 0) return "No clinical notes available.";
+    if (clinicalNotes.length === 0) return 'No clinical notes available.';
 
     return clinicalNotes
       .slice(0, 5)
-      .map((note) => {
+      .map(note => {
         const date = new Date(note.createdAt).toLocaleDateString();
         return `**${date}** - ${note.noteType} Session
   ${this.formatClinicalNoteInsights(note)}`;
       })
-      .join("\n\n");
+      .join('\n\n');
   }
 
   private static generateProgressAnalysis(
@@ -449,26 +449,24 @@ ${this.generateRiskMitigation(criticalFindings, protocolContext)}
     criticalFindings: CriticalFinding[]
   ): string {
     if (progressTrends.length === 0)
-      return "Insufficient data for progress trend analysis.";
+      return 'Insufficient data for progress trend analysis.';
 
-    const improving = progressTrends.filter((t) => t.direction === "improving");
-    const declining = progressTrends.filter((t) => t.direction === "declining");
-    const stable = progressTrends.filter((t) => t.direction === "stable");
+    const improving = progressTrends.filter(t => t.direction === 'improving');
+    const declining = progressTrends.filter(t => t.direction === 'declining');
+    const stable = progressTrends.filter(t => t.direction === 'stable');
 
     return `### 📈 Improving Systems (${improving.length})
 ${improving
-  .map((t) => `- **${t.system}**: ${t.protocolRecommendation}`)
-  .join("\n")}
+  .map(t => `- **${t.system}**: ${t.protocolRecommendation}`)
+  .join('\n')}
 
 ### 📉 Declining Systems (${declining.length})
 ${declining
-  .map((t) => `- **${t.system}**: ${t.protocolRecommendation} ⚠️`)
-  .join("\n")}
+  .map(t => `- **${t.system}**: ${t.protocolRecommendation} ⚠️`)
+  .join('\n')}
 
 ### ➡️ Stable Systems (${stable.length})
-${stable
-  .map((t) => `- **${t.system}**: ${t.protocolRecommendation}`)
-  .join("\n")}
+${stable.map(t => `- **${t.system}**: ${t.protocolRecommendation}`).join('\n')}
 
 ### Protocol Development Insights
 ${this.generateProtocolInsights(progressTrends, criticalFindings)}`;
@@ -478,23 +476,23 @@ ${this.generateProtocolInsights(progressTrends, criticalFindings)}`;
     criticalFindings: CriticalFinding[]
   ): string {
     if (criticalFindings.length === 0)
-      return "✅ No critical findings requiring immediate protocol attention.";
+      return '✅ No critical findings requiring immediate protocol attention.';
 
-    const critical = criticalFindings.filter((f) => f.severity === "critical");
-    const high = criticalFindings.filter((f) => f.severity === "high");
+    const critical = criticalFindings.filter(f => f.severity === 'critical');
+    const high = criticalFindings.filter(f => f.severity === 'high');
 
     return `${
       critical.length > 0
         ? `### 🚨 CRITICAL - Immediate Protocol Action Required
-${critical.map((f) => this.formatCriticalFinding(f)).join("\n\n")}`
-        : ""
+${critical.map(f => this.formatCriticalFinding(f)).join('\n\n')}`
+        : ''
     }
 
 ${
   high.length > 0
     ? `### ⚠️ HIGH PRIORITY - Protocol Integration Recommended  
-${high.map((f) => this.formatCriticalFinding(f)).join("\n\n")}`
-    : ""
+${high.map(f => this.formatCriticalFinding(f)).join('\n\n')}`
+    : ''
 }
 
 ### Protocol Development Summary
@@ -508,10 +506,10 @@ ${high.map((f) => this.formatCriticalFinding(f)).join("\n\n")}`
    */
   private static buildClientProfile(client: any): string {
     const age = this.calculateAge(client.dateOfBirth);
-    const gender = client.gender || "Not specified";
+    const gender = client.gender || 'Not specified';
     const driverStatus = client.isTruckDriver
-      ? "Commercial Driver"
-      : "Non-driver";
+      ? 'Commercial Driver'
+      : 'Non-driver';
 
     return `${age} year old ${gender}, ${driverStatus}`;
   }
@@ -534,20 +532,20 @@ ${high.map((f) => this.formatCriticalFinding(f)).join("\n\n")}`
   }
 
   private static identifyPrimaryConcerns(assessments: any[]): string[] {
-    if (assessments.length === 0) return ["Assessment data needed"];
+    if (assessments.length === 0) return ['Assessment data needed'];
 
     // Analyze assessment responses to identify top concerns
     // This would be enhanced with specific assessment logic
     return [
-      "Health optimization",
-      "Symptom management",
-      "Performance enhancement",
+      'Health optimization',
+      'Symptom management',
+      'Performance enhancement',
     ];
   }
 
   private static identifySystemPriorities(assessments: any[]): string[] {
     // Analyze which body systems need priority attention
-    return ["Digestive health", "Energy metabolism", "Sleep optimization"];
+    return ['Digestive health', 'Energy metabolism', 'Sleep optimization'];
   }
 
   private static identifyComplianceFactors(
@@ -556,41 +554,41 @@ ${high.map((f) => this.formatCriticalFinding(f)).join("\n\n")}`
   ): string[] {
     const factors = [];
 
-    if (client.isTruckDriver) factors.push("Travel schedule considerations");
-    if (protocols.some((p) => p.status === "completed"))
-      factors.push("Previous protocol completion");
+    if (client.isTruckDriver) factors.push('Travel schedule considerations');
+    if (protocols.some(p => p.status === 'completed'))
+      factors.push('Previous protocol completion');
 
-    return factors.length > 0 ? factors : ["Standard compliance profile"];
+    return factors.length > 0 ? factors : ['Standard compliance profile'];
   }
 
   private static identifyTimelineConstraints(protocols: any[]): string[] {
     return [
-      "Standard 12-week protocol timeline",
-      "Monthly progress assessments",
+      'Standard 12-week protocol timeline',
+      'Monthly progress assessments',
     ];
   }
 
   private static isCriticalAssessmentResponse(response: any): boolean {
     // Logic to identify critical assessment responses
-    return response.severity === "high" || response.score > 7;
+    return response.severity === 'high' || response.score > 7;
   }
 
   private static isCriticalLabValue(lab: any): boolean {
     // Logic to identify critical lab values
-    return lab.flag === "CRITICAL" || lab.flag === "HIGH" || lab.flag === "LOW";
+    return lab.flag === 'CRITICAL' || lab.flag === 'HIGH' || lab.flag === 'LOW';
   }
 
   private static getAnalysisVersion(): string {
-    return "v2.0-protocol-focused";
+    return 'v2.0-protocol-focused';
   }
 
   // Additional helper methods would be implemented based on specific needs
   private static formatAssessmentFinding(response: any): string {
-    return `${response.question?.text || "Assessment item"}: ${response.value}`;
+    return `${response.question?.text || 'Assessment item'}: ${response.value}`;
   }
 
   private static getProtocolImplication(response: any): string {
-    return "Requires targeted protocol intervention";
+    return 'Requires targeted protocol intervention';
   }
 
   private static getLabProtocolImplication(lab: any): string {
@@ -598,15 +596,15 @@ ${high.map((f) => this.formatCriticalFinding(f)).join("\n\n")}`
   }
 
   private static getLabTimelineRelevance(lab: any): string {
-    return "Current biomarker status for protocol planning";
+    return 'Current biomarker status for protocol planning';
   }
 
-  private static getResponseSeverity(response: any): "high" | "critical" {
-    return response.severity === "critical" ? "critical" : "high";
+  private static getResponseSeverity(response: any): 'high' | 'critical' {
+    return response.severity === 'critical' ? 'critical' : 'high';
   }
 
-  private static getLabSeverity(lab: any): "high" | "critical" {
-    return lab.flag === "CRITICAL" ? "critical" : "high";
+  private static getLabSeverity(lab: any): 'high' | 'critical' {
+    return lab.flag === 'CRITICAL' ? 'critical' : 'high';
   }
 
   private static analyzeTrendFindings(assessments: any[]): CriticalFinding[] {
@@ -630,11 +628,11 @@ ${high.map((f) => this.formatCriticalFinding(f)).join("\n\n")}`
 
   private static identifyHealthSystems(assessments: any[]): string[] {
     return [
-      "Digestive",
-      "Energy",
-      "Sleep",
-      "Stress Response",
-      "Detoxification",
+      'Digestive',
+      'Energy',
+      'Sleep',
+      'Stress Response',
+      'Detoxification',
     ];
   }
 
@@ -647,9 +645,9 @@ ${high.map((f) => this.formatCriticalFinding(f)).join("\n\n")}`
     // Analyze specific system trends
     return {
       system,
-      direction: "stable",
-      significance: "moderate",
-      timeframe: "",
+      direction: 'stable',
+      significance: 'moderate',
+      timeframe: '',
       dataPoints: [latest, previous],
       protocolRecommendation: `Monitor ${system.toLowerCase()} function`,
     };
@@ -664,15 +662,15 @@ ${high.map((f) => this.formatCriticalFinding(f)).join("\n\n")}`
 
   private static getTrendIndicator(progressTrends: ProgressTrend[]): string {
     const improving = progressTrends.filter(
-      (t) => t.direction === "improving"
+      t => t.direction === 'improving'
     ).length;
     const declining = progressTrends.filter(
-      (t) => t.direction === "declining"
+      t => t.direction === 'declining'
     ).length;
 
-    if (improving > declining) return "📈";
-    if (declining > improving) return "📉";
-    return "➡️";
+    if (improving > declining) return '📈';
+    if (declining > improving) return '📉';
+    return '➡️';
   }
 
   private static formatAssessmentInsights(assessment: any): string {
@@ -680,20 +678,20 @@ ${high.map((f) => this.formatCriticalFinding(f)).join("\n\n")}`
   }
 
   private static getLabStatus(lab: any): string {
-    if (lab.flag === "HIGH") return "🔴 HIGH";
-    if (lab.flag === "LOW") return "🔵 LOW";
-    if (lab.flag === "CRITICAL") return "🚨 CRITICAL";
-    return "✅ Normal";
+    if (lab.flag === 'HIGH') return '🔴 HIGH';
+    if (lab.flag === 'LOW') return '🔵 LOW';
+    if (lab.flag === 'CRITICAL') return '🚨 CRITICAL';
+    return '✅ Normal';
   }
 
   private static assessProtocolEffectiveness(protocol: any): string {
     return protocol.effectivenessRating
       ? `Effectiveness: ${protocol.effectivenessRating}/5`
-      : "Effectiveness assessment pending";
+      : 'Effectiveness assessment pending';
   }
 
   private static formatProtocolDetails(protocol: any): string {
-    return `${protocol.protocolPhase || "Protocol"} phase with ${
+    return `${protocol.protocolPhase || 'Protocol'} phase with ${
       protocol.protocolSupplements?.length || 0
     } supplements`;
   }
@@ -701,14 +699,14 @@ ${high.map((f) => this.formatCriticalFinding(f)).join("\n\n")}`
   private static formatClinicalNoteInsights(note: any): string {
     return note.chiefComplaints
       ? `Focus: ${note.chiefComplaints.substring(0, 100)}...`
-      : "Clinical observations documented";
+      : 'Clinical observations documented';
   }
 
   private static generateProtocolInsights(
     progressTrends: ProgressTrend[],
     criticalFindings: CriticalFinding[]
   ): string {
-    return "Protocol should prioritize systems showing declining trends while maintaining improvements in stable systems.";
+    return 'Protocol should prioritize systems showing declining trends while maintaining improvements in stable systems.';
   }
 
   private static formatCriticalFinding(finding: CriticalFinding): string {
@@ -722,11 +720,11 @@ ${high.map((f) => this.formatCriticalFinding(f)).join("\n\n")}`
     criticalFindings: CriticalFinding[]
   ): string {
     const critical = criticalFindings.filter(
-      (f) => f.severity === "critical"
+      f => f.severity === 'critical'
     ).length;
     return critical > 0
-      ? "Immediate protocol initiation recommended"
-      : "Standard protocol timeline appropriate";
+      ? 'Immediate protocol initiation recommended'
+      : 'Standard protocol timeline appropriate';
   }
 
   private static generateProtocolPriorities(
@@ -735,50 +733,50 @@ ${high.map((f) => this.formatCriticalFinding(f)).join("\n\n")}`
     context: ProtocolContext
   ): string {
     return `1. Address critical findings (${
-      criticalFindings.filter((f) => f.severity === "critical").length
+      criticalFindings.filter(f => f.severity === 'critical').length
     } items)
 2. Support declining systems (${
-      progressTrends.filter((t) => t.direction === "declining").length
+      progressTrends.filter(t => t.direction === 'declining').length
     } systems)  
 3. Maintain improving systems (${
-      progressTrends.filter((t) => t.direction === "improving").length
+      progressTrends.filter(t => t.direction === 'improving').length
     } systems)
-4. Consider compliance factors: ${context.complianceFactors.join(", ")}`;
+4. Consider compliance factors: ${context.complianceFactors.join(', ')}`;
   }
 
   private static generatePhase1Focus(
     criticalFindings: CriticalFinding[]
   ): string {
     return criticalFindings.length > 0
-      ? "Address critical findings and establish foundation"
-      : "Establish comprehensive health foundation";
+      ? 'Address critical findings and establish foundation'
+      : 'Establish comprehensive health foundation';
   }
 
   private static generatePhase2Focus(progressTrends: ProgressTrend[]): string {
-    const declining = progressTrends.filter((t) => t.direction === "declining");
+    const declining = progressTrends.filter(t => t.direction === 'declining');
     return declining.length > 0
-      ? `Optimize ${declining.map((t) => t.system).join(", ")} function`
-      : "Optimize and enhance established foundation";
+      ? `Optimize ${declining.map(t => t.system).join(', ')} function`
+      : 'Optimize and enhance established foundation';
   }
 
   private static generatePhase3Focus(context: ProtocolContext): string {
-    return "Maintain gains and establish long-term health optimization";
+    return 'Maintain gains and establish long-term health optimization';
   }
 
   private static generateImmediateActions(
     criticalFindings: CriticalFinding[]
   ): string {
-    const critical = criticalFindings.filter((f) => f.severity === "critical");
+    const critical = criticalFindings.filter(f => f.severity === 'critical');
     return critical.length > 0
-      ? critical.map((f) => `• ${f.protocolImplication}`).join("\n")
-      : "• Begin comprehensive assessment baseline";
+      ? critical.map(f => `• ${f.protocolImplication}`).join('\n')
+      : '• Begin comprehensive assessment baseline';
   }
 
   private static generateTreatmentSequence(
     progressTrends: ProgressTrend[],
     criticalFindings: CriticalFinding[]
   ): string {
-    return "1. Address critical findings first\n2. Support declining systems\n3. Enhance stable systems\n4. Maintain improving systems";
+    return '1. Address critical findings first\n2. Support declining systems\n3. Enhance stable systems\n4. Maintain improving systems';
   }
 
   private static generateMonitoringRequirements(
@@ -793,7 +791,7 @@ ${high.map((f) => this.formatCriticalFinding(f)).join("\n\n")}`
     context: ProtocolContext
   ): string {
     return `• Monitor for contraindications: ${context.contraindications.join(
-      ", "
+      ', '
     )}\n• Adjust for compliance factors\n• Track success indicators`;
   }
 
@@ -801,30 +799,30 @@ ${high.map((f) => this.formatCriticalFinding(f)).join("\n\n")}`
     statusChanges: any[]
   ): string {
     return statusChanges
-      .map((status) => {
+      .map(status => {
         const date = new Date(status.createdAt).toLocaleDateString();
-        return `**${date}** - ${status.status.replace("_", " ")}: ${
-          status.notes || "Status updated"
+        return `**${date}** - ${status.status.replace('_', ' ')}: ${
+          status.notes || 'Status updated'
         }`;
       })
-      .join("\n");
+      .join('\n');
   }
 
   private static generateAIInsightsTimeline(aiAnalyses: any[]): string {
     return aiAnalyses
-      .map((analysis) => {
+      .map(analysis => {
         const date = new Date(analysis.analysisDate).toLocaleDateString();
         return `**${date}** - AI Analysis v${analysis.analysisVersion}
-  ${analysis.executiveSummary || "Comprehensive health analysis completed"}`;
+  ${analysis.executiveSummary || 'Comprehensive health analysis completed'}`;
       })
-      .join("\n\n");
+      .join('\n\n');
   }
 
   private static analyzeTreatmentHistory(protocols: any[]): string[] {
     return protocols.map(
-      (p) =>
+      p =>
         `${p.protocolName}: ${p.status} (${
-          p.effectivenessRating || "pending"
+          p.effectivenessRating || 'pending'
         }/5)`
     );
   }
@@ -834,12 +832,12 @@ ${high.map((f) => this.formatCriticalFinding(f)).join("\n\n")}`
     assessments: any[]
   ): string[] {
     const contraindications = [];
-    if (client.allergies) contraindications.push("Known allergies documented");
+    if (client.allergies) contraindications.push('Known allergies documented');
     if (client.medications)
-      contraindications.push("Current medications require consideration");
+      contraindications.push('Current medications require consideration');
     return contraindications.length > 0
       ? contraindications
-      : ["No known contraindications"];
+      : ['No known contraindications'];
   }
 
   private static identifySuccessIndicators(
@@ -847,23 +845,23 @@ ${high.map((f) => this.formatCriticalFinding(f)).join("\n\n")}`
     protocols: any[]
   ): string[] {
     return [
-      "Symptom improvement",
-      "Lab value optimization",
-      "Quality of life enhancement",
-      "Energy level improvement",
+      'Symptom improvement',
+      'Lab value optimization',
+      'Quality of life enhancement',
+      'Energy level improvement',
     ];
   }
 
   private static analyzeProtocolHistory(protocols: any[]): string[] {
     if (!protocols || protocols.length === 0) {
-      return ["No previous protocols documented"];
+      return ['No previous protocols documented'];
     }
 
-    return protocols.map((protocol) => {
-      const status = protocol.status || "unknown";
-      const effectiveness = protocol.effectivenessRating || "not rated";
+    return protocols.map(protocol => {
+      const status = protocol.status || 'unknown';
+      const effectiveness = protocol.effectivenessRating || 'not rated';
       return `${
-        protocol.protocolName || "Unnamed Protocol"
+        protocol.protocolName || 'Unnamed Protocol'
       }: ${status} (effectiveness: ${effectiveness})`;
     });
   }
@@ -876,21 +874,21 @@ ${high.map((f) => this.formatCriticalFinding(f)).join("\n\n")}`
     const insights = [];
 
     if (assessments && assessments.length > 0) {
-      insights.push("Assessment data indicates potential system imbalances");
+      insights.push('Assessment data indicates potential system imbalances');
     }
 
     if (labResults && labResults.length > 0) {
       insights.push(
-        "Lab results provide biomarker insights for protocol development"
+        'Lab results provide biomarker insights for protocol development'
       );
     }
 
     if (aiAnalyses && aiAnalyses.length > 0) {
-      insights.push("AI analyses suggest targeted intervention opportunities");
+      insights.push('AI analyses suggest targeted intervention opportunities');
     }
 
     return insights.length > 0
       ? insights
-      : ["Comprehensive data review recommended"];
+      : ['Comprehensive data review recommended'];
   }
 }

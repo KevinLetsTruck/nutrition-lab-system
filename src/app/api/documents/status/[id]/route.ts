@@ -1,7 +1,7 @@
 // Medical Document Status API Route
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import jwt from "jsonwebtoken";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import jwt from 'jsonwebtoken';
 
 interface AuthPayload {
   id: string;
@@ -10,10 +10,10 @@ interface AuthPayload {
 }
 
 async function verifyAuthToken(request: NextRequest): Promise<AuthPayload> {
-  const authHeader = request.headers.get("authorization");
+  const authHeader = request.headers.get('authorization');
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new Error("Authentication Error: No valid authorization header");
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new Error('Authentication Error: No valid authorization header');
   }
 
   const token = authHeader.substring(7);
@@ -22,8 +22,8 @@ async function verifyAuthToken(request: NextRequest): Promise<AuthPayload> {
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as AuthPayload;
     return payload;
   } catch (error) {
-    console.error("Token verification failed:", error);
-    throw new Error("Authentication Error: Invalid or expired token");
+    console.error('Token verification failed:', error);
+    throw new Error('Authentication Error: Invalid or expired token');
   }
 }
 
@@ -42,7 +42,7 @@ export async function GET(
       return NextResponse.json(
         {
           success: false,
-          error: "Document ID is required",
+          error: 'Document ID is required',
         },
         { status: 400 }
       );
@@ -79,7 +79,7 @@ export async function GET(
             verifiedBy: true,
           },
           orderBy: {
-            testName: "asc",
+            testName: 'asc',
           },
         },
         documentAnalyses: {
@@ -104,7 +104,7 @@ export async function GET(
             completedAt: true,
           },
           orderBy: {
-            createdAt: "desc",
+            createdAt: 'desc',
           },
         },
         processingJobs: {
@@ -126,7 +126,7 @@ export async function GET(
             actualTime: true,
           },
           orderBy: {
-            scheduledAt: "desc",
+            scheduledAt: 'desc',
           },
         },
       },
@@ -136,7 +136,7 @@ export async function GET(
       return NextResponse.json(
         {
           success: false,
-          error: "Document not found",
+          error: 'Document not found',
         },
         { status: 404 }
       );
@@ -162,17 +162,16 @@ export async function GET(
 
       // Adjust based on active jobs
       const activeJobs = document.processingJobs.filter(
-        (job) => job.status === "ACTIVE"
+        job => job.status === 'ACTIVE'
       );
       const completedJobs = document.processingJobs.filter(
-        (job) => job.status === "COMPLETED"
+        job => job.status === 'COMPLETED'
       );
 
       if (activeJobs.length > 0) {
-        const avgJobProgress = activeJobs.reduce(
-          (sum, job) => sum + (job.progress || 0),
-          0
-        ) / activeJobs.length;
+        const avgJobProgress =
+          activeJobs.reduce((sum, job) => sum + (job.progress || 0), 0) /
+          activeJobs.length;
         progress = Math.max(progress, avgJobProgress);
       }
 
@@ -182,7 +181,7 @@ export async function GET(
     // Get current processing step
     const getCurrentStep = () => {
       const activeJobs = document.processingJobs.filter(
-        (job) => job.status === "ACTIVE"
+        job => job.status === 'ACTIVE'
       );
 
       if (activeJobs.length > 0) {
@@ -190,7 +189,7 @@ export async function GET(
       }
 
       const pendingJobs = document.processingJobs.filter(
-        (job) => job.status === "PENDING"
+        job => job.status === 'PENDING'
       );
 
       if (pendingJobs.length > 0) {
@@ -203,7 +202,7 @@ export async function GET(
     // Calculate estimated completion
     const getEstimatedCompletion = () => {
       const pendingJobs = document.processingJobs.filter(
-        (job) => job.status === "PENDING" || job.status === "ACTIVE"
+        job => job.status === 'PENDING' || job.status === 'ACTIVE'
       );
 
       if (pendingJobs.length === 0) {
@@ -223,10 +222,10 @@ export async function GET(
       const jobs = document.processingJobs;
       return {
         total: jobs.length,
-        pending: jobs.filter((job) => job.status === "PENDING").length,
-        active: jobs.filter((job) => job.status === "ACTIVE").length,
-        completed: jobs.filter((job) => job.status === "COMPLETED").length,
-        failed: jobs.filter((job) => job.status === "FAILED").length,
+        pending: jobs.filter(job => job.status === 'PENDING').length,
+        active: jobs.filter(job => job.status === 'ACTIVE').length,
+        completed: jobs.filter(job => job.status === 'COMPLETED').length,
+        failed: jobs.filter(job => job.status === 'FAILED').length,
       };
     };
 
@@ -235,9 +234,9 @@ export async function GET(
       const labValues = document.labValues;
       return {
         total: labValues.length,
-        critical: labValues.filter((lv) => lv.isCritical).length,
-        outOfRange: labValues.filter((lv) => lv.isOutOfRange).length,
-        verified: labValues.filter((lv) => lv.verified).length,
+        critical: labValues.filter(lv => lv.isCritical).length,
+        outOfRange: labValues.filter(lv => lv.isOutOfRange).length,
+        verified: labValues.filter(lv => lv.verified).length,
         byCategory: labValues.reduce((acc: any, lv) => {
           acc[lv.category] = (acc[lv.category] || 0) + 1;
           return acc;
@@ -254,12 +253,13 @@ export async function GET(
       const analyses = document.documentAnalyses;
       return {
         total: analyses.length,
-        completed: analyses.filter((a) => a.status === "COMPLETED").length,
-        pending: analyses.filter((a) => a.status === "PENDING").length,
-        failed: analyses.filter((a) => a.status === "FAILED").length,
-        requiresReview: analyses.filter((a) => a.reviewRequired).length,
-        types: analyses.map((a) => a.analysisType),
-        latestCompletion: analyses.find((a) => a.status === "COMPLETED")?.completedAt,
+        completed: analyses.filter(a => a.status === 'COMPLETED').length,
+        pending: analyses.filter(a => a.status === 'PENDING').length,
+        failed: analyses.filter(a => a.status === 'FAILED').length,
+        requiresReview: analyses.filter(a => a.reviewRequired).length,
+        types: analyses.map(a => a.analysisType),
+        latestCompletion: analyses.find(a => a.status === 'COMPLETED')
+          ?.completedAt,
       };
     };
 
@@ -308,8 +308,8 @@ export async function GET(
       data: {
         userId: user.id,
         userEmail: user.email,
-        action: "READ",
-        resource: "DOCUMENT",
+        action: 'READ',
+        resource: 'DOCUMENT',
         resourceId: documentId,
         clientId,
         success: true,
@@ -324,10 +324,10 @@ export async function GET(
     return NextResponse.json({
       success: true,
       data: statusData,
-      message: "Document status retrieved successfully",
+      message: 'Document status retrieved successfully',
     });
   } catch (error) {
-    console.error("Document status error:", error);
+    console.error('Document status error:', error);
 
     // Create error audit log
     if (user) {
@@ -336,25 +336,25 @@ export async function GET(
           data: {
             userId: user.id,
             userEmail: user.email,
-            action: "READ",
-            resource: "DOCUMENT",
+            action: 'READ',
+            resource: 'DOCUMENT',
             resourceId: documentId,
             clientId,
             success: false,
             errorMessage:
-              error instanceof Error ? error.message : "Unknown error",
+              error instanceof Error ? error.message : 'Unknown error',
           },
         });
       } catch (auditError) {
-        console.error("Failed to create audit log:", auditError);
+        console.error('Failed to create audit log:', auditError);
       }
     }
 
-    if (error instanceof Error && error.message.includes("Authentication")) {
+    if (error instanceof Error && error.message.includes('Authentication')) {
       return NextResponse.json(
         {
           success: false,
-          error: "Authentication failed",
+          error: 'Authentication failed',
           details: error.message,
         },
         { status: 401 }
@@ -364,8 +364,8 @@ export async function GET(
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to retrieve document status",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: 'Failed to retrieve document status',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -386,11 +386,11 @@ export async function PATCH(
 
     // Allow updating certain document properties
     const allowedUpdates = [
-      "documentType",
-      "labType",
-      "containsPHI",
-      "tags",
-      "metadata",
+      'documentType',
+      'labType',
+      'containsPHI',
+      'tags',
+      'metadata',
     ];
 
     const updates: any = {};
@@ -404,7 +404,7 @@ export async function PATCH(
       return NextResponse.json(
         {
           success: false,
-          error: "No valid updates provided",
+          error: 'No valid updates provided',
           details: {
             allowedFields: allowedUpdates,
             provided: Object.keys(body),
@@ -424,7 +424,7 @@ export async function PATCH(
       return NextResponse.json(
         {
           success: false,
-          error: "Document not found",
+          error: 'Document not found',
         },
         { status: 404 }
       );
@@ -454,8 +454,8 @@ export async function PATCH(
       data: {
         userId: user.id,
         userEmail: user.email,
-        action: "UPDATE",
-        resource: "DOCUMENT",
+        action: 'UPDATE',
+        resource: 'DOCUMENT',
         resourceId: documentId,
         clientId,
         success: true,
@@ -468,10 +468,10 @@ export async function PATCH(
     return NextResponse.json({
       success: true,
       data: updatedDocument,
-      message: "Document updated successfully",
+      message: 'Document updated successfully',
     });
   } catch (error) {
-    console.error("Document update error:", error);
+    console.error('Document update error:', error);
 
     // Create error audit log
     if (user) {
@@ -480,25 +480,25 @@ export async function PATCH(
           data: {
             userId: user.id,
             userEmail: user.email,
-            action: "UPDATE",
-            resource: "DOCUMENT",
+            action: 'UPDATE',
+            resource: 'DOCUMENT',
             resourceId: documentId,
             clientId,
             success: false,
             errorMessage:
-              error instanceof Error ? error.message : "Unknown error",
+              error instanceof Error ? error.message : 'Unknown error',
           },
         });
       } catch (auditError) {
-        console.error("Failed to create audit log:", auditError);
+        console.error('Failed to create audit log:', auditError);
       }
     }
 
-    if (error instanceof Error && error.message.includes("Authentication")) {
+    if (error instanceof Error && error.message.includes('Authentication')) {
       return NextResponse.json(
         {
           success: false,
-          error: "Authentication failed",
+          error: 'Authentication failed',
           details: error.message,
         },
         { status: 401 }
@@ -508,8 +508,8 @@ export async function PATCH(
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to update document",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: 'Failed to update document',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

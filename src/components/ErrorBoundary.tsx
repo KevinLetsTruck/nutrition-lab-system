@@ -24,7 +24,7 @@ export class ErrorBoundary extends Component<Props, State> {
       hasError: false,
       error: null,
       errorInfo: null,
-      errorId: ''
+      errorId: '',
     };
   }
 
@@ -41,7 +41,7 @@ export class ErrorBoundary extends Component<Props, State> {
       description: error.stack || '',
       blocksTesting: true,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     // Temporarily disabled - issue tracking coming soon
@@ -53,7 +53,7 @@ export class ErrorBoundary extends Component<Props, State> {
       hasError: true,
       error,
       errorInfo: null,
-      errorId
+      errorId,
     };
   }
 
@@ -90,13 +90,19 @@ URL: ${window.location.href}
                 <AlertTriangle className="h-6 w-6 text-red-600" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-red-900">Technical Error Detected</h1>
-                <p className="text-sm text-red-600">Error ID: {this.state.errorId}</p>
+                <h1 className="text-xl font-bold text-red-900">
+                  Technical Error Detected
+                </h1>
+                <p className="text-sm text-red-600">
+                  Error ID: {this.state.errorId}
+                </p>
               </div>
             </div>
 
             <div className="bg-gray-900 text-green-400 p-4 rounded-lg mb-4 font-mono text-sm overflow-x-auto">
-              <div className="text-red-400 mb-2">{this.state.error?.message}</div>
+              <div className="text-red-400 mb-2">
+                {this.state.error?.message}
+              </div>
               <div className="text-gray-400 text-xs whitespace-pre-wrap">
                 {this.state.error?.stack?.split('\n').slice(0, 5).join('\n')}
               </div>
@@ -104,8 +110,9 @@ URL: ${window.location.href}
 
             <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg mb-4">
               <p className="text-sm text-yellow-800">
-                <strong>This error has been automatically logged</strong> to the issue tracker. 
-                Copy the error details and share with the development team.
+                <strong>This error has been automatically logged</strong> to the
+                issue tracker. Copy the error details and share with the
+                development team.
               </p>
             </div>
 

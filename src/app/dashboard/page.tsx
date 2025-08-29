@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardRedirect() {
   const router = useRouter();
 
   useEffect(() => {
     // Redirect to clients page
-    router.replace("/dashboard/clients");
+    router.replace('/dashboard/clients');
   }, [router]);
 
   return (

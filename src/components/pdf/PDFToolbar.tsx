@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -16,7 +16,7 @@ import {
   Sidebar,
   RotateCcw,
   Share2,
-} from "lucide-react";
+} from 'lucide-react';
 
 interface PDFToolbarProps {
   currentPage: number;
@@ -80,7 +80,7 @@ export const PDFToolbar: React.FC<PDFToolbarProps> = ({
 
   const handleZoomSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
-    if (value === "fit" || value === "page") {
+    if (value === 'fit' || value === 'page') {
       onSetZoom(value);
     } else {
       onSetZoom(parseFloat(value));
@@ -169,8 +169,8 @@ export const PDFToolbar: React.FC<PDFToolbarProps> = ({
           onClick={onToggleSidebar}
           className={`p-2 rounded-lg transition-all ${
             showSidebar
-              ? "bg-green-500 text-slate-900"
-              : "hover:bg-slate-700 text-slate-300"
+              ? 'bg-green-500 text-slate-900'
+              : 'hover:bg-slate-700 text-slate-300'
           }`}
           title="Toggle Sidebar"
         >
@@ -232,7 +232,7 @@ export const PDFToolbar: React.FC<PDFToolbarProps> = ({
         <button
           onClick={onToggleFullscreen}
           className="p-2 hover:bg-slate-700 rounded-lg transition-all"
-          title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+          title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
         >
           {isFullscreen ? (
             <Minimize2 className="w-5 h-5 text-slate-300" />

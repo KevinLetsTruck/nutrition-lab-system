@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { verifyAuthToken } from "@/lib/auth";
-import fs from "fs";
-import path from "path";
-import archiver from "archiver";
-import { medicalDocStorage } from "@/lib/medical/storage-service";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { verifyAuthToken } from '@/lib/auth';
+import fs from 'fs';
+import path from 'path';
+import archiver from 'archiver';
+import { medicalDocStorage } from '@/lib/medical/storage-service';
 
 export async function GET(
   request: NextRequest,
@@ -14,7 +14,7 @@ export async function GET(
     // Authenticate user - Fixed 2025-08-26
     const authUser = await verifyAuthToken(request);
     if (!authUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { clientId } = await params;
@@ -28,7 +28,7 @@ export async function GET(
           include: {
             responses: true,
           },
-          orderBy: { startedAt: "desc" },
+          orderBy: { startedAt: 'desc' },
         },
         // Document data with analysis
         documents: {
@@ -36,26 +36,26 @@ export async function GET(
             DocumentAnalysis: true,
             LabValue: true,
           },
-          orderBy: { uploadedAt: "desc" },
+          orderBy: { uploadedAt: 'desc' },
         },
         // Clinical notes
         notes: {
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
         },
         // Treatment protocols
         protocols: {
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
         },
       },
     });
 
     if (!clientData) {
-      return NextResponse.json({ error: "Client not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
     // Prepare ZIP filename
     const clientName = `${clientData.firstName}-${clientData.lastName}`;
-    const timestamp = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const zipFilename = `${clientName}-${timestamp}.zip`;
 
     // Prepare structured client data
@@ -78,12 +78,12 @@ export async function GET(
         createdAt: clientData.createdAt,
         lastVisit: clientData.lastVisit,
       },
-      assessments: clientData.simpleAssessments.map((assessment) => ({
+      assessments: clientData.simpleAssessments.map(assessment => ({
         id: assessment.id,
         status: assessment.status,
         startedAt: assessment.startedAt,
         completedAt: assessment.completedAt,
-        responses: assessment.responses.map((response) => ({
+        responses: assessment.responses.map(response => ({
           questionId: response.questionId,
           questionText: response.questionText,
           category: response.category,
@@ -97,7 +97,7 @@ export async function GET(
               assessment.responses.length
             : 0,
       })),
-      documents: clientData.documents.map((doc) => ({
+      documents: clientData.documents.map(doc => ({
         id: doc.id,
         fileName: doc.fileName,
         fileType: doc.fileType,
@@ -107,7 +107,7 @@ export async function GET(
         documentType: doc.documentType,
         labType: doc.labType,
         analysisStatus: doc.analysisStatus,
-        analysis: doc.DocumentAnalysis.map((analysis) => ({
+        analysis: doc.DocumentAnalysis.map(analysis => ({
           analysisType: analysis.analysisType,
           patterns: analysis.patterns,
           findings: analysis.findings,
@@ -116,7 +116,7 @@ export async function GET(
           confidence: analysis.confidence,
           createdAt: analysis.createdAt,
         })),
-        labValues: doc.LabValue.map((lab) => ({
+        labValues: doc.LabValue.map(lab => ({
           testName: lab.testName,
           value: lab.value,
           unit: lab.unit,
@@ -128,7 +128,7 @@ export async function GET(
           collectionDate: lab.collectionDate,
         })),
       })),
-      notes: clientData.notes.map((note) => ({
+      notes: clientData.notes.map(note => ({
         id: note.id,
         noteType: note.noteType,
         title: note.title,
@@ -145,7 +145,7 @@ export async function GET(
         followUpNeeded: note.followUpNeeded,
         createdAt: note.createdAt,
       })),
-      protocols: clientData.protocols.map((protocol) => ({
+      protocols: clientData.protocols.map(protocol => ({
         id: protocol.id,
         protocolName: protocol.protocolName,
         status: protocol.status,
@@ -160,7 +160,7 @@ export async function GET(
       exportMetadata: {
         exportedAt: new Date(),
         exportedBy: authUser.email,
-        version: "1.0.0",
+        version: '1.0.0',
         totalAssessments: clientData.simpleAssessments.length,
         totalDocuments: clientData.documents.length,
         totalNotes: clientData.notes.length,
@@ -169,35 +169,35 @@ export async function GET(
     };
 
     // Create ZIP archive
-    return new Promise(async (resolve) => {
-      const archive = archiver("zip", { zlib: { level: 9 } });
+    return new Promise(async resolve => {
+      const archive = archiver('zip', { zlib: { level: 9 } });
       const chunks: Buffer[] = [];
 
-      archive.on("data", (chunk) => {
+      archive.on('data', chunk => {
         chunks.push(chunk);
       });
 
-      archive.on("end", () => {
+      archive.on('end', () => {
         const zipBuffer = Buffer.concat(chunks);
 
         // Create response with ZIP file download
         const response = new NextResponse(zipBuffer, {
           status: 200,
           headers: {
-            "Content-Type": "application/zip",
-            "Content-Disposition": `attachment; filename="${zipFilename}"`,
-            "Content-Length": zipBuffer.length.toString(),
+            'Content-Type': 'application/zip',
+            'Content-Disposition': `attachment; filename="${zipFilename}"`,
+            'Content-Length': zipBuffer.length.toString(),
           },
         });
 
         resolve(response);
       });
 
-      archive.on("error", (err) => {
-        console.error("Archive error:", err);
+      archive.on('error', err => {
+        console.error('Archive error:', err);
         resolve(
           NextResponse.json(
-            { error: "Failed to create export archive" },
+            { error: 'Failed to create export archive' },
             { status: 500 }
           )
         );
@@ -205,25 +205,26 @@ export async function GET(
 
       // Add JSON files to ZIP
       archive.append(JSON.stringify(exportData, null, 2), {
-        name: "client-data.json",
+        name: 'client-data.json',
       });
 
       // Generate and add summary
       const summaryContent = generateClientSummary(exportData);
-      archive.append(summaryContent, { name: "client-summary.md" });
+      archive.append(summaryContent, { name: 'client-summary.md' });
 
       // Add metadata
       archive.append(JSON.stringify(exportData.exportMetadata, null, 2), {
-        name: "export-metadata.json",
+        name: 'export-metadata.json',
       });
 
       // Generate and add functional medicine assessment analysis
-      console.log("🧠 Generating functional medicine assessment analysis...");
-      const functionalAssessmentAnalysis = await generateFunctionalAssessmentAnalysis(clientId);
-      archive.append(functionalAssessmentAnalysis, { 
-        name: "functional-assessment-analysis.md" 
+      console.log('🧠 Generating functional medicine assessment analysis...');
+      const functionalAssessmentAnalysis =
+        await generateFunctionalAssessmentAnalysis(clientId);
+      archive.append(functionalAssessmentAnalysis, {
+        name: 'functional-assessment-analysis.md',
       });
-      console.log("✅ Functional medicine assessment analysis added to export");
+      console.log('✅ Functional medicine assessment analysis added to export');
 
       // Add document files (if they exist)
       let copiedDocuments = 0;
@@ -236,14 +237,14 @@ export async function GET(
         try {
           console.log(`📄 Processing document: ${doc.fileName}`);
           console.log(`📁 FileUrl: ${doc.fileUrl}`);
-          console.log(`🗄️ Storage Provider: ${doc.storageProvider || "LOCAL"}`);
+          console.log(`🗄️ Storage Provider: ${doc.storageProvider || 'LOCAL'}`);
 
           let fileBuffer = null;
           let fileName = doc.fileName;
 
           // Try LOCAL storage first
-          if (!doc.storageProvider || doc.storageProvider === "LOCAL") {
-            const sourcePath = path.join(process.cwd(), "public", doc.fileUrl);
+          if (!doc.storageProvider || doc.storageProvider === 'LOCAL') {
+            const sourcePath = path.join(process.cwd(), 'public', doc.fileUrl);
             console.log(`🔍 Checking local file: ${sourcePath}`);
 
             if (fs.existsSync(sourcePath)) {
@@ -257,7 +258,7 @@ export async function GET(
           }
 
           // If LOCAL failed or storage is S3, try S3 download
-          if (doc.storageProvider === "S3" || doc.fileUrl?.startsWith("http")) {
+          if (doc.storageProvider === 'S3' || doc.fileUrl?.startsWith('http')) {
             console.log(`☁️ S3 file detected: ${doc.fileUrl}`);
 
             try {
@@ -287,7 +288,7 @@ Document Details:
 - Storage: S3
 - File URL: ${doc.fileUrl}
 
-Error: ${s3Error instanceof Error ? s3Error.message : "Unknown S3 error"}
+Error: ${s3Error instanceof Error ? s3Error.message : 'Unknown S3 error'}
 
 To access this document:
 1. Check S3 bucket permissions
@@ -296,7 +297,7 @@ To access this document:
 4. Contact support for S3 file recovery`;
 
               archive.append(placeholderContent, {
-                name: fileName.replace(".pdf", ".txt"),
+                name: fileName.replace('.pdf', '.txt'),
               });
               console.log(`📝 Added S3 error placeholder for: ${fileName}`);
               copiedDocuments++;
@@ -320,7 +321,7 @@ To access this document:
       if (skippedDocuments.length > 0) {
         const skippedSummary = `The following documents could not be included in this export:
 
-${skippedDocuments.map((name) => `- ${name}`).join("\n")}
+${skippedDocuments.map(name => `- ${name}`).join('\n')}
 
 Possible reasons:
 - Files were lost during server deployment (ephemeral file system)
@@ -332,7 +333,7 @@ To recover these documents:
 2. Contact support for S3 file recovery
 3. Check the original source files`;
 
-        archive.append(skippedSummary, { name: "missing-documents.txt" });
+        archive.append(skippedSummary, { name: 'missing-documents.txt' });
         console.log(
           `📋 Added missing documents summary (${skippedDocuments.length} files)`
         );
@@ -349,11 +350,11 @@ To recover these documents:
       archive.finalize();
     });
   } catch (error) {
-    console.error("Export error:", error);
+    console.error('Export error:', error);
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Export failed",
-        details: error instanceof Error ? error.stack : "Unknown error",
+        error: error instanceof Error ? error.message : 'Export failed',
+        details: error instanceof Error ? error.stack : 'Unknown error',
       },
       { status: 500 }
     );
@@ -361,12 +362,14 @@ To recover these documents:
 }
 
 // Functional Medicine Assessment Categorization Function
-async function generateFunctionalAssessmentAnalysis(clientId: string): Promise<string> {
+async function generateFunctionalAssessmentAnalysis(
+  clientId: string
+): Promise<string> {
   // Query all completed assessments for the client
   const assessments = await prisma.simpleAssessment.findMany({
     where: { clientId, status: 'completed' },
     include: { responses: true },
-    orderBy: { completedAt: 'desc' }
+    orderBy: { completedAt: 'desc' },
   });
 
   if (assessments.length === 0) {
@@ -394,8 +397,14 @@ Without assessment data, analysis is limited to:
 
   // Define functional medicine categories
   const categories = [
-    'digestive', 'energy', 'sleep', 'stress', 
-    'immune', 'hormonal', 'detox', 'cardiovascular'
+    'digestive',
+    'energy',
+    'sleep',
+    'stress',
+    'immune',
+    'hormonal',
+    'detox',
+    'cardiovascular',
   ];
 
   // Calculate category analysis across all assessments
@@ -408,14 +417,14 @@ Without assessment data, analysis is limited to:
       totalScore: 0,
       questionCount: 0,
       responses: [] as any[],
-      assessmentHistory: [] as any[]
+      assessmentHistory: [] as any[],
     };
   });
 
   // Process all assessments and categorize responses
   assessments.forEach((assessment, assessmentIndex) => {
     const assessmentDate = assessment.completedAt || assessment.startedAt;
-    
+
     assessment.responses.forEach(response => {
       const category = response.category;
       if (categories.includes(category)) {
@@ -424,21 +433,25 @@ Without assessment data, analysis is limited to:
         categoryData[category].responses.push({
           questionText: response.questionText,
           score: response.score,
-          assessmentDate: assessmentDate
+          assessmentDate: assessmentDate,
         });
       }
     });
 
     // Track per-assessment category scores for trending
     categories.forEach(category => {
-      const categoryResponses = assessment.responses.filter(r => r.category === category);
+      const categoryResponses = assessment.responses.filter(
+        r => r.category === category
+      );
       if (categoryResponses.length > 0) {
-        const avgScore = categoryResponses.reduce((sum, r) => sum + r.score, 0) / categoryResponses.length;
+        const avgScore =
+          categoryResponses.reduce((sum, r) => sum + r.score, 0) /
+          categoryResponses.length;
         categoryData[category].assessmentHistory.push({
           assessmentIndex,
           assessmentDate,
           avgScore,
-          questionCount: categoryResponses.length
+          questionCount: categoryResponses.length,
         });
       }
     });
@@ -450,7 +463,7 @@ Without assessment data, analysis is limited to:
     if (data.questionCount > 0) {
       const avgScore = data.totalScore / data.questionCount;
       const percentage = (avgScore / 5) * 100;
-      
+
       let severity: string;
       let priority: number;
       let interpretation: string;
@@ -461,36 +474,58 @@ Without assessment data, analysis is limited to:
         severity = 'OPTIMAL';
         priority = 4;
         interpretation = 'Excellent function with minimal concerns';
-        recommendations = ['Maintain current practices', 'Monitor for changes', 'Continue supportive protocols'];
+        recommendations = [
+          'Maintain current practices',
+          'Monitor for changes',
+          'Continue supportive protocols',
+        ];
       } else if (percentage >= 65) {
         severity = 'GOOD';
         priority = 3;
         interpretation = 'Good function with minor optimization opportunities';
-        recommendations = ['Fine-tune current approaches', 'Address minor imbalances', 'Prevent future dysfunction'];
+        recommendations = [
+          'Fine-tune current approaches',
+          'Address minor imbalances',
+          'Prevent future dysfunction',
+        ];
       } else if (percentage >= 50) {
         severity = 'MODERATE';
         priority = 2;
         interpretation = 'Moderate dysfunction requiring targeted intervention';
-        recommendations = ['Implement targeted protocols', 'Address underlying imbalances', 'Monitor progress closely'];
+        recommendations = [
+          'Implement targeted protocols',
+          'Address underlying imbalances',
+          'Monitor progress closely',
+        ];
       } else if (percentage >= 35) {
         severity = 'HIGH';
         priority = 1;
-        interpretation = 'Significant dysfunction requiring immediate attention';
-        recommendations = ['Priority intervention needed', 'Comprehensive protocol implementation', 'Consider additional testing'];
+        interpretation =
+          'Significant dysfunction requiring immediate attention';
+        recommendations = [
+          'Priority intervention needed',
+          'Comprehensive protocol implementation',
+          'Consider additional testing',
+        ];
       } else {
         severity = 'CRITICAL';
         priority = 1;
         interpretation = 'Severe dysfunction requiring urgent intervention';
-        recommendations = ['Urgent intervention required', 'Comprehensive diagnostic workup', 'Intensive protocol implementation'];
+        recommendations = [
+          'Urgent intervention required',
+          'Comprehensive diagnostic workup',
+          'Intensive protocol implementation',
+        ];
       }
 
       // Identify trending patterns
       let trendAnalysis = 'Insufficient data for trending';
       if (data.assessmentHistory.length >= 2) {
-        const firstScore = data.assessmentHistory[data.assessmentHistory.length - 1].avgScore;
+        const firstScore =
+          data.assessmentHistory[data.assessmentHistory.length - 1].avgScore;
         const lastScore = data.assessmentHistory[0].avgScore;
         const change = ((lastScore - firstScore) / firstScore) * 100;
-        
+
         if (Math.abs(change) < 5) {
           trendAnalysis = 'Stable (no significant change)';
         } else if (change > 15) {
@@ -515,7 +550,7 @@ Without assessment data, analysis is limited to:
         trendAnalysis,
         assessmentCount: data.assessmentHistory.length,
         highConcernQuestions: data.responses.filter(r => r.score <= 2).length,
-        lowConcernQuestions: data.responses.filter(r => r.score >= 4).length
+        lowConcernQuestions: data.responses.filter(r => r.score >= 4).length,
       };
     }
   });
@@ -524,21 +559,25 @@ Without assessment data, analysis is limited to:
   const sortedCategories = categories
     .filter(cat => categoryAnalysis[cat])
     .sort((a, b) => {
-      const priorityDiff = categoryAnalysis[a].priority - categoryAnalysis[b].priority;
+      const priorityDiff =
+        categoryAnalysis[a].priority - categoryAnalysis[b].priority;
       if (priorityDiff !== 0) return priorityDiff;
-      return parseFloat(categoryAnalysis[a].percentage) - parseFloat(categoryAnalysis[b].percentage);
+      return (
+        parseFloat(categoryAnalysis[a].percentage) -
+        parseFloat(categoryAnalysis[b].percentage)
+      );
     });
 
   // Generate comprehensive markdown
   const categoryNames = {
     digestive: 'Digestive Health',
-    energy: 'Energy & Focus', 
+    energy: 'Energy & Focus',
     sleep: 'Sleep Quality',
     stress: 'Stress Management',
     immune: 'Immune System',
     hormonal: 'Hormonal Balance',
     detox: 'Detoxification',
-    cardiovascular: 'Cardiovascular Health'
+    cardiovascular: 'Cardiovascular Health',
   };
 
   let markdown = `# Functional Medicine Assessment Analysis
@@ -546,47 +585,78 @@ Without assessment data, analysis is limited to:
 ## Assessment Overview
 - **Total Completed Assessments**: ${assessments.length}
 - **Most Recent Assessment**: ${assessments[0].completedAt ? new Date(assessments[0].completedAt).toLocaleDateString() : 'In Progress'}
-- **Assessment Period**: ${assessments.length > 1 ? 
-  `${new Date(assessments[assessments.length - 1].startedAt).toLocaleDateString()} to ${new Date(assessments[0].startedAt).toLocaleDateString()}` : 
-  'Single assessment'}
+- **Assessment Period**: ${
+    assessments.length > 1
+      ? `${new Date(assessments[assessments.length - 1].startedAt).toLocaleDateString()} to ${new Date(assessments[0].startedAt).toLocaleDateString()}`
+      : 'Single assessment'
+  }
 - **Total Questions Analyzed**: ${Object.values(categoryAnalysis).reduce((sum: number, cat: any) => sum + cat.questionCount, 0)}
 
 ## 🎯 Priority Intervention Summary
 
 ### High Priority Areas (Immediate Attention Needed)
-${sortedCategories.filter(cat => ['HIGH', 'CRITICAL'].includes(categoryAnalysis[cat].severity)).length > 0 ?
-  sortedCategories.filter(cat => ['HIGH', 'CRITICAL'].includes(categoryAnalysis[cat].severity))
-    .map(cat => `- **${categoryNames[cat as keyof typeof categoryNames]}**: ${categoryAnalysis[cat].percentage}% (${categoryAnalysis[cat].severity})`)
-    .join('\n') :
-  '✅ No critical areas identified - all systems within acceptable ranges'}
+${
+  sortedCategories.filter(cat =>
+    ['HIGH', 'CRITICAL'].includes(categoryAnalysis[cat].severity)
+  ).length > 0
+    ? sortedCategories
+        .filter(cat =>
+          ['HIGH', 'CRITICAL'].includes(categoryAnalysis[cat].severity)
+        )
+        .map(
+          cat =>
+            `- **${categoryNames[cat as keyof typeof categoryNames]}**: ${categoryAnalysis[cat].percentage}% (${categoryAnalysis[cat].severity})`
+        )
+        .join('\n')
+    : '✅ No critical areas identified - all systems within acceptable ranges'
+}
 
 ### Optimization Opportunities  
-${sortedCategories.filter(cat => ['MODERATE', 'GOOD'].includes(categoryAnalysis[cat].severity)).length > 0 ?
-  sortedCategories.filter(cat => ['MODERATE', 'GOOD'].includes(categoryAnalysis[cat].severity))
-    .map(cat => `- **${categoryNames[cat as keyof typeof categoryNames]}**: ${categoryAnalysis[cat].percentage}% (optimization potential)`)
-    .join('\n') :
-  'No moderate areas identified'}
+${
+  sortedCategories.filter(cat =>
+    ['MODERATE', 'GOOD'].includes(categoryAnalysis[cat].severity)
+  ).length > 0
+    ? sortedCategories
+        .filter(cat =>
+          ['MODERATE', 'GOOD'].includes(categoryAnalysis[cat].severity)
+        )
+        .map(
+          cat =>
+            `- **${categoryNames[cat as keyof typeof categoryNames]}**: ${categoryAnalysis[cat].percentage}% (optimization potential)`
+        )
+        .join('\n')
+    : 'No moderate areas identified'
+}
 
 ### Well-Functioning Systems
-${sortedCategories.filter(cat => categoryAnalysis[cat].severity === 'OPTIMAL').length > 0 ?
+${
   sortedCategories.filter(cat => categoryAnalysis[cat].severity === 'OPTIMAL')
-    .map(cat => `- **${categoryNames[cat as keyof typeof categoryNames]}**: ${categoryAnalysis[cat].percentage}% (optimal function)`)
-    .join('\n') :
-  'No systems currently at optimal levels'}
+    .length > 0
+    ? sortedCategories
+        .filter(cat => categoryAnalysis[cat].severity === 'OPTIMAL')
+        .map(
+          cat =>
+            `- **${categoryNames[cat as keyof typeof categoryNames]}**: ${categoryAnalysis[cat].percentage}% (optimal function)`
+        )
+        .join('\n')
+    : 'No systems currently at optimal levels'
+}
 
 ## 📊 Detailed Category Analysis
 
-${sortedCategories.map(category => {
-  const analysis = categoryAnalysis[category];
-  const severityEmoji = {
-    'CRITICAL': '🔴',
-    'HIGH': '🟠', 
-    'MODERATE': '🟡',
-    'GOOD': '🟢',
-    'OPTIMAL': '✅'
-  }[analysis.severity] || '⚪';
+${sortedCategories
+  .map(category => {
+    const analysis = categoryAnalysis[category];
+    const severityEmoji =
+      {
+        CRITICAL: '🔴',
+        HIGH: '🟠',
+        MODERATE: '🟡',
+        GOOD: '🟢',
+        OPTIMAL: '✅',
+      }[analysis.severity] || '⚪';
 
-  return `### ${severityEmoji} ${categoryNames[category as keyof typeof categoryNames]}
+    return `### ${severityEmoji} ${categoryNames[category as keyof typeof categoryNames]}
 
 **Overall Score**: ${analysis.percentage}% (${analysis.avgScore}/5.0)
 **Severity Level**: ${analysis.severity}
@@ -602,44 +672,63 @@ ${sortedCategories.map(category => {
 ${analysis.recommendations.map((rec: string) => `- ${rec}`).join('\n')}
 
 ---`;
-}).join('\n')}
+  })
+  .join('\n')}
 
 ## 📈 Trending Analysis
 
-${assessments.length > 1 ? `
+${
+  assessments.length > 1
+    ? `
 ### Assessment Progression
-${sortedCategories.map(category => {
-  const history = categoryData[category].assessmentHistory;
-  if (history.length >= 2) {
-    const firstScore = history[history.length - 1].avgScore;
-    const lastScore = history[0].avgScore;
-    const change = lastScore - firstScore;
-    const changeIcon = change > 0.2 ? '📈' : change < -0.2 ? '📉' : '➡️';
-    
-    return `- **${categoryNames[category as keyof typeof categoryNames]}**: ${changeIcon} ${firstScore.toFixed(1)} → ${lastScore.toFixed(1)} (${change > 0 ? '+' : ''}${change.toFixed(1)} point change)`;
-  }
-  return `- **${categoryNames[category as keyof typeof categoryNames]}**: Single assessment (no trend data)`;
-}).join('\n')}
-` : `
+${sortedCategories
+  .map(category => {
+    const history = categoryData[category].assessmentHistory;
+    if (history.length >= 2) {
+      const firstScore = history[history.length - 1].avgScore;
+      const lastScore = history[0].avgScore;
+      const change = lastScore - firstScore;
+      const changeIcon = change > 0.2 ? '📈' : change < -0.2 ? '📉' : '➡️';
+
+      return `- **${categoryNames[category as keyof typeof categoryNames]}**: ${changeIcon} ${firstScore.toFixed(1)} → ${lastScore.toFixed(1)} (${change > 0 ? '+' : ''}${change.toFixed(1)} point change)`;
+    }
+    return `- **${categoryNames[category as keyof typeof categoryNames]}**: Single assessment (no trend data)`;
+  })
+  .join('\n')}
+`
+    : `
 ### Single Assessment
 This analysis is based on a single assessment. Complete additional assessments to:
 - Track progress over time
 - Identify improvement patterns
 - Monitor intervention effectiveness
 - Adjust protocols based on response
-`}
+`
+}
 
 ## 🎯 Clinical Action Items
 
 ### Immediate Priority Actions
-${sortedCategories.filter(cat => ['HIGH', 'CRITICAL'].includes(categoryAnalysis[cat].severity)).length > 0 ?
-  sortedCategories.filter(cat => ['HIGH', 'CRITICAL'].includes(categoryAnalysis[cat].severity))
-    .slice(0, 3)
-    .map((cat, index) => `${index + 1}. **Address ${categoryNames[cat as keyof typeof categoryNames]}** (${categoryAnalysis[cat].percentage}%)
+${
+  sortedCategories.filter(cat =>
+    ['HIGH', 'CRITICAL'].includes(categoryAnalysis[cat].severity)
+  ).length > 0
+    ? sortedCategories
+        .filter(cat =>
+          ['HIGH', 'CRITICAL'].includes(categoryAnalysis[cat].severity)
+        )
+        .slice(0, 3)
+        .map(
+          (
+            cat,
+            index
+          ) => `${index + 1}. **Address ${categoryNames[cat as keyof typeof categoryNames]}** (${categoryAnalysis[cat].percentage}%)
    - ${categoryAnalysis[cat].recommendations[0]}
-   - Consider additional testing specific to ${categoryNames[cat as keyof typeof categoryNames].toLowerCase()}`)
-    .join('\n') :
-  '✅ No immediate priority actions required - focus on optimization and maintenance'}
+   - Consider additional testing specific to ${categoryNames[cat as keyof typeof categoryNames].toLowerCase()}`
+        )
+        .join('\n')
+    : '✅ No immediate priority actions required - focus on optimization and maintenance'
+}
 
 ### Follow-up Recommendations
 1. **Re-assessment Timeline**: Complete follow-up assessment in 4-6 weeks
@@ -676,50 +765,50 @@ function generateClientSummary(data: any): string {
 - **Date of Birth:** ${
     client.dateOfBirth
       ? new Date(client.dateOfBirth).toLocaleDateString()
-      : "Not provided"
+      : 'Not provided'
   }
-- **Gender:** ${client.gender || "Not specified"}
-- **Commercial Driver:** ${client.isTruckDriver ? "Yes" : "No"}
+- **Gender:** ${client.gender || 'Not specified'}
+- **Commercial Driver:** ${client.isTruckDriver ? 'Yes' : 'No'}
 - **Status:** ${client.status}
 - **Last Visit:** ${
     client.lastVisit
       ? new Date(client.lastVisit).toLocaleDateString()
-      : "No previous visits"
+      : 'No previous visits'
   }
 
 ## Health Goals
 ${
   client.healthGoals
     ? JSON.stringify(client.healthGoals, null, 2)
-    : "No health goals specified"
+    : 'No health goals specified'
 }
 
 ## Current Medications
 ${
   client.medications
     ? JSON.stringify(client.medications, null, 2)
-    : "No medications listed"
+    : 'No medications listed'
 }
 
 ## Medical Conditions
 ${
   client.conditions
     ? JSON.stringify(client.conditions, null, 2)
-    : "No conditions listed"
+    : 'No conditions listed'
 }
 
 ## Allergies
 ${
   client.allergies
     ? JSON.stringify(client.allergies, null, 2)
-    : "No allergies listed"
+    : 'No allergies listed'
 }
 
 ## Assessment Summary
 - **Total Assessments:** ${assessments.length}
 ${assessments
   .map(
-    (assessment) => `
+    assessment => `
 ### Assessment (${assessment.startedAt})
 - **Status:** ${assessment.status}
 - **Total Questions:** ${assessment.totalQuestions}
@@ -727,19 +816,19 @@ ${assessments
 - **Completed:** ${
       assessment.completedAt
         ? new Date(assessment.completedAt).toLocaleDateString()
-        : "In progress"
+        : 'In progress'
     }
 `
   )
-  .join("")}
+  .join('')}
 
 ## Document Summary
 - **Total Documents:** ${documents.length}
 ${documents
   .map(
-    (doc) => `
+    doc => `
 ### ${doc.fileName}
-- **Type:** ${doc.documentType} ${doc.labType ? `(${doc.labType})` : ""}
+- **Type:** ${doc.documentType} ${doc.labType ? `(${doc.labType})` : ''}
 - **Uploaded:** ${new Date(doc.uploadedAt).toLocaleDateString()}
 - **Analysis Status:** ${doc.analysisStatus}
 - **Lab Values:** ${doc.labValues.length} values extracted
@@ -748,59 +837,59 @@ ${
     ? `
   **Critical Values:**
   ${doc.labValues
-    .filter((lab) => lab.isCritical)
+    .filter(lab => lab.isCritical)
     .map(
-      (lab) => `
+      lab => `
   - **${lab.testName}:** ${lab.value} ${lab.unit} (${lab.flag})`
     )
-    .join("")}
+    .join('')}
 `
-    : ""
+    : ''
 }
 `
   )
-  .join("")}
+  .join('')}
 
 ## Clinical Notes Summary
 - **Total Notes:** ${notes.length}
 ${notes
   .map(
-    (note) => `
+    note => `
 ### ${note.noteType} Note - ${new Date(note.createdAt).toLocaleDateString()}
-${note.title ? `**Title:** ${note.title}` : ""}
-${note.chiefComplaints ? `**Chief Complaints:** ${note.chiefComplaints}` : ""}
-${note.nextSteps ? `**Next Steps:** ${note.nextSteps}` : ""}
-${note.followUpNeeded ? "**⚠️ Follow-up Required**" : ""}
+${note.title ? `**Title:** ${note.title}` : ''}
+${note.chiefComplaints ? `**Chief Complaints:** ${note.chiefComplaints}` : ''}
+${note.nextSteps ? `**Next Steps:** ${note.nextSteps}` : ''}
+${note.followUpNeeded ? '**⚠️ Follow-up Required**' : ''}
 `
   )
-  .join("")}
+  .join('')}
 
 ## Treatment Protocols
 - **Total Protocols:** ${protocols.length}
 ${protocols
   .map(
-    (protocol) => `
+    protocol => `
 ### ${protocol.protocolName}
 - **Status:** ${protocol.status}
 - **Created:** ${new Date(protocol.createdAt).toLocaleDateString()}
 - **Supplements:** ${
-      typeof protocol.supplements === "object"
-        ? Object.keys(protocol.supplements).length + " items"
-        : "Not specified"
+      typeof protocol.supplements === 'object'
+        ? Object.keys(protocol.supplements).length + ' items'
+        : 'Not specified'
     }
 - **Dietary Guidelines:** ${
-      typeof protocol.dietary === "object"
-        ? Object.keys(protocol.dietary).length + " items"
-        : "Not specified"
+      typeof protocol.dietary === 'object'
+        ? Object.keys(protocol.dietary).length + ' items'
+        : 'Not specified'
     }
 - **Lifestyle Changes:** ${
-      typeof protocol.lifestyle === "object"
-        ? Object.keys(protocol.lifestyle).length + " items"
-        : "Not specified"
+      typeof protocol.lifestyle === 'object'
+        ? Object.keys(protocol.lifestyle).length + ' items'
+        : 'Not specified'
     }
 `
   )
-  .join("")}
+  .join('')}
 
 ## Export Information
 - **Exported On:** ${new Date().toLocaleDateString()}

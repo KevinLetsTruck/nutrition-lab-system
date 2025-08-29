@@ -1,32 +1,32 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Activity, ChevronDown } from "lucide-react";
-import { TimelineExportDialog } from "./TimelineExportDialog";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Activity, ChevronDown } from 'lucide-react';
+import { TimelineExportDialog } from './TimelineExportDialog';
 
 type TimelineType =
-  | "COMPREHENSIVE"
-  | "FOCUSED"
-  | "SYMPTOMS"
-  | "TREATMENTS"
-  | "ASSESSMENTS"
-  | "PROTOCOL_DEVELOPMENT";
+  | 'COMPREHENSIVE'
+  | 'FOCUSED'
+  | 'SYMPTOMS'
+  | 'TREATMENTS'
+  | 'ASSESSMENTS'
+  | 'PROTOCOL_DEVELOPMENT';
 
 interface TimelineExportButtonProps {
   clientId: string;
   clientName: string;
-  variant?: "default" | "outline" | "secondary";
-  size?: "sm" | "default" | "lg";
+  variant?: 'default' | 'outline' | 'secondary';
+  size?: 'sm' | 'default' | 'lg';
   defaultTimelineType?: TimelineType;
 }
 
 export function TimelineExportButton({
   clientId,
   clientName,
-  variant = "outline",
-  size = "sm",
-  defaultTimelineType = "PROTOCOL_DEVELOPMENT",
+  variant = 'outline',
+  size = 'sm',
+  defaultTimelineType = 'PROTOCOL_DEVELOPMENT',
 }: TimelineExportButtonProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
 

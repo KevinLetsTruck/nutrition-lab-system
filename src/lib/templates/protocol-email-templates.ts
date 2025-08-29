@@ -344,13 +344,14 @@ export function generateProtocolDeliveryEmail(data: ProtocolEmailData): string {
     brandingConfig,
   } = data;
 
-  const practiceName = brandingConfig?.practiceName || 'FNTP Nutrition Practice';
+  const practiceName =
+    brandingConfig?.practiceName || 'FNTP Nutrition Practice';
   const primaryColor = brandingConfig?.primaryColor || '#10b981';
   const logoUrl = brandingConfig?.logoUrl;
-  
+
   const clientFullName = `${client.firstName} ${client.lastName}`;
   const protocolPhase = protocol.phase ? ` - ${protocol.phase}` : '';
-  const startDateText = protocol.startDate 
+  const startDateText = protocol.startDate
     ? format(protocol.startDate, 'MMMM d, yyyy')
     : 'As discussed';
 
@@ -394,12 +395,16 @@ export function generateProtocolDeliveryEmail(data: ProtocolEmailData): string {
           <span class="summary-value">${protocol.supplementCount} recommendations</span>
         </div>
         
-        ${protocol.duration ? `
+        ${
+          protocol.duration
+            ? `
           <div class="summary-row">
             <span class="summary-label">⏱️ Duration</span>
             <span class="summary-value">${protocol.duration} weeks</span>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
         
         <div class="summary-row">
           <span class="summary-label">🗓️ Start Date</span>
@@ -408,7 +413,9 @@ export function generateProtocolDeliveryEmail(data: ProtocolEmailData): string {
       </div>
 
       <!-- PDF Attachment Info -->
-      ${attachments ? `
+      ${
+        attachments
+          ? `
         <div class="attachment-info">
           <div class="attachment-icon">📄</div>
           <div class="attachment-title">Your Complete Protocol</div>
@@ -416,7 +423,9 @@ export function generateProtocolDeliveryEmail(data: ProtocolEmailData): string {
             ${attachments.pdfFilename} • ${attachments.pdfSize} • ${attachments.pdfPages} pages
           </div>
         </div>
-      ` : ''}
+      `
+          : ''
+      }
 
       <!-- Implementation Instructions -->
       <div class="instructions">
@@ -434,12 +443,16 @@ export function generateProtocolDeliveryEmail(data: ProtocolEmailData): string {
       </div>
 
       <!-- Custom Message -->
-      ${customMessage ? `
+      ${
+        customMessage
+          ? `
         <div class="custom-message">
           <div class="custom-message-title">Personal Message from ${practitioner.name}</div>
           <div class="custom-message-content">${customMessage.replace(/\n/g, '<br>')}</div>
         </div>
-      ` : ''}
+      `
+          : ''
+      }
 
       <p>Remember, this protocol is specifically designed for your unique needs. Please review the complete document for detailed instructions, timing, and important considerations.</p>
 
@@ -453,39 +466,59 @@ export function generateProtocolDeliveryEmail(data: ProtocolEmailData): string {
 
       <!-- Call-to-Action Buttons -->
       <div class="cta-container">
-        ${practitioner.email ? `
+        ${
+          practitioner.email
+            ? `
           <a href="mailto:${practitioner.email}?subject=Question about ${protocol.name}" class="cta-button">
             📧 Ask a Question
           </a>
-        ` : ''}
-        ${practitioner.phone ? `
+        `
+            : ''
+        }
+        ${
+          practitioner.phone
+            ? `
           <a href="tel:${practitioner.phone}" class="cta-button secondary">
             📞 Call Practice
           </a>
-        ` : ''}
+        `
+            : ''
+        }
       </div>
     </div>
 
     <!-- Footer -->
     <div class="footer">
       <div class="contact-info">
-        ${practitioner.email ? `
+        ${
+          practitioner.email
+            ? `
           <div class="contact-item">
             📧 <a href="mailto:${practitioner.email}" class="contact-link">${practitioner.email}</a>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
         
-        ${practitioner.phone ? `
+        ${
+          practitioner.phone
+            ? `
           <div class="contact-item">
             📞 <a href="tel:${practitioner.phone}" class="contact-link">${practitioner.phone}</a>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
         
-        ${process.env.PRACTICE_WEBSITE ? `
+        ${
+          process.env.PRACTICE_WEBSITE
+            ? `
           <div class="contact-item">
             🌐 <a href="${process.env.PRACTICE_WEBSITE}" class="contact-link">Visit Website</a>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
       </div>
 
       <div class="disclaimer">
@@ -507,10 +540,12 @@ export function generateProtocolDeliveryEmail(data: ProtocolEmailData): string {
 /**
  * Generate a follow-up email template
  */
-export function generateProtocolFollowUpEmail(data: ProtocolEmailData & {
-  followUpType: 'reminder' | 'check-in' | 'adjustment';
-  daysOnProtocol?: number;
-}): string {
+export function generateProtocolFollowUpEmail(
+  data: ProtocolEmailData & {
+    followUpType: 'reminder' | 'check-in' | 'adjustment';
+    daysOnProtocol?: number;
+  }
+): string {
   const { client, protocol, practitioner, followUpType, daysOnProtocol } = data;
   const clientFullName = `${client.firstName} ${client.lastName}`;
 
@@ -563,12 +598,16 @@ export function generateProtocolFollowUpEmail(data: ProtocolEmailData & {
           <span class="summary-label">Your Protocol</span>
           <span class="summary-value">${protocol.name}</span>
         </div>
-        ${daysOnProtocol ? `
+        ${
+          daysOnProtocol
+            ? `
           <div class="summary-row">
             <span class="summary-label">Days on Protocol</span>
             <span class="summary-value">${daysOnProtocol}</span>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
       </div>
 
       <p>Your health journey is unique, and I want to ensure you're getting the most out of your personalized protocol. Please don't hesitate to reach out if you have any questions, concerns, or would like to share how you're feeling.</p>
@@ -598,10 +637,13 @@ export function generateProtocolFollowUpEmail(data: ProtocolEmailData & {
 /**
  * Generate a simple text-only version for email clients that don't support HTML
  */
-export function generateProtocolDeliveryTextEmail(data: ProtocolEmailData): string {
+export function generateProtocolDeliveryTextEmail(
+  data: ProtocolEmailData
+): string {
   const { client, protocol, practitioner, customMessage, attachments } = data;
   const clientFullName = `${client.firstName} ${client.lastName}`;
-  const practiceName = data.brandingConfig?.practiceName || 'FNTP Nutrition Practice';
+  const practiceName =
+    data.brandingConfig?.practiceName || 'FNTP Nutrition Practice';
 
   return `
 Hello ${client.firstName}!
@@ -614,10 +656,14 @@ PROTOCOL SUMMARY:
 ${protocol.duration ? `- Duration: ${protocol.duration} weeks` : ''}
 ${protocol.startDate ? `- Start Date: ${format(protocol.startDate, 'MMMM d, yyyy')}` : ''}
 
-${attachments ? `
+${
+  attachments
+    ? `
 ATTACHMENT:
 Your complete protocol document is attached: ${attachments.pdfFilename} (${attachments.pdfSize}, ${attachments.pdfPages} pages)
-` : ''}
+`
+    : ''
+}
 
 IMPLEMENTATION GUIDE:
 1. Download and review your complete protocol PDF attachment
@@ -626,10 +672,14 @@ IMPLEMENTATION GUIDE:
 4. Track your progress and note any changes or concerns
 5. Stay in touch - don't hesitate to reach out with questions
 
-${customMessage ? `
+${
+  customMessage
+    ? `
 PERSONAL MESSAGE:
 ${customMessage}
-` : ''}
+`
+    : ''
+}
 
 Remember, this protocol is specifically designed for your unique needs. Please review the complete document for detailed instructions, timing, and important considerations.
 
@@ -654,7 +704,10 @@ This personalized protocol was generated on ${format(new Date(), 'MMMM d, yyyy')
 /**
  * Generate email preview text for better inbox display
  */
-export function generateEmailPreview(protocolName: string, supplementCount: number): string {
+export function generateEmailPreview(
+  protocolName: string,
+  supplementCount: number
+): string {
   return `Your personalized ${protocolName} with ${supplementCount} priority supplements is ready for download and implementation.`;
 }
 
@@ -684,7 +737,10 @@ export function validateEmailTemplateData(data: ProtocolEmailData): string[] {
     errors.push('Practitioner name is required');
   }
 
-  if (data.protocol?.supplementCount === undefined || data.protocol.supplementCount < 0) {
+  if (
+    data.protocol?.supplementCount === undefined ||
+    data.protocol.supplementCount < 0
+  ) {
     errors.push('Valid supplement count is required');
   }
 

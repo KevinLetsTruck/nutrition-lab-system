@@ -37,7 +37,7 @@ export function DevToolbar() {
       description: `Found at: ${url}`,
       location: url,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     // Temporarily store in memory only
@@ -77,8 +77,8 @@ export function DevToolbar() {
                 type="text"
                 placeholder="Quick issue note..."
                 value={quickNote}
-                onChange={(e) => setQuickNote(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && logQuickIssue()}
+                onChange={e => setQuickNote(e.target.value)}
+                onKeyPress={e => e.key === 'Enter' && logQuickIssue()}
                 className="w-full p-2 border rounded text-sm"
               />
             </div>
@@ -88,8 +88,8 @@ export function DevToolbar() {
                 <Plus className="mr-1 h-3 w-3" />
                 Log Issue
               </Button>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="outline"
                 onClick={() => toast.info('Issue tracking coming soon')}
                 className="text-xs"

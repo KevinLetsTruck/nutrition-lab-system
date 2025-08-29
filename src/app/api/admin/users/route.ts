@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { verifyAuthToken } from "@/lib/auth";
-import { hashPassword } from "@/lib/auth";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { verifyAuthToken } from '@/lib/auth';
+import { hashPassword } from '@/lib/auth';
 
 // Get all users (admin only)
 export async function GET(request: NextRequest) {
   try {
     const user = await verifyAuthToken(request);
-    
-    if (user.role !== "ADMIN") {
+
+    if (user.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: "Unauthorized - Admin access required" },
+        { error: 'Unauthorized - Admin access required' },
         { status: 403 }
       );
     }
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
         lastLoginAt: true,
       },
       orderBy: {
-        createdAt: "desc",
+        createdAt: 'desc',
       },
     });
 
@@ -34,9 +34,9 @@ export async function GET(request: NextRequest) {
       data: users,
     });
   } catch (error) {
-    console.error("Get users error:", error);
+    console.error('Get users error:', error);
     return NextResponse.json(
-      { error: "Failed to fetch users" },
+      { error: 'Failed to fetch users' },
       { status: 500 }
     );
   }
@@ -46,20 +46,20 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const user = await verifyAuthToken(request);
-    
-    if (user.role !== "ADMIN") {
+
+    if (user.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: "Unauthorized - Admin access required" },
+        { error: 'Unauthorized - Admin access required' },
         { status: 403 }
       );
     }
 
     const body = await request.json();
-    const { email, password, name, role = "USER" } = body;
+    const { email, password, name, role = 'USER' } = body;
 
     if (!email || !password || !name) {
       return NextResponse.json(
-        { error: "Email, password, and name are required" },
+        { error: 'Email, password, and name are required' },
         { status: 400 }
       );
     }
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "User already exists" },
+        { error: 'User already exists' },
         { status: 409 }
       );
     }
@@ -98,13 +98,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "User created successfully",
+      message: 'User created successfully',
       data: newUser,
     });
   } catch (error) {
-    console.error("Create user error:", error);
+    console.error('Create user error:', error);
     return NextResponse.json(
-      { error: "Failed to create user" },
+      { error: 'Failed to create user' },
       { status: 500 }
     );
   }

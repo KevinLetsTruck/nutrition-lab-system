@@ -1,26 +1,26 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ChevronDown, LogOut, User } from "lucide-react";
-import { useAuth } from "@/lib/auth-context";
+} from '@/components/ui/dropdown-menu';
+import { ChevronDown, LogOut, User } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/clients", label: "Clients" },
-  { href: "/onboarding", label: "Onboarding" },
-  { href: "/protocols", label: "Protocols" },
-  { href: "/analytics", label: "Analytics" },
-  { href: "/status", label: "Status" },
-  { href: "/analysis", label: "Analysis" },
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/clients', label: 'Clients' },
+  { href: '/onboarding', label: 'Onboarding' },
+  { href: '/protocols', label: 'Protocols' },
+  { href: '/analytics', label: 'Analytics' },
+  { href: '/status', label: 'Status' },
+  { href: '/analysis', label: 'Analysis' },
 ];
 
 export function MainNav() {
@@ -60,15 +60,15 @@ export function MainNav() {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-1">
-            {navItems.map((item) => (
+            {navItems.map(item => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                  'px-4 py-2 text-sm font-medium rounded-md transition-colors',
                   pathname === item.href
-                    ? "text-white bg-gray-800"
-                    : "text-gray-300 hover:text-white hover:bg-gray-800"
+                    ? 'text-white bg-gray-800'
+                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
                 )}
               >
                 {item.label}
@@ -85,11 +85,11 @@ export function MainNav() {
               >
                 <div className="w-8 h-8 bg-brand-green rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-medium">
-                    {user?.name?.charAt(0) || "U"}
+                    {user?.name?.charAt(0) || 'U'}
                   </span>
                 </div>
                 <span className="text-sm font-medium">
-                  {user?.name || "User"}
+                  {user?.name || 'User'}
                 </span>
                 <ChevronDown className="h-4 w-4" />
               </Button>

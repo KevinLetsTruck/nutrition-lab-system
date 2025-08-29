@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import * as React from 'react';
+import { Check, ChevronsUpDown } from 'lucide-react';
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"; // Using Input for the text field
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input'; // Using Input for the text field
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from '@/components/ui/popover';
 
 export interface AutocompleteOption {
   value: string;
@@ -34,25 +34,25 @@ export function SimpleAutocomplete({
   options,
   value,
   onChange,
-  placeholder = "Select item...",
-  searchPlaceholder = "Search...",
-  emptyText = "No results found.",
+  placeholder = 'Select item...',
+  searchPlaceholder = 'Search...',
+  emptyText = 'No results found.',
   className,
   disabled,
 }: SimpleAutocompleteProps) {
   const [open, setOpen] = React.useState(false);
-  const [inputValue, setInputValue] = React.useState(value || ""); // State for the text input
+  const [inputValue, setInputValue] = React.useState(value || ''); // State for the text input
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
-    setInputValue(value || "");
+    setInputValue(value || '');
   }, [value]);
 
   const filteredOptions = React.useMemo(() => {
     if (!inputValue) return options;
     const search = inputValue.toLowerCase();
     return options.filter(
-      (option) =>
+      option =>
         option.label.toLowerCase().includes(search) ||
         option.category?.toLowerCase().includes(search)
     );
@@ -72,7 +72,7 @@ export function SimpleAutocomplete({
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && inputValue && filteredOptions.length === 0) {
+    if (e.key === 'Enter' && inputValue && filteredOptions.length === 0) {
       // Allow custom value on Enter if no options match
       onChange(inputValue);
       setOpen(false);
@@ -90,9 +90,9 @@ export function SimpleAutocomplete({
           onKeyDown={handleInputKeyDown}
           placeholder={placeholder}
           className={cn(
-            "w-full justify-between bg-gray-900/50 border-2 border-gray-700 text-gray-100",
-            "hover:bg-gray-800 hover:border-gray-600",
-            !value && "text-gray-500",
+            'w-full justify-between bg-gray-900/50 border-2 border-gray-700 text-gray-100',
+            'hover:bg-gray-800 hover:border-gray-600',
+            !value && 'text-gray-500',
             className
           )}
           disabled={disabled}
@@ -103,16 +103,14 @@ export function SimpleAutocomplete({
           {filteredOptions.length === 0 && inputValue ? (
             <div className="text-gray-500 py-6 text-center">
               <p>{emptyText}</p>
-              <p className="mt-2 text-sm">
-                Press Enter to add "{inputValue}"
-              </p>
+              <p className="mt-2 text-sm">Press Enter to add "{inputValue}"</p>
             </div>
           ) : filteredOptions.length === 0 && !inputValue ? (
             <div className="text-gray-500 py-6 text-center">
               <p>{emptyText}</p>
             </div>
           ) : (
-            filteredOptions.map((option) => (
+            filteredOptions.map(option => (
               <div
                 key={option.value}
                 onClick={() => handleSelect(option)}
@@ -120,14 +118,16 @@ export function SimpleAutocomplete({
               >
                 <Check
                   className={cn(
-                    "mr-2 h-4 w-4",
-                    value === option.value ? "opacity-100" : "opacity-0"
+                    'mr-2 h-4 w-4',
+                    value === option.value ? 'opacity-100' : 'opacity-0'
                   )}
                 />
                 <div className="flex-1">
                   <div className="font-medium">{option.label}</div>
                   {option.category && (
-                    <div className="text-xs text-gray-500">{option.category}</div>
+                    <div className="text-xs text-gray-500">
+                      {option.category}
+                    </div>
                   )}
                 </div>
               </div>

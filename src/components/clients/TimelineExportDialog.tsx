@@ -1,25 +1,25 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { DatePicker } from "@/components/ui/date-picker";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { toast } from "sonner";
-import { useAuth } from "@/lib/auth-context";
+} from '@/components/ui/select';
+import { toast } from 'sonner';
+import { useAuth } from '@/lib/auth-context';
 import {
   Download,
   Clock,
@@ -29,15 +29,15 @@ import {
   Stethoscope,
   FileText,
   Activity,
-} from "lucide-react";
+} from 'lucide-react';
 
 type TimelineType =
-  | "COMPREHENSIVE"
-  | "FOCUSED"
-  | "SYMPTOMS"
-  | "TREATMENTS"
-  | "ASSESSMENTS"
-  | "PROTOCOL_DEVELOPMENT";
+  | 'COMPREHENSIVE'
+  | 'FOCUSED'
+  | 'SYMPTOMS'
+  | 'TREATMENTS'
+  | 'ASSESSMENTS'
+  | 'PROTOCOL_DEVELOPMENT';
 
 interface TimelineExportDialogProps {
   clientId: string;
@@ -49,39 +49,39 @@ interface TimelineExportDialogProps {
 
 const timelineTypeOptions = [
   {
-    value: "PROTOCOL_DEVELOPMENT" as TimelineType,
-    label: "Protocol Development",
-    description: "Optimized for Claude Desktop protocol generation",
+    value: 'PROTOCOL_DEVELOPMENT' as TimelineType,
+    label: 'Protocol Development',
+    description: 'Optimized for Claude Desktop protocol generation',
     icon: Target,
   },
   {
-    value: "COMPREHENSIVE" as TimelineType,
-    label: "Comprehensive Timeline",
-    description: "Complete health journey with all data points",
+    value: 'COMPREHENSIVE' as TimelineType,
+    label: 'Comprehensive Timeline',
+    description: 'Complete health journey with all data points',
     icon: Activity,
   },
   {
-    value: "FOCUSED" as TimelineType,
-    label: "Focused Analysis",
-    description: "Key events and critical findings only",
+    value: 'FOCUSED' as TimelineType,
+    label: 'Focused Analysis',
+    description: 'Key events and critical findings only',
     icon: TrendingUp,
   },
   {
-    value: "SYMPTOMS" as TimelineType,
-    label: "Symptom Progression",
-    description: "Symptom patterns and evolution",
+    value: 'SYMPTOMS' as TimelineType,
+    label: 'Symptom Progression',
+    description: 'Symptom patterns and evolution',
     icon: Stethoscope,
   },
   {
-    value: "TREATMENTS" as TimelineType,
-    label: "Treatment History",
-    description: "Protocols and interventions",
+    value: 'TREATMENTS' as TimelineType,
+    label: 'Treatment History',
+    description: 'Protocols and interventions',
     icon: FileText,
   },
   {
-    value: "ASSESSMENTS" as TimelineType,
-    label: "Assessment Results",
-    description: "Health assessments and analyses",
+    value: 'ASSESSMENTS' as TimelineType,
+    label: 'Assessment Results',
+    description: 'Health assessments and analyses',
     icon: Brain,
   },
 ];
@@ -91,7 +91,7 @@ export function TimelineExportDialog({
   clientName,
   isOpen,
   onOpenChange,
-  defaultTimelineType = "PROTOCOL_DEVELOPMENT",
+  defaultTimelineType = 'PROTOCOL_DEVELOPMENT',
 }: TimelineExportDialogProps) {
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -112,14 +112,14 @@ export function TimelineExportDialog({
   const [endDate, setEndDate] = useState<Date>();
 
   const selectedOption = timelineTypeOptions.find(
-    (option) => option.value === timelineType
+    option => option.value === timelineType
   );
   const IconComponent = selectedOption?.icon || Target;
 
   const handleExport = async () => {
     if (!token) {
-      toast.error("Authentication required", {
-        description: "Please log in to export timeline data.",
+      toast.error('Authentication required', {
+        description: 'Please log in to export timeline data.',
       });
       return;
     }
@@ -129,7 +129,7 @@ export function TimelineExportDialog({
 
       const requestBody = {
         timelineType,
-        format: "markdown" as const,
+        format: 'markdown' as const,
         includeMetadata: true,
 
         // Granular control options
@@ -153,9 +153,9 @@ export function TimelineExportDialog({
       };
 
       const response = await fetch(`/api/clients/${clientId}/timeline-export`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(requestBody),
@@ -163,7 +163,7 @@ export function TimelineExportDialog({
 
       if (!response.ok) {
         // Try to parse error as JSON, fallback to text
-        let errorMessage = "Export failed";
+        let errorMessage = 'Export failed';
         try {
           const errorData = await response.json();
           errorMessage = errorData.error || errorMessage;
@@ -174,23 +174,23 @@ export function TimelineExportDialog({
       }
 
       // Handle markdown response (API returns raw markdown content with download headers)
-      const contentType = response.headers.get("content-type") || "";
-      
-      if (contentType.includes("text/markdown")) {
+      const contentType = response.headers.get('content-type') || '';
+
+      if (contentType.includes('text/markdown')) {
         // Handle direct markdown response
         const markdownContent = await response.text();
-        const contentDisposition = response.headers.get("content-disposition");
+        const contentDisposition = response.headers.get('content-disposition');
         const filenameMatch = contentDisposition?.match(/filename="([^"]+)"/);
-        const filename = filenameMatch 
-          ? filenameMatch[1] 
+        const filename = filenameMatch
+          ? filenameMatch[1]
           : `${clientName}-timeline-${timelineType.toLowerCase()}.md`;
 
         // Download the markdown file
         const blob = new Blob([markdownContent], {
-          type: "text/markdown",
+          type: 'text/markdown',
         });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
+        const a = document.createElement('a');
         a.href = url;
         a.download = filename;
         document.body.appendChild(a);
@@ -200,13 +200,13 @@ export function TimelineExportDialog({
       } else {
         // Handle JSON response (for other formats)
         const data = await response.json();
-        
+
         // Download the generated file
         const blob = new Blob([data.markdownContent || data.content], {
-          type: "text/markdown",
+          type: 'text/markdown',
         });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
+        const a = document.createElement('a');
         a.href = url;
         a.download =
           data.fileName ||
@@ -220,9 +220,9 @@ export function TimelineExportDialog({
       toast.success(`${selectedOption?.label} timeline exported successfully`);
       onOpenChange(false);
     } catch (error) {
-      console.error("Timeline export error:", error);
+      console.error('Timeline export error:', error);
       toast.error(
-        error instanceof Error ? error.message : "Failed to export timeline"
+        error instanceof Error ? error.message : 'Failed to export timeline'
       );
     } finally {
       setLoading(false);
@@ -241,7 +241,7 @@ export function TimelineExportDialog({
     return count;
   };
 
-  const isProtocolDevelopment = timelineType === "PROTOCOL_DEVELOPMENT";
+  const isProtocolDevelopment = timelineType === 'PROTOCOL_DEVELOPMENT';
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -252,7 +252,8 @@ export function TimelineExportDialog({
             Timeline Export - {clientName}
           </DialogTitle>
           <DialogDescription className="text-gray-600 dark:text-gray-400">
-            Generate comprehensive health timeline with functional medicine analysis optimized for Claude Desktop protocol development.
+            Generate comprehensive health timeline with functional medicine
+            analysis optimized for Claude Desktop protocol development.
           </DialogDescription>
         </DialogHeader>
 
@@ -270,7 +271,7 @@ export function TimelineExportDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {timelineTypeOptions.map((option) => {
+                {timelineTypeOptions.map(option => {
                   const OptionIcon = option.icon;
                   return (
                     <SelectItem key={option.value} value={option.value}>
@@ -508,4 +509,3 @@ export function TimelineExportDialog({
     </Dialog>
   );
 }
-

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface Props {
   children: React.ReactNode;
@@ -24,7 +24,7 @@ export class AssessmentErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("Assessment Error:", error, errorInfo);
+    console.error('Assessment Error:', error, errorInfo);
   }
 
   render() {
@@ -52,7 +52,7 @@ export class AssessmentErrorBoundary extends React.Component<Props, State> {
                 Oops! Something went wrong
               </h2>
               <p className="text-gray-600 dark:text-gray-400">
-                {this.state.error?.message || "An unexpected error occurred"}
+                {this.state.error?.message || 'An unexpected error occurred'}
               </p>
               <Button onClick={() => window.location.reload()} className="mt-4">
                 Reload Page

@@ -1,35 +1,33 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@/lib/auth-context";
-import { SupplementForm, type ProtocolSupplement } from "./SupplementForm";
-import { DailyScheduleBuilder, type DailySchedule } from "./DailyScheduleBuilder";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/lib/auth-context';
+import { SupplementForm, type ProtocolSupplement } from './SupplementForm';
+import {
+  DailyScheduleBuilder,
+  type DailySchedule,
+} from './DailyScheduleBuilder';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+} from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +35,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 import {
   FileText,
   Save,
@@ -57,9 +55,14 @@ import {
   Activity,
   GripVertical,
   Info,
-} from "lucide-react";
-import { toast } from "sonner";
-import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+} from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from '@hello-pangea/dnd';
 
 // Enhanced interfaces matching our API
 interface ProtocolClient {
@@ -104,7 +107,7 @@ interface ProtocolBuilderProps {
   protocolId?: string;
   clientId?: string;
   analysisId?: string;
-  mode?: "create" | "edit" | "create-from-analysis";
+  mode?: 'create' | 'edit' | 'create-from-analysis';
   onSave?: (protocol: Protocol) => void;
   onProtocolCreated?: (protocolId: string) => void;
   onCancel?: () => void;
@@ -135,49 +138,58 @@ export function ProtocolBuilder({
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(autoSave !== false);
-  
+
   // Determine mode automatically if not provided
-  const actualMode = mode || 
-    (analysisId && !protocol && !protocolId ? "create-from-analysis" : 
-     (protocol || protocolId || editMode ? "edit" : "create"));
+  const actualMode =
+    mode ||
+    (analysisId && !protocol && !protocolId
+      ? 'create-from-analysis'
+      : protocol || protocolId || editMode
+        ? 'edit'
+        : 'create');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [activeTab, setActiveTab] = useState("details");
-  
+  const [activeTab, setActiveTab] = useState('details');
+
   // Form state
   const [formData, setFormData] = useState<Protocol>({
-    clientId: clientId || protocol?.clientId || "",
+    clientId: clientId || protocol?.clientId || '',
     analysisId: analysisId || protocol?.analysisId,
-    protocolName: protocol?.protocolName || "",
-    protocolPhase: protocol?.protocolPhase || "Phase 1",
-    status: protocol?.status || "planned",
+    protocolName: protocol?.protocolName || '',
+    protocolPhase: protocol?.protocolPhase || 'Phase 1',
+    status: protocol?.status || 'planned',
     startDate: protocol?.startDate,
     durationWeeks: protocol?.durationWeeks || 12,
-    greeting: protocol?.greeting || "",
-    clinicalFocus: protocol?.clinicalFocus || "",
-    currentStatus: protocol?.currentStatus || "Protocol in development",
+    greeting: protocol?.greeting || '',
+    clinicalFocus: protocol?.clinicalFocus || '',
+    currentStatus: protocol?.currentStatus || 'Protocol in development',
     dailySchedule: protocol?.dailySchedule || {
-      morning: "8:00 AM",
-      evening: "6:00 PM",
-      description: "Standard morning and evening routine",
+      morning: '8:00 AM',
+      evening: '6:00 PM',
+      description: 'Standard morning and evening routine',
     },
-    protocolNotes: protocol?.protocolNotes || "",
+    protocolNotes: protocol?.protocolNotes || '',
     effectivenessRating: protocol?.effectivenessRating,
-    complianceNotes: protocol?.complianceNotes || "",
-    sideEffects: protocol?.sideEffects || "",
+    complianceNotes: protocol?.complianceNotes || '',
+    sideEffects: protocol?.sideEffects || '',
   });
 
   // Supplements state
   const [supplements, setSupplements] = useState<ProtocolSupplement[]>([]);
   const [showSupplementForm, setShowSupplementForm] = useState(false);
-  const [editingSupplement, setEditingSupplement] = useState<ProtocolSupplement | undefined>();
+  const [editingSupplement, setEditingSupplement] = useState<
+    ProtocolSupplement | undefined
+  >();
 
   // Client data for display
   const [clientData, setClientData] = useState<ProtocolClient | null>(null);
-  const [analysisData, setAnalysisData] = useState<ProtocolAnalysis | null>(null);
+  const [analysisData, setAnalysisData] = useState<ProtocolAnalysis | null>(
+    null
+  );
 
   // Auto-save interval
   useEffect(() => {
-    if (!autoSaveEnabled || !hasUnsavedChanges || actualMode === "create") return;
+    if (!autoSaveEnabled || !hasUnsavedChanges || actualMode === 'create')
+      return;
 
     const interval = setInterval(() => {
       handleAutoSave();
@@ -198,7 +210,7 @@ export function ProtocolBuilder({
 
   // Load existing protocol supplements
   useEffect(() => {
-    if (protocol?.id && actualMode === "edit") {
+    if (protocol?.id && actualMode === 'edit') {
       // In a real implementation, we would fetch supplements from the API
       // For now, we'll simulate this
       setSupplements([]);
@@ -207,7 +219,7 @@ export function ProtocolBuilder({
 
   // Create from analysis
   useEffect(() => {
-    if (actualMode === "create-from-analysis" && analysisId) {
+    if (actualMode === 'create-from-analysis' && analysisId) {
       handleCreateFromAnalysis();
     }
   }, [actualMode, analysisId]);
@@ -228,7 +240,7 @@ export function ProtocolBuilder({
         setClientData(data.data.client);
       }
     } catch (error) {
-      console.error("Error fetching client data:", error);
+      console.error('Error fetching client data:', error);
     }
   };
 
@@ -246,7 +258,7 @@ export function ProtocolBuilder({
       const data = await response.json();
       setAnalysisData(data);
     } catch (error) {
-      console.error("Error fetching analysis data:", error);
+      console.error('Error fetching analysis data:', error);
     }
   };
 
@@ -257,9 +269,9 @@ export function ProtocolBuilder({
     setIsLoading(true);
     try {
       const response = await fetch(`/api/protocols/create-from-analysis`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
@@ -273,14 +285,14 @@ export function ProtocolBuilder({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create protocol from analysis");
+        throw new Error('Failed to create protocol from analysis');
       }
 
       const data = await response.json();
-      
+
       if (data.success && data.data.protocol) {
         const createdProtocol = data.data.protocol;
-        
+
         // Update form data with extracted information
         setFormData(prev => ({
           ...prev,
@@ -292,17 +304,16 @@ export function ProtocolBuilder({
           setSupplements(createdProtocol.protocolSupplements);
         }
 
-        toast.success("Protocol created from analysis", {
+        toast.success('Protocol created from analysis', {
           description: `${data.data.extractedSupplementsCount} supplements extracted`,
         });
 
         setHasUnsavedChanges(false);
       }
-
     } catch (error) {
-      console.error("Error creating from analysis:", error);
-      toast.error("Failed to create protocol from analysis", {
-        description: error instanceof Error ? error.message : "Unknown error",
+      console.error('Error creating from analysis:', error);
+      toast.error('Failed to create protocol from analysis', {
+        description: error instanceof Error ? error.message : 'Unknown error',
       });
     } finally {
       setIsLoading(false);
@@ -311,13 +322,13 @@ export function ProtocolBuilder({
 
   // Auto-save function
   const handleAutoSave = async () => {
-    if (actualMode === "create" || !protocol?.id) return;
+    if (actualMode === 'create' || !protocol?.id) return;
 
     try {
       await saveProtocol(false); // Silent save
       setLastSaved(new Date());
     } catch (error) {
-      console.error("Auto-save failed:", error);
+      console.error('Auto-save failed:', error);
     }
   };
 
@@ -328,11 +339,12 @@ export function ProtocolBuilder({
     setIsSaving(true);
 
     try {
-      const endpoint = actualMode === "create" 
-        ? "/api/protocols"
-        : `/api/protocols/${protocol?.id || protocolId}`;
-      
-      const method = actualMode === "create" ? "POST" : "PUT";
+      const endpoint =
+        actualMode === 'create'
+          ? '/api/protocols'
+          : `/api/protocols/${protocol?.id || protocolId}`;
+
+      const method = actualMode === 'create' ? 'POST' : 'PUT';
 
       // Prepare supplement data
       const supplementList = supplements.map(supp => ({
@@ -350,7 +362,7 @@ export function ProtocolBuilder({
       const response = await fetch(endpoint, {
         method,
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
@@ -360,7 +372,7 @@ export function ProtocolBuilder({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save protocol");
+        throw new Error('Failed to save protocol');
       }
 
       const data = await response.json();
@@ -371,7 +383,7 @@ export function ProtocolBuilder({
 
         if (showToast) {
           toast.success(
-            actualMode === "create" ? "Protocol created" : "Protocol saved",
+            actualMode === 'create' ? 'Protocol created' : 'Protocol saved',
             {
               description: `${formData.protocolName} has been saved successfully`,
             }
@@ -382,18 +394,17 @@ export function ProtocolBuilder({
           onSave(data.data);
         }
 
-        if (actualMode === "create" && onProtocolCreated && data.data.id) {
+        if (actualMode === 'create' && onProtocolCreated && data.data.id) {
           onProtocolCreated(data.data.id);
         }
 
         return data.data;
       }
-
     } catch (error) {
-      console.error("Error saving protocol:", error);
+      console.error('Error saving protocol:', error);
       if (showToast) {
-        toast.error("Failed to save protocol", {
-          description: error instanceof Error ? error.message : "Unknown error",
+        toast.error('Failed to save protocol', {
+          description: error instanceof Error ? error.message : 'Unknown error',
         });
       }
       throw error;
@@ -413,7 +424,10 @@ export function ProtocolBuilder({
 
   // Handle supplement management
   const handleAddSupplement = (supplement: ProtocolSupplement) => {
-    setSupplements(prev => [...prev, { ...supplement, id: `temp_${Date.now()}` }]);
+    setSupplements(prev => [
+      ...prev,
+      { ...supplement, id: `temp_${Date.now()}` },
+    ]);
     setHasUnsavedChanges(true);
   };
 
@@ -423,8 +437,8 @@ export function ProtocolBuilder({
   };
 
   const handleUpdateSupplement = (updatedSupplement: ProtocolSupplement) => {
-    setSupplements(prev => 
-      prev.map(supp => 
+    setSupplements(prev =>
+      prev.map(supp =>
         supp.id === updatedSupplement.id ? updatedSupplement : supp
       )
     );
@@ -434,7 +448,7 @@ export function ProtocolBuilder({
   const handleDeleteSupplement = (supplementId: string) => {
     setSupplements(prev => prev.filter(supp => supp.id !== supplementId));
     setHasUnsavedChanges(true);
-    toast.success("Supplement removed from protocol");
+    toast.success('Supplement removed from protocol');
   };
 
   // Handle drag and drop for supplement reordering
@@ -457,7 +471,7 @@ export function ProtocolBuilder({
 
   // Handle schedule change
   const handleScheduleChange = (newSchedule: DailySchedule) => {
-    handleFormChange("dailySchedule", newSchedule);
+    handleFormChange('dailySchedule', newSchedule);
   };
 
   return (
@@ -467,9 +481,11 @@ export function ProtocolBuilder({
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {actualMode === "create" ? "New Protocol" : 
-               actualMode === "edit" ? "Edit Protocol" : 
-               "Create from Analysis"}
+              {actualMode === 'create'
+                ? 'New Protocol'
+                : actualMode === 'edit'
+                  ? 'Edit Protocol'
+                  : 'Create from Analysis'}
             </h1>
             {clientData && (
               <p className="text-gray-600 dark:text-gray-400">
@@ -480,7 +496,7 @@ export function ProtocolBuilder({
 
           <div className="flex items-center gap-3">
             {/* Auto-save status */}
-            {actualMode === "edit" && (
+            {actualMode === 'edit' && (
               <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <Activity className="h-4 w-4" />
                 {hasUnsavedChanges ? (
@@ -521,7 +537,9 @@ export function ProtocolBuilder({
 
               <Button
                 onClick={() => saveProtocol()}
-                disabled={isSaving || (!hasUnsavedChanges && actualMode === "edit")}
+                disabled={
+                  isSaving || (!hasUnsavedChanges && actualMode === 'edit')
+                }
                 className="flex items-center gap-2"
               >
                 {isSaving ? (
@@ -532,7 +550,9 @@ export function ProtocolBuilder({
                 ) : (
                   <>
                     <Save className="h-4 w-4" />
-                    {actualMode === "create" ? "Create Protocol" : "Save Protocol"}
+                    {actualMode === 'create'
+                      ? 'Create Protocol'
+                      : 'Save Protocol'}
                   </>
                 )}
               </Button>
@@ -566,7 +586,10 @@ export function ProtocolBuilder({
               <FileText className="h-4 w-4" />
               Details
             </TabsTrigger>
-            <TabsTrigger value="supplements" className="flex items-center gap-2">
+            <TabsTrigger
+              value="supplements"
+              className="flex items-center gap-2"
+            >
               <Pill className="h-4 w-4" />
               Supplements ({supplements.length})
             </TabsTrigger>
@@ -586,20 +609,27 @@ export function ProtocolBuilder({
               {/* Basic Information */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Protocol Information</CardTitle>
+                  <CardTitle className="text-base">
+                    Protocol Information
+                  </CardTitle>
                   <CardDescription>
                     Basic protocol details and classification
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label htmlFor="protocolName" className="text-gray-900 font-medium dark:text-gray-100">
+                    <Label
+                      htmlFor="protocolName"
+                      className="text-gray-900 font-medium dark:text-gray-100"
+                    >
                       Protocol Name *
                     </Label>
                     <Input
                       id="protocolName"
                       value={formData.protocolName}
-                      onChange={(e) => handleFormChange("protocolName", e.target.value)}
+                      onChange={e =>
+                        handleFormChange('protocolName', e.target.value)
+                      }
                       placeholder="e.g., Digestive Health Protocol"
                       className="mt-2"
                     />
@@ -607,12 +637,17 @@ export function ProtocolBuilder({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="protocolPhase" className="text-gray-900 font-medium dark:text-gray-100">
+                      <Label
+                        htmlFor="protocolPhase"
+                        className="text-gray-900 font-medium dark:text-gray-100"
+                      >
                         Phase
                       </Label>
                       <Select
                         value={formData.protocolPhase}
-                        onValueChange={(value) => handleFormChange("protocolPhase", value)}
+                        onValueChange={value =>
+                          handleFormChange('protocolPhase', value)
+                        }
                       >
                         <SelectTrigger className="mt-2">
                           <SelectValue />
@@ -626,12 +661,17 @@ export function ProtocolBuilder({
                     </div>
 
                     <div>
-                      <Label htmlFor="status" className="text-gray-900 font-medium dark:text-gray-100">
+                      <Label
+                        htmlFor="status"
+                        className="text-gray-900 font-medium dark:text-gray-100"
+                      >
                         Status
                       </Label>
                       <Select
                         value={formData.status}
-                        onValueChange={(value) => handleFormChange("status", value)}
+                        onValueChange={value =>
+                          handleFormChange('status', value)
+                        }
                       >
                         <SelectTrigger className="mt-2">
                           <SelectValue />
@@ -641,7 +681,9 @@ export function ProtocolBuilder({
                           <SelectItem value="active">Active</SelectItem>
                           <SelectItem value="paused">Paused</SelectItem>
                           <SelectItem value="completed">Completed</SelectItem>
-                          <SelectItem value="discontinued">Discontinued</SelectItem>
+                          <SelectItem value="discontinued">
+                            Discontinued
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -649,20 +691,39 @@ export function ProtocolBuilder({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="startDate" className="text-gray-900 font-medium dark:text-gray-100">
+                      <Label
+                        htmlFor="startDate"
+                        className="text-gray-900 font-medium dark:text-gray-100"
+                      >
                         Start Date
                       </Label>
                       <Input
                         id="startDate"
                         type="date"
-                        value={formData.startDate ? new Date(formData.startDate).toISOString().split('T')[0] : ""}
-                        onChange={(e) => handleFormChange("startDate", e.target.value ? new Date(e.target.value) : undefined)}
+                        value={
+                          formData.startDate
+                            ? new Date(formData.startDate)
+                                .toISOString()
+                                .split('T')[0]
+                            : ''
+                        }
+                        onChange={e =>
+                          handleFormChange(
+                            'startDate',
+                            e.target.value
+                              ? new Date(e.target.value)
+                              : undefined
+                          )
+                        }
                         className="mt-2"
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="durationWeeks" className="text-gray-900 font-medium dark:text-gray-100">
+                      <Label
+                        htmlFor="durationWeeks"
+                        className="text-gray-900 font-medium dark:text-gray-100"
+                      >
                         Duration (weeks)
                       </Label>
                       <Input
@@ -670,8 +731,13 @@ export function ProtocolBuilder({
                         type="number"
                         min="1"
                         max="52"
-                        value={formData.durationWeeks || ""}
-                        onChange={(e) => handleFormChange("durationWeeks", parseInt(e.target.value) || undefined)}
+                        value={formData.durationWeeks || ''}
+                        onChange={e =>
+                          handleFormChange(
+                            'durationWeeks',
+                            parseInt(e.target.value) || undefined
+                          )
+                        }
                         className="mt-2"
                       />
                     </div>
@@ -689,40 +755,58 @@ export function ProtocolBuilder({
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label htmlFor="clinicalFocus" className="text-gray-900 font-medium dark:text-gray-100">
+                    <Label
+                      htmlFor="clinicalFocus"
+                      className="text-gray-900 font-medium dark:text-gray-100"
+                    >
                       Clinical Focus
                     </Label>
                     <Textarea
                       id="clinicalFocus"
-                      value={formData.clinicalFocus || ""}
-                      onChange={(e) => handleFormChange("clinicalFocus", e.target.value)}
+                      value={formData.clinicalFocus || ''}
+                      onChange={e =>
+                        handleFormChange('clinicalFocus', e.target.value)
+                      }
                       placeholder="Primary health concerns and treatment focus..."
                       className="mt-2 min-h-[100px]"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="currentStatus" className="text-gray-900 font-medium dark:text-gray-100">
+                    <Label
+                      htmlFor="currentStatus"
+                      className="text-gray-900 font-medium dark:text-gray-100"
+                    >
                       Current Status
                     </Label>
                     <Input
                       id="currentStatus"
-                      value={formData.currentStatus || ""}
-                      onChange={(e) => handleFormChange("currentStatus", e.target.value)}
+                      value={formData.currentStatus || ''}
+                      onChange={e =>
+                        handleFormChange('currentStatus', e.target.value)
+                      }
                       placeholder="Current protocol status or progress..."
                       className="mt-2"
                     />
                   </div>
 
                   {/* Effectiveness Rating */}
-                  {actualMode === "edit" && (
+                  {actualMode === 'edit' && (
                     <div>
-                      <Label htmlFor="effectivenessRating" className="text-gray-900 font-medium dark:text-gray-100">
+                      <Label
+                        htmlFor="effectivenessRating"
+                        className="text-gray-900 font-medium dark:text-gray-100"
+                      >
                         Effectiveness Rating (1-5)
                       </Label>
                       <Select
-                        value={formData.effectivenessRating?.toString() || ""}
-                        onValueChange={(value) => handleFormChange("effectivenessRating", value ? parseInt(value) : undefined)}
+                        value={formData.effectivenessRating?.toString() || ''}
+                        onValueChange={value =>
+                          handleFormChange(
+                            'effectivenessRating',
+                            value ? parseInt(value) : undefined
+                          )
+                        }
                       >
                         <SelectTrigger className="mt-2">
                           <SelectValue placeholder="Rate effectiveness..." />
@@ -732,7 +816,9 @@ export function ProtocolBuilder({
                           <SelectItem value="2">⭐⭐ Fair</SelectItem>
                           <SelectItem value="3">⭐⭐⭐ Good</SelectItem>
                           <SelectItem value="4">⭐⭐⭐⭐ Very Good</SelectItem>
-                          <SelectItem value="5">⭐⭐⭐⭐⭐ Excellent</SelectItem>
+                          <SelectItem value="5">
+                            ⭐⭐⭐⭐⭐ Excellent
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -746,13 +832,14 @@ export function ProtocolBuilder({
               <CardHeader>
                 <CardTitle className="text-base">Client Greeting</CardTitle>
                 <CardDescription>
-                  Personalized message that will appear at the beginning of the protocol
+                  Personalized message that will appear at the beginning of the
+                  protocol
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Textarea
-                  value={formData.greeting || ""}
-                  onChange={(e) => handleFormChange("greeting", e.target.value)}
+                  value={formData.greeting || ''}
+                  onChange={e => handleFormChange('greeting', e.target.value)}
                   placeholder="Dear [Client Name], based on your assessment..."
                   className="min-h-[120px]"
                 />
@@ -808,7 +895,7 @@ export function ProtocolBuilder({
             ) : (
               <DragDropContext onDragEnd={handleDragEnd}>
                 <Droppable droppableId="supplements">
-                  {(provided) => (
+                  {provided => (
                     <div
                       {...provided.droppableProps}
                       ref={provided.innerRef}
@@ -826,7 +913,9 @@ export function ProtocolBuilder({
                               <Card
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
-                                className={snapshot.isDragging ? "shadow-lg" : ""}
+                                className={
+                                  snapshot.isDragging ? 'shadow-lg' : ''
+                                }
                               >
                                 <CardContent className="p-4">
                                   <div className="flex items-center gap-4">
@@ -837,7 +926,10 @@ export function ProtocolBuilder({
                                       <GripVertical className="h-5 w-5" />
                                     </div>
 
-                                    <Badge variant="outline" className="shrink-0">
+                                    <Badge
+                                      variant="outline"
+                                      className="shrink-0"
+                                    >
                                       #{supplement.priority}
                                     </Badge>
 
@@ -847,11 +939,14 @@ export function ProtocolBuilder({
                                           {supplement.productName}
                                         </h4>
                                         {!supplement.isActive && (
-                                          <Badge variant="secondary">Inactive</Badge>
+                                          <Badge variant="secondary">
+                                            Inactive
+                                          </Badge>
                                         )}
                                       </div>
                                       <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                        {supplement.dosage} • {supplement.timing}
+                                        {supplement.dosage} •{' '}
+                                        {supplement.timing}
                                       </div>
                                       {supplement.purpose && (
                                         <div className="text-xs text-gray-500 mt-1">
@@ -868,14 +963,20 @@ export function ProtocolBuilder({
                                       </DropdownMenuTrigger>
                                       <DropdownMenuContent align="end">
                                         <DropdownMenuItem
-                                          onClick={() => handleEditSupplement(supplement)}
+                                          onClick={() =>
+                                            handleEditSupplement(supplement)
+                                          }
                                         >
                                           <Edit3 className="h-4 w-4 mr-2" />
                                           Edit
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem
-                                          onClick={() => handleDeleteSupplement(supplement.id!)}
+                                          onClick={() =>
+                                            handleDeleteSupplement(
+                                              supplement.id!
+                                            )
+                                          }
                                           className="text-red-600 focus:text-red-600"
                                         >
                                           <Trash2 className="h-4 w-4 mr-2" />
@@ -917,15 +1018,17 @@ export function ProtocolBuilder({
                 </CardHeader>
                 <CardContent>
                   <Textarea
-                    value={formData.protocolNotes || ""}
-                    onChange={(e) => handleFormChange("protocolNotes", e.target.value)}
+                    value={formData.protocolNotes || ''}
+                    onChange={e =>
+                      handleFormChange('protocolNotes', e.target.value)
+                    }
                     placeholder="Protocol development notes, modifications, considerations..."
                     className="min-h-[150px]"
                   />
                 </CardContent>
               </Card>
 
-              {actualMode === "edit" && (
+              {actualMode === 'edit' && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">Tracking Notes</CardTitle>
@@ -935,26 +1038,36 @@ export function ProtocolBuilder({
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <Label htmlFor="complianceNotes" className="text-gray-900 font-medium dark:text-gray-100">
+                      <Label
+                        htmlFor="complianceNotes"
+                        className="text-gray-900 font-medium dark:text-gray-100"
+                      >
                         Compliance Notes
                       </Label>
                       <Textarea
                         id="complianceNotes"
-                        value={formData.complianceNotes || ""}
-                        onChange={(e) => handleFormChange("complianceNotes", e.target.value)}
+                        value={formData.complianceNotes || ''}
+                        onChange={e =>
+                          handleFormChange('complianceNotes', e.target.value)
+                        }
                         placeholder="Notes about client compliance..."
                         className="mt-2 min-h-[100px]"
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="sideEffects" className="text-gray-900 font-medium dark:text-gray-100">
+                      <Label
+                        htmlFor="sideEffects"
+                        className="text-gray-900 font-medium dark:text-gray-100"
+                      >
                         Side Effects / Reactions
                       </Label>
                       <Textarea
                         id="sideEffects"
-                        value={formData.sideEffects || ""}
-                        onChange={(e) => handleFormChange("sideEffects", e.target.value)}
+                        value={formData.sideEffects || ''}
+                        onChange={e =>
+                          handleFormChange('sideEffects', e.target.value)
+                        }
                         placeholder="Any reported side effects or reactions..."
                         className="mt-2 min-h-[100px]"
                       />
@@ -983,7 +1096,10 @@ export function ProtocolBuilder({
                         Analysis Version: {analysisData.analysisVersion}
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Date: {new Date(analysisData.analysisDate).toLocaleDateString()}
+                        Date:{' '}
+                        {new Date(
+                          analysisData.analysisDate
+                        ).toLocaleDateString()}
                       </p>
                     </div>
                     <Button
@@ -993,7 +1109,7 @@ export function ProtocolBuilder({
                         // Navigate to analysis view
                         window.open(
                           `/dashboard/clients/${clientId}/analysis/history`,
-                          "_blank"
+                          '_blank'
                         );
                       }}
                     >
@@ -1009,16 +1125,18 @@ export function ProtocolBuilder({
         {/* Supplement Form Modal */}
         <SupplementForm
           open={showSupplementForm}
-          onOpenChange={(open) => {
+          onOpenChange={open => {
             setShowSupplementForm(open);
             if (!open) {
               setEditingSupplement(undefined);
             }
           }}
           supplement={editingSupplement}
-          onSave={editingSupplement ? handleUpdateSupplement : handleAddSupplement}
+          onSave={
+            editingSupplement ? handleUpdateSupplement : handleAddSupplement
+          }
           existingSupplements={supplements}
-          mode={editingSupplement ? "edit" : "add"}
+          mode={editingSupplement ? 'edit' : 'add'}
         />
       </div>
     </div>

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Menu,
@@ -10,22 +10,22 @@ import {
   ChevronRight,
   Download,
   Share2,
-} from "lucide-react";
-import dynamic from "next/dynamic";
+} from 'lucide-react';
+import dynamic from 'next/dynamic';
 
 // Define the Document interface locally to avoid import issues
 export interface Document {
   id: string;
   name: string;
   url: string;
-  type: "lab_report" | "protocol" | "assessment" | "intake" | "other";
+  type: 'lab_report' | 'protocol' | 'assessment' | 'intake' | 'other';
   uploadedDate: Date;
   pages?: number;
   clientId: string;
 }
 
 // Dynamically import PDFViewerModal with SSR disabled to prevent canvas module issues
-const PDFViewerModal = dynamic(() => import("./PDFViewerModal"), {
+const PDFViewerModal = dynamic(() => import('./PDFViewerModal'), {
   ssr: false,
   loading: () => (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center">
@@ -65,8 +65,8 @@ export const MobilePDFViewer: React.FC<MobilePDFViewerProps> = ({
     };
 
     checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   if (!isMobile) {

@@ -1,0 +1,47 @@
+{
+  "fntp_automation": {
+    "version": "1.0.0",
+    "enabled": true,
+    "features": {
+      "autoReload": true,
+      "autoTest": true,
+      "autoLint": true,
+      "autoFormat": true,
+      "autoTypescript": true,
+      "autoDatabase": true,
+      "notifications": true
+    },
+    "monitoring": {
+      "performance": true,
+      "errors": true,
+      "database": true,
+      "api_health": true
+    },
+    "development": {
+      "hot_reload": true,
+      "source_maps": true,
+      "debug_mode": true,
+      "auto_imports": true
+    },
+    "quality": {
+      "typescript_strict": true,
+      "eslint_auto_fix": true,
+      "prettier_auto_format": true,
+      "test_coverage": true
+    }
+  },
+  "services": {
+    "nextjs": {
+      "port": 3000,
+      "auto_start": true
+    },
+    "prisma_studio": {
+      "port": 5555,
+      "auto_start": true
+    },
+    "typescript_watcher": {
+      "auto_start": true,
+      "strict_mode": true
+    }
+  }
+}

@@ -1,10 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { createClientSchema } from "@/lib/validations/client";
-import { ZodError } from "zod";
-import { verifyAuthToken } from "@/lib/auth";
-
-
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { createClientSchema } from '@/lib/validations/client';
+import { ZodError } from 'zod';
+import { verifyAuthToken } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,35 +10,35 @@ export async function GET(request: NextRequest) {
     const user = await verifyAuthToken(request);
 
     const searchParams = request.nextUrl.searchParams;
-    const status = searchParams.get("status");
-    const search = searchParams.get("search");
+    const status = searchParams.get('status');
+    const search = searchParams.get('search');
 
     const clients = await prisma.client.findMany({
       where: {
         ...(status && { status }),
         ...(search && {
           OR: [
-            { firstName: { contains: search, mode: "insensitive" } },
-            { lastName: { contains: search, mode: "insensitive" } },
-            { email: { contains: search, mode: "insensitive" } },
+            { firstName: { contains: search, mode: 'insensitive' } },
+            { lastName: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' } },
           ],
         }),
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
 
     return NextResponse.json(clients);
   } catch (error) {
     if (
       error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
+      (error.message.includes('authorization') ||
+        error.message.includes('token'))
     ) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
     return NextResponse.json(
-      { error: "Failed to fetch clients" },
+      { error: 'Failed to fetch clients' },
       { status: 500 }
     );
   }
@@ -64,7 +62,7 @@ export async function POST(request: NextRequest) {
         dateOfBirth: validatedData.dateOfBirth
           ? new Date(validatedData.dateOfBirth)
           : undefined,
-        status: "SIGNED_UP",
+        status: 'SIGNED_UP',
       },
     });
 
@@ -72,28 +70,28 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (
       error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
+      (error.message.includes('authorization') ||
+        error.message.includes('token'))
     ) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
     if (error instanceof ZodError) {
       return NextResponse.json(
-        { error: "Invalid input", details: error.errors },
+        { error: 'Invalid input', details: error.errors },
         { status: 400 }
       );
     }
 
-    if (error instanceof Error && error.message.includes("Unique constraint")) {
+    if (error instanceof Error && error.message.includes('Unique constraint')) {
       return NextResponse.json(
-        { error: "Client with this email already exists" },
+        { error: 'Client with this email already exists' },
         { status: 409 }
       );
     }
 
     return NextResponse.json(
-      { error: "Failed to create client" },
+      { error: 'Failed to create client' },
       { status: 500 }
     );
   }

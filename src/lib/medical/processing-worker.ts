@@ -1,5 +1,5 @@
-import { medicalOCRService } from "./ocr-service";
-import { prisma } from "@/lib/db/prisma";
+import { medicalOCRService } from './ocr-service';
+import { prisma } from '@/lib/db/prisma';
 
 export interface ProcessingJob {
   documentId: string;
@@ -20,9 +20,9 @@ export class DocumentProcessingWorker {
     await prisma.medicalProcessingQueue.create({
       data: {
         documentId: job.documentId,
-        jobType: "ocr_processing",
+        jobType: 'ocr_processing',
         priority: job.priority,
-        status: "QUEUED",
+        status: 'QUEUED',
       },
     });
 
@@ -47,10 +47,10 @@ export class DocumentProcessingWorker {
         await prisma.medicalProcessingQueue.updateMany({
           where: {
             documentId: job.documentId,
-            status: "QUEUED",
+            status: 'QUEUED',
           },
           data: {
-            status: "PROCESSING",
+            status: 'PROCESSING',
             startedAt: new Date(),
           },
         });
@@ -62,10 +62,10 @@ export class DocumentProcessingWorker {
         await prisma.medicalProcessingQueue.updateMany({
           where: {
             documentId: job.documentId,
-            status: "PROCESSING",
+            status: 'PROCESSING',
           },
           data: {
-            status: "COMPLETED",
+            status: 'COMPLETED',
             completedAt: new Date(),
           },
         });
@@ -84,12 +84,12 @@ export class DocumentProcessingWorker {
         await prisma.medicalProcessingQueue.updateMany({
           where: {
             documentId: job.documentId,
-            status: "PROCESSING",
+            status: 'PROCESSING',
           },
           data: {
-            status: "FAILED",
+            status: 'FAILED',
             errorMessage:
-              error instanceof Error ? error.message : "Processing failed",
+              error instanceof Error ? error.message : 'Processing failed',
           },
         });
       }
@@ -105,7 +105,7 @@ export class DocumentProcessingWorker {
     failed: number;
   }> {
     const statusCounts = await prisma.medicalProcessingQueue.groupBy({
-      by: ["status"],
+      by: ['status'],
       _count: true,
       where: {
         createdAt: {
@@ -123,16 +123,16 @@ export class DocumentProcessingWorker {
 
     statusCounts.forEach(({ status, _count }) => {
       switch (status) {
-        case "QUEUED":
+        case 'QUEUED':
           result.pending = _count;
           break;
-        case "PROCESSING":
+        case 'PROCESSING':
           result.processing = _count;
           break;
-        case "COMPLETED":
+        case 'COMPLETED':
           result.completed = _count;
           break;
-        case "FAILED":
+        case 'FAILED':
           result.failed = _count;
           break;
       }

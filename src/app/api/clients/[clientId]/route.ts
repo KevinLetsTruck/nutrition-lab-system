@@ -1,17 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { verifyToken } from "@/lib/auth";
-import jwt from "jsonwebtoken";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { verifyToken } from '@/lib/auth';
+import jwt from 'jsonwebtoken';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
-        { error: "No valid authorization header" },
+        { error: 'No valid authorization header' },
         { status: 401 }
       );
     }
@@ -25,17 +25,17 @@ export async function GET(
     });
 
     if (!client) {
-      return NextResponse.json({ error: "Client not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
     return NextResponse.json(client);
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     return NextResponse.json(
-      { error: "Failed to fetch client" },
+      { error: 'Failed to fetch client' },
       { status: 500 }
     );
   }
@@ -46,10 +46,10 @@ export async function PUT(
   { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
-        { error: "No valid authorization header" },
+        { error: 'No valid authorization header' },
         { status: 401 }
       );
     }
@@ -61,21 +61,21 @@ export async function PUT(
 
     // Only allow updating specific fields
     const allowedFields = [
-      "status",
-      "firstName",
-      "lastName",
-      "email",
-      "phone",
-      "dateOfBirth",
-      "gender",
-      "isTruckDriver",
-      "healthGoals",
+      'status',
+      'firstName',
+      'lastName',
+      'email',
+      'phone',
+      'dateOfBirth',
+      'gender',
+      'isTruckDriver',
+      'healthGoals',
     ];
     const updateData: any = {};
 
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
-        if (field === "dateOfBirth" && body[field]) {
+        if (field === 'dateOfBirth' && body[field]) {
           // Convert date string to DateTime object
           updateData[field] = new Date(body[field]);
         } else {
@@ -92,18 +92,18 @@ export async function PUT(
     return NextResponse.json(client);
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     if (
       error instanceof Error &&
-      error.message.includes("Record to update not found")
+      error.message.includes('Record to update not found')
     ) {
-      return NextResponse.json({ error: "Client not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
     return NextResponse.json(
-      { error: "Failed to update client" },
+      { error: 'Failed to update client' },
       { status: 500 }
     );
   }
@@ -114,10 +114,10 @@ export async function PATCH(
   { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
-        { error: "No valid authorization header" },
+        { error: 'No valid authorization header' },
         { status: 401 }
       );
     }
@@ -129,18 +129,18 @@ export async function PATCH(
 
     // Allow updating more fields for intake form
     const allowedFields = [
-      "dateOfBirth",
-      "gender",
-      "medications",
-      "healthGoals",
-      "conditions",
-      "allergies",
+      'dateOfBirth',
+      'gender',
+      'medications',
+      'healthGoals',
+      'conditions',
+      'allergies',
     ];
     const updateData: any = {};
 
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
-        if (field === "dateOfBirth" && body[field]) {
+        if (field === 'dateOfBirth' && body[field]) {
           // Convert date string to DateTime object
           updateData[field] = new Date(body[field]);
         } else {
@@ -157,7 +157,7 @@ export async function PATCH(
       });
 
       const healthGoalsData =
-        typeof client?.healthGoals === "object" && client.healthGoals !== null
+        typeof client?.healthGoals === 'object' && client.healthGoals !== null
           ? (client.healthGoals as any)
           : {};
 
@@ -176,21 +176,21 @@ export async function PATCH(
 
     return NextResponse.json(client);
   } catch (error) {
-    console.error("Error updating client:", error);
+    console.error('Error updating client:', error);
     if (error instanceof jwt.JsonWebTokenError) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     if (
       error instanceof Error &&
-      error.message.includes("Record to update not found")
+      error.message.includes('Record to update not found')
     ) {
-      return NextResponse.json({ error: "Client not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
     return NextResponse.json(
       {
-        error: "Failed to update client",
+        error: 'Failed to update client',
         details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }
@@ -203,10 +203,10 @@ export async function DELETE(
   { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
-        { error: "No valid authorization header" },
+        { error: 'No valid authorization header' },
         { status: 401 }
       );
     }
@@ -216,7 +216,7 @@ export async function DELETE(
     const { clientId } = await params;
 
     // Delete all related records first to avoid foreign key constraints
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async tx => {
       // Delete assessments and their responses
       const assessments = await tx.clientAssessment.findMany({
         where: { clientId },
@@ -263,25 +263,25 @@ export async function DELETE(
       });
     });
 
-    return NextResponse.json({ message: "Client deleted successfully" });
+    return NextResponse.json({ message: 'Client deleted successfully' });
   } catch (error) {
-    console.error("Error deleting client:", error);
+    console.error('Error deleting client:', error);
 
     if (error instanceof jwt.JsonWebTokenError) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     if (
       error instanceof Error &&
-      error.message.includes("Record to delete does not exist")
+      error.message.includes('Record to delete does not exist')
     ) {
-      return NextResponse.json({ error: "Client not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
     return NextResponse.json(
       {
-        error: "Failed to delete client",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: 'Failed to delete client',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

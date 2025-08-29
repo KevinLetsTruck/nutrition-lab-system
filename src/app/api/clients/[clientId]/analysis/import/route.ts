@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { verifyAuthToken } from "@/lib/auth";
-import { parseClaudeAnalysis, validateAnalysis } from "@/lib/analysis-parser";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { verifyAuthToken } from '@/lib/auth';
+import { parseClaudeAnalysis, validateAnalysis } from '@/lib/analysis-parser';
 
 export async function POST(
   request: NextRequest,
@@ -11,7 +11,7 @@ export async function POST(
     // Authenticate user
     const authUser = await verifyAuthToken(request);
     if (!authUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { clientId } = await params;
@@ -20,7 +20,7 @@ export async function POST(
     // Validate required fields
     if (!body.analysisText || typeof body.analysisText !== 'string') {
       return NextResponse.json(
-        { error: "Analysis text is required" },
+        { error: 'Analysis text is required' },
         { status: 400 }
       );
     }
@@ -31,22 +31,19 @@ export async function POST(
     });
 
     if (!client) {
-      return NextResponse.json(
-        { error: "Client not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
     // Parse the Claude analysis
     const parsedAnalysis = parseClaudeAnalysis(body.analysisText);
-    
+
     // Validate the parsed analysis
     const validationErrors = validateAnalysis(parsedAnalysis);
     if (validationErrors.length > 0) {
       return NextResponse.json(
-        { 
-          error: "Analysis validation failed",
-          details: validationErrors
+        {
+          error: 'Analysis validation failed',
+          details: validationErrors,
         },
         { status: 400 }
       );
@@ -69,27 +66,30 @@ export async function POST(
       },
     });
 
-    console.log(`✅ Claude analysis imported for client ${client.firstName} ${client.lastName}`);
+    console.log(
+      `✅ Claude analysis imported for client ${client.firstName} ${client.lastName}`
+    );
 
     return NextResponse.json({
       success: true,
-      message: "Analysis imported successfully",
+      message: 'Analysis imported successfully',
       analysis: {
         id: analysis.id,
         analysisDate: analysis.analysisDate,
-        sectionsDetected: Object.keys(parsedAnalysis).filter(key => 
-          key !== 'fullAnalysis' && parsedAnalysis[key as keyof typeof parsedAnalysis]
-        ).length
-      }
+        sectionsDetected: Object.keys(parsedAnalysis).filter(
+          key =>
+            key !== 'fullAnalysis' &&
+            parsedAnalysis[key as keyof typeof parsedAnalysis]
+        ).length,
+      },
     });
-
   } catch (error: any) {
-    console.error("Analysis import error:", error);
-    
+    console.error('Analysis import error:', error);
+
     return NextResponse.json(
-      { 
-        error: "Failed to import analysis",
-        details: error.message 
+      {
+        error: 'Failed to import analysis',
+        details: error.message,
       },
       { status: 500 }
     );

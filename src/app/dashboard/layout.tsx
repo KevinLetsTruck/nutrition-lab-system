@@ -1,10 +1,17 @@
-"use client";
+'use client';
 
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import Link from "next/link";
-import { useAuth } from "@/lib/auth-context";
-import { usePathname } from "next/navigation";
-import { Users, LogOut, Leaf, Calendar, ClipboardList, FlaskConical } from "lucide-react";
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import Link from 'next/link';
+import { useAuth } from '@/lib/auth-context';
+import { usePathname } from 'next/navigation';
+import {
+  Users,
+  LogOut,
+  Leaf,
+  Calendar,
+  ClipboardList,
+  FlaskConical,
+} from 'lucide-react';
 
 export default function DashboardLayout({
   children,
@@ -42,7 +49,7 @@ export default function DashboardLayout({
               <div className="flex items-center space-x-4">
                 <div className="hidden md:block">
                   <span className="text-sm text-[#94a3b8]">
-                    Welcome,{" "}
+                    Welcome,{' '}
                     <span className="text-[#f1f5f9] font-medium">
                       {user?.name || user?.email}
                     </span>
@@ -71,9 +78,9 @@ export default function DashboardLayout({
               <Link
                 href="/dashboard/clients"
                 className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium rounded-xl transition-all ${
-                  isActive("/dashboard/clients")
-                    ? "text-brand-green bg-brand-green/10 border border-brand-green/30"
-                    : "text-gray-300 hover:text-white hover:bg-gray-800"
+                  isActive('/dashboard/clients')
+                    ? 'text-brand-green bg-brand-green/10 border border-brand-green/30'
+                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
                 }`}
               >
                 <Users className="h-5 w-5 mr-3" />
@@ -82,9 +89,9 @@ export default function DashboardLayout({
               <Link
                 href="/dashboard/protocols"
                 className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium rounded-xl transition-all ${
-                  isActive("/dashboard/protocols")
-                    ? "text-brand-green bg-brand-green/10 border border-brand-green/30"
-                    : "text-gray-300 hover:text-white hover:bg-gray-800"
+                  isActive('/dashboard/protocols')
+                    ? 'text-brand-green bg-brand-green/10 border border-brand-green/30'
+                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
                 }`}
               >
                 <FlaskConical className="h-5 w-5 mr-3" />
@@ -93,9 +100,9 @@ export default function DashboardLayout({
               <Link
                 href="/dashboard/scheduled"
                 className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium rounded-xl transition-all ${
-                  isActive("/dashboard/scheduled")
-                    ? "text-brand-green bg-brand-green/10 border border-brand-green/30"
-                    : "text-gray-300 hover:text-white hover:bg-gray-800"
+                  isActive('/dashboard/scheduled')
+                    ? 'text-brand-green bg-brand-green/10 border border-brand-green/30'
+                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
                 }`}
               >
                 <Calendar className="h-5 w-5 mr-3" />
@@ -110,9 +117,9 @@ export default function DashboardLayout({
               <Link
                 href="/dashboard/clients"
                 className={`nav-link-large block px-4 py-3 text-base font-medium rounded-xl transition-all ${
-                  isActive("/dashboard/clients")
-                    ? "text-brand-green bg-brand-green/10 border border-brand-green/30"
-                    : "text-gray-300 hover:text-white hover:bg-gray-800"
+                  isActive('/dashboard/clients')
+                    ? 'text-brand-green bg-brand-green/10 border border-brand-green/30'
+                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
                 }`}
               >
                 <Users className="h-5 w-5 mr-3 inline" />
@@ -121,9 +128,9 @@ export default function DashboardLayout({
               <Link
                 href="/dashboard/protocols"
                 className={`nav-link-large block px-4 py-3 text-base font-medium rounded-xl transition-all ${
-                  isActive("/dashboard/protocols")
-                    ? "text-brand-green bg-brand-green/10 border border-brand-green/30"
-                    : "text-gray-300 hover:text-white hover:bg-gray-800"
+                  isActive('/dashboard/protocols')
+                    ? 'text-brand-green bg-brand-green/10 border border-brand-green/30'
+                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
                 }`}
               >
                 <FlaskConical className="h-5 w-5 mr-3 inline" />
@@ -132,9 +139,9 @@ export default function DashboardLayout({
               <Link
                 href="/dashboard/scheduled"
                 className={`nav-link-large block px-4 py-3 text-base font-medium rounded-xl transition-all ${
-                  isActive("/dashboard/scheduled")
-                    ? "text-brand-green bg-brand-green/10 border border-brand-green/30"
-                    : "text-gray-300 hover:text-white hover:bg-gray-800"
+                  isActive('/dashboard/scheduled')
+                    ? 'text-brand-green bg-brand-green/10 border border-brand-green/30'
+                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
                 }`}
               >
                 <Calendar className="h-5 w-5 mr-3 inline" />

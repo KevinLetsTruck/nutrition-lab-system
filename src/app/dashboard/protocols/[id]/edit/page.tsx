@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, FlaskConical, FileText, Save, Eye } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Breadcrumb } from "@/components/ui/breadcrumb";
-import { ProtocolBuilder } from "@/components/protocols/ProtocolBuilder";
-import { useAuth } from "@/lib/auth-context";
-import { toast } from "sonner";
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft, FlaskConical, FileText, Save, Eye } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
+import { ProtocolBuilder } from '@/components/protocols/ProtocolBuilder';
+import { useAuth } from '@/lib/auth-context';
+import { toast } from 'sonner';
 
 interface ProtocolData {
   id: string;
@@ -36,16 +36,16 @@ export default function EditProtocolPage() {
 
   // Redirect if not authenticated
   if (!authLoading && !user) {
-    router.push("/login");
+    router.push('/login');
     return null;
   }
 
   useEffect(() => {
     const fetchProtocol = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem('token');
         if (!token) {
-          router.push("/login");
+          router.push('/login');
           return;
         }
 
@@ -57,16 +57,18 @@ export default function EditProtocolPage() {
 
         if (!response.ok) {
           if (response.status === 404) {
-            setError("Protocol not found");
+            setError('Protocol not found');
             return;
           }
-          throw new Error("Failed to fetch protocol");
+          throw new Error('Failed to fetch protocol');
         }
 
         const data = await response.json();
         setProtocol(data.data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load protocol");
+        setError(
+          err instanceof Error ? err.message : 'Failed to load protocol'
+        );
       } finally {
         setLoading(false);
       }
@@ -78,21 +80,27 @@ export default function EditProtocolPage() {
   }, [params.id, router]);
 
   const handleProtocolUpdated = (protocolId: string) => {
-    toast.success("Protocol updated successfully!");
+    toast.success('Protocol updated successfully!');
     router.push(`/dashboard/protocols/${protocolId}`);
   };
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen p-4" style={{ background: "var(--background)" }}>
+      <div
+        className="min-h-screen p-4"
+        style={{ background: 'var(--background)' }}
+      >
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-6"></div>
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow">
               <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
               <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                {[1, 2, 3].map(i => (
+                  <div
+                    key={i}
+                    className="h-10 bg-gray-200 dark:bg-gray-700 rounded"
+                  ></div>
                 ))}
               </div>
             </div>
@@ -104,13 +112,18 @@ export default function EditProtocolPage() {
 
   if (error || !protocol) {
     return (
-      <div className="min-h-screen p-4" style={{ background: "var(--background)" }}>
+      <div
+        className="min-h-screen p-4"
+        style={{ background: 'var(--background)' }}
+      >
         <div className="max-w-7xl mx-auto">
           <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-6">
             <h2 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
               Error
             </h2>
-            <p className="text-red-600 dark:text-red-400">{error || "Protocol not found"}</p>
+            <p className="text-red-600 dark:text-red-400">
+              {error || 'Protocol not found'}
+            </p>
             <div className="flex gap-2 mt-4">
               <Link
                 href="/dashboard/protocols"
@@ -135,8 +148,8 @@ export default function EditProtocolPage() {
 
   const breadcrumbItems = [
     {
-      label: "Protocols",
-      href: "/dashboard/protocols",
+      label: 'Protocols',
+      href: '/dashboard/protocols',
       icon: <FlaskConical className="h-4 w-4" />,
     },
     {
@@ -145,13 +158,16 @@ export default function EditProtocolPage() {
       icon: <FileText className="h-4 w-4" />,
     },
     {
-      label: "Edit",
+      label: 'Edit',
       icon: <Save className="h-4 w-4" />,
     },
   ];
 
   return (
-    <div className="min-h-screen p-4" style={{ background: "var(--background)" }}>
+    <div
+      className="min-h-screen p-4"
+      style={{ background: 'var(--background)' }}
+    >
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -161,7 +177,8 @@ export default function EditProtocolPage() {
               Edit Protocol
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Editing {protocol.protocolName} for {protocol.client.firstName} {protocol.client.lastName}
+              Editing {protocol.protocolName} for {protocol.client.firstName}{' '}
+              {protocol.client.lastName}
             </p>
           </div>
           <div className="flex gap-2">
@@ -189,12 +206,14 @@ export default function EditProtocolPage() {
                   Protocol Editor
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Make changes to this protocol. All changes are automatically saved.
+                  Make changes to this protocol. All changes are automatically
+                  saved.
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                  {protocol.client.firstName.charAt(0)}{protocol.client.lastName.charAt(0)}
+                  {protocol.client.firstName.charAt(0)}
+                  {protocol.client.lastName.charAt(0)}
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">

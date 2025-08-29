@@ -1,0 +1,16 @@
+
+> fntp-nutrition-system@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.4.6
+   - Local:        http://localhost:3000
+   - Network:      http://10.0.0.58:3000
+   - Environments: .env.local, .env
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+ ✓ Starting...
+ ✓ Ready in 1262ms
+ ✓ Compiled /api/health in 449ms (328 modules)
+ HEAD /api/health 200 in 542ms
+[?25h

@@ -11,11 +11,15 @@ export const createClientSchema = z.object({
   dotNumber: z.string().optional(),
   cdlNumber: z.string().optional(),
   healthGoals: z.array(z.string()).optional(),
-  medications: z.array(z.object({
-    name: z.string(),
-    dosage: z.string().optional(),
-    frequency: z.string().optional(),
-  })).optional(),
+  medications: z
+    .array(
+      z.object({
+        name: z.string(),
+        dosage: z.string().optional(),
+        frequency: z.string().optional(),
+      })
+    )
+    .optional(),
   conditions: z.array(z.string()).optional(),
   allergies: z.array(z.string()).optional(),
 });

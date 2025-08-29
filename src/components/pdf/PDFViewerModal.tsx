@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { X } from "lucide-react";
-import PDFToolbar from "./PDFToolbar";
-import PDFSidebar from "./PDFSidebar";
-import { Annotation } from "./PDFViewer";
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { X } from 'lucide-react';
+import PDFToolbar from './PDFToolbar';
+import PDFSidebar from './PDFSidebar';
+import { Annotation } from './PDFViewer';
 
 // Extend HTMLCanvasElement to include our custom _renderTask property
 interface ExtendedHTMLCanvasElement extends HTMLCanvasElement {
@@ -17,7 +17,7 @@ export interface Document {
   id: string;
   name: string;
   url: string;
-  type: "lab_report" | "protocol" | "assessment" | "intake" | "other";
+  type: 'lab_report' | 'protocol' | 'assessment' | 'intake' | 'other';
   uploadedDate: Date;
   pages?: number;
   clientId: string;
@@ -42,7 +42,7 @@ interface PDFViewerState {
   searchTerm: string;
   searchResults: any[];
   annotations: Annotation[];
-  sidebarTab: "thumbnails" | "annotations" | "search";
+  sidebarTab: 'thumbnails' | 'annotations' | 'search';
   showSidebar: boolean;
   isFullscreen: boolean;
   annotationMode: boolean;
@@ -67,10 +67,10 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
     scale: 1,
     isLoading: true,
     error: null,
-    searchTerm: "",
+    searchTerm: '',
     searchResults: [],
     annotations: [],
-    sidebarTab: "thumbnails",
+    sidebarTab: 'thumbnails',
     showSidebar: true,
     isFullscreen: false,
     annotationMode: false,
@@ -79,23 +79,23 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
   // Load PDF document
   useEffect(() => {
     // Configure PDF.js worker on client side only
-    if (typeof window !== "undefined") {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
+    if (typeof window !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
     }
 
     const loadPDF = async () => {
       try {
-        setState((prev) => ({ ...prev, isLoading: true, error: null }));
+        setState(prev => ({ ...prev, isLoading: true, error: null }));
 
         const loadingTask = pdfjsLib.getDocument({
           url: document.url,
-          cMapUrl: "/cmaps/",
+          cMapUrl: '/cmaps/',
           cMapPacked: true,
         });
 
         const pdf = await loadingTask.promise;
 
-        setState((prev) => ({
+        setState(prev => ({
           ...prev,
           pdf,
           totalPages: pdf.numPages,
@@ -105,23 +105,23 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
         // Render first page
         renderPage(1, pdf);
       } catch (error) {
-        console.error("Error loading PDF:", error);
-        let errorMessage = "Failed to load PDF document";
+        console.error('Error loading PDF:', error);
+        let errorMessage = 'Failed to load PDF document';
 
         if (error instanceof Error) {
           if (
-            error.message.includes("404") ||
-            error.message.includes("Not Found")
+            error.message.includes('404') ||
+            error.message.includes('Not Found')
           ) {
             errorMessage =
-              "Document file not found. The file may have been moved or deleted.";
-          } else if (error.message.includes("Failed to fetch")) {
+              'Document file not found. The file may have been moved or deleted.';
+          } else if (error.message.includes('Failed to fetch')) {
             errorMessage =
-              "Unable to fetch document. Please check your internet connection.";
+              'Unable to fetch document. Please check your internet connection.';
           }
         }
 
-        setState((prev) => ({
+        setState(prev => ({
           ...prev,
           error: errorMessage,
           isLoading: false,
@@ -149,7 +149,7 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
         const page = await pdf.getPage(pageNum);
         const viewport = page.getViewport({ scale: state.scale });
         const canvas = canvasRef.current;
-        const context = canvas.getContext("2d");
+        const context = canvas.getContext('2d');
 
         if (!context) return;
 
@@ -173,8 +173,8 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
         // Clear the render task reference when done
         canvas._renderTask = null;
       } catch (error) {
-        if (error.name !== "RenderingCancelledException") {
-          console.error("Error rendering page:", error);
+        if (error.name !== 'RenderingCancelledException') {
+          console.error('Error rendering page:', error);
         }
       }
     },
@@ -185,7 +185,7 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
   const goToPage = useCallback(
     (pageNum: number) => {
       if (pageNum >= 1 && pageNum <= state.totalPages) {
-        setState((prev) => ({ ...prev, currentPage: pageNum }));
+        setState(prev => ({ ...prev, currentPage: pageNum }));
         renderPage(pageNum);
       }
     },
@@ -207,13 +207,13 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
   // Zoom functions
   const zoomIn = useCallback(() => {
     const newScale = Math.min(state.scale * 1.25, 3);
-    setState((prev) => ({ ...prev, scale: newScale }));
+    setState(prev => ({ ...prev, scale: newScale }));
     renderPage(state.currentPage);
   }, [state.scale, state.currentPage, renderPage]);
 
   const zoomOut = useCallback(() => {
     const newScale = Math.max(state.scale / 1.25, 0.5);
-    setState((prev) => ({ ...prev, scale: newScale }));
+    setState(prev => ({ ...prev, scale: newScale }));
     renderPage(state.currentPage);
   }, [state.scale, state.currentPage, renderPage]);
 
@@ -221,13 +221,13 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
     (newScale: number | string) => {
       let scale: number;
 
-      if (typeof newScale === "string") {
-        if (newScale === "fit" && containerRef.current && canvasRef.current) {
+      if (typeof newScale === 'string') {
+        if (newScale === 'fit' && containerRef.current && canvasRef.current) {
           const containerWidth = containerRef.current.clientWidth - 48;
           const canvasWidth = canvasRef.current.width;
           scale = containerWidth / canvasWidth;
         } else if (
-          newScale === "page" &&
+          newScale === 'page' &&
           containerRef.current &&
           canvasRef.current
         ) {
@@ -246,7 +246,7 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
         scale = newScale;
       }
 
-      setState((prev) => ({ ...prev, scale }));
+      setState(prev => ({ ...prev, scale }));
       renderPage(state.currentPage);
     },
     [state.currentPage, renderPage]
@@ -255,7 +255,7 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
   // Search functionality
   const performSearch = useCallback(async () => {
     if (!state.pdf || !state.searchTerm.trim()) {
-      setState((prev) => ({ ...prev, searchResults: [] }));
+      setState(prev => ({ ...prev, searchResults: [] }));
       return;
     }
 
@@ -266,7 +266,7 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
       for (let i = 1; i <= state.totalPages; i++) {
         const page = await state.pdf.getPage(i);
         const textContent = await page.getTextContent();
-        const text = textContent.items.map((item: any) => item.str).join(" ");
+        const text = textContent.items.map((item: any) => item.str).join(' ');
 
         if (text.toLowerCase().includes(searchTerm)) {
           const startIndex = text.toLowerCase().indexOf(searchTerm);
@@ -283,50 +283,50 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
         }
       }
 
-      setState((prev) => ({ ...prev, searchResults: results }));
+      setState(prev => ({ ...prev, searchResults: results }));
     } catch (error) {
-      console.error("Error searching PDF:", error);
+      console.error('Error searching PDF:', error);
     }
   }, [state.pdf, state.searchTerm, state.totalPages]);
 
   // Action handlers
   const toggleSidebar = useCallback(() => {
-    setState((prev) => ({ ...prev, showSidebar: !prev.showSidebar }));
+    setState(prev => ({ ...prev, showSidebar: !prev.showSidebar }));
   }, []);
 
   const toggleSearch = useCallback(() => {
-    setState((prev) => ({
+    setState(prev => ({
       ...prev,
-      sidebarTab: prev.sidebarTab === "search" ? "thumbnails" : "search",
-      showSidebar: prev.sidebarTab !== "search" ? true : prev.showSidebar,
+      sidebarTab: prev.sidebarTab === 'search' ? 'thumbnails' : 'search',
+      showSidebar: prev.sidebarTab !== 'search' ? true : prev.showSidebar,
     }));
   }, []);
 
   const toggleAnnotations = useCallback(() => {
-    setState((prev) => ({ ...prev, annotationMode: !prev.annotationMode }));
+    setState(prev => ({ ...prev, annotationMode: !prev.annotationMode }));
   }, []);
 
   const toggleFullscreen = useCallback(() => {
     if (
-      typeof window !== "undefined" &&
-      typeof window.document !== "undefined"
+      typeof window !== 'undefined' &&
+      typeof window.document !== 'undefined'
     ) {
       if (!window.document.fullscreenElement) {
         viewerRef.current?.requestFullscreen();
-        setState((prev) => ({ ...prev, isFullscreen: true }));
+        setState(prev => ({ ...prev, isFullscreen: true }));
       } else {
         window.document.exitFullscreen();
-        setState((prev) => ({ ...prev, isFullscreen: false }));
+        setState(prev => ({ ...prev, isFullscreen: false }));
       }
     }
   }, []);
 
   const downloadPDF = useCallback(() => {
     if (
-      typeof window !== "undefined" &&
-      typeof window.document !== "undefined"
+      typeof window !== 'undefined' &&
+      typeof window.document !== 'undefined'
     ) {
-      const link = window.document.createElement("a");
+      const link = window.document.createElement('a');
       link.href = document.url;
       link.download = document.name;
       window.document.body.appendChild(link);
@@ -336,10 +336,10 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
   }, [document.url, document.name]);
 
   const printPDF = useCallback(() => {
-    if (typeof window !== "undefined") {
-      const printWindow = window.open(document.url, "_blank");
+    if (typeof window !== 'undefined') {
+      const printWindow = window.open(document.url, '_blank');
       if (printWindow) {
-        printWindow.addEventListener("load", () => {
+        printWindow.addEventListener('load', () => {
           printWindow.print();
         });
       }
@@ -347,7 +347,7 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
   }, [document.url]);
 
   const sharePDF = useCallback(() => {
-    if (typeof navigator !== "undefined") {
+    if (typeof navigator !== 'undefined') {
       if (navigator.share) {
         navigator.share({
           title: document.name,
@@ -355,7 +355,7 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
         });
       } else if (navigator.clipboard) {
         navigator.clipboard.writeText(document.url);
-        alert("Link copied to clipboard!");
+        alert('Link copied to clipboard!');
       }
     }
   }, [document.url, document.name]);
@@ -369,9 +369,9 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
   );
 
   const deleteAnnotation = useCallback((annotationId: string) => {
-    setState((prev) => ({
+    setState(prev => ({
       ...prev,
-      annotations: prev.annotations.filter((a) => a.id !== annotationId),
+      annotations: prev.annotations.filter(a => a.id !== annotationId),
     }));
   }, []);
 
@@ -381,15 +381,15 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
       if (e.target instanceof HTMLInputElement) return;
 
       switch (e.key) {
-        case "ArrowLeft":
+        case 'ArrowLeft':
           e.preventDefault();
           prevPage();
           break;
-        case "ArrowRight":
+        case 'ArrowRight':
           e.preventDefault();
           nextPage();
           break;
-        case "Escape":
+        case 'Escape':
           e.preventDefault();
           if (state.isFullscreen) {
             toggleFullscreen();
@@ -397,16 +397,16 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
             onClose();
           }
           break;
-        case "+":
-        case "=":
+        case '+':
+        case '=':
           e.preventDefault();
           zoomIn();
           break;
-        case "-":
+        case '-':
           e.preventDefault();
           zoomOut();
           break;
-        case "s":
+        case 's':
           if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
             toggleSearch();
@@ -415,13 +415,13 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
       }
     };
 
-    if (typeof window !== "undefined") {
-      window.addEventListener("keydown", handleKeyPress);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('keydown', handleKeyPress);
     }
 
     return () => {
-      if (typeof window !== "undefined") {
-        window.removeEventListener("keydown", handleKeyPress);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('keydown', handleKeyPress);
       }
     };
   }, [
@@ -438,33 +438,33 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
   // Fullscreen change listener
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setState((prev) => ({
+      setState(prev => ({
         ...prev,
         isFullscreen:
-          typeof window !== "undefined" &&
-          typeof window.document !== "undefined"
+          typeof window !== 'undefined' &&
+          typeof window.document !== 'undefined'
             ? !!window.document.fullscreenElement
             : false,
       }));
     };
 
     if (
-      typeof window !== "undefined" &&
-      typeof window.document !== "undefined"
+      typeof window !== 'undefined' &&
+      typeof window.document !== 'undefined'
     ) {
       window.document.addEventListener(
-        "fullscreenchange",
+        'fullscreenchange',
         handleFullscreenChange
       );
     }
 
     return () => {
       if (
-        typeof window !== "undefined" &&
-        typeof window.document !== "undefined"
+        typeof window !== 'undefined' &&
+        typeof window.document !== 'undefined'
       ) {
         window.document.removeEventListener(
-          "fullscreenchange",
+          'fullscreenchange',
           handleFullscreenChange
         );
       }
@@ -489,10 +489,10 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
   }, []);
 
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
   };
 
@@ -558,7 +558,7 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
                 {document.name}
               </h2>
               <p className="text-sm text-slate-400 mt-1">
-                Uploaded {formatDate(document.uploadedDate)} •{" "}
+                Uploaded {formatDate(document.uploadedDate)} •{' '}
                 {state.totalPages} pages
               </p>
             </div>
@@ -611,14 +611,14 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
               annotations={state.annotations}
               searchResults={state.searchResults}
               searchTerm={state.searchTerm}
-              onTabChange={(tab) =>
-                setState((prev) => ({ ...prev, sidebarTab: tab }))
+              onTabChange={tab =>
+                setState(prev => ({ ...prev, sidebarTab: tab }))
               }
               onGoToPage={goToPage}
               onGoToAnnotation={goToAnnotation}
               onDeleteAnnotation={deleteAnnotation}
-              onSearchTermChange={(term) =>
-                setState((prev) => ({ ...prev, searchTerm: term }))
+              onSearchTermChange={term =>
+                setState(prev => ({ ...prev, searchTerm: term }))
               }
               onPerformSearch={performSearch}
             />
@@ -635,8 +635,8 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
                   ref={canvasRef}
                   className="shadow-2xl rounded-lg border border-slate-700 bg-white"
                   style={{
-                    maxWidth: "100%",
-                    height: "auto",
+                    maxWidth: '100%',
+                    height: 'auto',
                   }}
                 />
 
@@ -644,8 +644,8 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
                 {state.annotationMode && (
                   <div className="absolute inset-0 pointer-events-none">
                     {state.annotations
-                      .filter((a) => a.pageNumber === state.currentPage)
-                      .map((annotation) => (
+                      .filter(a => a.pageNumber === state.currentPage)
+                      .map(annotation => (
                         <div
                           key={annotation.id}
                           className="absolute pointer-events-auto"
@@ -656,10 +656,10 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
                             height: annotation.coordinates.height,
                           }}
                         >
-                          {annotation.type === "highlight" && (
+                          {annotation.type === 'highlight' && (
                             <div className="bg-yellow-300 opacity-30" />
                           )}
-                          {annotation.type === "note" && (
+                          {annotation.type === 'note' && (
                             <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center cursor-pointer">
                               <span className="text-slate-900 text-xs font-bold">
                                 !

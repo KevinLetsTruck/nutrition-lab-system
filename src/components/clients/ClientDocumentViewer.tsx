@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import Link from "next/link";
+import React, { useState } from 'react';
+import Link from 'next/link';
 import {
   FileText,
   Eye,
@@ -20,18 +20,18 @@ import {
   FileEdit,
   RefreshCw,
   Play,
-} from "lucide-react";
+} from 'lucide-react';
 // Use SimplePDFViewer to avoid canvas/PDF.js issues
-import SimplePDFViewer from "../pdf/SimplePDFViewer";
+import SimplePDFViewer from '../pdf/SimplePDFViewer';
 
 interface ClientDocument {
   id: string;
   fileName: string;
-  documentType: "lab_report" | "protocol" | "assessment" | "intake" | "other";
+  documentType: 'lab_report' | 'protocol' | 'assessment' | 'intake' | 'other';
   labType?: string;
   fileSize: number;
   uploadedAt: string;
-  status: "uploaded" | "processing" | "completed" | "failed"; // Updated to match database schema
+  status: 'uploaded' | 'processing' | 'completed' | 'failed'; // Updated to match database schema
   fileUrl?: string; // This is what comes from the database
   url?: string; // Legacy field for compatibility
   aiAnalysis?: {
@@ -53,76 +53,76 @@ interface ClientDocumentViewerProps {
 const documentCategories = {
   lab_report: {
     icon: FileText,
-    color: "text-green-400",
-    bgColor: "bg-green-400/10",
-    borderColor: "border-green-400/20",
-    label: "Lab Report",
-    description: "Blood work, biomarkers, and lab analysis",
+    color: 'text-green-400',
+    bgColor: 'bg-green-400/10',
+    borderColor: 'border-green-400/20',
+    label: 'Lab Report',
+    description: 'Blood work, biomarkers, and lab analysis',
   },
   protocol: {
     icon: ClipboardList,
-    color: "text-blue-400",
-    bgColor: "bg-blue-400/10",
-    borderColor: "border-blue-400/20",
-    label: "Protocol",
-    description: "Treatment plans and recommendations",
+    color: 'text-blue-400',
+    bgColor: 'bg-blue-400/10',
+    borderColor: 'border-blue-400/20',
+    label: 'Protocol',
+    description: 'Treatment plans and recommendations',
   },
   assessment: {
     icon: FileCheck,
-    color: "text-orange-400",
-    bgColor: "bg-orange-400/10",
-    borderColor: "border-orange-400/20",
-    label: "Assessment",
-    description: "Health assessments and evaluations",
+    color: 'text-orange-400',
+    bgColor: 'bg-orange-400/10',
+    borderColor: 'border-orange-400/20',
+    label: 'Assessment',
+    description: 'Health assessments and evaluations',
   },
   intake: {
     icon: UserCheck,
-    color: "text-purple-400",
-    bgColor: "bg-purple-400/10",
-    borderColor: "border-purple-400/20",
-    label: "Intake Form",
-    description: "Initial client information and history",
+    color: 'text-purple-400',
+    bgColor: 'bg-purple-400/10',
+    borderColor: 'border-purple-400/20',
+    label: 'Intake Form',
+    description: 'Initial client information and history',
   },
   other: {
     icon: FileText,
-    color: "text-slate-400",
-    bgColor: "bg-slate-400/10",
-    borderColor: "border-slate-400/20",
-    label: "Other",
-    description: "Miscellaneous documents",
+    color: 'text-slate-400',
+    bgColor: 'bg-slate-400/10',
+    borderColor: 'border-slate-400/20',
+    label: 'Other',
+    description: 'Miscellaneous documents',
   },
 };
 
 const statusConfig = {
   uploaded: {
-    color: "text-blue-400",
-    bg: "bg-blue-400/10",
-    label: "Uploaded",
+    color: 'text-blue-400',
+    bg: 'bg-blue-400/10',
+    label: 'Uploaded',
   },
   pending: {
-    color: "text-yellow-400",
-    bg: "bg-yellow-400/10",
-    label: "Pending",
+    color: 'text-yellow-400',
+    bg: 'bg-yellow-400/10',
+    label: 'Pending',
   },
   processing: {
-    color: "text-orange-400",
-    bg: "bg-orange-400/10",
-    label: "Processing",
+    color: 'text-orange-400',
+    bg: 'bg-orange-400/10',
+    label: 'Processing',
   },
   completed: {
-    color: "text-green-400",
-    bg: "bg-green-400/10",
-    label: "Completed",
+    color: 'text-green-400',
+    bg: 'bg-green-400/10',
+    label: 'Completed',
   },
   failed: {
-    color: "text-red-400",
-    bg: "bg-red-400/10",
-    label: "Failed",
+    color: 'text-red-400',
+    bg: 'bg-red-400/10',
+    label: 'Failed',
   },
   error: {
-    color: "text-red-400",
-    bg: "bg-red-400/10",
-    label: "Error",
+    color: 'text-red-400',
+    bg: 'bg-red-400/10',
+    label: 'Error',
   },
 };
 
@@ -138,21 +138,21 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
     id: string;
     name: string;
     url: string;
-    type: "lab_report" | "protocol" | "assessment" | "intake" | "other";
+    type: 'lab_report' | 'protocol' | 'assessment' | 'intake' | 'other';
     uploadedDate: Date;
     pages?: number;
     clientId: string;
   } | null>(null);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState<string>("all");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [reclassifyingId, setReclassifyingId] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<"date" | "name" | "type" | "size">(
-    "date"
+  const [sortBy, setSortBy] = useState<'date' | 'name' | 'type' | 'size'>(
+    'date'
   );
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   // Delete confirmation modal is now handled by parent component
 
   // Debug component lifecycle
@@ -164,34 +164,34 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
 
   // Filter and sort documents
   const filteredAndSortedDocuments = documents
-    .filter((doc) => {
+    .filter(doc => {
       const matchesSearch =
         doc.fileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (doc.labType &&
           doc.labType.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesType =
-        filterType === "all" || doc.documentType === filterType;
+        filterType === 'all' || doc.documentType === filterType;
       const matchesStatus =
-        filterStatus === "all" || doc.status === filterStatus;
+        filterStatus === 'all' || doc.status === filterStatus;
       return matchesSearch && matchesType && matchesStatus;
     })
     .sort((a, b) => {
       let aValue: any, bValue: any;
 
       switch (sortBy) {
-        case "date":
+        case 'date':
           aValue = new Date(a.uploadedAt).getTime();
           bValue = new Date(b.uploadedAt).getTime();
           break;
-        case "name":
+        case 'name':
           aValue = a.fileName.toLowerCase();
           bValue = b.fileName.toLowerCase();
           break;
-        case "type":
+        case 'type':
           aValue = a.documentType;
           bValue = b.documentType;
           break;
-        case "size":
+        case 'size':
           aValue = a.fileSize;
           bValue = b.fileSize;
           break;
@@ -199,7 +199,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
           return 0;
       }
 
-      if (sortOrder === "asc") {
+      if (sortOrder === 'asc') {
         return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
       } else {
         return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
@@ -229,7 +229,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
       setViewerOpen(true);
     } else {
       alert(
-        "Document file not available. Please check if the file was uploaded correctly."
+        'Document file not available. Please check if the file was uploaded correctly.'
       );
     }
   };
@@ -241,8 +241,8 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
       const response = await fetch(
         `/api/medical/documents/${documentId}/reclassify`,
         {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
         }
       );
 
@@ -254,10 +254,10 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
           onRefresh();
         }
       } else {
-        console.error("Failed to reclassify document");
+        console.error('Failed to reclassify document');
       }
     } catch (error) {
-      console.error("Error reclassifying document:", error);
+      console.error('Error reclassifying document:', error);
     } finally {
       setReclassifyingId(null);
     }
@@ -265,13 +265,13 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
 
   const handleProcess = async (documentId: string) => {
     try {
-      const token = localStorage.getItem("auth_token");
+      const token = localStorage.getItem('auth_token');
 
-      const response = await fetch("/api/medical/process", {
-        method: "POST",
+      const response = await fetch('/api/medical/process', {
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           documentId,
@@ -281,21 +281,21 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to process document");
+        throw new Error(error.error || 'Failed to process document');
       }
 
       const result = await response.json();
 
-      alert("Document processing started. This may take a few minutes.");
+      alert('Document processing started. This may take a few minutes.');
 
       // Refresh the documents list
       if (onRefresh) {
         setTimeout(onRefresh, 2000); // Refresh after 2 seconds
       }
     } catch (error) {
-      console.error("Processing error:", error);
+      console.error('Processing error:', error);
       alert(
-        error instanceof Error ? error.message : "Failed to process document"
+        error instanceof Error ? error.message : 'Failed to process document'
       );
     }
   };
@@ -304,32 +304,32 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
     if (onDelete) {
       onDelete(doc.id);
     } else {
-      console.error("❌ No onDelete handler provided");
+      console.error('❌ No onDelete handler provided');
     }
   };
 
   // handleDeleteConfirm is now handled by parent component
 
   const formatFileSize = (bytes: number) => {
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    if (bytes === 0) return "0 Bytes";
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    if (bytes === 0) return '0 Bytes';
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + " " + sizes[i];
+    return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
   const formatDate = (dateString: string) => {
     // Use consistent locale to avoid hydration mismatch
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      timeZone: "UTC", // Use UTC to ensure consistency between server and client
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'UTC', // Use UTC to ensure consistency between server and client
     });
   };
 
   const getDocumentTypeStats = () => {
     const stats: Record<string, number> = {};
-    documents.forEach((doc) => {
+    documents.forEach(doc => {
       stats[doc.documentType] = (stats[doc.documentType] || 0) + 1;
     });
     return stats;
@@ -348,7 +348,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
             </p>
           </div>
         ) : (
-          documents.slice(0, 6).map((doc) => {
+          documents.slice(0, 6).map(doc => {
             const category =
               documentCategories[doc.documentType] || documentCategories.other;
             const Icon = category.icon;
@@ -380,23 +380,23 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                 </div>
                 <div className="flex items-center space-x-1 ml-2">
                   <button
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation();
                       handleDocumentClick(doc);
                     }}
                     className="p-2 hover:bg-gray-600 rounded transition-colors text-blue-400 hover:text-blue-300 border border-blue-400"
                     title="View Document"
                     style={{
-                      backgroundColor: "rgba(59, 130, 246, 0.1)",
-                      minWidth: "32px",
-                      minHeight: "32px",
+                      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                      minWidth: '32px',
+                      minHeight: '32px',
                     }}
                   >
                     <Eye className="w-4 h-4" />
                   </button>
-                  {(doc.status === "uploaded" || doc.status === "pending") && (
+                  {(doc.status === 'uploaded' || doc.status === 'pending') && (
                     <button
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         handleProcess(doc.id);
                       }}
@@ -406,11 +406,11 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                       <Play className="w-3 h-3" />
                     </button>
                   )}
-                  {(doc.documentType === "assessment" ||
-                    doc.fileName?.toLowerCase().includes("naq") ||
-                    doc.fileName?.toLowerCase().includes("symptom")) && (
+                  {(doc.documentType === 'assessment' ||
+                    doc.fileName?.toLowerCase().includes('naq') ||
+                    doc.fileName?.toLowerCase().includes('symptom')) && (
                     <button
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         // Assessment entry removed
                       }}
@@ -420,9 +420,9 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                       <FileEdit className="w-3 h-3" />
                     </button>
                   )}
-                  {doc.status === "completed" && (
+                  {doc.status === 'completed' && (
                     <button
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         handleReclassify(doc.id);
                       }}
@@ -441,7 +441,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                     <a
                       href={doc.fileUrl || doc.url}
                       download={doc.fileName}
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={e => e.stopPropagation()}
                       className="p-1 hover:bg-opacity-20 rounded transition-colors"
                       title="Download"
                     >
@@ -450,7 +450,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                   )}
                   {onDelete && (
                     <button
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         handleDeleteClick(doc);
                       }}
@@ -554,7 +554,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
               type="text"
               placeholder="Search documents..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -563,7 +563,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
         <div className="flex gap-2">
           <select
             value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
+            onChange={e => setFilterType(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="all">All Types</option>
@@ -576,7 +576,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
 
           <select
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
+            onChange={e => setFilterStatus(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="all">All Status</option>
@@ -588,8 +588,8 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
 
           <select
             value={`${sortBy}-${sortOrder}`}
-            onChange={(e) => {
-              const [sort, order] = e.target.value.split("-");
+            onChange={e => {
+              const [sort, order] = e.target.value.split('-');
               setSortBy(sort as any);
               setSortOrder(order as any);
             }}
@@ -605,21 +605,21 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
 
           <div className="flex border border-gray-300 rounded-lg overflow-hidden">
             <button
-              onClick={() => setViewMode("grid")}
+              onClick={() => setViewMode('grid')}
               className={`p-2 ${
-                viewMode === "grid"
-                  ? "bg-blue-100 text-blue-600"
-                  : "text-gray-600 hover:bg-gray-50"
+                viewMode === 'grid'
+                  ? 'bg-blue-100 text-blue-600'
+                  : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
               <Grid className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setViewMode("list")}
+              onClick={() => setViewMode('list')}
               className={`p-2 ${
-                viewMode === "list"
-                  ? "bg-blue-100 text-blue-600"
-                  : "text-gray-600 hover:bg-gray-50"
+                viewMode === 'list'
+                  ? 'bg-blue-100 text-blue-600'
+                  : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
               <List className="w-4 h-4" />
@@ -637,8 +637,8 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
           </h3>
           <p className="text-gray-500 mb-4">
             {documents.length === 0
-              ? "No documents have been uploaded yet"
-              : "Try adjusting your search or filter criteria"}
+              ? 'No documents have been uploaded yet'
+              : 'Try adjusting your search or filter criteria'}
           </p>
           <Link
             href={`/dashboard/documents/upload?clientId=${clientId}`}
@@ -648,9 +648,9 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
             Upload First Document
           </Link>
         </div>
-      ) : viewMode === "grid" ? (
+      ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredAndSortedDocuments.map((doc) => {
+          {filteredAndSortedDocuments.map(doc => {
             const category =
               documentCategories[doc.documentType] || documentCategories.other; // Fallback to 'other' if type not found
             const status = statusConfig[doc.status] || statusConfig.uploaded; // Fallback to uploaded if status not found
@@ -673,7 +673,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                   </div>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         handleDocumentClick(doc);
                       }}
@@ -682,10 +682,10 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                     >
                       <Eye className="w-4 h-4 text-gray-600" />
                     </button>
-                    {(doc.status === "uploaded" ||
-                      doc.status === "pending") && (
+                    {(doc.status === 'uploaded' ||
+                      doc.status === 'pending') && (
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           handleProcess(doc.id);
                         }}
@@ -695,11 +695,11 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                         <Play className="w-4 h-4 text-gray-600" />
                       </button>
                     )}
-                    {(doc.documentType === "assessment" ||
-                      doc.fileName?.toLowerCase().includes("naq") ||
-                      doc.fileName?.toLowerCase().includes("symptom")) && (
+                    {(doc.documentType === 'assessment' ||
+                      doc.fileName?.toLowerCase().includes('naq') ||
+                      doc.fileName?.toLowerCase().includes('symptom')) && (
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           // Assessment entry removed
                         }}
@@ -713,7 +713,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                       <a
                         href={doc.fileUrl || doc.url}
                         download={doc.fileName}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={e => e.stopPropagation()}
                         className="p-1 hover:bg-white/20 rounded"
                         title="Download"
                       >
@@ -722,7 +722,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                     )}
                     {onDelete && (
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           handleDeleteClick(doc);
                         }}
@@ -785,7 +785,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredAndSortedDocuments.map((doc) => {
+          {filteredAndSortedDocuments.map(doc => {
             const category =
               documentCategories[doc.documentType] || documentCategories.other; // Fallback to 'other' if type not found
             const status = statusConfig[doc.status] || statusConfig.uploaded; // Fallback to uploaded if status not found
@@ -825,7 +825,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                       {status.label}
                     </span>
                     <button
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         handleDocumentClick(doc);
                       }}
@@ -834,10 +834,10 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                     >
                       <Eye className="w-4 h-4 text-gray-600" />
                     </button>
-                    {(doc.status === "uploaded" ||
-                      doc.status === "pending") && (
+                    {(doc.status === 'uploaded' ||
+                      doc.status === 'pending') && (
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           handleProcess(doc.id);
                         }}
@@ -847,11 +847,11 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                         <Play className="w-4 h-4 text-gray-600" />
                       </button>
                     )}
-                    {(doc.documentType === "assessment" ||
-                      doc.fileName?.toLowerCase().includes("naq") ||
-                      doc.fileName?.toLowerCase().includes("symptom")) && (
+                    {(doc.documentType === 'assessment' ||
+                      doc.fileName?.toLowerCase().includes('naq') ||
+                      doc.fileName?.toLowerCase().includes('symptom')) && (
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           // Assessment entry removed
                         }}
@@ -865,7 +865,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                       <a
                         href={doc.fileUrl || doc.url}
                         download={doc.fileName}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={e => e.stopPropagation()}
                         className="p-1 hover:bg-gray-200 rounded"
                         title="Download"
                       >
@@ -874,7 +874,7 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                     )}
                     {onDelete && (
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           handleDeleteClick(doc);
                         }}

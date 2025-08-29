@@ -5,8 +5,8 @@ import {
   HeadObjectCommand,
   DeleteObjectCommand,
   ListObjectsV2Command,
-} from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 interface UploadOptions {
   contentType?: string;
@@ -34,16 +34,17 @@ export class S3StorageService {
   private isConfigured: boolean = false;
 
   constructor() {
-    this.region = process.env.S3_REGION || "us-east-1";
-    this.bucketName = process.env.S3_MEDICAL_BUCKET_NAME || "";
+    this.region = process.env.S3_REGION || 'us-east-1';
+    this.bucketName = process.env.S3_MEDICAL_BUCKET_NAME || '';
 
     // Configuration check
 
     // Check if S3 is properly configured
-    if (process.env.S3_ACCESS_KEY_ID && 
-        process.env.S3_SECRET_ACCESS_KEY && 
-        this.bucketName) {
-      
+    if (
+      process.env.S3_ACCESS_KEY_ID &&
+      process.env.S3_SECRET_ACCESS_KEY &&
+      this.bucketName
+    ) {
       try {
         this.s3Client = new S3Client({
           region: this.region,
@@ -54,18 +55,22 @@ export class S3StorageService {
         });
         this.isConfigured = true;
       } catch (error: any) {
-        console.error("Failed to create S3Client:", error.message);
+        console.error('Failed to create S3Client:', error.message);
         this.isConfigured = false;
       }
     } else {
-      console.warn("⚠️ S3 not configured - documents will be stored as metadata only");
+      console.warn(
+        '⚠️ S3 not configured - documents will be stored as metadata only'
+      );
       this.isConfigured = false;
     }
   }
 
   private checkConfiguration(): void {
     if (!this.isConfigured) {
-      throw new Error("S3 storage is not configured. Please set S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, and S3_MEDICAL_BUCKET_NAME environment variables.");
+      throw new Error(
+        'S3 storage is not configured. Please set S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, and S3_MEDICAL_BUCKET_NAME environment variables.'
+      );
     }
   }
 
@@ -82,30 +87,32 @@ export class S3StorageService {
 
     // If S3 is not configured, return a fallback response
     if (!this.isConfigured) {
-      console.warn(`⚠️ S3 not configured - document ${fileName} stored as metadata only`);
-      
+      console.warn(
+        `⚠️ S3 not configured - document ${fileName} stored as metadata only`
+      );
+
       return {
         id: key,
         url: `/api/documents/fallback/${clientId}/${encodeURIComponent(fileName)}`,
         key,
-        bucket: "local-fallback",
+        bucket: 'local-fallback',
       };
     }
 
     // Sanitize metadata values to prevent invalid header characters
     const sanitizeMetadataValue = (value: string) => {
-      if (!value) return "";
+      if (!value) return '';
       // Replace invalid characters and encode special characters for HTTP headers
       return value
         .replace(/[\x00-\x1f\x7f-\x9f]/g, '') // Remove control characters
-        .replace(/[^\x20-\x7e]/g, (char) => encodeURIComponent(char)) // Encode non-ASCII characters
+        .replace(/[^\x20-\x7e]/g, char => encodeURIComponent(char)) // Encode non-ASCII characters
         .substring(0, 1024); // AWS metadata values have a 1024 character limit
     };
 
     // Sanitize all metadata values
     const sanitizedMetadata: Record<string, string> = {
       clientId: sanitizeMetadataValue(clientId),
-      documentType: sanitizeMetadataValue(options.documentType || "unknown"),
+      documentType: sanitizeMetadataValue(options.documentType || 'unknown'),
       uploadedAt: new Date().toISOString(),
     };
 
@@ -122,7 +129,7 @@ export class S3StorageService {
       Bucket: this.bucketName,
       Key: key,
       Body: fileBuffer,
-      ContentType: options.contentType || "application/octet-stream",
+      ContentType: options.contentType || 'application/octet-stream',
       Metadata: sanitizedMetadata,
     };
 
@@ -149,7 +156,7 @@ export class S3StorageService {
     const response = await this.s3Client.send(command);
 
     if (!response.Body) {
-      throw new Error("File not found or empty");
+      throw new Error('File not found or empty');
     }
 
     // Convert stream to buffer
@@ -174,28 +181,30 @@ export class S3StorageService {
    */
   async downloadFileByUrl(fileUrl: string): Promise<DownloadResult> {
     // Handle fallback URLs when S3 is not configured
-    if (fileUrl.includes("/api/documents/fallback/")) {
-      throw new Error("Document file not available - stored as metadata only (S3 not configured)");
+    if (fileUrl.includes('/api/documents/fallback/')) {
+      throw new Error(
+        'Document file not available - stored as metadata only (S3 not configured)'
+      );
     }
 
     // If S3 is not configured, we can't download
     if (!this.isConfigured) {
-      throw new Error("S3 storage is not configured - cannot download files");
+      throw new Error('S3 storage is not configured - cannot download files');
     }
 
     let key: string;
 
     // Handle different URL formats
-    if (fileUrl.startsWith("http")) {
+    if (fileUrl.startsWith('http')) {
       // Extract key from full S3 URL
-      const urlParts = fileUrl.split("/");
-      key = urlParts.slice(3).join("/"); // Remove https://bucket.s3.region.amazonaws.com/
-    } else if (fileUrl.startsWith("clients/")) {
+      const urlParts = fileUrl.split('/');
+      key = urlParts.slice(3).join('/'); // Remove https://bucket.s3.region.amazonaws.com/
+    } else if (fileUrl.startsWith('clients/')) {
       // Already a key
       key = fileUrl;
     } else {
       // Assume it's a relative path, might need adjustment based on your schema
-      key = fileUrl.replace("/uploads/", "");
+      key = fileUrl.replace('/uploads/', '');
     }
 
     return this.downloadFile(key);
@@ -229,7 +238,7 @@ export class S3StorageService {
       );
       return true;
     } catch (error: any) {
-      if (error.name === "NotFound") {
+      if (error.name === 'NotFound') {
         return false;
       }
       throw error;
@@ -261,7 +270,7 @@ export class S3StorageService {
       );
       return true;
     } catch (error) {
-      console.error("S3 connection test failed:", error);
+      console.error('S3 connection test failed:', error);
       return false;
     }
   }

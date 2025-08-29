@@ -20,10 +20,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (error instanceof Error && error.message === 'Invalid credentials') {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
     return NextResponse.json(

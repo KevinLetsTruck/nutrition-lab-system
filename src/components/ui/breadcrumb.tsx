@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
 
 export interface BreadcrumbItem {
   label: string;
@@ -14,14 +14,15 @@ interface BreadcrumbProps {
   className?: string;
 }
 
-export function Breadcrumb({ items, className = "" }: BreadcrumbProps) {
+export function Breadcrumb({ items, className = '' }: BreadcrumbProps) {
   return (
-    <nav aria-label="Breadcrumb" className={`flex items-center space-x-1 text-sm ${className}`}>
+    <nav
+      aria-label="Breadcrumb"
+      className={`flex items-center space-x-1 text-sm ${className}`}
+    >
       {items.map((item, index) => (
         <div key={index} className="flex items-center">
-          {index > 0 && (
-            <ChevronRight className="h-4 w-4 text-gray-400 mx-1" />
-          )}
+          {index > 0 && <ChevronRight className="h-4 w-4 text-gray-400 mx-1" />}
           {item.href ? (
             <Link
               href={item.href}

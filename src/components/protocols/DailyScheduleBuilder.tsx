@@ -1,26 +1,26 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Clock,
   Plus,
@@ -34,8 +34,8 @@ import {
   Save,
   RotateCcw,
   Info,
-} from "lucide-react";
-import { toast } from "sonner";
+} from 'lucide-react';
+import { toast } from 'sonner';
 
 // Daily schedule interface
 export interface DailySchedule {
@@ -55,48 +55,48 @@ interface ScheduleTemplate {
 // Preset schedule templates (matching our database seed data)
 const PRESET_TEMPLATES: ScheduleTemplate[] = [
   {
-    id: "standard",
-    name: "Standard Schedule (2x daily)",
+    id: 'standard',
+    name: 'Standard Schedule (2x daily)',
     scheduleTimes: {
-      morning: "8:00 AM",
-      evening: "6:00 PM",
-      description: "Standard morning and evening routine",
+      morning: '8:00 AM',
+      evening: '6:00 PM',
+      description: 'Standard morning and evening routine',
     },
     isDefault: true,
   },
   {
-    id: "intensive",
-    name: "Intensive Schedule (3x daily)",
+    id: 'intensive',
+    name: 'Intensive Schedule (3x daily)',
     scheduleTimes: {
-      morning: "8:00 AM",
-      lunch: "12:00 PM",
-      evening: "6:00 PM",
-      description: "Three times daily for intensive protocols",
+      morning: '8:00 AM',
+      lunch: '12:00 PM',
+      evening: '6:00 PM',
+      description: 'Three times daily for intensive protocols',
     },
     isDefault: false,
   },
   {
-    id: "gentle",
-    name: "Gentle Schedule (1x daily)",
+    id: 'gentle',
+    name: 'Gentle Schedule (1x daily)',
     scheduleTimes: {
-      morning: "8:00 AM",
-      description: "Once daily for sensitive patients",
+      morning: '8:00 AM',
+      description: 'Once daily for sensitive patients',
     },
     isDefault: false,
   },
   {
-    id: "digestive",
-    name: "Custom Digestive Schedule",
+    id: 'digestive',
+    name: 'Custom Digestive Schedule',
     scheduleTimes: {
-      wake_up: "7:00 AM",
-      before_breakfast: "7:30 AM",
-      after_breakfast: "9:00 AM",
-      before_lunch: "11:30 AM",
-      after_lunch: "1:00 PM",
-      before_dinner: "5:30 PM",
-      after_dinner: "7:00 PM",
-      bedtime: "10:00 PM",
-      description: "Comprehensive digestive support schedule",
+      wake_up: '7:00 AM',
+      before_breakfast: '7:30 AM',
+      after_breakfast: '9:00 AM',
+      before_lunch: '11:30 AM',
+      after_lunch: '1:00 PM',
+      before_dinner: '5:30 PM',
+      after_dinner: '7:00 PM',
+      bedtime: '10:00 PM',
+      description: 'Comprehensive digestive support schedule',
     },
     isDefault: false,
   },
@@ -104,19 +104,54 @@ const PRESET_TEMPLATES: ScheduleTemplate[] = [
 
 // Common time slot suggestions
 const TIME_SLOT_SUGGESTIONS = [
-  { key: "wake_up", label: "Wake Up", icon: Sun, defaultTime: "7:00 AM" },
-  { key: "morning", label: "Morning", icon: Coffee, defaultTime: "8:00 AM" },
-  { key: "before_breakfast", label: "Before Breakfast", icon: Utensils, defaultTime: "7:30 AM" },
-  { key: "after_breakfast", label: "After Breakfast", icon: Utensils, defaultTime: "9:00 AM" },
-  { key: "mid_morning", label: "Mid Morning", icon: Clock, defaultTime: "10:30 AM" },
-  { key: "before_lunch", label: "Before Lunch", icon: Utensils, defaultTime: "11:30 AM" },
-  { key: "lunch", label: "Lunch", icon: Utensils, defaultTime: "12:00 PM" },
-  { key: "after_lunch", label: "After Lunch", icon: Utensils, defaultTime: "1:00 PM" },
-  { key: "afternoon", label: "Afternoon", icon: Clock, defaultTime: "3:00 PM" },
-  { key: "before_dinner", label: "Before Dinner", icon: Utensils, defaultTime: "5:30 PM" },
-  { key: "evening", label: "Evening", icon: Clock, defaultTime: "6:00 PM" },
-  { key: "after_dinner", label: "After Dinner", icon: Utensils, defaultTime: "7:00 PM" },
-  { key: "bedtime", label: "Bedtime", icon: Moon, defaultTime: "10:00 PM" },
+  { key: 'wake_up', label: 'Wake Up', icon: Sun, defaultTime: '7:00 AM' },
+  { key: 'morning', label: 'Morning', icon: Coffee, defaultTime: '8:00 AM' },
+  {
+    key: 'before_breakfast',
+    label: 'Before Breakfast',
+    icon: Utensils,
+    defaultTime: '7:30 AM',
+  },
+  {
+    key: 'after_breakfast',
+    label: 'After Breakfast',
+    icon: Utensils,
+    defaultTime: '9:00 AM',
+  },
+  {
+    key: 'mid_morning',
+    label: 'Mid Morning',
+    icon: Clock,
+    defaultTime: '10:30 AM',
+  },
+  {
+    key: 'before_lunch',
+    label: 'Before Lunch',
+    icon: Utensils,
+    defaultTime: '11:30 AM',
+  },
+  { key: 'lunch', label: 'Lunch', icon: Utensils, defaultTime: '12:00 PM' },
+  {
+    key: 'after_lunch',
+    label: 'After Lunch',
+    icon: Utensils,
+    defaultTime: '1:00 PM',
+  },
+  { key: 'afternoon', label: 'Afternoon', icon: Clock, defaultTime: '3:00 PM' },
+  {
+    key: 'before_dinner',
+    label: 'Before Dinner',
+    icon: Utensils,
+    defaultTime: '5:30 PM',
+  },
+  { key: 'evening', label: 'Evening', icon: Clock, defaultTime: '6:00 PM' },
+  {
+    key: 'after_dinner',
+    label: 'After Dinner',
+    icon: Utensils,
+    defaultTime: '7:00 PM',
+  },
+  { key: 'bedtime', label: 'Bedtime', icon: Moon, defaultTime: '10:00 PM' },
 ];
 
 interface DailyScheduleBuilderProps {
@@ -138,20 +173,20 @@ export function DailyScheduleBuilder({
   className,
 }: DailyScheduleBuilderProps) {
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>("");
-  const [newSlotKey, setNewSlotKey] = useState("");
-  const [newSlotLabel, setNewSlotLabel] = useState("");
-  const [newSlotTime, setNewSlotTime] = useState("");
-  const [description, setDescription] = useState(schedule.description || "");
-  const [notes, setNotes] = useState(schedule.notes || "");
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [newSlotKey, setNewSlotKey] = useState('');
+  const [newSlotLabel, setNewSlotLabel] = useState('');
+  const [newSlotTime, setNewSlotTime] = useState('');
+  const [description, setDescription] = useState(schedule.description || '');
+  const [notes, setNotes] = useState(schedule.notes || '');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Initialize time slots from schedule
   useEffect(() => {
     const slots: TimeSlot[] = [];
-    
+
     Object.entries(schedule).forEach(([key, value]) => {
-      if (key !== "description" && key !== "notes" && value) {
+      if (key !== 'description' && key !== 'notes' && value) {
         const suggestion = TIME_SLOT_SUGGESTIONS.find(s => s.key === key);
         slots.push({
           key,
@@ -174,24 +209,24 @@ export function DailyScheduleBuilder({
 
   // Convert time to 24-hour format for sorting
   const convertTo24Hour = (timeStr: string): string => {
-    const [time, period] = timeStr.split(" ");
-    let [hours, minutes] = time.split(":");
-    
-    if (period?.toUpperCase() === "PM" && hours !== "12") {
+    const [time, period] = timeStr.split(' ');
+    let [hours, minutes] = time.split(':');
+
+    if (period?.toUpperCase() === 'PM' && hours !== '12') {
       hours = (parseInt(hours) + 12).toString();
-    } else if (period?.toUpperCase() === "AM" && hours === "12") {
-      hours = "0";
+    } else if (period?.toUpperCase() === 'AM' && hours === '12') {
+      hours = '0';
     }
-    
-    return `${hours.padStart(2, "0")}:${minutes || "00"}`;
+
+    return `${hours.padStart(2, '0')}:${minutes || '00'}`;
   };
 
   // Format slot label from key
   const formatSlotLabel = (key: string): string => {
     return key
-      .split("_")
+      .split('_')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
+      .join(' ');
   };
 
   // Handle template selection
@@ -200,9 +235,9 @@ export function DailyScheduleBuilder({
     if (template) {
       setSelectedTemplate(templateId);
       onChange(template.scheduleTimes);
-      setDescription(template.scheduleTimes.description || "");
+      setDescription(template.scheduleTimes.description || '');
       setHasUnsavedChanges(true);
-      toast.success("Template applied", {
+      toast.success('Template applied', {
         description: `${template.name} has been loaded`,
       });
     }
@@ -219,15 +254,15 @@ export function DailyScheduleBuilder({
   // Add new time slot
   const handleAddTimeSlot = () => {
     if (!newSlotKey || !newSlotLabel || !newSlotTime) {
-      toast.error("Missing information", {
-        description: "Please fill in all fields for the new time slot",
+      toast.error('Missing information', {
+        description: 'Please fill in all fields for the new time slot',
       });
       return;
     }
 
     if (schedule[newSlotKey]) {
-      toast.error("Duplicate key", {
-        description: "A time slot with this key already exists",
+      toast.error('Duplicate key', {
+        description: 'A time slot with this key already exists',
       });
       return;
     }
@@ -235,14 +270,14 @@ export function DailyScheduleBuilder({
     const updatedSchedule = { ...schedule };
     updatedSchedule[newSlotKey] = newSlotTime;
     onChange(updatedSchedule);
-    
+
     // Clear form
-    setNewSlotKey("");
-    setNewSlotLabel("");
-    setNewSlotTime("");
+    setNewSlotKey('');
+    setNewSlotLabel('');
+    setNewSlotTime('');
     setHasUnsavedChanges(true);
 
-    toast.success("Time slot added", {
+    toast.success('Time slot added', {
       description: `${newSlotLabel} at ${newSlotTime}`,
     });
   };
@@ -254,7 +289,7 @@ export function DailyScheduleBuilder({
     onChange(updatedSchedule);
     setHasUnsavedChanges(true);
 
-    toast.success("Time slot removed");
+    toast.success('Time slot removed');
   };
 
   // Handle description change
@@ -276,9 +311,11 @@ export function DailyScheduleBuilder({
   };
 
   // Add suggested time slot
-  const handleAddSuggestedSlot = (suggestion: typeof TIME_SLOT_SUGGESTIONS[0]) => {
+  const handleAddSuggestedSlot = (
+    suggestion: (typeof TIME_SLOT_SUGGESTIONS)[0]
+  ) => {
     if (schedule[suggestion.key]) {
-      toast.error("Already exists", {
+      toast.error('Already exists', {
         description: `${suggestion.label} is already in your schedule`,
       });
       return;
@@ -289,7 +326,7 @@ export function DailyScheduleBuilder({
     onChange(updatedSchedule);
     setHasUnsavedChanges(true);
 
-    toast.success("Time slot added", {
+    toast.success('Time slot added', {
       description: `${suggestion.label} at ${suggestion.defaultTime}`,
     });
   };
@@ -297,15 +334,15 @@ export function DailyScheduleBuilder({
   // Reset schedule
   const handleReset = () => {
     const emptySchedule: DailySchedule = {
-      morning: "8:00 AM",
-      evening: "6:00 PM",
-      description: "Standard morning and evening routine",
+      morning: '8:00 AM',
+      evening: '6:00 PM',
+      description: 'Standard morning and evening routine',
     };
     onChange(emptySchedule);
-    setSelectedTemplate("standard");
+    setSelectedTemplate('standard');
     setHasUnsavedChanges(false);
 
-    toast.success("Schedule reset to default");
+    toast.success('Schedule reset to default');
   };
 
   // Get icon for time slot
@@ -325,12 +362,15 @@ export function DailyScheduleBuilder({
               Daily Schedule
             </h3>
             {hasUnsavedChanges && (
-              <Badge variant="outline" className="text-orange-600 border-orange-600">
+              <Badge
+                variant="outline"
+                className="text-orange-600 border-orange-600"
+              >
                 Unsaved Changes
               </Badge>
             )}
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -356,12 +396,15 @@ export function DailyScheduleBuilder({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Select value={selectedTemplate} onValueChange={handleTemplateSelect}>
+            <Select
+              value={selectedTemplate}
+              onValueChange={handleTemplateSelect}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Choose a template..." />
               </SelectTrigger>
               <SelectContent>
-                {PRESET_TEMPLATES.map((template) => (
+                {PRESET_TEMPLATES.map(template => (
                   <SelectItem key={template.id} value={template.id}>
                     <div className="flex items-center justify-between w-full">
                       <span>{template.name}</span>
@@ -394,12 +437,13 @@ export function DailyScheduleBuilder({
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription>
-                  No time slots configured. Select a template above or add custom time slots below.
+                  No time slots configured. Select a template above or add
+                  custom time slots below.
                 </AlertDescription>
               </Alert>
             ) : (
               <div className="space-y-3">
-                {timeSlots.map((slot) => {
+                {timeSlots.map(slot => {
                   const Icon = getIconForSlot(slot.key);
                   return (
                     <div
@@ -414,17 +458,20 @@ export function DailyScheduleBuilder({
                       </div>
                       <Input
                         type="time"
-                        value={convertTo24Hour(slot.time).replace(" AM", "").replace(" PM", "")}
-                        onChange={(e) => {
+                        value={convertTo24Hour(slot.time)
+                          .replace(' AM', '')
+                          .replace(' PM', '')}
+                        onChange={e => {
                           const time24 = e.target.value;
-                          const [hours, minutes] = time24.split(":");
-                          const hour12 = parseInt(hours) > 12 
-                            ? `${parseInt(hours) - 12}:${minutes} PM`
-                            : parseInt(hours) === 0
-                            ? `12:${minutes} AM`
-                            : parseInt(hours) === 12
-                            ? `12:${minutes} PM`
-                            : `${hours}:${minutes} AM`;
+                          const [hours, minutes] = time24.split(':');
+                          const hour12 =
+                            parseInt(hours) > 12
+                              ? `${parseInt(hours) - 12}:${minutes} PM`
+                              : parseInt(hours) === 0
+                                ? `12:${minutes} AM`
+                                : parseInt(hours) === 12
+                                  ? `12:${minutes} PM`
+                                  : `${hours}:${minutes} AM`;
                           handleTimeSlotChange(slot.key, hour12);
                         }}
                         className="w-32"
@@ -460,23 +507,23 @@ export function DailyScheduleBuilder({
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {TIME_SLOT_SUGGESTIONS
-                .filter(suggestion => !schedule[suggestion.key])
-                .map((suggestion) => {
-                  const Icon = suggestion.icon;
-                  return (
-                    <Button
-                      key={suggestion.key}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddSuggestedSlot(suggestion)}
-                      className="justify-start gap-2"
-                    >
-                      <Icon className="h-4 w-4" />
-                      {suggestion.label}
-                    </Button>
-                  );
-                })}
+              {TIME_SLOT_SUGGESTIONS.filter(
+                suggestion => !schedule[suggestion.key]
+              ).map(suggestion => {
+                const Icon = suggestion.icon;
+                return (
+                  <Button
+                    key={suggestion.key}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAddSuggestedSlot(suggestion)}
+                    className="justify-start gap-2"
+                  >
+                    <Icon className="h-4 w-4" />
+                    {suggestion.label}
+                  </Button>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -495,35 +542,48 @@ export function DailyScheduleBuilder({
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <Label htmlFor="slot-key" className="text-gray-900 font-medium dark:text-gray-100">
+                <Label
+                  htmlFor="slot-key"
+                  className="text-gray-900 font-medium dark:text-gray-100"
+                >
                   Key
                 </Label>
                 <Input
                   id="slot-key"
                   value={newSlotKey}
-                  onChange={(e) => setNewSlotKey(e.target.value.toLowerCase().replace(/\s+/g, "_"))}
+                  onChange={e =>
+                    setNewSlotKey(
+                      e.target.value.toLowerCase().replace(/\s+/g, '_')
+                    )
+                  }
                   placeholder="e.g., mid_afternoon"
                 />
               </div>
               <div>
-                <Label htmlFor="slot-label" className="text-gray-900 font-medium dark:text-gray-100">
+                <Label
+                  htmlFor="slot-label"
+                  className="text-gray-900 font-medium dark:text-gray-100"
+                >
                   Label
                 </Label>
                 <Input
                   id="slot-label"
                   value={newSlotLabel}
-                  onChange={(e) => setNewSlotLabel(e.target.value)}
+                  onChange={e => setNewSlotLabel(e.target.value)}
                   placeholder="e.g., Mid Afternoon"
                 />
               </div>
               <div>
-                <Label htmlFor="slot-time" className="text-gray-900 font-medium dark:text-gray-100">
+                <Label
+                  htmlFor="slot-time"
+                  className="text-gray-900 font-medium dark:text-gray-100"
+                >
                   Time
                 </Label>
                 <Input
                   id="slot-time"
                   value={newSlotTime}
-                  onChange={(e) => setNewSlotTime(e.target.value)}
+                  onChange={e => setNewSlotTime(e.target.value)}
                   placeholder="e.g., 3:00 PM"
                 />
               </div>
@@ -544,26 +604,32 @@ export function DailyScheduleBuilder({
         {/* Schedule Description */}
         <div className="space-y-4">
           <div>
-            <Label htmlFor="description" className="text-gray-900 font-medium dark:text-gray-100">
+            <Label
+              htmlFor="description"
+              className="text-gray-900 font-medium dark:text-gray-100"
+            >
               Schedule Description
             </Label>
             <Input
               id="description"
               value={description}
-              onChange={(e) => handleDescriptionChange(e.target.value)}
+              onChange={e => handleDescriptionChange(e.target.value)}
               placeholder="Brief description of this schedule"
               className="mt-2"
             />
           </div>
 
           <div>
-            <Label htmlFor="notes" className="text-gray-900 font-medium dark:text-gray-100">
+            <Label
+              htmlFor="notes"
+              className="text-gray-900 font-medium dark:text-gray-100"
+            >
               Additional Notes
             </Label>
             <Textarea
               id="notes"
               value={notes}
-              onChange={(e) => handleNotesChange(e.target.value)}
+              onChange={e => handleNotesChange(e.target.value)}
               placeholder="Any special instructions or notes about timing..."
               className="mt-2 min-h-[80px]"
             />
@@ -581,13 +647,11 @@ export function DailyScheduleBuilder({
                   {timeSlots.map((slot, index) => (
                     <span key={slot.key}>
                       {slot.time}
-                      {index < timeSlots.length - 1 && " • "}
+                      {index < timeSlots.length - 1 && ' • '}
                     </span>
                   ))}
                 </div>
-                {description && (
-                  <p className="text-sm italic">{description}</p>
-                )}
+                {description && <p className="text-sm italic">{description}</p>}
               </div>
             </AlertDescription>
           </Alert>

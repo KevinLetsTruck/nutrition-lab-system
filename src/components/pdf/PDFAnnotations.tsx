@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React, { useState, useRef, useCallback } from "react";
-import { MessageSquare, Highlighter, Edit3, Trash2, X } from "lucide-react";
-import { v4 as uuidv4 } from "uuid";
-import { Annotation } from "./PDFViewer";
+import React, { useState, useRef, useCallback } from 'react';
+import { MessageSquare, Highlighter, Edit3, Trash2, X } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
+import { Annotation } from './PDFViewer';
 
 interface PDFAnnotationsProps {
   pageNumber: number;
@@ -15,7 +15,7 @@ interface PDFAnnotationsProps {
   canvasHeight: number;
   scale: number;
   isAnnotationMode: boolean;
-  currentTool: "highlight" | "note" | "text";
+  currentTool: 'highlight' | 'note' | 'text';
   className?: string;
 }
 
@@ -23,7 +23,7 @@ interface AnnotationInput {
   show: boolean;
   x: number;
   y: number;
-  type: "highlight" | "note" | "text";
+  type: 'highlight' | 'note' | 'text';
   selection?: {
     startX: number;
     startY: number;
@@ -43,15 +43,15 @@ export const PDFAnnotations: React.FC<PDFAnnotationsProps> = ({
   scale,
   isAnnotationMode,
   currentTool,
-  className = "",
+  className = '',
 }) => {
   const [annotationInput, setAnnotationInput] = useState<AnnotationInput>({
     show: false,
     x: 0,
     y: 0,
-    type: "note",
+    type: 'note',
   });
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState('');
   const [selectedAnnotation, setSelectedAnnotation] = useState<string | null>(
     null
   );
@@ -87,7 +87,7 @@ export const PDFAnnotations: React.FC<PDFAnnotationsProps> = ({
 
       const pos = getMousePosition(e);
 
-      if (currentTool === "highlight") {
+      if (currentTool === 'highlight') {
         setIsSelecting(true);
         setSelectionStart(pos);
         setCurrentSelection({
@@ -96,12 +96,12 @@ export const PDFAnnotations: React.FC<PDFAnnotationsProps> = ({
           endX: pos.x,
           endY: pos.y,
         });
-      } else if (currentTool === "note") {
+      } else if (currentTool === 'note') {
         setAnnotationInput({
           show: true,
           x: pos.x,
           y: pos.y,
-          type: "note",
+          type: 'note',
         });
       }
     },
@@ -111,7 +111,7 @@ export const PDFAnnotations: React.FC<PDFAnnotationsProps> = ({
   // Handle mouse move for selection
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
-      if (!isSelecting || !selectionStart || currentTool !== "highlight")
+      if (!isSelecting || !selectionStart || currentTool !== 'highlight')
         return;
 
       const pos = getMousePosition(e);
@@ -128,7 +128,7 @@ export const PDFAnnotations: React.FC<PDFAnnotationsProps> = ({
   // Handle mouse up for selection end
   const handleMouseUp = useCallback(
     (e: React.MouseEvent) => {
-      if (!isSelecting || !currentSelection || currentTool !== "highlight")
+      if (!isSelecting || !currentSelection || currentTool !== 'highlight')
         return;
 
       setIsSelecting(false);
@@ -142,7 +142,7 @@ export const PDFAnnotations: React.FC<PDFAnnotationsProps> = ({
           show: true,
           x: currentSelection.endX,
           y: currentSelection.endY,
-          type: "highlight",
+          type: 'highlight',
           selection: currentSelection,
         });
       }
@@ -183,20 +183,20 @@ export const PDFAnnotations: React.FC<PDFAnnotationsProps> = ({
             y: annotationInput.y,
           },
       content: inputValue,
-      color: annotationInput.type === "highlight" ? "#ffeb3b" : "#4ade80",
+      color: annotationInput.type === 'highlight' ? '#ffeb3b' : '#4ade80',
       createdAt: new Date(),
-      createdBy: "Current User",
+      createdBy: 'Current User',
     };
 
     onAddAnnotation(annotation);
-    setAnnotationInput({ show: false, x: 0, y: 0, type: "note" });
-    setInputValue("");
+    setAnnotationInput({ show: false, x: 0, y: 0, type: 'note' });
+    setInputValue('');
   }, [inputValue, annotationInput, pageNumber, onAddAnnotation]);
 
   // Cancel annotation input
   const cancelAnnotation = useCallback(() => {
-    setAnnotationInput({ show: false, x: 0, y: 0, type: "note" });
-    setInputValue("");
+    setAnnotationInput({ show: false, x: 0, y: 0, type: 'note' });
+    setInputValue('');
     setCurrentSelection(null);
     setSelectionStart(null);
     setIsSelecting(false);
@@ -214,15 +214,13 @@ export const PDFAnnotations: React.FC<PDFAnnotationsProps> = ({
   );
 
   // Get page-specific annotations
-  const pageAnnotations = annotations.filter(
-    (a) => a.pageNumber === pageNumber
-  );
+  const pageAnnotations = annotations.filter(a => a.pageNumber === pageNumber);
 
   return (
     <div
       ref={overlayRef}
       className={`absolute inset-0 ${
-        isAnnotationMode ? "cursor-crosshair" : "pointer-events-none"
+        isAnnotationMode ? 'cursor-crosshair' : 'pointer-events-none'
       } ${className}`}
       style={{ width: canvasWidth, height: canvasHeight }}
       onMouseDown={handleMouseDown}
@@ -243,7 +241,7 @@ export const PDFAnnotations: React.FC<PDFAnnotationsProps> = ({
       )}
 
       {/* Existing annotations */}
-      {pageAnnotations.map((annotation) => (
+      {pageAnnotations.map(annotation => (
         <div
           key={annotation.id}
           className="absolute pointer-events-auto cursor-pointer group"
@@ -253,16 +251,16 @@ export const PDFAnnotations: React.FC<PDFAnnotationsProps> = ({
             width: annotation.coordinates.width,
             height: annotation.coordinates.height,
           }}
-          onClick={(e) => handleAnnotationClick(annotation, e)}
+          onClick={e => handleAnnotationClick(annotation, e)}
         >
-          {annotation.type === "highlight" && (
+          {annotation.type === 'highlight' && (
             <div
               className="w-full h-full opacity-30 hover:opacity-50 transition-opacity"
               style={{ backgroundColor: annotation.color }}
             />
           )}
 
-          {annotation.type === "note" && (
+          {annotation.type === 'note' && (
             <div
               className="w-6 h-6 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
               style={{ backgroundColor: annotation.color }}
@@ -276,26 +274,26 @@ export const PDFAnnotations: React.FC<PDFAnnotationsProps> = ({
             <div
               className="absolute z-10 bg-slate-800 text-white rounded-lg p-3 shadow-xl min-w-[200px] max-w-[300px]"
               style={{
-                left: annotation.type === "note" ? 30 : 0,
+                left: annotation.type === 'note' ? 30 : 0,
                 top:
-                  annotation.type === "note"
+                  annotation.type === 'note'
                     ? -10
                     : (annotation.coordinates.height || 0) + 5,
               }}
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  {annotation.type === "highlight" ? (
+                  {annotation.type === 'highlight' ? (
                     <Highlighter className="w-4 h-4 text-yellow-400" />
                   ) : (
                     <MessageSquare className="w-4 h-4 text-green-400" />
                   )}
                   <span className="text-xs text-slate-300 font-medium">
-                    {annotation.type === "highlight" ? "Highlight" : "Note"}
+                    {annotation.type === 'highlight' ? 'Highlight' : 'Note'}
                   </span>
                 </div>
                 <button
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     onDeleteAnnotation(annotation.id);
                     setSelectedAnnotation(null);
@@ -311,7 +309,7 @@ export const PDFAnnotations: React.FC<PDFAnnotationsProps> = ({
               </p>
 
               <div className="text-xs text-slate-400">
-                {annotation.createdBy} •{" "}
+                {annotation.createdBy} •{' '}
                 {new Date(annotation.createdAt).toLocaleDateString()}
               </div>
             </div>
@@ -330,14 +328,14 @@ export const PDFAnnotations: React.FC<PDFAnnotationsProps> = ({
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              {annotationInput.type === "highlight" ? (
+              {annotationInput.type === 'highlight' ? (
                 <Highlighter className="w-4 h-4 text-yellow-500" />
               ) : (
                 <MessageSquare className="w-4 h-4 text-green-500" />
               )}
               <span className="text-sm font-medium text-slate-700">
-                Add{" "}
-                {annotationInput.type === "highlight" ? "Highlight" : "Note"}
+                Add{' '}
+                {annotationInput.type === 'highlight' ? 'Highlight' : 'Note'}
               </span>
             </div>
             <button
@@ -350,7 +348,7 @@ export const PDFAnnotations: React.FC<PDFAnnotationsProps> = ({
 
           <textarea
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={e => setInputValue(e.target.value)}
             placeholder={`Enter your ${annotationInput.type}...`}
             className="w-full p-2 border border-slate-300 rounded text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             rows={3}

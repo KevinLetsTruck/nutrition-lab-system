@@ -141,12 +141,10 @@ The PDF viewer follows the application's dark theme design system:
 
 ```css
 /* Primary Colors */
---pdf-bg-primary: #0f172a     /* slate-900 */
---pdf-bg-secondary: #1e293b   /* slate-800 */
---pdf-border: #334155         /* slate-700 */
---pdf-text-primary: #f1f5f9   /* slate-100 */
---pdf-text-secondary: #94a3b8 /* slate-400 */
---pdf-accent: #4ade80         /* green-400 */
+--pdf-bg-primary: #0f172a /* slate-900 */ --pdf-bg-secondary: #1e293b
+  /* slate-800 */ --pdf-border: #334155 /* slate-700 */
+  --pdf-text-primary: #f1f5f9 /* slate-100 */ --pdf-text-secondary: #94a3b8
+  /* slate-400 */ --pdf-accent: #4ade80 /* green-400 */;
 ```
 
 ### Component Styling
@@ -192,12 +190,12 @@ The viewer supports categorized document types:
 
 ```javascript
 // Configure worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 
 // Load with options
 const pdf = await pdfjsLib.getDocument({
   url: documentUrl,
-  cMapUrl: "/cmaps/",
+  cMapUrl: '/cmaps/',
   cMapPacked: true,
 });
 ```
@@ -261,7 +259,7 @@ const MAX_PRELOAD_PAGES = 2; // Adjacent pages to preload
 ## 🔗 Integration Example
 
 ```tsx
-import { ClientDocumentViewer } from "@/components/clients/ClientDocumentViewer";
+import { ClientDocumentViewer } from '@/components/clients/ClientDocumentViewer';
 
 function ClientDetailPage({ clientId, documents }) {
   return (

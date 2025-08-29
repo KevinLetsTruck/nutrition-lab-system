@@ -61,7 +61,7 @@ export interface PDFTemplateOptions {
  */
 function generateBaseCSS(options: PDFTemplateOptions): string {
   const primaryColor = options.brandingConfig?.primaryColor || '#10b981';
-  
+
   return `
     <style>
       /* Reset and base styles */
@@ -373,15 +373,18 @@ function generateBaseCSS(options: PDFTemplateOptions): string {
 /**
  * Generate HTML content for the protocol PDF
  */
-function generateHTMLContent(protocol: PDFProtocolData, options: PDFTemplateOptions): string {
+function generateHTMLContent(
+  protocol: PDFProtocolData,
+  options: PDFTemplateOptions
+): string {
   const clientName = `${protocol.client.firstName} ${protocol.client.lastName}`;
   const activeSupplements = protocol.supplements
     .filter(s => s.isActive)
     .sort((a, b) => a.priority - b.priority);
 
-  const scheduleEntries = protocol.dailySchedule 
-    ? Object.entries(protocol.dailySchedule).filter(([key]) => 
-        key !== 'description' && key !== 'notes'
+  const scheduleEntries = protocol.dailySchedule
+    ? Object.entries(protocol.dailySchedule).filter(
+        ([key]) => key !== 'description' && key !== 'notes'
       )
     : [];
 
@@ -404,21 +407,33 @@ function generateHTMLContent(protocol: PDFProtocolData, options: PDFTemplateOpti
             <div class="meta-item">
               <span class="status-badge status-${protocol.status}">${protocol.status}</span>
             </div>
-            ${protocol.protocolPhase ? `
+            ${
+              protocol.protocolPhase
+                ? `
               <div class="meta-item">
                 <strong>Phase:</strong> ${protocol.protocolPhase}
               </div>
-            ` : ''}
-            ${protocol.startDate ? `
+            `
+                : ''
+            }
+            ${
+              protocol.startDate
+                ? `
               <div class="meta-item">
                 <strong>Start Date:</strong> ${format(protocol.startDate, 'MMMM d, yyyy')}
               </div>
-            ` : ''}
-            ${protocol.durationWeeks ? `
+            `
+                : ''
+            }
+            ${
+              protocol.durationWeeks
+                ? `
               <div class="meta-item">
                 <strong>Duration:</strong> ${protocol.durationWeeks} weeks
               </div>
-            ` : ''}
+            `
+                : ''
+            }
             <div class="meta-item">
               <strong>Generated:</strong> ${format(new Date(), 'MMMM d, yyyy')}
             </div>
@@ -426,7 +441,9 @@ function generateHTMLContent(protocol: PDFProtocolData, options: PDFTemplateOpti
         </div>
 
         <!-- Greeting Section -->
-        ${options.includeGreeting && protocol.greeting ? `
+        ${
+          options.includeGreeting && protocol.greeting
+            ? `
           <div class="section">
             <h2 class="section-title">
               <span class="section-icon">💌</span>
@@ -438,10 +455,14 @@ function generateHTMLContent(protocol: PDFProtocolData, options: PDFTemplateOpti
               </div>
             </div>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
 
         <!-- Clinical Focus -->
-        ${protocol.clinicalFocus ? `
+        ${
+          protocol.clinicalFocus
+            ? `
           <div class="section">
             <h2 class="section-title">
               <span class="section-icon">🎯</span>
@@ -453,10 +474,14 @@ function generateHTMLContent(protocol: PDFProtocolData, options: PDFTemplateOpti
               </div>
             </div>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
 
         <!-- Priority Supplements -->
-        ${options.includeSupplements && activeSupplements.length > 0 ? `
+        ${
+          options.includeSupplements && activeSupplements.length > 0
+            ? `
           <div class="section">
             <h2 class="section-title">
               <span class="section-icon">💊</span>
@@ -464,7 +489,9 @@ function generateHTMLContent(protocol: PDFProtocolData, options: PDFTemplateOpti
             </h2>
             <div class="section-content">
               <div class="supplements-grid">
-                ${activeSupplements.map(supplement => `
+                ${activeSupplements
+                  .map(
+                    supplement => `
                   <div class="supplement-card">
                     <div class="supplement-priority">#${supplement.priority}</div>
                     <div class="supplement-name">${supplement.productName}</div>
@@ -474,20 +501,30 @@ function generateHTMLContent(protocol: PDFProtocolData, options: PDFTemplateOpti
                       <div class="supplement-label">Timing:</div>
                       <div class="supplement-value">${supplement.timing}</div>
                     </div>
-                    ${supplement.purpose ? `
+                    ${
+                      supplement.purpose
+                        ? `
                       <div class="supplement-purpose">
                         <strong>Purpose:</strong> ${supplement.purpose}
                       </div>
-                    ` : ''}
+                    `
+                        : ''
+                    }
                   </div>
-                `).join('')}
+                `
+                  )
+                  .join('')}
               </div>
             </div>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
 
         <!-- Daily Schedule -->
-        ${options.includeSchedule && scheduleEntries.length > 0 ? `
+        ${
+          options.includeSchedule && scheduleEntries.length > 0
+            ? `
           <div class="section">
             <h2 class="section-title">
               <span class="section-icon">⏰</span>
@@ -500,28 +537,41 @@ function generateHTMLContent(protocol: PDFProtocolData, options: PDFTemplateOpti
                     const parseTime = (time: string) => {
                       const [timePart, period] = time.split(' ');
                       let [hours, minutes] = timePart.split(':').map(Number);
-                      if (period?.toUpperCase() === 'PM' && hours !== 12) hours += 12;
-                      if (period?.toUpperCase() === 'AM' && hours === 12) hours = 0;
+                      if (period?.toUpperCase() === 'PM' && hours !== 12)
+                        hours += 12;
+                      if (period?.toUpperCase() === 'AM' && hours === 12)
+                        hours = 0;
                       return hours * 60 + (minutes || 0);
                     };
                     return parseTime(timeA) - parseTime(timeB);
                   })
-                  .map(([key, time]) => `
+                  .map(
+                    ([key, time]) => `
                     <div class="schedule-time">${time}</div>
                     <div class="schedule-label">${formatScheduleLabel(key)}</div>
-                  `).join('')}
+                  `
+                  )
+                  .join('')}
               </div>
-              ${protocol.dailySchedule?.description ? `
+              ${
+                protocol.dailySchedule?.description
+                  ? `
                 <div style="margin-top: 15px; font-style: italic; color: #6b7280; font-size: 11px;">
                   ${protocol.dailySchedule.description}
                 </div>
-              ` : ''}
+              `
+                  : ''
+              }
             </div>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
 
         <!-- Protocol Notes -->
-        ${protocol.protocolNotes ? `
+        ${
+          protocol.protocolNotes
+            ? `
           <div class="section">
             <h2 class="section-title">
               <span class="section-icon">📝</span>
@@ -533,10 +583,14 @@ function generateHTMLContent(protocol: PDFProtocolData, options: PDFTemplateOpti
               </div>
             </div>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
 
         <!-- Current Status -->
-        ${protocol.currentStatus ? `
+        ${
+          protocol.currentStatus
+            ? `
           <div class="section">
             <h2 class="section-title">
               <span class="section-icon">📊</span>
@@ -544,18 +598,26 @@ function generateHTMLContent(protocol: PDFProtocolData, options: PDFTemplateOpti
             </h2>
             <div class="section-content">
               ${protocol.currentStatus.replace(/\n/g, '<br>')}
-              ${protocol.effectivenessRating ? `
+              ${
+                protocol.effectivenessRating
+                  ? `
                 <div style="margin-top: 10px;">
                   <strong>Effectiveness Rating:</strong> 
                   ${'⭐'.repeat(protocol.effectivenessRating)} (${protocol.effectivenessRating}/5)
                 </div>
-              ` : ''}
+              `
+                  : ''
+              }
             </div>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
 
         <!-- Analysis Reference -->
-        ${protocol.analysis ? `
+        ${
+          protocol.analysis
+            ? `
           <div class="section">
             <h2 class="section-title">
               <span class="section-icon">🧠</span>
@@ -568,7 +630,9 @@ function generateHTMLContent(protocol: PDFProtocolData, options: PDFTemplateOpti
               </div>
             </div>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
 
         <!-- Footer -->
         <div class="footer">

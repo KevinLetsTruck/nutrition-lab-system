@@ -72,13 +72,16 @@ export interface PDFFileMetadata {
 /**
  * Generate unique filename for PDF
  */
-export function generatePDFFilename(protocolId: string, protocolName: string): string {
+export function generatePDFFilename(
+  protocolId: string,
+  protocolName: string
+): string {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const sanitizedName = protocolName
     .replace(/[^a-z0-9]/gi, '_')
     .toLowerCase()
     .substring(0, 50);
-  
+
   return `protocol_${protocolId}_${sanitizedName}_${timestamp}.pdf`;
 }
 
@@ -113,7 +116,9 @@ export function getStorageConfig(): StorageConfig {
 /**
  * Create local storage directory if it doesn't exist
  */
-export async function ensureLocalStorageDirectory(storagePath: string): Promise<void> {
+export async function ensureLocalStorageDirectory(
+  storagePath: string
+): Promise<void> {
   try {
     await fs.access(storagePath);
   } catch {
@@ -130,12 +135,12 @@ export async function saveToLocalStorage(
   storagePath: string
 ): Promise<PDFFileMetadata> {
   await ensureLocalStorageDirectory(storagePath);
-  
+
   const filePath = path.join(storagePath, filename);
   await fs.writeFile(filePath, buffer);
-  
+
   const stats = await fs.stat(filePath);
-  
+
   return {
     filename,
     filePath,
@@ -168,7 +173,7 @@ export async function uploadToS3(
   });
 
   const key = `protocols/${filename}`;
-  
+
   const uploadCommand = new PutObjectCommand({
     Bucket: config.bucket,
     Key: key,
@@ -188,9 +193,9 @@ export async function uploadToS3(
     Bucket: config.bucket,
     Key: key,
   });
-  
-  const signedUrl = await getSignedUrl(s3Client, getCommand, { 
-    expiresIn: 7 * 24 * 60 * 60 // 7 days
+
+  const signedUrl = await getSignedUrl(s3Client, getCommand, {
+    expiresIn: 7 * 24 * 60 * 60, // 7 days
   });
 
   return {
@@ -214,9 +219,9 @@ export async function savePDFToStorage(
   clientId: string
 ): Promise<PDFFileMetadata> {
   const config = getStorageConfig();
-  
+
   let metadata: PDFFileMetadata;
-  
+
   if (config.type === 's3' && config.s3) {
     metadata = await uploadToS3(buffer, filename, config.s3);
   } else {
@@ -226,11 +231,11 @@ export async function savePDFToStorage(
       config.localPath || './public/generated-pdfs'
     );
   }
-  
+
   // Fill in the client ID
   metadata.clientId = clientId;
   metadata.protocolId = protocolId;
-  
+
   return metadata;
 }
 
@@ -257,11 +262,11 @@ export function estimatePDFPageCount(buffer: Buffer): number {
  */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
-  
+
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
@@ -269,14 +274,14 @@ export function formatFileSize(bytes: number): string {
  * Clean up temporary files
  */
 export async function cleanupTempFiles(filePaths: string[]): Promise<void> {
-  const cleanupPromises = filePaths.map(async (filePath) => {
+  const cleanupPromises = filePaths.map(async filePath => {
     try {
       await fs.unlink(filePath);
     } catch (error) {
       console.warn(`Failed to cleanup temp file ${filePath}:`, error);
     }
   });
-  
+
   await Promise.all(cleanupPromises);
 }
 
@@ -291,18 +296,21 @@ export function validatePDFBuffer(buffer: Buffer): boolean {
 /**
  * Get PDF generation options for different paper sizes
  */
-export function getPDFConfigForPaperSize(paperSize: 'A4' | 'Letter'): PDFConfig {
+export function getPDFConfigForPaperSize(
+  paperSize: 'A4' | 'Letter'
+): PDFConfig {
   return {
     ...DEFAULT_PDF_CONFIG,
     format: paperSize,
-    margin: paperSize === 'Letter' 
-      ? {
-          top: '0.75in',
-          right: '0.75in', 
-          bottom: '1in',
-          left: '0.75in',
-        }
-      : DEFAULT_PDF_CONFIG.margin,
+    margin:
+      paperSize === 'Letter'
+        ? {
+            top: '0.75in',
+            right: '0.75in',
+            bottom: '1in',
+            left: '0.75in',
+          }
+        : DEFAULT_PDF_CONFIG.margin,
   };
 }
 
@@ -320,14 +328,17 @@ export function createSafeFilename(input: string): string {
 /**
  * Generate download headers for PDF response
  */
-export function getPDFDownloadHeaders(filename: string, inline: boolean = true): Record<string, string> {
+export function getPDFDownloadHeaders(
+  filename: string,
+  inline: boolean = true
+): Record<string, string> {
   const disposition = inline ? 'inline' : 'attachment';
-  
+
   return {
     'Content-Type': 'application/pdf',
     'Content-Disposition': `${disposition}; filename="${filename}"`,
     'Cache-Control': 'private, no-cache, no-store, must-revalidate',
-    'Expires': '-1',
-    'Pragma': 'no-cache',
+    Expires: '-1',
+    Pragma: 'no-cache',
   };
 }

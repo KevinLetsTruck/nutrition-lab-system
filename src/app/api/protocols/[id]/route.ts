@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { verifyAuthToken } from "@/lib/auth";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { verifyAuthToken } from '@/lib/auth';
 
 // Response type for consistent API responses
 interface APIResponse<T = any> {
@@ -22,7 +22,7 @@ export async function GET(
     const authUser = await verifyAuthToken(request);
     if (!authUser) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: "Unauthorized" },
+        { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
@@ -52,17 +52,17 @@ export async function GET(
           },
         },
         protocolSupplements: {
-          orderBy: { priority: "asc" },
+          orderBy: { priority: 'asc' },
         },
         protocolGenerations: {
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
         },
       },
     });
 
     if (!protocol) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: "Protocol not found" },
+        { success: false, error: 'Protocol not found' },
         { status: 404 }
       );
     }
@@ -71,13 +71,12 @@ export async function GET(
       success: true,
       data: protocol,
     });
-
   } catch (error: any) {
-    console.error("Error fetching protocol:", error);
+    console.error('Error fetching protocol:', error);
     return NextResponse.json<APIResponse>(
       {
         success: false,
-        error: "Failed to fetch protocol",
+        error: 'Failed to fetch protocol',
       },
       { status: 500 }
     );
@@ -97,7 +96,7 @@ export async function PUT(
     const authUser = await verifyAuthToken(request);
     if (!authUser) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: "Unauthorized" },
+        { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
@@ -112,13 +111,13 @@ export async function PUT(
 
     if (!existingProtocol) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: "Protocol not found" },
+        { success: false, error: 'Protocol not found' },
         { status: 404 }
       );
     }
 
     // Use transaction to update protocol and related data
-    const updatedProtocol = await prisma.$transaction(async (tx) => {
+    const updatedProtocol = await prisma.$transaction(async tx => {
       // Update the main protocol
       const protocol = await tx.enhancedProtocol.update({
         where: { id },
@@ -126,23 +125,35 @@ export async function PUT(
           protocolName: body.protocolName || existingProtocol.protocolName,
           protocolPhase: body.protocolPhase ?? existingProtocol.protocolPhase,
           supplements: body.supplements ?? existingProtocol.supplements,
-          dietaryGuidelines: body.dietaryGuidelines ?? existingProtocol.dietaryGuidelines,
-          lifestyleModifications: body.lifestyleModifications ?? existingProtocol.lifestyleModifications,
-          monitoringRequirements: body.monitoringRequirements ?? existingProtocol.monitoringRequirements,
-          startDate: body.startDate ? new Date(body.startDate) : existingProtocol.startDate,
+          dietaryGuidelines:
+            body.dietaryGuidelines ?? existingProtocol.dietaryGuidelines,
+          lifestyleModifications:
+            body.lifestyleModifications ??
+            existingProtocol.lifestyleModifications,
+          monitoringRequirements:
+            body.monitoringRequirements ??
+            existingProtocol.monitoringRequirements,
+          startDate: body.startDate
+            ? new Date(body.startDate)
+            : existingProtocol.startDate,
           durationWeeks: body.durationWeeks ?? existingProtocol.durationWeeks,
           status: body.status || existingProtocol.status,
-          complianceNotes: body.complianceNotes ?? existingProtocol.complianceNotes,
-          effectivenessRating: body.effectivenessRating ?? existingProtocol.effectivenessRating,
+          complianceNotes:
+            body.complianceNotes ?? existingProtocol.complianceNotes,
+          effectivenessRating:
+            body.effectivenessRating ?? existingProtocol.effectivenessRating,
           sideEffects: body.sideEffects ?? existingProtocol.sideEffects,
-          modificationsMade: body.modificationsMade ?? existingProtocol.modificationsMade,
+          modificationsMade:
+            body.modificationsMade ?? existingProtocol.modificationsMade,
           greeting: body.greeting ?? existingProtocol.greeting,
           clinicalFocus: body.clinicalFocus ?? existingProtocol.clinicalFocus,
           currentStatus: body.currentStatus ?? existingProtocol.currentStatus,
-          prioritySupplements: body.prioritySupplements ?? existingProtocol.prioritySupplements,
+          prioritySupplements:
+            body.prioritySupplements ?? existingProtocol.prioritySupplements,
           dailySchedule: body.dailySchedule ?? existingProtocol.dailySchedule,
           protocolNotes: body.protocolNotes ?? existingProtocol.protocolNotes,
-          brandingConfig: body.brandingConfig ?? existingProtocol.brandingConfig,
+          brandingConfig:
+            body.brandingConfig ?? existingProtocol.brandingConfig,
         },
       });
 
@@ -164,7 +175,9 @@ export async function PUT(
               purpose: supplement.purpose || null,
               priority: supplement.priority || 1,
               isActive: supplement.isActive !== false,
-              startDate: supplement.startDate ? new Date(supplement.startDate) : null,
+              startDate: supplement.startDate
+                ? new Date(supplement.startDate)
+                : null,
               endDate: supplement.endDate ? new Date(supplement.endDate) : null,
             })),
           });
@@ -188,10 +201,10 @@ export async function PUT(
         },
         analysis: true,
         protocolSupplements: {
-          orderBy: { priority: "asc" },
+          orderBy: { priority: 'asc' },
         },
         protocolGenerations: {
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
         },
       },
     });
@@ -200,13 +213,12 @@ export async function PUT(
       success: true,
       data: protocolWithData,
     });
-
   } catch (error: any) {
-    console.error("Error updating protocol:", error);
+    console.error('Error updating protocol:', error);
     return NextResponse.json<APIResponse>(
       {
         success: false,
-        error: "Failed to update protocol",
+        error: 'Failed to update protocol',
       },
       { status: 500 }
     );
@@ -226,7 +238,7 @@ export async function DELETE(
     const authUser = await verifyAuthToken(request);
     if (!authUser) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: "Unauthorized" },
+        { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
@@ -240,7 +252,7 @@ export async function DELETE(
 
     if (!existingProtocol) {
       return NextResponse.json<APIResponse>(
-        { success: false, error: "Protocol not found" },
+        { success: false, error: 'Protocol not found' },
         { status: 404 }
       );
     }
@@ -252,15 +264,14 @@ export async function DELETE(
 
     return NextResponse.json<APIResponse>({
       success: true,
-      data: { message: "Protocol deleted successfully" },
+      data: { message: 'Protocol deleted successfully' },
     });
-
   } catch (error: any) {
-    console.error("Error deleting protocol:", error);
+    console.error('Error deleting protocol:', error);
     return NextResponse.json<APIResponse>(
       {
         success: false,
-        error: "Failed to delete protocol",
+        error: 'Failed to delete protocol',
       },
       { status: 500 }
     );

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   ArrowLeft,
   Calendar,
@@ -21,21 +21,24 @@ import {
   Brain,
   BarChart3,
   FlaskConical,
-} from "lucide-react";
-import NoteCard from "@/components/notes/NoteCard";
-import NoteModal from "@/components/notes/NoteModal";
-import NoteViewerModal from "@/components/notes/NoteViewerModal";
-import ClientDocumentViewer from "@/components/clients/ClientDocumentViewer";
-import DocumentUploadModal from "@/components/documents/DocumentUploadModal";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import dynamic from "next/dynamic";
-import { ExportClientButton } from "@/components/clients/ExportClientButton";
-import { TimelineExportButton } from "@/components/clients/TimelineExportButton";
+  Upload,
+} from 'lucide-react';
+import NoteCard from '@/components/notes/NoteCard';
+import NoteModal from '@/components/notes/NoteModal';
+import NoteViewerModal from '@/components/notes/NoteViewerModal';
+import ClientDocumentViewer from '@/components/clients/ClientDocumentViewer';
+import DocumentUploadModal from '@/components/documents/DocumentUploadModal';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import dynamic from 'next/dynamic';
+import { ExportClientButton } from '@/components/clients/ExportClientButton';
+import { TimelineExportButton } from '@/components/clients/TimelineExportButton';
+import { ComprehensiveExportButton } from '@/components/exports/ComprehensiveExportButton';
+import { ProtocolImportDialog } from '@/components/protocols/ProtocolImportDialog';
 
 // Dynamically import SimplePDFViewer with SSR disabled
 const SimplePDFViewer = dynamic(
-  () => import("@/components/pdf/SimplePDFViewer"),
+  () => import('@/components/pdf/SimplePDFViewer'),
   { ssr: false }
 );
 
@@ -76,7 +79,7 @@ interface Document {
 
 interface Note {
   id: string;
-  noteType: "INTERVIEW" | "COACHING";
+  noteType: 'INTERVIEW' | 'COACHING';
   title?: string;
   chiefComplaints?: string;
   healthHistory?: string;
@@ -121,23 +124,24 @@ export default function ClientDetailPage() {
   const [noteCounts, setNoteCounts] = useState({ interview: 0, coaching: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"interview" | "coaching">(
-    "interview"
+  const [activeTab, setActiveTab] = useState<'interview' | 'coaching'>(
+    'interview'
   );
   const [activeMainTab, setActiveMainTab] = useState<
-    "health-goals" | "notes" | "documents"
-  >("health-goals");
-  const [searchTerm, setSearchTerm] = useState("");
+    'health-goals' | 'notes' | 'documents'
+  >('health-goals');
+  const [searchTerm, setSearchTerm] = useState('');
   const [showImportant, setShowImportant] = useState(false);
   const [showFollowUp, setShowFollowUp] = useState(false);
-  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "updated">(
-    "newest"
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'updated'>(
+    'newest'
   );
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [isNoteViewerOpen, setIsNoteViewerOpen] = useState(false);
   const [viewingNote, setViewingNote] = useState<Note | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [protocolImportOpen, setProtocolImportOpen] = useState(false);
 
   // Document delete modal state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -148,7 +152,7 @@ export default function ClientDetailPage() {
     id: string;
     name: string;
     url: string;
-    type: "lab_report" | "protocol" | "assessment" | "intake" | "other";
+    type: 'lab_report' | 'protocol' | 'assessment' | 'intake' | 'other';
     uploadedDate: Date;
     clientId: string;
   } | null>(null);
@@ -157,9 +161,9 @@ export default function ClientDetailPage() {
   useEffect(() => {
     const fetchCompleteClientData = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem('token');
         if (!token) {
-          router.push("/login");
+          router.push('/login');
           return;
         }
 
@@ -172,9 +176,9 @@ export default function ClientDetailPage() {
 
         if (!response.ok) {
           if (response.status === 404) {
-            throw new Error("Client not found");
+            throw new Error('Client not found');
           }
-          throw new Error("Failed to fetch client data");
+          throw new Error('Failed to fetch client data');
         }
 
         const data = await response.json();
@@ -201,11 +205,11 @@ export default function ClientDetailPage() {
             setProtocols(protocolsData.data?.protocols || []);
           }
         } catch (err) {
-          console.warn("Failed to fetch protocols:", err);
+          console.warn('Failed to fetch protocols:', err);
         }
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to load client data"
+          err instanceof Error ? err.message : 'Failed to load client data'
         );
       } finally {
         setLoading(false);
@@ -231,29 +235,29 @@ export default function ClientDetailPage() {
       url: doc.fileUrl,
       type:
         (doc.documentType?.toLowerCase() as
-          | "lab_report"
-          | "protocol"
-          | "assessment"
-          | "intake"
-          | "other") || "other",
+          | 'lab_report'
+          | 'protocol'
+          | 'assessment'
+          | 'intake'
+          | 'other') || 'other',
       uploadedDate: new Date(doc.uploadedAt),
-      clientId: client?.id || "",
+      clientId: client?.id || '',
     });
     setIsDocumentViewerOpen(true);
   };
 
   const handleCreateNote = async (
-    noteData: Omit<Note, "id" | "createdAt" | "updatedAt" | "client">
+    noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt' | 'client'>
   ) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
 
       if (editingNote) {
         // Update existing note
         const response = await fetch(`/api/notes/${editingNote.id}`, {
-          method: "PUT",
+          method: 'PUT',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(noteData),
@@ -261,20 +265,18 @@ export default function ClientDetailPage() {
 
         if (response.ok) {
           const updatedNote = await response.json();
-          setNotes((prev) =>
-            prev.map((note) =>
-              note.id === editingNote.id ? updatedNote : note
-            )
+          setNotes(prev =>
+            prev.map(note => (note.id === editingNote.id ? updatedNote : note))
           );
         } else {
-          throw new Error("Failed to update note");
+          throw new Error('Failed to update note');
         }
       } else {
         // Create new note
         const response = await fetch(`/api/clients/${params.id}/notes`, {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(noteData),
@@ -282,49 +284,49 @@ export default function ClientDetailPage() {
 
         if (response.ok) {
           const newNote = await response.json();
-          setNotes((prev) => [newNote, ...prev]);
+          setNotes(prev => [newNote, ...prev]);
           // Refresh the note counts to ensure accuracy
           await fetchNoteCounts();
         } else {
-          throw new Error("Failed to create note");
+          throw new Error('Failed to create note');
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save note");
+      setError(err instanceof Error ? err.message : 'Failed to save note');
     }
   };
 
   const handleDeleteNote = async (noteId: string) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
 
       const response = await fetch(`/api/notes/${noteId}`, {
-        method: "DELETE",
+        method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       if (response.ok) {
-        setNotes((prev) => prev.filter((note) => note.id !== noteId));
+        setNotes(prev => prev.filter(note => note.id !== noteId));
         await fetchNoteCounts();
       } else {
-        throw new Error("Failed to delete note");
+        throw new Error('Failed to delete note');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete note");
+      setError(err instanceof Error ? err.message : 'Failed to delete note');
     }
   };
 
   // Handle delete button click - just show the modal
   const handleDeleteDocumentClick = useCallback(
     (documentId: string) => {
-      const docToDelete = documents.find((doc) => doc.id === documentId);
+      const docToDelete = documents.find(doc => doc.id === documentId);
       if (docToDelete) {
         setDocumentToDelete(docToDelete);
         setShowDeleteConfirm(true);
       } else {
-        console.error("❌ Document not found with ID:", documentId);
+        console.error('❌ Document not found with ID:', documentId);
       }
     },
     [documents]
@@ -333,48 +335,48 @@ export default function ClientDetailPage() {
   // Actually delete the document
   const confirmDeleteDocument = useCallback(async () => {
     if (!documentToDelete) {
-      console.error("❌ No document to delete");
+      console.error('❌ No document to delete');
       return;
     }
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       if (!token) {
-        console.error("❌ No token found");
-        setError("Please log in again");
-        alert("Please log in again");
+        console.error('❌ No token found');
+        setError('Please log in again');
+        alert('Please log in again');
         return;
       }
 
       const response = await fetch(`/api/documents?id=${documentToDelete.id}`, {
-        method: "DELETE",
+        method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       if (response.ok) {
-        setDocuments((prev) =>
-          prev.filter((doc) => doc.id !== documentToDelete.id)
+        setDocuments(prev =>
+          prev.filter(doc => doc.id !== documentToDelete.id)
         );
-        setError("");
-        alert("Document deleted successfully!");
+        setError('');
+        alert('Document deleted successfully!');
 
         // Close modal
         setShowDeleteConfirm(false);
         setDocumentToDelete(null);
       } else {
         const errorData = await response.json();
-        console.error("❌ Delete failed with error:", errorData);
-        const errorMessage = errorData.error || "Failed to delete document";
+        console.error('❌ Delete failed with error:', errorData);
+        const errorMessage = errorData.error || 'Failed to delete document';
         setError(errorMessage);
         alert(`Failed to delete document: ${errorMessage}`);
         throw new Error(errorMessage);
       }
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to delete document";
-      console.error("💥 Error deleting document:", err);
+        err instanceof Error ? err.message : 'Failed to delete document';
+      console.error('💥 Error deleting document:', err);
       setError(errorMessage);
       alert(`Error deleting document: ${errorMessage}`);
     }
@@ -383,9 +385,9 @@ export default function ClientDetailPage() {
   // Memoized refresh handler to prevent unnecessary component remounting
   const handleRefresh = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       if (!token) {
-        router.push("/login");
+        router.push('/login');
         return;
       }
 
@@ -397,7 +399,7 @@ export default function ClientDetailPage() {
       });
 
       if (!clientResponse.ok) {
-        throw new Error("Failed to fetch client");
+        throw new Error('Failed to fetch client');
       }
 
       const clientData = await clientResponse.json();
@@ -419,34 +421,34 @@ export default function ClientDetailPage() {
         setDocuments(documentsData);
       } else {
         console.error(
-          "❌ Failed to refresh documents:",
+          '❌ Failed to refresh documents:',
           documentsResponse.status,
           documentsResponse.statusText
         );
       }
     } catch (err) {
-      console.error("Error refreshing data:", err);
-      setError(err instanceof Error ? err.message : "Failed to refresh data");
+      console.error('Error refreshing data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to refresh data');
     }
   }, [params.id, router]);
 
   const handleDocumentUpload = async (files: File[]) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     const uploadPromises: Promise<any>[] = [];
 
     for (const file of files) {
       const formData = new FormData();
-      formData.append("file", file);
-      formData.append("clientId", params.id as string);
-      formData.append("documentType", "other"); // Default type, AI will determine actual type
+      formData.append('file', file);
+      formData.append('clientId', params.id as string);
+      formData.append('documentType', 'other'); // Default type, AI will determine actual type
 
-      const uploadPromise = fetch("/api/documents", {
-        method: "POST",
+      const uploadPromise = fetch('/api/documents', {
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
         body: formData,
-      }).then((response) => {
+      }).then(response => {
         if (!response.ok) {
           throw new Error(`Failed to upload ${file.name}`);
         }
@@ -458,10 +460,10 @@ export default function ClientDetailPage() {
 
     try {
       const newDocuments = await Promise.all(uploadPromises);
-      setDocuments((prev) => [...newDocuments, ...prev]);
+      setDocuments(prev => [...newDocuments, ...prev]);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to upload some documents"
+        err instanceof Error ? err.message : 'Failed to upload some documents'
       );
       throw err; // Re-throw to let modal handle the error state
     }
@@ -469,7 +471,7 @@ export default function ClientDetailPage() {
 
   const fetchNoteCounts = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       if (!token || !params.id) return;
 
       // Fetch counts for both note types
@@ -494,20 +496,20 @@ export default function ClientDetailPage() {
         });
       }
     } catch (err) {
-      console.error("Failed to fetch note counts:", err);
+      console.error('Failed to fetch note counts:', err);
     }
   };
 
   const fetchAllNotes = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       if (!token || !params.id) return;
 
       const searchParams = new URLSearchParams();
-      if (searchTerm) searchParams.append("search", searchTerm);
-      if (showImportant) searchParams.append("important", "true");
-      if (showFollowUp) searchParams.append("followUp", "true");
-      searchParams.append("sortBy", sortBy);
+      if (searchTerm) searchParams.append('search', searchTerm);
+      if (showImportant) searchParams.append('important', 'true');
+      if (showFollowUp) searchParams.append('followUp', 'true');
+      searchParams.append('sortBy', sortBy);
 
       const response = await fetch(
         `/api/clients/${params.id}/notes?${searchParams.toString()}`,
@@ -523,22 +525,22 @@ export default function ClientDetailPage() {
         setNotes(notesData);
       }
     } catch (err) {
-      console.error("Failed to fetch notes:", err);
+      console.error('Failed to fetch notes:', err);
     }
   };
 
   const fetchNotesWithFilters = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       if (!token || !params.id) return;
 
       const searchParams = new URLSearchParams();
-      if (activeTab === "interview") searchParams.append("type", "INTERVIEW");
-      if (activeTab === "coaching") searchParams.append("type", "COACHING");
-      if (searchTerm) searchParams.append("search", searchTerm);
-      if (showImportant) searchParams.append("important", "true");
-      if (showFollowUp) searchParams.append("followUp", "true");
-      searchParams.append("sortBy", sortBy);
+      if (activeTab === 'interview') searchParams.append('type', 'INTERVIEW');
+      if (activeTab === 'coaching') searchParams.append('type', 'COACHING');
+      if (searchTerm) searchParams.append('search', searchTerm);
+      if (showImportant) searchParams.append('important', 'true');
+      if (showFollowUp) searchParams.append('followUp', 'true');
+      searchParams.append('sortBy', sortBy);
 
       const response = await fetch(
         `/api/clients/${params.id}/notes?${searchParams.toString()}`,
@@ -554,7 +556,7 @@ export default function ClientDetailPage() {
         setNotes(notesData);
       }
     } catch (err) {
-      console.error("Failed to fetch notes with filters:", err);
+      console.error('Failed to fetch notes with filters:', err);
     }
   };
 
@@ -583,19 +585,19 @@ export default function ClientDetailPage() {
   const coachingNotesCount = noteCounts.coaching;
 
   const formatNoteContent = (note: Note) => {
-    return note.generalNotes || "";
+    return note.generalNotes || '';
   };
 
   // Helper function to safely handle healthGoals which can be string, array, or null
   const getHealthGoalsArray = (healthGoals: any): string[] => {
     if (!healthGoals) return [];
     if (Array.isArray(healthGoals)) return healthGoals;
-    if (typeof healthGoals === "string") {
+    if (typeof healthGoals === 'string') {
       // Split by common delimiters and clean up
       return healthGoals
         .split(/[,;|\n]/)
-        .map((goal) => goal.trim())
-        .filter((goal) => goal.length > 0);
+        .map(goal => goal.trim())
+        .filter(goal => goal.length > 0);
     }
     return [];
   };
@@ -682,7 +684,7 @@ export default function ClientDetailPage() {
   // Format phone number for display
   const formatPhoneNumber = (phone: string) => {
     // Remove all non-digit characters
-    const cleaned = phone.replace(/\D/g, "");
+    const cleaned = phone.replace(/\D/g, '');
 
     // Check if it's a 10-digit US number
     if (cleaned.length === 10) {
@@ -698,26 +700,26 @@ export default function ClientDetailPage() {
   // Format date for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   };
 
   // Format file size for display
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
+    if (bytes === 0) return '0 Bytes';
     const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   return (
     <div
       className="min-h-screen p-4"
-      style={{ background: "var(--bg-primary)" }}
+      style={{ background: 'var(--bg-primary)' }}
     >
       <div className="max-w-7xl mx-auto">
         {/* Compact Header */}
@@ -726,14 +728,14 @@ export default function ClientDetailPage() {
             <Link
               href="/dashboard/clients"
               className="flex items-center text-sm transition-colors duration-200 hover:underline"
-              style={{ color: "var(--text-secondary)" }}
+              style={{ color: 'var(--text-secondary)' }}
             >
               <ArrowLeft className="w-4 h-4 mr-1" />
               Back
             </Link>
             <h1
               className="text-xl font-bold"
-              style={{ color: "var(--text-primary)" }}
+              style={{ color: 'var(--text-primary)' }}
             >
               {client.firstName} {client.lastName}
             </h1>
@@ -742,56 +744,56 @@ export default function ClientDetailPage() {
               className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
               style={{
                 background:
-                  client.status === "SIGNED_UP"
-                    ? "rgba(59, 130, 246, 0.2)"
-                    : client.status === "INITIAL_INTERVIEW_COMPLETED"
-                    ? "rgba(34, 197, 94, 0.2)"
-                    : client.status === "ASSESSMENT_COMPLETED"
-                    ? "rgba(251, 191, 36, 0.2)"
-                    : client.status === "DOCS_UPLOADED"
-                    ? "rgba(147, 51, 234, 0.2)"
-                    : client.status === "SCHEDULED"
-                    ? "rgba(99, 102, 241, 0.2)"
-                    : client.status === "ONGOING"
-                    ? "var(--primary-green-light)"
-                    : "rgba(107, 114, 128, 0.2)",
+                  client.status === 'SIGNED_UP'
+                    ? 'rgba(59, 130, 246, 0.2)'
+                    : client.status === 'INITIAL_INTERVIEW_COMPLETED'
+                      ? 'rgba(34, 197, 94, 0.2)'
+                      : client.status === 'ASSESSMENT_COMPLETED'
+                        ? 'rgba(251, 191, 36, 0.2)'
+                        : client.status === 'DOCS_UPLOADED'
+                          ? 'rgba(147, 51, 234, 0.2)'
+                          : client.status === 'SCHEDULED'
+                            ? 'rgba(99, 102, 241, 0.2)'
+                            : client.status === 'ONGOING'
+                              ? 'var(--primary-green-light)'
+                              : 'rgba(107, 114, 128, 0.2)',
                 color:
-                  client.status === "SIGNED_UP"
-                    ? "#3b82f6"
-                    : client.status === "INITIAL_INTERVIEW_COMPLETED"
-                    ? "#22c55e"
-                    : client.status === "ASSESSMENT_COMPLETED"
-                    ? "#fbbf24"
-                    : client.status === "DOCS_UPLOADED"
-                    ? "#9333ea"
-                    : client.status === "SCHEDULED"
-                    ? "#6366f1"
-                    : client.status === "ONGOING"
-                    ? "var(--primary-green)"
-                    : "var(--text-secondary)",
+                  client.status === 'SIGNED_UP'
+                    ? '#3b82f6'
+                    : client.status === 'INITIAL_INTERVIEW_COMPLETED'
+                      ? '#22c55e'
+                      : client.status === 'ASSESSMENT_COMPLETED'
+                        ? '#fbbf24'
+                        : client.status === 'DOCS_UPLOADED'
+                          ? '#9333ea'
+                          : client.status === 'SCHEDULED'
+                            ? '#6366f1'
+                            : client.status === 'ONGOING'
+                              ? 'var(--primary-green)'
+                              : 'var(--text-secondary)',
               }}
             >
-              {client.status === "SIGNED_UP"
-                ? "📝 Signed Up"
-                : client.status === "INITIAL_INTERVIEW_COMPLETED"
-                ? "✅ Interview Done"
-                : client.status === "ASSESSMENT_COMPLETED"
-                ? "📋 Assessment Done"
-                : client.status === "DOCS_UPLOADED"
-                ? "📄 Docs Uploaded"
-                : client.status === "SCHEDULED"
-                ? "📅 Scheduled"
-                : client.status === "ONGOING"
-                ? "🔄 Ongoing"
-                : client.status === "ARCHIVED"
-                ? "📦 Archived"
-                : client.status}
+              {client.status === 'SIGNED_UP'
+                ? '📝 Signed Up'
+                : client.status === 'INITIAL_INTERVIEW_COMPLETED'
+                  ? '✅ Interview Done'
+                  : client.status === 'ASSESSMENT_COMPLETED'
+                    ? '📋 Assessment Done'
+                    : client.status === 'DOCS_UPLOADED'
+                      ? '📄 Docs Uploaded'
+                      : client.status === 'SCHEDULED'
+                        ? '📅 Scheduled'
+                        : client.status === 'ONGOING'
+                          ? '🔄 Ongoing'
+                          : client.status === 'ARCHIVED'
+                            ? '📦 Archived'
+                            : client.status}
             </div>
           </div>
         </div>
 
         {/* Token Management Debug Section */}
-        {error && error.includes("authentication") && (
+        {error && error.includes('authentication') && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
@@ -805,8 +807,8 @@ export default function ClientDetailPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
-                      localStorage.removeItem("token");
-                      window.location.href = "/login";
+                      localStorage.removeItem('token');
+                      window.location.href = '/login';
                     }}
                     className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
                   >
@@ -857,16 +859,16 @@ export default function ClientDetailPage() {
                   )}
                   {client.gender && (
                     <span>
-                      {client.gender === "M" ||
-                      client.gender === "male" ||
-                      client.gender === "Male"
-                        ? "♂"
-                        : "♀"}{" "}
-                      {client.gender === "M" ||
-                      client.gender === "male" ||
-                      client.gender === "Male"
-                        ? "Male"
-                        : "Female"}
+                      {client.gender === 'M' ||
+                      client.gender === 'male' ||
+                      client.gender === 'Male'
+                        ? '♂'
+                        : '♀'}{' '}
+                      {client.gender === 'M' ||
+                      client.gender === 'male' ||
+                      client.gender === 'Male'
+                        ? 'Male'
+                        : 'Female'}
                     </span>
                   )}
                   {client.isTruckDriver && (
@@ -894,6 +896,12 @@ export default function ClientDetailPage() {
                     size="sm"
                     defaultTimelineType="PROTOCOL_DEVELOPMENT"
                   />
+                  <ComprehensiveExportButton
+                    clientId={client.id}
+                    clientName={`${client.firstName} ${client.lastName}`}
+                    variant="default"
+                    size="sm"
+                  />
                   <ExportClientButton
                     clientId={client.id}
                     clientName={`${client.firstName} ${client.lastName}`}
@@ -902,6 +910,15 @@ export default function ClientDetailPage() {
                   />
                 </div>
                 <div className="flex gap-2">
+                  <Button
+                    onClick={() => setProtocolImportOpen(true)}
+                    variant="default"
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <Upload className="h-4 w-4 mr-1" />
+                    Import Protocol
+                  </Button>
                   <Button variant="outline" size="sm" asChild>
                     <Link href={`/dashboard/clients/${client.id}/protocols`}>
                       <FlaskConical className="h-4 w-4 mr-1" />
@@ -978,21 +995,21 @@ export default function ClientDetailPage() {
               <div className="bg-gray-700 border-b border-gray-600 px-4 py-2">
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => setActiveTab("interview")}
+                    onClick={() => setActiveTab('interview')}
                     className={`${
-                      activeTab === "interview"
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                      activeTab === 'interview'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
                     } px-3 py-2 rounded transition-colors flex items-center justify-center`}
                   >
                     <MessageSquare className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => setActiveTab("coaching")}
+                    onClick={() => setActiveTab('coaching')}
                     className={`${
-                      activeTab === "coaching"
-                        ? "bg-yellow-500 text-white"
-                        : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                      activeTab === 'coaching'
+                        ? 'bg-yellow-500 text-white'
+                        : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
                     } px-3 py-2 rounded transition-colors flex items-center justify-center`}
                   >
                     <Users className="w-4 h-4" />
@@ -1002,14 +1019,14 @@ export default function ClientDetailPage() {
 
               <div className="flex-1 p-4 overflow-y-auto">
                 <div className="space-y-2">
-                  {notes.filter((note) =>
-                    activeTab === "interview"
-                      ? note.noteType === "INTERVIEW"
-                      : note.noteType === "COACHING"
+                  {notes.filter(note =>
+                    activeTab === 'interview'
+                      ? note.noteType === 'INTERVIEW'
+                      : note.noteType === 'COACHING'
                   ).length === 0 ? (
                     <div className="text-center py-16">
                       <div className="text-4xl mb-3">
-                        {activeTab === "interview" ? "🎤" : "🏃‍♂️"}
+                        {activeTab === 'interview' ? '🎤' : '🏃‍♂️'}
                       </div>
                       <p className="text-gray-400 mb-3">
                         No {activeTab} notes yet
@@ -1025,12 +1042,12 @@ export default function ClientDetailPage() {
                     </div>
                   ) : (
                     notes
-                      .filter((note) =>
-                        activeTab === "interview"
-                          ? note.noteType === "INTERVIEW"
-                          : note.noteType === "COACHING"
+                      .filter(note =>
+                        activeTab === 'interview'
+                          ? note.noteType === 'INTERVIEW'
+                          : note.noteType === 'COACHING'
                       )
-                      .map((note) => (
+                      .map(note => (
                         <div
                           key={note.id}
                           className="p-3 rounded-lg bg-gray-700 border border-gray-600 hover:bg-gray-600 transition-colors cursor-pointer"
@@ -1066,7 +1083,7 @@ export default function ClientDetailPage() {
                           <p className="text-gray-300 text-xs line-clamp-2">
                             {note.chiefComplaints ||
                               note.generalNotes ||
-                              "Click to view details..."}
+                              'Click to view details...'}
                           </p>
                         </div>
                       ))
@@ -1110,7 +1127,7 @@ export default function ClientDetailPage() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {documents.map((doc) => (
+                  {documents.map(doc => (
                     <div
                       key={doc.id}
                       className="p-3 rounded-lg bg-gray-700 border border-gray-600 hover:bg-gray-600 transition-colors"
@@ -1130,18 +1147,18 @@ export default function ClientDetailPage() {
                           <div className="mb-1">
                             <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded">
                               {doc.documentType
-                                ?.replace("_", " ")
-                                .toUpperCase() || "UNKNOWN"}
+                                ?.replace('_', ' ')
+                                .toUpperCase() || 'UNKNOWN'}
                             </span>
                           </div>
                           <div>
-                            {formatFileSize(doc.fileSize)} •{" "}
+                            {formatFileSize(doc.fileSize)} •{' '}
                             {formatDate(doc.uploadedAt)}
                           </div>
                         </div>
                         <div className="flex items-center space-x-1">
                           <button
-                            onClick={(e) => {
+                            onClick={e => {
                               e.stopPropagation();
                               handleDocumentClick(doc as any);
                             }}
@@ -1151,7 +1168,7 @@ export default function ClientDetailPage() {
                             <Eye className="w-3 h-3" />
                           </button>
                           <button
-                            onClick={(e) => {
+                            onClick={e => {
                               e.stopPropagation();
                               setDocumentToDelete(doc);
                               setShowDeleteConfirm(true);
@@ -1212,7 +1229,7 @@ export default function ClientDetailPage() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {protocols.slice(0, 5).map((protocol) => (
+                  {protocols.slice(0, 5).map(protocol => (
                     <Link
                       key={protocol.id}
                       href={`/dashboard/clients/${client?.id}/protocols/${protocol.id}`}
@@ -1233,13 +1250,13 @@ export default function ClientDetailPage() {
                           <div className="mb-1">
                             <span
                               className={`px-2 py-0.5 rounded ${
-                                protocol.currentStatus === "active"
-                                  ? "bg-green-500/20 text-green-300"
-                                  : protocol.currentStatus === "planned"
-                                  ? "bg-blue-500/20 text-blue-300"
-                                  : protocol.currentStatus === "completed"
-                                  ? "bg-purple-500/20 text-purple-300"
-                                  : "bg-gray-500/20 text-gray-300"
+                                protocol.currentStatus === 'active'
+                                  ? 'bg-green-500/20 text-green-300'
+                                  : protocol.currentStatus === 'planned'
+                                    ? 'bg-blue-500/20 text-blue-300'
+                                    : protocol.currentStatus === 'completed'
+                                      ? 'bg-purple-500/20 text-purple-300'
+                                      : 'bg-gray-500/20 text-gray-300'
                               }`}
                             >
                               {protocol.currentStatus.toUpperCase()}
@@ -1283,7 +1300,7 @@ export default function ClientDetailPage() {
         onSubmit={handleCreateNote}
         onDelete={handleDeleteNote}
         clientId={params.id as string}
-        noteType={activeTab === "interview" ? "INTERVIEW" : "COACHING"}
+        noteType={activeTab === 'interview' ? 'INTERVIEW' : 'COACHING'}
         initialData={editingNote || undefined}
         isEditing={!!editingNote}
       />
@@ -1315,7 +1332,7 @@ export default function ClientDetailPage() {
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
           <div
             className="bg-gray-800 border border-gray-700 rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation();
             }}
           >
@@ -1342,7 +1359,7 @@ export default function ClientDetailPage() {
 
             <div className="flex justify-end gap-3">
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   setShowDeleteConfirm(false);
                   setDocumentToDelete(null);
@@ -1352,7 +1369,7 @@ export default function ClientDetailPage() {
                 Cancel
               </button>
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   confirmDeleteDocument();
                 }}
@@ -1376,6 +1393,18 @@ export default function ClientDetailPage() {
           }}
         />
       )}
+
+      {/* Protocol Import Dialog */}
+      <ProtocolImportDialog
+        clientId={client.id}
+        clientName={`${client.firstName} ${client.lastName}`}
+        isOpen={protocolImportOpen}
+        onOpenChange={setProtocolImportOpen}
+        onProtocolImported={() => {
+          // Refresh protocols data after successful import
+          fetchCompleteClientData();
+        }}
+      />
     </div>
   );
 }

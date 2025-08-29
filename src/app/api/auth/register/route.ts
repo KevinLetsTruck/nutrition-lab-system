@@ -21,16 +21,10 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof Error) {
       if (error.message === 'User already exists') {
-        return NextResponse.json(
-          { error: error.message },
-          { status: 409 }
-        );
+        return NextResponse.json({ error: error.message }, { status: 409 });
       }
 
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     return NextResponse.json(

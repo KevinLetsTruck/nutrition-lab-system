@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { verifyAuthToken } from "@/lib/auth";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { verifyAuthToken } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
@@ -10,7 +10,7 @@ export async function GET(
     // Authenticate user
     const authUser = await verifyAuthToken(request);
     if (!authUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { clientId, analysisId } = await params;
@@ -21,17 +21,14 @@ export async function GET(
     });
 
     if (!client) {
-      return NextResponse.json(
-        { error: "Client not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
     // Fetch the specific analysis
     const analysis = await prisma.clientAnalysis.findUnique({
-      where: { 
+      where: {
         id: analysisId,
-        clientId: clientId
+        clientId: clientId,
       },
       select: {
         id: true,
@@ -54,16 +51,16 @@ export async function GET(
 
     if (!analysis) {
       return NextResponse.json(
-        { error: "Analysis not found" },
+        { error: 'Analysis not found' },
         { status: 404 }
       );
     }
 
     return NextResponse.json(analysis);
   } catch (error) {
-    console.error("Analysis fetch error:", error);
+    console.error('Analysis fetch error:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

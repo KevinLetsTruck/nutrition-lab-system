@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { hashPassword, generateToken } from "@/lib/auth";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { hashPassword, generateToken } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
 
     if (!email || !password || !name) {
       return NextResponse.json(
-        { error: "Email, password, and name are required" },
+        { error: 'Email, password, and name are required' },
         { status: 400 }
       );
     }
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "User already exists" },
+        { error: 'User already exists' },
         { status: 409 }
       );
     }
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         name,
-        role: "ADMIN",
+        role: 'ADMIN',
       },
     });
 
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Admin user created successfully",
+      message: 'Admin user created successfully',
       data: {
         userId: user.id,
         email: user.email,
@@ -58,12 +58,12 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Admin creation error:", error);
+    console.error('Admin creation error:', error);
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to create admin user",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: 'Failed to create admin user',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

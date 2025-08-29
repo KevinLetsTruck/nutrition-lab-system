@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import React, { useEffect, useRef, useState } from "react";
-import { X, MessageSquare, FileText, StickyNote } from "lucide-react";
-import { Annotation } from "./PDFViewer";
+import React, { useEffect, useRef, useState } from 'react';
+import { X, MessageSquare, FileText, StickyNote } from 'lucide-react';
+import { Annotation } from './PDFViewer';
 
 interface PDFSidebarProps {
   pdf: any;
   currentPage: number;
   totalPages: number;
   scale: number;
-  activeTab: "thumbnails" | "annotations" | "search";
+  activeTab: 'thumbnails' | 'annotations' | 'search';
   annotations: Annotation[];
   searchResults: any[];
   searchTerm: string;
-  onTabChange: (tab: "thumbnails" | "annotations" | "search") => void;
+  onTabChange: (tab: 'thumbnails' | 'annotations' | 'search') => void;
   onGoToPage: (page: number) => void;
   onGoToAnnotation: (annotation: Annotation) => void;
   onDeleteAnnotation: (annotationId: string) => void;
@@ -47,7 +47,6 @@ const PDFThumbnail: React.FC<ThumbnailProps> = ({
   useEffect(() => {
     const generateThumbnail = async () => {
       if (!pdf) {
-
         return;
       }
 
@@ -79,17 +78,15 @@ const PDFThumbnail: React.FC<ThumbnailProps> = ({
         await page.render(renderContext).promise;
 
         // Convert canvas to blob URL for display
-        canvas.toBlob((blob) => {
+        canvas.toBlob(blob => {
           if (blob) {
             const url = URL.createObjectURL(blob);
             setThumbnailUrl(url);
             setIsLoading(false);
-
           } else {
             throw new Error('Failed to create blob from canvas');
           }
         }, 'image/png');
-
       } catch (error: any) {
         console.error(`Thumbnail ${pageNumber}: Error:`, error);
         setError(`Failed to render page ${pageNumber}`);
@@ -127,8 +124,8 @@ const PDFThumbnail: React.FC<ThumbnailProps> = ({
       onClick={onClick}
       className={`cursor-pointer border-2 rounded-lg overflow-hidden transition-all hover:border-slate-500 ${
         isActive
-          ? "border-green-400 shadow-lg shadow-green-400/20"
-          : "border-slate-600"
+          ? 'border-green-400 shadow-lg shadow-green-400/20'
+          : 'border-slate-600'
       }`}
     >
       <div className="bg-white p-2 relative">
@@ -175,7 +172,7 @@ export const PDFSidebar: React.FC<PDFSidebarProps> = ({
   onDeleteAnnotation,
   onSearchTermChange,
   onPerformSearch,
-  className = "",
+  className = '',
 }) => {
   const [isSearching, setIsSearching] = useState(false);
 
@@ -186,19 +183,19 @@ export const PDFSidebar: React.FC<PDFSidebarProps> = ({
   };
 
   const formatAnnotationDate = (date: Date) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+    return new Date(date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
   const getAnnotationIcon = (type: string) => {
     switch (type) {
-      case "note":
+      case 'note':
         return <MessageSquare className="w-4 h-4" />;
-      case "highlight":
+      case 'highlight':
         return <StickyNote className="w-4 h-4" />;
       default:
         return <FileText className="w-4 h-4" />;
@@ -207,12 +204,12 @@ export const PDFSidebar: React.FC<PDFSidebarProps> = ({
 
   const getAnnotationColor = (type: string) => {
     switch (type) {
-      case "note":
-        return "text-blue-400";
-      case "highlight":
-        return "text-yellow-400";
+      case 'note':
+        return 'text-blue-400';
+      case 'highlight':
+        return 'text-yellow-400';
       default:
-        return "text-green-400";
+        return 'text-green-400';
     }
   };
 
@@ -223,31 +220,31 @@ export const PDFSidebar: React.FC<PDFSidebarProps> = ({
       {/* Tab Navigation */}
       <div className="flex gap-1 mb-4">
         <button
-          onClick={() => onTabChange("thumbnails")}
+          onClick={() => onTabChange('thumbnails')}
           className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-            activeTab === "thumbnails"
-              ? "bg-green-500 text-slate-900"
-              : "bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-700"
+            activeTab === 'thumbnails'
+              ? 'bg-green-500 text-slate-900'
+              : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-700'
           }`}
         >
           Pages
         </button>
         <button
-          onClick={() => onTabChange("annotations")}
+          onClick={() => onTabChange('annotations')}
           className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-            activeTab === "annotations"
-              ? "bg-green-500 text-slate-900"
-              : "bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-700"
+            activeTab === 'annotations'
+              ? 'bg-green-500 text-slate-900'
+              : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-700'
           }`}
         >
           Notes ({annotations.length})
         </button>
         <button
-          onClick={() => onTabChange("search")}
+          onClick={() => onTabChange('search')}
           className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-            activeTab === "search"
-              ? "bg-green-500 text-slate-900"
-              : "bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-700"
+            activeTab === 'search'
+              ? 'bg-green-500 text-slate-900'
+              : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-700'
           }`}
         >
           Search
@@ -257,7 +254,7 @@ export const PDFSidebar: React.FC<PDFSidebarProps> = ({
       {/* Content Area */}
       <div className="flex-1 overflow-hidden">
         {/* Thumbnails Tab */}
-        {activeTab === "thumbnails" && (
+        {activeTab === 'thumbnails' && (
           <div className="h-full overflow-y-auto space-y-3">
             {pdf ? (
               <>
@@ -278,14 +275,16 @@ export const PDFSidebar: React.FC<PDFSidebarProps> = ({
               </>
             ) : (
               <div className="text-center py-8">
-                <div className="text-slate-400 text-sm">Loading document...</div>
+                <div className="text-slate-400 text-sm">
+                  Loading document...
+                </div>
               </div>
             )}
           </div>
         )}
 
         {/* Annotations Tab */}
-        {activeTab === "annotations" && (
+        {activeTab === 'annotations' && (
           <div className="h-full overflow-y-auto space-y-3">
             {annotations.length === 0 ? (
               <div className="text-center py-8">
@@ -296,7 +295,7 @@ export const PDFSidebar: React.FC<PDFSidebarProps> = ({
                 </p>
               </div>
             ) : (
-              annotations.map((annotation) => (
+              annotations.map(annotation => (
                 <div
                   key={annotation.id}
                   className="bg-slate-900 border border-slate-600 rounded-lg p-3 hover:border-slate-500 cursor-pointer transition-all group"
@@ -312,7 +311,7 @@ export const PDFSidebar: React.FC<PDFSidebarProps> = ({
                       </span>
                     </div>
                     <button
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         onDeleteAnnotation(annotation.id);
                       }}
@@ -341,15 +340,15 @@ export const PDFSidebar: React.FC<PDFSidebarProps> = ({
         )}
 
         {/* Search Tab */}
-        {activeTab === "search" && (
+        {activeTab === 'search' && (
           <div className="h-full flex flex-col">
             <div className="mb-4">
               <div className="flex gap-2 mb-3">
                 <input
                   type="text"
                   value={searchTerm}
-                  onChange={(e) => onSearchTermChange(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                  onChange={e => onSearchTermChange(e.target.value)}
+                  onKeyPress={e => e.key === 'Enter' && handleSearch()}
                   placeholder="Search in document..."
                   className="flex-1 bg-slate-900 border border-slate-600 text-slate-100 px-3 py-2 rounded-lg text-sm focus:border-green-400 focus:outline-none"
                 />
@@ -358,14 +357,14 @@ export const PDFSidebar: React.FC<PDFSidebarProps> = ({
                   disabled={isSearching || !searchTerm.trim()}
                   className="px-3 py-2 bg-green-500 text-slate-900 rounded-lg font-semibold hover:bg-green-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
                 >
-                  {isSearching ? "..." : "Go"}
+                  {isSearching ? '...' : 'Go'}
                 </button>
               </div>
 
               {searchResults.length > 0 && (
                 <p className="text-xs text-slate-400">
                   Found {searchResults.length} result
-                  {searchResults.length !== 1 ? "s" : ""}
+                  {searchResults.length !== 1 ? 's' : ''}
                 </p>
               )}
             </div>

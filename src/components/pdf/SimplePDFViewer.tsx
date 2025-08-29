@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import React, { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { X, Download, ExternalLink } from "lucide-react";
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { X, Download, ExternalLink } from 'lucide-react';
 
 export interface Document {
   id: string;
   name: string;
   url: string;
-  type: "lab_report" | "protocol" | "assessment" | "intake" | "other";
+  type: 'lab_report' | 'protocol' | 'assessment' | 'intake' | 'other';
   uploadedDate: Date;
   pages?: number;
   clientId: string;
@@ -38,14 +38,14 @@ const SimplePDFViewer: React.FC<SimplePDFViewerProps> = ({
     if (!isMounted) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === 'Escape') {
         onClose();
       }
     };
 
     // Prevent background scrolling
     if (window.document?.body) {
-      window.document.body.style.overflow = "hidden";
+      window.document.body.style.overflow = 'hidden';
     }
 
     // Focus the modal when it opens
@@ -53,19 +53,19 @@ const SimplePDFViewer: React.FC<SimplePDFViewerProps> = ({
       modalRef.current.focus();
     }
 
-    window.document.addEventListener("keydown", handleKeyDown);
+    window.document.addEventListener('keydown', handleKeyDown);
 
     return () => {
       // Restore scrolling when modal closes
       if (window.document?.body) {
-        window.document.body.style.overflow = "unset";
+        window.document.body.style.overflow = 'unset';
       }
-      window.document.removeEventListener("keydown", handleKeyDown);
+      window.document.removeEventListener('keydown', handleKeyDown);
     };
   }, [onClose, isMounted]);
 
   const handleDownload = () => {
-    const link = window.document.createElement("a");
+    const link = window.document.createElement('a');
     link.href = document.url;
     link.download = document.name;
     window.document.body.appendChild(link);
@@ -74,18 +74,18 @@ const SimplePDFViewer: React.FC<SimplePDFViewerProps> = ({
   };
 
   const handleOpenInNewTab = () => {
-    window.open(document.url, "_blank");
+    window.open(document.url, '_blank');
   };
 
   // Don't render on server-side or before component is mounted
-  if (typeof window === "undefined" || !isMounted) {
+  if (typeof window === 'undefined' || !isMounted) {
     return null;
   }
 
   const modalContent = (
     <div
       className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
-      onClick={(e) => {
+      onClick={e => {
         // Close if clicking on the backdrop
         if (e.target === e.currentTarget) {
           onClose();
@@ -96,7 +96,7 @@ const SimplePDFViewer: React.FC<SimplePDFViewerProps> = ({
         ref={modalRef}
         tabIndex={-1}
         className="w-full h-full max-w-7xl max-h-[95vh] bg-card border border-border shadow-2xl overflow-hidden flex flex-col rounded-lg focus:outline-none"
-        style={{ minHeight: "400px", maxHeight: "95vh" }}
+        style={{ minHeight: '400px', maxHeight: '95vh' }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 bg-card border-b border-border shrink-0">
@@ -105,8 +105,8 @@ const SimplePDFViewer: React.FC<SimplePDFViewerProps> = ({
               {document.name}
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {document.type.replace("_", " ").toUpperCase()} •{" "}
-              {document.pages ? `${document.pages} pages` : "PDF Document"}
+              {document.type.replace('_', ' ').toUpperCase()} •{' '}
+              {document.pages ? `${document.pages} pages` : 'PDF Document'}
             </p>
           </div>
           <div className="flex items-center space-x-2 ml-4 shrink-0">
@@ -143,9 +143,9 @@ const SimplePDFViewer: React.FC<SimplePDFViewerProps> = ({
             className="w-full h-full border-0 rounded-none"
             title={document.name}
             style={{
-              minHeight: "300px",
-              maxHeight: "100%",
-              objectFit: "contain",
+              minHeight: '300px',
+              maxHeight: '100%',
+              objectFit: 'contain',
             }}
           />
         </div>
@@ -155,22 +155,22 @@ const SimplePDFViewer: React.FC<SimplePDFViewerProps> = ({
           <p className="text-sm text-muted-foreground text-center">
             <strong className="text-foreground">
               Can't see the document clearly?
-            </strong>{" "}
-            Try{" "}
+            </strong>{' '}
+            Try{' '}
             <button
               onClick={handleDownload}
               className="text-primary hover:text-primary/80 underline hover:no-underline font-medium"
             >
               downloading it
-            </button>{" "}
-            or{" "}
+            </button>{' '}
+            or{' '}
             <button
               onClick={handleOpenInNewTab}
               className="text-primary hover:text-primary/80 underline hover:no-underline font-medium"
             >
               opening in a new tab
-            </button>{" "}
-            • Press{" "}
+            </button>{' '}
+            • Press{' '}
             <kbd className="px-1 py-0.5 bg-muted text-xs rounded">Esc</kbd> to
             close
           </p>

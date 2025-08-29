@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Plus, Users, Shield, Trash2 } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Plus, Users, Shield, Trash2 } from 'lucide-react';
 
 interface User {
   id: string;
@@ -17,13 +17,13 @@ interface User {
 export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newUser, setNewUser] = useState({
-    email: "",
-    password: "",
-    name: "",
-    role: "USER",
+    email: '',
+    password: '',
+    name: '',
+    role: 'USER',
   });
 
   useEffect(() => {
@@ -32,8 +32,8 @@ export default function AdminDashboard() {
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/admin/users", {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/users', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -43,10 +43,10 @@ export default function AdminDashboard() {
         const data = await response.json();
         setUsers(data.data);
       } else {
-        setError("Failed to fetch users");
+        setError('Failed to fetch users');
       }
     } catch (err) {
-      setError("Failed to fetch users");
+      setError('Failed to fetch users');
     } finally {
       setLoading(false);
     }
@@ -55,11 +55,11 @@ export default function AdminDashboard() {
   const createUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/admin/users", {
-        method: "POST",
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(newUser),
@@ -67,14 +67,14 @@ export default function AdminDashboard() {
 
       if (response.ok) {
         await fetchUsers();
-        setNewUser({ email: "", password: "", name: "", role: "USER" });
+        setNewUser({ email: '', password: '', name: '', role: 'USER' });
         setShowCreateForm(false);
       } else {
         const error = await response.json();
-        setError(error.error || "Failed to create user");
+        setError(error.error || 'Failed to create user');
       }
     } catch (err) {
-      setError("Failed to create user");
+      setError('Failed to create user');
     }
   };
 
@@ -101,7 +101,9 @@ export default function AdminDashboard() {
               <Shield className="w-8 h-8 mr-3 text-green-400" />
               Admin Dashboard
             </h1>
-            <p className="text-gray-400 mt-1">Manage users and system settings</p>
+            <p className="text-gray-400 mt-1">
+              Manage users and system settings
+            </p>
           </div>
           <Button
             onClick={() => setShowCreateForm(true)}
@@ -125,7 +127,9 @@ export default function AdminDashboard() {
               <div className="flex items-center">
                 <Users className="w-8 h-8 text-blue-400" />
                 <div className="ml-4">
-                  <p className="text-2xl font-bold text-white">{users.length}</p>
+                  <p className="text-2xl font-bold text-white">
+                    {users.length}
+                  </p>
                   <p className="text-gray-400">Total Users</p>
                 </div>
               </div>
@@ -137,7 +141,7 @@ export default function AdminDashboard() {
                 <Shield className="w-8 h-8 text-green-400" />
                 <div className="ml-4">
                   <p className="text-2xl font-bold text-white">
-                    {users.filter((u) => u.role === "ADMIN").length}
+                    {users.filter(u => u.role === 'ADMIN').length}
                   </p>
                   <p className="text-gray-400">Admins</p>
                 </div>
@@ -150,7 +154,7 @@ export default function AdminDashboard() {
                 <Users className="w-8 h-8 text-purple-400" />
                 <div className="ml-4">
                   <p className="text-2xl font-bold text-white">
-                    {users.filter((u) => u.role === "USER").length}
+                    {users.filter(u => u.role === 'USER').length}
                   </p>
                   <p className="text-gray-400">Regular Users</p>
                 </div>
@@ -175,7 +179,7 @@ export default function AdminDashboard() {
                     <input
                       type="text"
                       value={newUser.name}
-                      onChange={(e) =>
+                      onChange={e =>
                         setNewUser({ ...newUser, name: e.target.value })
                       }
                       className="w-full mt-1 p-3 bg-gray-700 border border-gray-600 rounded-lg text-white"
@@ -189,7 +193,7 @@ export default function AdminDashboard() {
                     <input
                       type="email"
                       value={newUser.email}
-                      onChange={(e) =>
+                      onChange={e =>
                         setNewUser({ ...newUser, email: e.target.value })
                       }
                       className="w-full mt-1 p-3 bg-gray-700 border border-gray-600 rounded-lg text-white"
@@ -203,7 +207,7 @@ export default function AdminDashboard() {
                     <input
                       type="password"
                       value={newUser.password}
-                      onChange={(e) =>
+                      onChange={e =>
                         setNewUser({ ...newUser, password: e.target.value })
                       }
                       className="w-full mt-1 p-3 bg-gray-700 border border-gray-600 rounded-lg text-white"
@@ -216,7 +220,7 @@ export default function AdminDashboard() {
                     </label>
                     <select
                       value={newUser.role}
-                      onChange={(e) =>
+                      onChange={e =>
                         setNewUser({ ...newUser, role: e.target.value })
                       }
                       className="w-full mt-1 p-3 bg-gray-700 border border-gray-600 rounded-lg text-white"
@@ -227,7 +231,10 @@ export default function AdminDashboard() {
                   </div>
                 </div>
                 <div className="flex space-x-3">
-                  <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                  <Button
+                    type="submit"
+                    className="bg-green-600 hover:bg-green-700"
+                  >
                     Create User
                   </Button>
                   <Button
@@ -257,21 +264,25 @@ export default function AdminDashboard() {
                     <th className="text-left py-3 px-4 text-gray-300">Name</th>
                     <th className="text-left py-3 px-4 text-gray-300">Email</th>
                     <th className="text-left py-3 px-4 text-gray-300">Role</th>
-                    <th className="text-left py-3 px-4 text-gray-300">Created</th>
-                    <th className="text-left py-3 px-4 text-gray-300">Last Login</th>
+                    <th className="text-left py-3 px-4 text-gray-300">
+                      Created
+                    </th>
+                    <th className="text-left py-3 px-4 text-gray-300">
+                      Last Login
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user) => (
+                  {users.map(user => (
                     <tr key={user.id} className="border-b border-gray-700">
                       <td className="py-3 px-4 text-white">{user.name}</td>
                       <td className="py-3 px-4 text-gray-300">{user.email}</td>
                       <td className="py-3 px-4">
                         <span
                           className={`px-2 py-1 rounded text-xs ${
-                            user.role === "ADMIN"
-                              ? "bg-green-500/20 text-green-300"
-                              : "bg-blue-500/20 text-blue-300"
+                            user.role === 'ADMIN'
+                              ? 'bg-green-500/20 text-green-300'
+                              : 'bg-blue-500/20 text-blue-300'
                           }`}
                         >
                           {user.role}
@@ -283,7 +294,7 @@ export default function AdminDashboard() {
                       <td className="py-3 px-4 text-gray-300">
                         {user.lastLoginAt
                           ? new Date(user.lastLoginAt).toLocaleDateString()
-                          : "Never"}
+                          : 'Never'}
                       </td>
                     </tr>
                   ))}

@@ -1,17 +1,17 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const timelineExportSchema = z.object({
   timelineType: z
     .enum([
-      "COMPREHENSIVE",
-      "FOCUSED",
-      "SYMPTOMS",
-      "TREATMENTS",
-      "ASSESSMENTS",
-      "PROTOCOL_DEVELOPMENT",
+      'COMPREHENSIVE',
+      'FOCUSED',
+      'SYMPTOMS',
+      'TREATMENTS',
+      'ASSESSMENTS',
+      'PROTOCOL_DEVELOPMENT',
     ])
-    .default("COMPREHENSIVE"),
-  format: z.enum(["markdown", "json"]).default("markdown"),
+    .default('COMPREHENSIVE'),
+  format: z.enum(['markdown', 'json']).default('markdown'),
   includeMetadata: z.boolean().default(true),
 
   // Granular control options (inspired by alternative implementation)
@@ -35,16 +35,16 @@ export const timelineExportFilterSchema = z.object({
   clientId: z.string().cuid(),
   timelineType: z
     .enum([
-      "COMPREHENSIVE",
-      "FOCUSED",
-      "SYMPTOMS",
-      "TREATMENTS",
-      "ASSESSMENTS",
-      "PROTOCOL_DEVELOPMENT",
+      'COMPREHENSIVE',
+      'FOCUSED',
+      'SYMPTOMS',
+      'TREATMENTS',
+      'ASSESSMENTS',
+      'PROTOCOL_DEVELOPMENT',
     ])
     .optional(),
   status: z
-    .enum(["PENDING", "PROCESSING", "COMPLETED", "FAILED", "EXPIRED"])
+    .enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'EXPIRED'])
     .optional(),
   dateFrom: z.string().datetime().optional(),
   dateTo: z.string().datetime().optional(),

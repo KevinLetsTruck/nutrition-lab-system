@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 import {
   Calendar,
   Users,
@@ -11,16 +11,17 @@ import {
   Eye,
   MessageSquare,
   FolderOpen,
-} from "lucide-react";
-import NoteViewerModal from "@/components/notes/NoteViewerModal";
-import dynamic from "next/dynamic";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { TimelineExportButton } from "@/components/clients/TimelineExportButton";
+} from 'lucide-react';
+import NoteViewerModal from '@/components/notes/NoteViewerModal';
+import dynamic from 'next/dynamic';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { TimelineExportButton } from '@/components/clients/TimelineExportButton';
+import { ComprehensiveExportButton } from '@/components/exports/ComprehensiveExportButton';
 
 // Dynamically import SimplePDFViewer with SSR disabled
 const SimplePDFViewer = dynamic(
-  () => import("@/components/pdf/SimplePDFViewer"),
+  () => import('@/components/pdf/SimplePDFViewer'),
   {
     ssr: false,
     loading: () => (
@@ -45,7 +46,7 @@ const SimplePDFViewer = dynamic(
 function getHealthGoalsArray(healthGoals: any): string[] {
   if (!healthGoals) return [];
   if (Array.isArray(healthGoals)) return healthGoals;
-  if (typeof healthGoals === "string") {
+  if (typeof healthGoals === 'string') {
     try {
       const parsed = JSON.parse(healthGoals);
       return Array.isArray(parsed) ? parsed : [healthGoals];
@@ -75,7 +76,7 @@ interface Note {
   id: string;
   title: string;
   generalNotes: string;
-  noteType: "INTERVIEW" | "COACHING";
+  noteType: 'INTERVIEW' | 'COACHING';
   isImportant: boolean;
   followUpNeeded: boolean;
   createdAt: string;
@@ -95,25 +96,25 @@ interface SelectedDocument {
   id: string;
   name: string;
   url: string;
-  type: "lab_report" | "protocol" | "assessment" | "intake" | "other";
+  type: 'lab_report' | 'protocol' | 'assessment' | 'intake' | 'other';
   uploadedDate: Date;
   clientId: string;
 }
 
 type StatusType =
-  | "SIGNED_UP"
-  | "INITIAL_INTERVIEW_COMPLETED"
-  | "ASSESSMENT_COMPLETED"
-  | "DOCS_UPLOADED"
-  | "SCHEDULED"
-  | "ONGOING"
-  | "ARCHIVED";
+  | 'SIGNED_UP'
+  | 'INITIAL_INTERVIEW_COMPLETED'
+  | 'ASSESSMENT_COMPLETED'
+  | 'DOCS_UPLOADED'
+  | 'SCHEDULED'
+  | 'ONGOING'
+  | 'ARCHIVED';
 
 export default function ScheduledClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [activeClientTab, setActiveClientTab] = useState<string>("");
+  const [error, setError] = useState('');
+  const [activeClientTab, setActiveClientTab] = useState<string>('');
 
   // Notes and Documents state
   const [clientNotes, setClientNotes] = useState<Record<string, Note[]>>({});
@@ -140,7 +141,7 @@ export default function ScheduledClientsPage() {
   // Fetch all data for scheduled clients
   useEffect(() => {
     if (clients.length > 0) {
-      clients.forEach((client) => {
+      clients.forEach(client => {
         fetchClientNotes(client.id);
         fetchClientDocuments(client.id);
       });
@@ -149,20 +150,20 @@ export default function ScheduledClientsPage() {
 
   const fetchScheduledClients = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       if (!token) {
-        window.location.href = "/login";
+        window.location.href = '/login';
         return;
       }
 
-      const response = await fetch("/api/clients?status=SCHEDULED", {
+      const response = await fetch('/api/clients?status=SCHEDULED', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch scheduled clients");
+        throw new Error('Failed to fetch scheduled clients');
       }
 
       const data = await response.json();
@@ -172,7 +173,7 @@ export default function ScheduledClientsPage() {
         setActiveClientTab(data[0].id);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load clients");
+      setError(err instanceof Error ? err.message : 'Failed to load clients');
     } finally {
       setLoading(false);
     }
@@ -182,22 +183,22 @@ export default function ScheduledClientsPage() {
   const fetchClientNotes = async (clientId: string) => {
     if (clientNotes[clientId] || loadingNotes.has(clientId)) return;
 
-    setLoadingNotes((prev) => new Set([...prev, clientId]));
+    setLoadingNotes(prev => new Set([...prev, clientId]));
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       const response = await fetch(`/api/clients/${clientId}/notes`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.ok) {
         const notes = await response.json();
-        setClientNotes((prev) => ({ ...prev, [clientId]: notes }));
+        setClientNotes(prev => ({ ...prev, [clientId]: notes }));
       }
     } catch (err) {
-      console.error("Failed to fetch notes for client:", clientId, err);
+      console.error('Failed to fetch notes for client:', clientId, err);
     } finally {
-      setLoadingNotes((prev) => {
+      setLoadingNotes(prev => {
         const newSet = new Set(prev);
         newSet.delete(clientId);
         return newSet;
@@ -209,28 +210,28 @@ export default function ScheduledClientsPage() {
   const fetchClientDocuments = async (clientId: string) => {
     if (clientDocuments[clientId] || loadingDocuments.has(clientId)) return;
 
-    setLoadingDocuments((prev) => new Set([...prev, clientId]));
+    setLoadingDocuments(prev => new Set([...prev, clientId]));
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       const response = await fetch(`/api/documents?clientId=${clientId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.ok) {
         const documents = await response.json();
-        setClientDocuments((prev) => ({ ...prev, [clientId]: documents }));
+        setClientDocuments(prev => ({ ...prev, [clientId]: documents }));
       } else {
         console.error(
-          "Failed to fetch documents:",
+          'Failed to fetch documents:',
           response.status,
           response.statusText
         );
       }
     } catch (err) {
-      console.error("Failed to fetch documents for client:", clientId, err);
+      console.error('Failed to fetch documents for client:', clientId, err);
     } finally {
-      setLoadingDocuments((prev) => {
+      setLoadingDocuments(prev => {
         const newSet = new Set(prev);
         newSet.delete(clientId);
         return newSet;
@@ -252,13 +253,13 @@ export default function ScheduledClientsPage() {
       url: document.fileUrl,
       type:
         (document.documentType?.toLowerCase() as
-          | "lab_report"
-          | "protocol"
-          | "assessment"
-          | "intake"
-          | "other") || "other",
+          | 'lab_report'
+          | 'protocol'
+          | 'assessment'
+          | 'intake'
+          | 'other') || 'other',
       uploadedDate: new Date(document.uploadedAt),
-      clientId: "",
+      clientId: '',
     });
     setIsDocumentViewerOpen(true);
   };
@@ -280,7 +281,7 @@ export default function ScheduledClientsPage() {
   };
 
   const formatPhoneNumber = (phone: string) => {
-    const cleaned = phone.replace(/\D/g, "");
+    const cleaned = phone.replace(/\D/g, '');
     if (cleaned.length === 10) {
       return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(
         6
@@ -290,19 +291,19 @@ export default function ScheduledClientsPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   };
 
   const getCurrentDate = () => {
-    return new Date().toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+    return new Date().toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
   };
 
@@ -320,49 +321,49 @@ export default function ScheduledClientsPage() {
     const nextThursday = new Date(today);
     nextThursday.setDate(today.getDate() + daysUntilThursday);
 
-    return nextThursday.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+    return nextThursday.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
   };
 
   const getStatusLabel = (status: StatusType) => {
     const statusLabels: Record<StatusType, string> = {
-      SIGNED_UP: "Signed Up",
-      INITIAL_INTERVIEW_COMPLETED: "Interview Completed",
-      ASSESSMENT_COMPLETED: "Assessment Completed",
-      DOCS_UPLOADED: "Docs Uploaded",
-      SCHEDULED: "Scheduled",
-      ONGOING: "Ongoing",
-      ARCHIVED: "Archived",
+      SIGNED_UP: 'Signed Up',
+      INITIAL_INTERVIEW_COMPLETED: 'Interview Completed',
+      ASSESSMENT_COMPLETED: 'Assessment Completed',
+      DOCS_UPLOADED: 'Docs Uploaded',
+      SCHEDULED: 'Scheduled',
+      ONGOING: 'Ongoing',
+      ARCHIVED: 'Archived',
     };
     return statusLabels[status];
   };
 
   const getStatusColor = (status: StatusType) => {
     const statusColors: Record<StatusType, string> = {
-      SIGNED_UP: "#3b82f6",
-      INITIAL_INTERVIEW_COMPLETED: "#f59e0b",
-      ASSESSMENT_COMPLETED: "#8b5cf6",
-      DOCS_UPLOADED: "#06b6d4",
-      SCHEDULED: "#10b981",
-      ONGOING: "#84cc16",
-      ARCHIVED: "#6b7280",
+      SIGNED_UP: '#3b82f6',
+      INITIAL_INTERVIEW_COMPLETED: '#f59e0b',
+      ASSESSMENT_COMPLETED: '#8b5cf6',
+      DOCS_UPLOADED: '#06b6d4',
+      SCHEDULED: '#10b981',
+      ONGOING: '#84cc16',
+      ARCHIVED: '#6b7280',
     };
-    return statusColors[status] || "#6b7280";
+    return statusColors[status] || '#6b7280';
   };
 
   if (loading) {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
-        style={{ background: "var(--bg-primary)" }}
+        style={{ background: 'var(--bg-primary)' }}
       >
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-500 mx-auto"></div>
-          <p className="mt-4" style={{ color: "var(--text-secondary)" }}>
+          <p className="mt-4" style={{ color: 'var(--text-secondary)' }}>
             Loading scheduled clients...
           </p>
         </div>
@@ -374,20 +375,20 @@ export default function ScheduledClientsPage() {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
-        style={{ background: "var(--bg-primary)" }}
+        style={{ background: 'var(--bg-primary)' }}
       >
         <div
           className="card p-6 text-center max-w-md"
-          style={{ background: "var(--bg-card)" }}
+          style={{ background: 'var(--bg-card)' }}
         >
           <div className="text-red-400 text-4xl mb-4">⚠️</div>
           <h2
             className="text-xl font-bold mb-2"
-            style={{ color: "var(--text-primary)" }}
+            style={{ color: 'var(--text-primary)' }}
           >
             Error Loading Clients
           </h2>
-          <p style={{ color: "var(--text-secondary)" }}>{error}</p>
+          <p style={{ color: 'var(--text-secondary)' }}>{error}</p>
           <Button
             onClick={fetchScheduledClients}
             className="mt-4 bg-brand-green hover:bg-brand-green/90 border-brand-green"
@@ -402,7 +403,7 @@ export default function ScheduledClientsPage() {
   return (
     <div
       className="min-h-screen p-6"
-      style={{ background: "var(--bg-primary)" }}
+      style={{ background: 'var(--bg-primary)' }}
     >
       <div className="max-w-7xl mx-auto">
         {/* Header - Compact & Sleek */}
@@ -414,13 +415,13 @@ export default function ScheduledClientsPage() {
                 <div>
                   <h1
                     className="text-xl font-bold leading-tight"
-                    style={{ color: "var(--text-primary)" }}
+                    style={{ color: 'var(--text-primary)' }}
                   >
                     Thursday Group Coaching Call
                   </h1>
                   <p
                     className="text-sm opacity-75 leading-tight"
-                    style={{ color: "var(--text-secondary)" }}
+                    style={{ color: 'var(--text-secondary)' }}
                   >
                     Scheduled Clients Report
                   </p>
@@ -475,14 +476,14 @@ export default function ScheduledClientsPage() {
                 aria-label="Client Tabs"
               >
                 {/* Clean client cards - no initials or badges */}
-                {clients.map((client) => (
+                {clients.map(client => (
                   <button
                     key={client.id}
                     onClick={() => setActiveClientTab(client.id)}
                     className={`${
                       activeClientTab === client.id
-                        ? "bg-blue-500 text-white shadow-lg"
-                        : "bg-gray-600 text-gray-300 hover:bg-gray-500 hover:text-white"
+                        ? 'bg-blue-500 text-white shadow-lg'
+                        : 'bg-gray-600 text-gray-300 hover:bg-gray-500 hover:text-white'
                     } px-4 py-3 text-sm font-medium rounded-lg transition-all whitespace-nowrap flex items-center justify-center min-w-0`}
                   >
                     <div className="flex flex-col items-center min-w-0">
@@ -492,7 +493,7 @@ export default function ScheduledClientsPage() {
                       <span className="text-xs opacity-75">
                         {client.dateOfBirth
                           ? `Age ${calculateAge(client.dateOfBirth)}`
-                          : "No age"}
+                          : 'No age'}
                       </span>
                     </div>
                   </button>
@@ -502,7 +503,7 @@ export default function ScheduledClientsPage() {
 
             {/* Active Client Content */}
             {clients.map(
-              (client) =>
+              client =>
                 activeClientTab === client.id && (
                   <div key={client.id} className="p-6">
                     {/* Client Header - Compact */}
@@ -535,11 +536,11 @@ export default function ScheduledClientsPage() {
                               )}
                               {client.gender && (
                                 <span>
-                                  {client.gender === "M" ||
-                                  client.gender === "male" ||
-                                  client.gender === "Male"
-                                    ? "♂ Male"
-                                    : "♀ Female"}
+                                  {client.gender === 'M' ||
+                                  client.gender === 'male' ||
+                                  client.gender === 'Male'
+                                    ? '♂ Male'
+                                    : '♀ Female'}
                                 </span>
                               )}
                             </div>
@@ -564,13 +565,19 @@ export default function ScheduledClientsPage() {
                               Client since: {formatDate(client.createdAt)}
                             </div>
                           </div>
-                          <div>
+                          <div className="flex gap-2">
                             <TimelineExportButton
                               clientId={client.id}
                               clientName={`${client.firstName} ${client.lastName}`}
                               variant="outline"
                               size="sm"
                               defaultTimelineType="PROTOCOL_DEVELOPMENT"
+                            />
+                            <ComprehensiveExportButton
+                              clientId={client.id}
+                              clientName={`${client.firstName} ${client.lastName}`}
+                              variant="default"
+                              size="sm"
                             />
                           </div>
                         </div>
@@ -631,7 +638,7 @@ export default function ScheduledClientsPage() {
                         <div className="flex-1 p-4 overflow-y-auto">
                           {clientNotes[client.id]?.length > 0 ? (
                             <div className="space-y-2">
-                              {clientNotes[client.id].map((note) => (
+                              {clientNotes[client.id].map(note => (
                                 <div
                                   key={note.id}
                                   onClick={() => handleViewNote(note, client)}
@@ -646,18 +653,18 @@ export default function ScheduledClientsPage() {
                                         className="text-xs px-2 py-0.5 rounded-full"
                                         style={{
                                           background:
-                                            note.noteType === "INTERVIEW"
-                                              ? "#3b82f620"
-                                              : "#f59e0b20",
+                                            note.noteType === 'INTERVIEW'
+                                              ? '#3b82f620'
+                                              : '#f59e0b20',
                                           color:
-                                            note.noteType === "INTERVIEW"
-                                              ? "#3b82f6"
-                                              : "#f59e0b",
+                                            note.noteType === 'INTERVIEW'
+                                              ? '#3b82f6'
+                                              : '#f59e0b',
                                         }}
                                       >
-                                        {note.noteType === "INTERVIEW"
-                                          ? "Interview"
-                                          : "Coaching"}
+                                        {note.noteType === 'INTERVIEW'
+                                          ? 'Interview'
+                                          : 'Coaching'}
                                       </span>
                                       <span className="text-xs text-gray-400">
                                         {formatDate(note.createdAt)}
@@ -711,7 +718,7 @@ export default function ScheduledClientsPage() {
                         <div className="p-4 h-full overflow-y-auto">
                           {clientDocuments[client.id]?.length > 0 ? (
                             <div className="space-y-2">
-                              {clientDocuments[client.id].map((document) => (
+                              {clientDocuments[client.id].map(document => (
                                 <div
                                   key={document.id}
                                   onClick={() => handleViewDocument(document)}
@@ -730,8 +737,8 @@ export default function ScheduledClientsPage() {
                                     <span
                                       className="px-2 py-0.5 rounded-full"
                                       style={{
-                                        background: "#8b5cf620",
-                                        color: "#8b5cf6",
+                                        background: '#8b5cf620',
+                                        color: '#8b5cf6',
                                       }}
                                     >
                                       {document.documentType}
@@ -765,7 +772,7 @@ export default function ScheduledClientsPage() {
 
         {/* Print-friendly footer */}
         <div className="mt-8 text-center print:block">
-          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             Generated on {getCurrentDate()} • DestinationHealth Coaching Report
           </p>
         </div>

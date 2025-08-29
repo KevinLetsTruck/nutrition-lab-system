@@ -1,14 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { verifyAuthToken } from "@/lib/auth";
-import { z } from "zod";
-
-
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { verifyAuthToken } from '@/lib/auth';
+import { z } from 'zod';
 
 // Validation schema for creating notes
 const createNoteSchema = z.object({
   clientId: z.string(),
-  noteType: z.enum(["INTERVIEW", "COACHING"]),
+  noteType: z.enum(['INTERVIEW', 'COACHING']),
   title: z.string().optional(),
   chiefComplaints: z.string().optional(),
   healthHistory: z.string().optional(),
@@ -29,13 +27,13 @@ export async function GET(request: NextRequest) {
     const user = await verifyAuthToken(request);
 
     const searchParams = request.nextUrl.searchParams;
-    const clientId = searchParams.get("clientId");
-    const noteType = searchParams.get("noteType");
+    const clientId = searchParams.get('clientId');
+    const noteType = searchParams.get('noteType');
 
     const notes = await prisma.note.findMany({
       where: {
         ...(clientId && { clientId }),
-        ...(noteType && { noteType: noteType as "INTERVIEW" | "COACHING" }),
+        ...(noteType && { noteType: noteType as 'INTERVIEW' | 'COACHING' }),
       },
       include: {
         client: {
@@ -47,21 +45,21 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
 
     return NextResponse.json(notes);
   } catch (error) {
     if (
       error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
+      (error.message.includes('authorization') ||
+        error.message.includes('token'))
     ) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
     return NextResponse.json(
-      { error: "Failed to fetch notes" },
+      { error: 'Failed to fetch notes' },
       { status: 500 }
     );
   }
@@ -81,7 +79,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!client) {
-      return NextResponse.json({ error: "Client not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
     const note = await prisma.note.create({
@@ -117,21 +115,21 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (
       error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
+      (error.message.includes('authorization') ||
+        error.message.includes('token'))
     ) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid input", details: error.errors },
+        { error: 'Invalid input', details: error.errors },
         { status: 400 }
       );
     }
 
     return NextResponse.json(
-      { error: "Failed to create note" },
+      { error: 'Failed to create note' },
       { status: 500 }
     );
   }

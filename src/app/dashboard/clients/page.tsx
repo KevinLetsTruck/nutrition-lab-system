@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Search,
   Plus,
@@ -14,10 +14,10 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
-} from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+} from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 import {
   Select,
@@ -25,8 +25,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { TimelineExportButton } from "@/components/clients/TimelineExportButton";
+} from '@/components/ui/select';
+import { TimelineExportButton } from '@/components/clients/TimelineExportButton';
+import { ComprehensiveExportButton } from '@/components/exports/ComprehensiveExportButton';
 
 interface Client {
   id: string;
@@ -54,14 +55,14 @@ interface Client {
 export default function ClientDashboard() {
   const router = useRouter();
   const [clients, setClients] = useState<Client[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [sortConfig, setSortConfig] = useState<{
     key: string;
-    direction: "asc" | "desc";
+    direction: 'asc' | 'desc';
   } | null>(null);
 
   useEffect(() => {
@@ -76,15 +77,15 @@ export default function ClientDashboard() {
 
   const fetchClients = async () => {
     try {
-      if (typeof window === "undefined") return;
+      if (typeof window === 'undefined') return;
 
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       if (!token) {
-        router.push("/login");
+        router.push('/login');
         return;
       }
 
-      const response = await fetch("/api/clients", {
+      const response = await fetch('/api/clients', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -92,10 +93,10 @@ export default function ClientDashboard() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          router.push("/login");
+          router.push('/login');
           return;
         }
-        throw new Error("Failed to fetch clients");
+        throw new Error('Failed to fetch clients');
       }
 
       const data = await response.json();
@@ -103,7 +104,7 @@ export default function ClientDashboard() {
       const enhancedData = data.map((client: Client) => ({
         ...client,
         yearsOTR: Math.floor(Math.random() * 20) + 1,
-        healthGoals: ["Weight Loss", "Energy", "Sleep Quality"][
+        healthGoals: ['Weight Loss', 'Energy', 'Sleep Quality'][
           Math.floor(Math.random() * 3)
         ],
         lastAssessment:
@@ -123,7 +124,7 @@ export default function ClientDashboard() {
       }));
       setClients(enhancedData);
     } catch (error) {
-      console.error("Error fetching clients:", error);
+      console.error('Error fetching clients:', error);
     } finally {
       setLoading(false);
     }
@@ -131,13 +132,13 @@ export default function ClientDashboard() {
 
   // Sorting function
   const handleSort = (key: string) => {
-    let direction: "asc" | "desc" = "asc";
+    let direction: 'asc' | 'desc' = 'asc';
     if (
       sortConfig &&
       sortConfig.key === key &&
-      sortConfig.direction === "asc"
+      sortConfig.direction === 'asc'
     ) {
-      direction = "desc";
+      direction = 'desc';
     }
     setSortConfig({ key, direction });
   };
@@ -147,7 +148,7 @@ export default function ClientDashboard() {
     if (!sortConfig || sortConfig.key !== columnKey) {
       return <ChevronsUpDown className="w-4 h-4 text-gray-400" />;
     }
-    return sortConfig.direction === "asc" ? (
+    return sortConfig.direction === 'asc' ? (
       <ChevronUp className="w-4 h-4 text-gray-600" />
     ) : (
       <ChevronDown className="w-4 h-4 text-gray-600" />
@@ -169,18 +170,18 @@ export default function ClientDashboard() {
   };
 
   const filteredAndSortedClients = clients
-    .filter((client) => {
+    .filter(client => {
       const matchesSearch =
         client.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         client.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         client.email.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesFilter =
-        filterStatus === "all" || client.status === filterStatus;
+        filterStatus === 'all' || client.status === filterStatus;
 
       // Exclude archived clients from main list unless specifically filtering for them
       const isNotArchived =
-        client.status !== "ARCHIVED" || filterStatus === "ARCHIVED";
+        client.status !== 'ARCHIVED' || filterStatus === 'ARCHIVED';
 
       return matchesSearch && matchesFilter && isNotArchived;
     })
@@ -192,19 +193,19 @@ export default function ClientDashboard() {
       let bValue: any;
 
       switch (key) {
-        case "status":
+        case 'status':
           aValue = getStatusPriority(a.status);
           bValue = getStatusPriority(b.status);
           break;
-        case "name":
+        case 'name':
           aValue = `${a.firstName} ${a.lastName}`.toLowerCase();
           bValue = `${b.firstName} ${b.lastName}`.toLowerCase();
           break;
-        case "email":
+        case 'email':
           aValue = a.email.toLowerCase();
           bValue = b.email.toLowerCase();
           break;
-        case "lastAssessment":
+        case 'lastAssessment':
           aValue = a.lastAssessment ? new Date(a.lastAssessment).getTime() : 0;
           bValue = b.lastAssessment ? new Date(b.lastAssessment).getTime() : 0;
           break;
@@ -213,39 +214,39 @@ export default function ClientDashboard() {
           return 0;
       }
 
-      if (aValue < bValue) return direction === "asc" ? -1 : 1;
-      if (aValue > bValue) return direction === "asc" ? 1 : -1;
+      if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return direction === 'asc' ? 1 : -1;
       return 0;
     });
 
   // Status utility functions
   const getStatusVariant = (status: string) => {
     const statusConfig: { [key: string]: string } = {
-      SIGNED_UP: "default",
-      INITIAL_INTERVIEW_COMPLETED: "secondary",
-      ASSESSMENT_COMPLETED: "outline",
-      DOCS_UPLOADED: "secondary",
-      SCHEDULED: "outline",
-      ONGOING: "default",
-      ARCHIVED: "destructive",
+      SIGNED_UP: 'default',
+      INITIAL_INTERVIEW_COMPLETED: 'secondary',
+      ASSESSMENT_COMPLETED: 'outline',
+      DOCS_UPLOADED: 'secondary',
+      SCHEDULED: 'outline',
+      ONGOING: 'default',
+      ARCHIVED: 'destructive',
     };
-    return statusConfig[status] || "default";
+    return statusConfig[status] || 'default';
   };
 
   const formatStatusLabel = (status: string) => {
-    if (!status) return "Unknown Status";
+    if (!status) return 'Unknown Status';
 
     const statusConfig: { [key: string]: string } = {
-      SIGNED_UP: "Signed Up",
-      INITIAL_INTERVIEW_COMPLETED: "Interview Completed",
-      ASSESSMENT_COMPLETED: "Assessment Completed",
-      DOCS_UPLOADED: "Docs Uploaded",
-      SCHEDULED: "Scheduled",
-      ONGOING: "Ongoing",
-      ARCHIVED: "Archived",
+      SIGNED_UP: 'Signed Up',
+      INITIAL_INTERVIEW_COMPLETED: 'Interview Completed',
+      ASSESSMENT_COMPLETED: 'Assessment Completed',
+      DOCS_UPLOADED: 'Docs Uploaded',
+      SCHEDULED: 'Scheduled',
+      ONGOING: 'Ongoing',
+      ARCHIVED: 'Archived',
     };
 
-    return statusConfig[status] || status.replace(/_/g, " ");
+    return statusConfig[status] || status.replace(/_/g, ' ');
   };
 
   const handleArchive = async (clientId: string, clientName: string) => {
@@ -258,21 +259,21 @@ export default function ClientDashboard() {
     }
 
     try {
-      if (typeof window === "undefined") return;
+      if (typeof window === 'undefined') return;
 
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       if (!token) {
-        alert("Please log in again");
+        alert('Please log in again');
         return;
       }
 
       const response = await fetch(`/api/clients/${clientId}`, {
-        method: "PUT",
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status: "ARCHIVED" }),
+        body: JSON.stringify({ status: 'ARCHIVED' }),
       });
 
       if (response.ok) {
@@ -280,13 +281,13 @@ export default function ClientDashboard() {
         fetchClients(); // Refresh the list
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to archive client");
+        throw new Error(errorData.error || 'Failed to archive client');
       }
     } catch (error) {
-      console.error("Error archiving client:", error);
+      console.error('Error archiving client:', error);
       alert(
         `Failed to archive ${clientName}: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message : 'Unknown error'
         }`
       );
     }
@@ -302,21 +303,21 @@ export default function ClientDashboard() {
     }
 
     try {
-      if (typeof window === "undefined") return;
+      if (typeof window === 'undefined') return;
 
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       if (!token) {
-        alert("Please log in again");
+        alert('Please log in again');
         return;
       }
 
       const response = await fetch(`/api/clients/${clientId}`, {
-        method: "PUT",
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status: "ONGOING" }),
+        body: JSON.stringify({ status: 'ONGOING' }),
       });
 
       if (response.ok) {
@@ -324,13 +325,13 @@ export default function ClientDashboard() {
         fetchClients(); // Refresh the list
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to reactivate client");
+        throw new Error(errorData.error || 'Failed to reactivate client');
       }
     } catch (error) {
-      console.error("Error reactivating client:", error);
+      console.error('Error reactivating client:', error);
       alert(
         `Failed to reactivate ${clientName}: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message : 'Unknown error'
         }`
       );
     }
@@ -346,16 +347,16 @@ export default function ClientDashboard() {
     }
 
     try {
-      if (typeof window === "undefined") return;
+      if (typeof window === 'undefined') return;
 
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       if (!token) {
-        alert("Please log in again");
+        alert('Please log in again');
         return;
       }
 
       const response = await fetch(`/api/clients/${clientId}`, {
-        method: "DELETE",
+        method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -366,13 +367,13 @@ export default function ClientDashboard() {
         fetchClients(); // Refresh the list
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to delete client");
+        throw new Error(errorData.error || 'Failed to delete client');
       }
     } catch (error) {
-      console.error("Error deleting client:", error);
+      console.error('Error deleting client:', error);
       alert(
         `Failed to delete ${clientName}: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message : 'Unknown error'
         }`
       );
     }
@@ -380,27 +381,27 @@ export default function ClientDashboard() {
 
   const handleStatusUpdate = async (clientId: string, newStatus: string) => {
     try {
-      if (typeof window === "undefined") return;
+      if (typeof window === 'undefined') return;
 
       setUpdatingStatus(clientId);
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       if (!token) {
-        alert("Please log in again");
+        alert('Please log in again');
         return;
       }
 
       // Show loading state
       const originalClients = [...clients];
       setClients(
-        clients.map((client) =>
+        clients.map(client =>
           client.id === clientId ? { ...client, status: newStatus } : client
         )
       );
 
       const response = await fetch(`/api/clients/${clientId}`, {
-        method: "PUT",
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ status: newStatus }),
@@ -415,8 +416,8 @@ export default function ClientDashboard() {
         alert(`Failed to update status: ${errorData.error}`);
       }
     } catch (error) {
-      console.error("Error updating status:", error);
-      alert("Failed to update status");
+      console.error('Error updating status:', error);
+      alert('Failed to update status');
     } finally {
       setUpdatingStatus(null);
     }
@@ -471,12 +472,12 @@ export default function ClientDashboard() {
                   type="text"
                   placeholder="Search by name or email..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={e => setSearchTerm(e.target.value)}
                   className="pl-10 pr-10"
                 />
                 {searchTerm && (
                   <button
-                    onClick={() => setSearchTerm("")}
+                    onClick={() => setSearchTerm('')}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-700 transition-colors text-gray-400"
                   >
                     ×
@@ -486,7 +487,7 @@ export default function ClientDashboard() {
               {searchTerm && (
                 <p className="text-sm mt-2 text-gray-400">
                   {filteredAndSortedClients.length} client
-                  {filteredAndSortedClients.length !== 1 ? "s" : ""} found for "
+                  {filteredAndSortedClients.length !== 1 ? 's' : ''} found for "
                   {searchTerm}"
                 </p>
               )}
@@ -503,7 +504,7 @@ export default function ClientDashboard() {
               </label>
               <Select
                 value={filterStatus}
-                onValueChange={(value) => setFilterStatus(value)}
+                onValueChange={value => setFilterStatus(value)}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select status" />
@@ -536,30 +537,30 @@ export default function ClientDashboard() {
               <tr>
                 <th
                   className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider cursor-pointer hover:bg-[#334155] select-none transition-colors duration-200"
-                  onClick={() => handleSort("name")}
+                  onClick={() => handleSort('name')}
                 >
                   <div className="flex items-center gap-1">
                     Client
-                    {getSortIcon("name")}
+                    {getSortIcon('name')}
                   </div>
                 </th>
                 <th
                   className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider cursor-pointer hover:bg-[#334155] select-none transition-colors duration-200"
-                  onClick={() => handleSort("status")}
+                  onClick={() => handleSort('status')}
                 >
                   <div className="flex items-center gap-1">
                     Status
-                    {getSortIcon("status")}
+                    {getSortIcon('status')}
                   </div>
                 </th>
 
                 <th
                   className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider cursor-pointer hover:bg-[#334155] select-none transition-colors duration-200"
-                  onClick={() => handleSort("lastAssessment")}
+                  onClick={() => handleSort('lastAssessment')}
                 >
                   <div className="flex items-center gap-1">
                     Last Assessment
-                    {getSortIcon("lastAssessment")}
+                    {getSortIcon('lastAssessment')}
                   </div>
                 </th>
 
@@ -591,7 +592,7 @@ export default function ClientDashboard() {
                   </td>
                 </tr>
               ) : (
-                filteredAndSortedClients.map((client) => (
+                filteredAndSortedClients.map(client => (
                   <tr
                     key={client.id}
                     className="hover:bg-[#334155] transition-colors duration-200"
@@ -620,22 +621,23 @@ export default function ClientDashboard() {
                           </div>
                         ) : (
                           <select
-                            value={client.status || ""}
-                            onChange={(e) =>
+                            value={client.status || ''}
+                            onChange={e =>
                               handleStatusUpdate(client.id, e.target.value)
                             }
                             className={`px-2 py-1 text-xs rounded-xl bg-gray-900/50 border border-gray-700 cursor-pointer min-w-[140px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all ${
-                              getStatusVariant(client.status) === "default"
-                                ? "text-blue-400"
+                              getStatusVariant(client.status) === 'default'
+                                ? 'text-blue-400'
                                 : getStatusVariant(client.status) ===
-                                  "secondary"
-                                ? "text-green-400"
-                                : getStatusVariant(client.status) === "outline"
-                                ? "text-yellow-400"
-                                : getStatusVariant(client.status) ===
-                                  "destructive"
-                                ? "text-red-400"
-                                : "text-[#94a3b8]"
+                                    'secondary'
+                                  ? 'text-green-400'
+                                  : getStatusVariant(client.status) ===
+                                      'outline'
+                                    ? 'text-yellow-400'
+                                    : getStatusVariant(client.status) ===
+                                        'destructive'
+                                      ? 'text-red-400'
+                                      : 'text-[#94a3b8]'
                             }`}
                           >
                             <option value="SIGNED_UP">Signed Up</option>
@@ -678,7 +680,7 @@ export default function ClientDashboard() {
                         >
                           <Edit className="w-4 h-4" />
                         </Link>
-                        <div className="inline-block">
+                        <div className="inline-flex gap-2">
                           <TimelineExportButton
                             clientId={client.id}
                             clientName={`${client.firstName} ${client.lastName}`}
@@ -686,8 +688,14 @@ export default function ClientDashboard() {
                             size="sm"
                             defaultTimelineType="PROTOCOL_DEVELOPMENT"
                           />
+                          <ComprehensiveExportButton
+                            clientId={client.id}
+                            clientName={`${client.firstName} ${client.lastName}`}
+                            variant="default"
+                            size="sm"
+                          />
                         </div>
-                        {client.status !== "ARCHIVED" ? (
+                        {client.status !== 'ARCHIVED' ? (
                           <button
                             onClick={() =>
                               handleArchive(

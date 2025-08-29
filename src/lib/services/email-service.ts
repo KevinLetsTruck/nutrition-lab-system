@@ -10,14 +10,14 @@ import {
   type EmailRecipient,
   type EmailAttachment,
   type ProtocolEmailData,
-  type EmailDeliveryStatus
+  type EmailDeliveryStatus,
 } from '../utils/email-helpers';
 import {
   generateProtocolDeliveryEmail,
   generateProtocolDeliveryTextEmail,
   generateProtocolFollowUpEmail,
   generateEmailPreview,
-  validateEmailTemplateData
+  validateEmailTemplateData,
 } from '../templates/protocol-email-templates';
 
 // Email sending request interface
@@ -91,12 +91,14 @@ function initializeEmailService(): EmailServiceConfig {
   }
 
   const emailConfig = getEmailConfig();
-  
+
   serviceConfig = {
     apiKey,
     fromEmail: emailConfig.fromEmail,
     fromName: emailConfig.fromName,
-    testMode: process.env.NODE_ENV === 'development' || process.env.EMAIL_TEST_MODE === 'true',
+    testMode:
+      process.env.NODE_ENV === 'development' ||
+      process.env.EMAIL_TEST_MODE === 'true',
     dailyLimit: parseInt(process.env.EMAIL_DAILY_LIMIT || '100'),
     monthlyLimit: parseInt(process.env.EMAIL_MONTHLY_LIMIT || '3000'),
   };
@@ -104,8 +106,10 @@ function initializeEmailService(): EmailServiceConfig {
   // Initialize Resend client
   resendClient = new Resend(apiKey);
 
-  console.log(`📧 Email service initialized (${serviceConfig.testMode ? 'TEST' : 'PRODUCTION'} mode)`);
-  
+  console.log(
+    `📧 Email service initialized (${serviceConfig.testMode ? 'TEST' : 'PRODUCTION'} mode)`
+  );
+
   return serviceConfig;
 }
 
@@ -122,7 +126,9 @@ function getResendClient(): Resend {
 /**
  * Send a protocol delivery email
  */
-export async function sendProtocolEmail(request: EmailSendRequest): Promise<EmailSendResult> {
+export async function sendProtocolEmail(
+  request: EmailSendRequest
+): Promise<EmailSendResult> {
   const startTime = Date.now();
 
   try {
@@ -130,7 +136,9 @@ export async function sendProtocolEmail(request: EmailSendRequest): Promise<Emai
     const config = initializeEmailService();
     const resend = getResendClient();
 
-    console.log(`📤 Sending protocol email to ${request.recipients.length} recipients`);
+    console.log(
+      `📤 Sending protocol email to ${request.recipients.length} recipients`
+    );
 
     // Validate template data
     const validationErrors = validateEmailTemplateData(request.templateData);
@@ -138,10 +146,12 @@ export async function sendProtocolEmail(request: EmailSendRequest): Promise<Emai
       return {
         success: false,
         error: `Template validation failed: ${validationErrors.join(', ')}`,
-        trackingId: request.trackingId || generateEmailTrackingId(
-          request.templateData.protocol.id,
-          request.templateData.client.email
-        ),
+        trackingId:
+          request.trackingId ||
+          generateEmailTrackingId(
+            request.templateData.protocol.id,
+            request.templateData.client.email
+          ),
         recipientCount: 0,
         deliveryStatus: 'failed',
       };
@@ -153,41 +163,52 @@ export async function sendProtocolEmail(request: EmailSendRequest): Promise<Emai
       return {
         success: false,
         error: 'No valid email recipients provided',
-        trackingId: request.trackingId || generateEmailTrackingId(
-          request.templateData.protocol.id,
-          request.templateData.client.email
-        ),
+        trackingId:
+          request.trackingId ||
+          generateEmailTrackingId(
+            request.templateData.protocol.id,
+            request.templateData.client.email
+          ),
         recipientCount: 0,
         deliveryStatus: 'failed',
       };
     }
 
     // Check sending limits
-    const attachmentSizes = request.attachments?.map(a => a.content.length) || [];
-    const limitCheck = checkEmailLimits(cleanedRecipients.length, attachmentSizes);
+    const attachmentSizes =
+      request.attachments?.map(a => a.content.length) || [];
+    const limitCheck = checkEmailLimits(
+      cleanedRecipients.length,
+      attachmentSizes
+    );
     if (!limitCheck.isValid) {
       return {
         success: false,
         error: limitCheck.errors.join(', '),
-        trackingId: request.trackingId || generateEmailTrackingId(
-          request.templateData.protocol.id,
-          request.templateData.client.email
-        ),
+        trackingId:
+          request.trackingId ||
+          generateEmailTrackingId(
+            request.templateData.protocol.id,
+            request.templateData.client.email
+          ),
         recipientCount: cleanedRecipients.length,
         deliveryStatus: 'failed',
       };
     }
 
     // Generate tracking ID
-    const trackingId = request.trackingId || generateEmailTrackingId(
-      request.templateData.protocol.id,
-      request.templateData.client.email
-    );
+    const trackingId =
+      request.trackingId ||
+      generateEmailTrackingId(
+        request.templateData.protocol.id,
+        request.templateData.client.email
+      );
 
     // Merge custom message into template data
     const templateData = {
       ...request.templateData,
-      customMessage: request.customMessage || request.templateData.customMessage,
+      customMessage:
+        request.customMessage || request.templateData.customMessage,
     };
 
     // Generate email content
@@ -199,10 +220,12 @@ export async function sendProtocolEmail(request: EmailSendRequest): Promise<Emai
     );
 
     // Generate subject
-    const subject = request.subject || generateEmailSubject(
-      templateData.protocol.name,
-      `${templateData.client.firstName} ${templateData.client.lastName}`
-    );
+    const subject =
+      request.subject ||
+      generateEmailSubject(
+        templateData.protocol.name,
+        `${templateData.client.firstName} ${templateData.client.lastName}`
+      );
 
     // Prepare Resend email data
     const resendData: any = {
@@ -242,7 +265,7 @@ export async function sendProtocolEmail(request: EmailSendRequest): Promise<Emai
       console.log(`  Subject: ${subject}`);
       console.log(`  Attachments: ${request.attachments?.length || 0}`);
       console.log(`  Tracking ID: ${trackingId}`);
-      
+
       // Mock successful response
       result = {
         id: `test_${trackingId}`,
@@ -280,11 +303,12 @@ export async function sendProtocolEmail(request: EmailSendRequest): Promise<Emai
         emailProvider: 'resend',
         sentAt: new Date(),
         attachmentCount: request.attachments?.length || 0,
-        totalSize: attachmentSizes.reduce((sum, size) => sum + size, 0) + htmlContent.length,
+        totalSize:
+          attachmentSizes.reduce((sum, size) => sum + size, 0) +
+          htmlContent.length,
         ...metadata,
       },
     };
-
   } catch (error: any) {
     const sendTime = Date.now() - startTime;
     console.error(`❌ Email sending failed after ${sendTime}ms:`, error);
@@ -292,10 +316,12 @@ export async function sendProtocolEmail(request: EmailSendRequest): Promise<Emai
     return {
       success: false,
       error: error.message || 'Unknown email sending error',
-      trackingId: request.trackingId || generateEmailTrackingId(
-        request.templateData.protocol.id,
-        request.templateData.client.email
-      ),
+      trackingId:
+        request.trackingId ||
+        generateEmailTrackingId(
+          request.templateData.protocol.id,
+          request.templateData.client.email
+        ),
       recipientCount: 0,
       deliveryStatus: 'failed',
     };
@@ -305,7 +331,9 @@ export async function sendProtocolEmail(request: EmailSendRequest): Promise<Emai
 /**
  * Send a follow-up email (reminder, check-in, etc.)
  */
-export async function sendFollowUpEmail(request: FollowUpEmailRequest): Promise<EmailSendResult> {
+export async function sendFollowUpEmail(
+  request: FollowUpEmailRequest
+): Promise<EmailSendResult> {
   try {
     const config = initializeEmailService();
     const resend = getResendClient();
@@ -324,9 +352,13 @@ export async function sendFollowUpEmail(request: FollowUpEmailRequest): Promise<
 
     // Generate follow-up email content
     const htmlContent = generateProtocolFollowUpEmail(request.templateData);
-    const subject = `${request.templateData.followUpType === 'reminder' ? 'Reminder' : 
-                     request.templateData.followUpType === 'check-in' ? 'Check-in' : 
-                     'Update'}: ${request.templateData.protocol.name}`;
+    const subject = `${
+      request.templateData.followUpType === 'reminder'
+        ? 'Reminder'
+        : request.templateData.followUpType === 'check-in'
+          ? 'Check-in'
+          : 'Update'
+    }: ${request.templateData.protocol.name}`;
 
     // Send email
     const resendData = {
@@ -346,11 +378,16 @@ export async function sendFollowUpEmail(request: FollowUpEmailRequest): Promise<
       ],
     };
 
-    const result = config.testMode 
-      ? { id: `test_followup_${trackingId}`, to: cleanedRecipients.map(r => r.email) }
+    const result = config.testMode
+      ? {
+          id: `test_followup_${trackingId}`,
+          to: cleanedRecipients.map(r => r.email),
+        }
       : await resend.emails.send(resendData);
 
-    console.log(`📧 Follow-up email (${request.templateData.followUpType}) sent: ${result.id}`);
+    console.log(
+      `📧 Follow-up email (${request.templateData.followUpType}) sent: ${result.id}`
+    );
 
     return {
       success: true,
@@ -359,7 +396,6 @@ export async function sendFollowUpEmail(request: FollowUpEmailRequest): Promise<
       recipientCount: cleanedRecipients.length,
       deliveryStatus: config.testMode ? 'sent' : 'sending',
     };
-
   } catch (error: any) {
     console.error('❌ Follow-up email sending failed:', error);
     return {
@@ -389,7 +425,7 @@ export async function testEmailService(): Promise<{
 
     // Test basic API connectivity
     // Note: Resend doesn't have a dedicated test endpoint, so we'll validate the config
-    
+
     return {
       success: true,
       config: {
@@ -421,7 +457,7 @@ export async function getEmailServiceHealth(): Promise<{
 }> {
   try {
     const testResult = await testEmailService();
-    
+
     if (testResult.success) {
       return {
         status: 'healthy',
@@ -460,7 +496,7 @@ export async function updateEmailDeliveryStatus(
     if (reason) {
       console.log(`   Reason: ${reason}`);
     }
-    
+
     // This function would typically update the database
     // For now, just log the status update
     return true;
@@ -504,11 +540,15 @@ export function validateEmailTemplate(templateData: ProtocolEmailData): {
 
   // Additional warnings for better email delivery
   if (!templateData.practitioner.email) {
-    warnings.push('Practitioner email not provided - clients cannot reply directly');
+    warnings.push(
+      'Practitioner email not provided - clients cannot reply directly'
+    );
   }
 
   if (!templateData.attachments) {
-    warnings.push('No PDF attachment - clients will receive email without protocol document');
+    warnings.push(
+      'No PDF attachment - clients will receive email without protocol document'
+    );
   }
 
   if (templateData.protocol.supplementCount === 0) {
@@ -528,5 +568,8 @@ try {
     initializeEmailService();
   }
 } catch (error) {
-  console.warn('📧 Email service initialization deferred:', (error as Error).message);
+  console.warn(
+    '📧 Email service initialization deferred:',
+    (error as Error).message
+  );
 }

@@ -20,7 +20,7 @@ export class AssessmentAPIClient {
     const response = await fetch(`${API_BASE}/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ clientId })
+      body: JSON.stringify({ clientId }),
     });
     return response.json();
   }
@@ -46,7 +46,7 @@ export class AssessmentAPIClient {
     const response = await fetch(`${API_BASE}/${assessmentId}/response`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ questionId, value, text, confidence })
+      body: JSON.stringify({ questionId, value, text, confidence }),
     });
     return response.json();
   }
@@ -56,7 +56,7 @@ export class AssessmentAPIClient {
    */
   async pauseAssessment(assessmentId: string): Promise<AssessmentResponse> {
     const response = await fetch(`${API_BASE}/${assessmentId}/pause`, {
-      method: 'POST'
+      method: 'POST',
     });
     return response.json();
   }
@@ -66,7 +66,7 @@ export class AssessmentAPIClient {
    */
   async resumeAssessment(assessmentId: string): Promise<AssessmentResponse> {
     const response = await fetch(`${API_BASE}/${assessmentId}/resume`, {
-      method: 'POST'
+      method: 'POST',
     });
     return response.json();
   }

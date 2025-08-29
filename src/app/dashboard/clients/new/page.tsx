@@ -1,59 +1,59 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useAuth } from "@/lib/auth-context";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useAuth } from '@/lib/auth-context';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
+} from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function NewClientPage() {
   const router = useRouter();
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setError('');
 
     const formData = new FormData(e.currentTarget);
     const data = {
-      firstName: formData.get("firstName"),
-      lastName: formData.get("lastName"),
-      email: formData.get("email"),
-      phone: formData.get("phone") || undefined,
-      dateOfBirth: formData.get("dateOfBirth") || undefined,
-      gender: formData.get("gender") || undefined,
-      isTruckDriver: formData.get("isTruckDriver") === "on",
-      healthGoals: formData.get("healthGoals")
-        ? [formData.get("healthGoals") as string]
+      firstName: formData.get('firstName'),
+      lastName: formData.get('lastName'),
+      email: formData.get('email'),
+      phone: formData.get('phone') || undefined,
+      dateOfBirth: formData.get('dateOfBirth') || undefined,
+      gender: formData.get('gender') || undefined,
+      isTruckDriver: formData.get('isTruckDriver') === 'on',
+      healthGoals: formData.get('healthGoals')
+        ? [formData.get('healthGoals') as string]
         : undefined,
     };
 
     try {
       if (!token) {
-        router.push("/login");
+        router.push('/login');
         return;
       }
 
-      const response = await fetch("/api/clients", {
-        method: "POST",
+      const response = await fetch('/api/clients', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
@@ -61,18 +61,18 @@ export default function NewClientPage() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          localStorage.removeItem("token");
-          router.push("/login");
+          localStorage.removeItem('token');
+          router.push('/login');
           return;
         }
         const result = await response.json();
-        throw new Error(result.error || "Failed to create client");
+        throw new Error(result.error || 'Failed to create client');
       }
 
       const client = await response.json();
       router.push(`/dashboard/clients/${client.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -248,7 +248,7 @@ export default function NewClientPage() {
                     disabled={loading}
                     className="bg-brand-green hover:bg-brand-green/90 border-brand-green"
                   >
-                    {loading ? "Creating..." : "Create Client"}
+                    {loading ? 'Creating...' : 'Create Client'}
                   </Button>
                 </div>
               </div>

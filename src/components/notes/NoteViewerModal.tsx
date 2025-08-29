@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { X, Edit, Star, AlertCircle, Calendar, User } from "lucide-react";
+import { useState } from 'react';
+import { X, Edit, Star, AlertCircle, Calendar, User } from 'lucide-react';
 
 interface Note {
   id: string;
-  noteType: "INTERVIEW" | "COACHING";
+  noteType: 'INTERVIEW' | 'COACHING';
   title?: string;
   chiefComplaints?: string;
   healthHistory?: string;
@@ -47,17 +47,17 @@ export default function NoteViewerModal({
   if (!isOpen || !note || !client) return null;
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
   const renderField = (label: string, content: string | undefined) => {
-    if (!content || content.trim() === "") return null;
+    if (!content || content.trim() === '') return null;
 
     return (
       <div className="mb-6">
@@ -78,12 +78,12 @@ export default function NoteViewerModal({
             <div className="flex items-center space-x-2">
               <div
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  note.noteType === "INTERVIEW"
-                    ? "bg-green-500/20 text-green-400"
-                    : "bg-blue-500/20 text-blue-400"
+                  note.noteType === 'INTERVIEW'
+                    ? 'bg-green-500/20 text-green-400'
+                    : 'bg-blue-500/20 text-blue-400'
                 }`}
               >
-                {note.noteType === "INTERVIEW" ? "📋 Interview" : "🎯 Coaching"}{" "}
+                {note.noteType === 'INTERVIEW' ? '📋 Interview' : '🎯 Coaching'}{' '}
                 Note
               </div>
               {note.isImportant && <Star className="w-5 h-5 text-yellow-400" />}
@@ -157,7 +157,7 @@ export default function NoteViewerModal({
             <div className="space-y-6">
               {renderField(
                 `${
-                  note.noteType === "INTERVIEW" ? "Interview" : "Coaching"
+                  note.noteType === 'INTERVIEW' ? 'Interview' : 'Coaching'
                 } Notes`,
                 note.generalNotes
               )}
