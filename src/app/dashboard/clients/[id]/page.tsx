@@ -33,7 +33,7 @@ import { Button } from '@/components/ui/button';
 import dynamic from 'next/dynamic';
 import { ExportClientButton } from '@/components/clients/ExportClientButton';
 import { TimelineExportButton } from '@/components/clients/TimelineExportButton';
-import { ComprehensiveExportButton } from '@/components/exports/ComprehensiveExportButton';
+
 import { ProtocolImportDialog } from '@/components/protocols/ProtocolImportDialog';
 
 // Dynamically import SimplePDFViewer with SSR disabled
@@ -896,12 +896,6 @@ export default function ClientDetailPage() {
                     size="sm"
                     defaultTimelineType="PROTOCOL_DEVELOPMENT"
                   />
-                  <ComprehensiveExportButton
-                    clientId={client.id}
-                    clientName={`${client.firstName} ${client.lastName}`}
-                    variant="default"
-                    size="sm"
-                  />
                   <ExportClientButton
                     clientId={client.id}
                     clientName={`${client.firstName} ${client.lastName}`}
@@ -923,14 +917,6 @@ export default function ClientDetailPage() {
                     <Link href={`/dashboard/clients/${client.id}/protocols`}>
                       <FlaskConical className="h-4 w-4 mr-1" />
                       Protocols ({protocols.length})
-                    </Link>
-                  </Button>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link
-                      href={`/dashboard/clients/${client.id}/analysis/import`}
-                    >
-                      <Brain className="h-4 w-4 mr-1" />
-                      Import Analysis
                     </Link>
                   </Button>
                 </div>

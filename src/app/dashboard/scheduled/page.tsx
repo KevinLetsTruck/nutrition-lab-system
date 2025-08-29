@@ -17,7 +17,7 @@ import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TimelineExportButton } from '@/components/clients/TimelineExportButton';
-import { ComprehensiveExportButton } from '@/components/exports/ComprehensiveExportButton';
+
 
 // Dynamically import SimplePDFViewer with SSR disabled
 const SimplePDFViewer = dynamic(
@@ -572,12 +572,6 @@ export default function ScheduledClientsPage() {
                               variant="outline"
                               size="sm"
                               defaultTimelineType="PROTOCOL_DEVELOPMENT"
-                            />
-                            <ComprehensiveExportButton
-                              clientId={client.id}
-                              clientName={`${client.firstName} ${client.lastName}`}
-                              variant="default"
-                              size="sm"
                             />
                           </div>
                         </div>

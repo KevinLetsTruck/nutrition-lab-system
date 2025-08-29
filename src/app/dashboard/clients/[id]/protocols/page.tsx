@@ -226,10 +226,10 @@ export default function ClientProtocolsPage() {
                 <div className="flex gap-2">
                   <Button variant="outline" asChild>
                     <Link
-                      href={`/dashboard/clients/${client.id}/analysis/import`}
+                      href={`/dashboard/clients/${client.id}`}
                     >
-                      <Brain className="h-4 w-4 mr-2" />
-                      Import Analysis
+                      <Upload className="h-4 w-4 mr-2" />
+                      Go to Import Protocol
                     </Link>
                   </Button>
                   <Button asChild>

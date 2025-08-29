@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { TimelineExportButton } from '@/components/clients/TimelineExportButton';
-import { ComprehensiveExportButton } from '@/components/exports/ComprehensiveExportButton';
+
 
 interface Client {
   id: string;
@@ -687,12 +687,6 @@ export default function ClientDashboard() {
                             variant="outline"
                             size="sm"
                             defaultTimelineType="PROTOCOL_DEVELOPMENT"
-                          />
-                          <ComprehensiveExportButton
-                            clientId={client.id}
-                            clientName={`${client.firstName} ${client.lastName}`}
-                            variant="default"
-                            size="sm"
                           />
                         </div>
                         {client.status !== 'ARCHIVED' ? (

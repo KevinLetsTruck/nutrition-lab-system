@@ -248,9 +248,9 @@ export default function CreateProtocolPage() {
                         </Button>
                         <Button variant="outline" size="sm" asChild>
                           <Link
-                            href={`/dashboard/clients/${selectedClient.id}/analysis/import`}
+                            href={`/dashboard/clients/${selectedClient.id}`}
                           >
-                            Import Analysis First
+                            Go to Import Protocol
                           </Link>
                         </Button>
                       </div>

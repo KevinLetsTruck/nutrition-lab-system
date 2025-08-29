@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db';
 import { AnalysisHistoryList } from '@/components/analysis/AnalysisHistoryList';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, Brain } from 'lucide-react';
+import { ArrowLeft, Plus, Brain, Upload } from 'lucide-react';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -79,9 +79,9 @@ export default async function AnalysisHistoryPage({ params }: PageProps) {
           </Button>
 
           <Button asChild>
-            <Link href={`/dashboard/clients/${client.id}/analysis/import`}>
-              <Plus className="h-4 w-4 mr-2" />
-              Import Analysis
+            <Link href={`/dashboard/clients/${client.id}`}>
+              <Upload className="h-4 w-4 mr-2" />
+              Go to Import Protocol
             </Link>
           </Button>
         </div>
