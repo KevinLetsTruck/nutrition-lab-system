@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -18,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/auth-context";
 import {
   Download,
   Clock,
@@ -91,6 +93,7 @@ export function TimelineExportDialog({
   onOpenChange,
   defaultTimelineType = "PROTOCOL_DEVELOPMENT",
 }: TimelineExportDialogProps) {
+  const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [timelineType, setTimelineType] =
     useState<TimelineType>(defaultTimelineType);
@@ -114,6 +117,13 @@ export function TimelineExportDialog({
   const IconComponent = selectedOption?.icon || Target;
 
   const handleExport = async () => {
+    if (!token) {
+      toast.error("Authentication required", {
+        description: "Please log in to export timeline data.",
+      });
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -144,7 +154,10 @@ export function TimelineExportDialog({
 
       const response = await fetch(`/api/clients/${clientId}/timeline-export`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(requestBody),
       });
 
@@ -204,6 +217,9 @@ export function TimelineExportDialog({
             <IconComponent className="h-5 w-5" />
             Timeline Export - {clientName}
           </DialogTitle>
+          <DialogDescription className="text-gray-600 dark:text-gray-400">
+            Generate comprehensive health timeline with functional medicine analysis optimized for Claude Desktop protocol development.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
