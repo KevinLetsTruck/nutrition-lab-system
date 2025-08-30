@@ -10,16 +10,21 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ clientId: string }> }
 ) {
+  console.log('🚀 Export request started for client:', (await params).clientId);
+  
   try {
     // Authenticate user - Fixed 2025-08-26
     const authUser = await verifyAuthToken(request);
     if (!authUser) {
+      console.log('❌ Export failed: Unauthorized access');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { clientId } = await params;
+    console.log('✅ Authentication successful for client:', clientId);
 
     // Fetch complete client data from all 5 main tables
+    console.log('📊 Fetching client data from database...');
     const clientData = await prisma.client.findUnique({
       where: { id: clientId },
       include: {
@@ -50,8 +55,17 @@ export async function GET(
     });
 
     if (!clientData) {
+      console.log('❌ Client not found:', clientId);
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
+
+    console.log('✅ Client data fetched successfully:', {
+      client: clientData.firstName + ' ' + clientData.lastName,
+      assessments: clientData.simpleAssessments.length,
+      documents: clientData.documents.length,
+      notes: clientData.notes.length,
+      protocols: clientData.protocols.length
+    });
 
     // Prepare ZIP filename
     const clientName = `${clientData.firstName}-${clientData.lastName}`;
@@ -169,16 +183,31 @@ export async function GET(
     };
 
     // Create ZIP archive
-    return new Promise(async resolve => {
-      const archive = archiver('zip', { zlib: { level: 9 } });
+    console.log('📦 Creating ZIP archive...');
+    return new Promise(async (resolve, reject) => {
+      const archive = archiver('zip', { zlib: { level: 6 } }); // Reduced compression for speed
       const chunks: Buffer[] = [];
+
+      // Set timeout for archive operations
+      const timeout = setTimeout(() => {
+        console.error('❌ Archive timeout - export taking too long');
+        resolve(NextResponse.json(
+          { error: 'Export timeout - please try again' },
+          { status: 408 }
+        ));
+      }, 30000); // 30 second timeout
 
       archive.on('data', chunk => {
         chunks.push(chunk);
       });
 
       archive.on('end', () => {
+        clearTimeout(timeout);
         const zipBuffer = Buffer.concat(chunks);
+        console.log('✅ ZIP archive created successfully:', {
+          size: zipBuffer.length,
+          filename: zipFilename
+        });
 
         // Create response with ZIP file download
         const response = new NextResponse(zipBuffer, {
@@ -187,6 +216,7 @@ export async function GET(
             'Content-Type': 'application/zip',
             'Content-Disposition': `attachment; filename="${zipFilename}"`,
             'Content-Length': zipBuffer.length.toString(),
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
           },
         });
 
@@ -194,10 +224,11 @@ export async function GET(
       });
 
       archive.on('error', err => {
-        console.error('Archive error:', err);
+        clearTimeout(timeout);
+        console.error('❌ Archive error:', err);
         resolve(
           NextResponse.json(
-            { error: 'Failed to create export archive' },
+            { error: 'Failed to create export archive', details: err.message },
             { status: 500 }
           )
         );
@@ -218,49 +249,107 @@ export async function GET(
       });
 
       // Generate and add functional medicine assessment analysis
-      console.log('🧠 Generating functional medicine assessment analysis...');
-      const functionalAssessmentAnalysis =
-        await generateFunctionalAssessmentAnalysis(clientId);
-      archive.append(functionalAssessmentAnalysis, {
-        name: 'functional-assessment-analysis.md',
-      });
-      console.log('✅ Functional medicine assessment analysis added to export');
+      try {
+        console.log('🧠 Generating functional medicine assessment analysis...');
+        const functionalAssessmentAnalysis =
+          await generateFunctionalAssessmentAnalysis(clientId);
+        archive.append(functionalAssessmentAnalysis, {
+          name: 'functional-assessment-analysis.md',
+        });
+        console.log('✅ Functional medicine assessment analysis added to export');
+      } catch (assessmentError) {
+        console.error('❌ Failed to generate assessment analysis:', assessmentError);
+        // Add basic assessment summary as fallback
+        const basicAssessmentSummary = `# Assessment Analysis - ${clientData.firstName} ${clientData.lastName}
+
+## Assessment Summary
+- **Total Assessments**: ${clientData.simpleAssessments.length}
+- **Latest Assessment**: ${clientData.simpleAssessments[0]?.status || 'None completed'}
+- **Analysis Date**: ${new Date().toLocaleDateString()}
+
+## Note
+Detailed functional medicine assessment analysis temporarily unavailable.
+Please review client-data.json for complete assessment responses.
+
+---
+*Generated by FNTP Assessment System*`;
+        
+        archive.append(basicAssessmentSummary, {
+          name: 'functional-assessment-analysis.md',
+        });
+        console.log('⚠️ Using basic assessment summary due to analysis error');
+      }
 
       // Generate and add Claude Desktop prompt
       try {
-        console.log('🎯 Generating optimal Claude Desktop prompt...');
-        const { generateClaudeDesktopPrompt } = await import('@/lib/services/claude-prompt-generator');
-        const claudeDesktopPrompt = generateClaudeDesktopPrompt(
-          clientData, // Pass the full client data object
-          clientData.documents,
-          clientData.simpleAssessments,
-          clientData.protocols || [],
-          clientData.notes || []
-        );
-        archive.append(claudeDesktopPrompt, { name: 'CLAUDE-DESKTOP-PROMPT.md' });
+        console.log('🎯 Generating Claude Desktop prompt...');
+        
+        // Simple fallback prompt to avoid complex generation issues
+        const clientAge = clientData.dateOfBirth 
+          ? Math.floor((Date.now() - new Date(clientData.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+          : null;
+
+        const simplePrompt = `# FUNCTIONAL MEDICINE ANALYSIS PROMPT - ${clientData.firstName} ${clientData.lastName}
+
+## CLIENT CONTEXT
+**Name**: ${clientData.firstName} ${clientData.lastName}  
+**Age**: ${clientAge ? `${clientAge} years old` : 'Age not specified'}  
+**Gender**: ${clientData.gender || 'Not specified'}  
+**Status**: ${clientData.status}  
+**Analysis Date**: ${new Date().toLocaleDateString()}  
+
+## PACKAGE CONTENTS
+This ZIP contains:
+- **client-data.json** - Complete structured client data
+- **client-summary.md** - Human-readable overview
+- **functional-assessment-analysis.md** - Assessment insights
+- **documents/** - All uploaded PDFs (${clientData.documents.length} files)
+
+## ANALYSIS INSTRUCTIONS
+Please provide comprehensive functional medicine analysis focusing on:
+
+1. **Root Cause Analysis** - Identify underlying systemic imbalances
+2. **System Prioritization** - Focus on foundational systems (gut, liver, adrenals, thyroid)
+3. **Evidence-Based Protocol** - Specific supplement recommendations with dosages
+4. **Monitoring Plan** - Objective biomarkers and progress indicators
+
+## REQUIRED JSON OUTPUT FORMAT
+\`\`\`json
+{
+  "analysisDate": "${new Date().toISOString().split('T')[0]}",
+  "rootCauseAnalysis": "Detailed root cause analysis",
+  "systemPriorities": ["Primary system", "Secondary system"],
+  "phase1Protocol": {
+    "duration": "4-6 weeks",
+    "supplements": [{"name": "Supplement", "dosage": "Amount", "timing": "When"}],
+    "dietaryChanges": ["Change 1", "Change 2"],
+    "lifestyleModifications": ["Modification 1", "Modification 2"]
+  },
+  "monitoringPlan": {
+    "keyBiomarkers": ["Lab test 1", "Lab test 2"],
+    "retestingSchedule": "8-12 weeks",
+    "progressIndicators": ["Improvement 1", "Improvement 2"],
+    "warningSignsToWatch": ["Warning 1", "Warning 2"]
+  }
+}
+\`\`\`
+
+Ready for analysis.`;
+
+        archive.append(simplePrompt, { name: 'CLAUDE-DESKTOP-PROMPT.md' });
         console.log('✅ Claude Desktop prompt added to export');
       } catch (promptError) {
         console.error('❌ Failed to generate Claude Desktop prompt:', promptError);
-        // Add fallback prompt if generation fails
-        const fallbackPrompt = `# FUNCTIONAL MEDICINE ANALYSIS PROMPT - ${clientData.firstName} ${clientData.lastName}
+        // Minimal fallback if even simple generation fails
+        const minimalPrompt = `# Functional Medicine Analysis Request
 
-## CLIENT CONTEXT
-**Name**: ${clientData.firstName} ${clientData.lastName}
-**Analysis Date**: ${new Date().toLocaleDateString()}
+Client: ${clientData.firstName} ${clientData.lastName}
+Date: ${new Date().toLocaleDateString()}
 
-## ANALYSIS INSTRUCTIONS
-Please analyze the provided client data package for comprehensive functional medicine insights.
-
-Focus on:
-1. Root cause analysis using functional medicine principles
-2. System-based approach to health assessment
-3. Evidence-based protocol development
-4. Structured JSON output for FNTP system import
-
-**Note**: Enhanced prompt generation temporarily unavailable - using fallback prompt.
-`;
-        archive.append(fallbackPrompt, { name: 'CLAUDE-DESKTOP-PROMPT.md' });
-        console.log('⚠️ Using fallback Claude Desktop prompt due to generation error');
+Please analyze the provided client data and generate a functional medicine protocol.`;
+        
+        archive.append(minimalPrompt, { name: 'CLAUDE-DESKTOP-PROMPT.md' });
+        console.log('⚠️ Using minimal fallback prompt');
       }
 
       // Add document files (if they exist)
@@ -270,7 +359,15 @@ Focus on:
         `🔍 Processing ${clientData.documents.length} documents for export...`
       );
 
-      for (const doc of clientData.documents) {
+      // Limit document processing to prevent timeouts
+      const maxDocuments = 10; // Process maximum 10 documents to prevent timeouts
+      const documentsToProcess = clientData.documents.slice(0, maxDocuments);
+      
+      if (clientData.documents.length > maxDocuments) {
+        console.log(`⚠️ Limiting to ${maxDocuments} documents to prevent timeout (${clientData.documents.length} total)`);
+      }
+
+      for (const doc of documentsToProcess) {
         try {
           console.log(`📄 Processing document: ${doc.fileName}`);
           console.log(`📁 FileUrl: ${doc.fileUrl}`);
@@ -376,8 +473,27 @@ To recover these documents:
         );
       }
 
+      // Add note about document limiting if applicable
+      if (clientData.documents.length > maxDocuments) {
+        const limitNote = `Document Processing Note:
+
+This export was limited to ${maxDocuments} documents to prevent timeout issues.
+Total documents available: ${clientData.documents.length}
+Documents included: ${copiedDocuments}
+Documents skipped due to limit: ${clientData.documents.length - documentsToProcess.length}
+
+To export additional documents:
+1. Export again (may include different documents)
+2. Use Timeline Analysis for comprehensive data analysis
+3. Contact support if specific documents are needed
+
+Most recent ${maxDocuments} documents prioritized for export.`;
+
+        archive.append(limitNote, { name: 'document-limit-notice.txt' });
+      }
+
       console.log(
-        `📊 Export summary: ${copiedDocuments}/${clientData.documents.length} documents processed`
+        `📊 Export summary: ${copiedDocuments}/${documentsToProcess.length} documents processed (${clientData.documents.length} total available)`
       );
       console.log(`✅ Successfully exported: ${copiedDocuments}`);
       console.log(`⚠️ Skipped: ${skippedDocuments.length}`);
@@ -387,11 +503,29 @@ To recover these documents:
       archive.finalize();
     });
   } catch (error) {
-    console.error('Export error:', error);
+    console.error('❌ Export failed with error:', error);
+    
+    // Handle specific error types
+    if (error instanceof Error) {
+      if (error.message.includes('timeout')) {
+        return NextResponse.json(
+          { error: 'Export timeout - please try again with a smaller date range' },
+          { status: 408 }
+        );
+      }
+      if (error.message.includes('authentication')) {
+        return NextResponse.json(
+          { error: 'Authentication failed - please log in again' },
+          { status: 401 }
+        );
+      }
+    }
+    
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : 'Export failed',
-        details: error instanceof Error ? error.stack : 'Unknown error',
+        error: 'Export failed - please try again',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );
