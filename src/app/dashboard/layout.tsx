@@ -126,6 +126,17 @@ export default function DashboardLayout({
                   <Sparkles className="h-5 w-5 mr-3" />
                   AI Workflow
                 </Link>
+                <Link
+                  href="/dashboard/admin/assessment"
+                  className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium rounded-xl transition-all ${
+                    isActive('/dashboard/admin')
+                      ? 'text-brand-green bg-brand-green/10 border border-brand-green/30'
+                      : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                  }`}
+                >
+                  <Brain className="h-5 w-5 mr-3" />
+                  Assessment Admin
+                </Link>
               </div>
               
               {/* AI Workflow Quick Access */}
