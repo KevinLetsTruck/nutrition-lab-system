@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/auth-context';
+import { WorkflowNavigation } from '@/components/navigation/WorkflowNavigation';
 import { toast } from 'sonner';
 
 interface ProtocolData {
@@ -347,6 +348,15 @@ export default function ProtocolDetailPage() {
             </Button>
           </div>
         </div>
+
+        {/* AI Workflow Navigation */}
+        <WorkflowNavigation 
+          currentStep="track"
+          clientId={protocol.client.id}
+          clientName={`${protocol.client.firstName} ${protocol.client.lastName}`}
+          protocolId={protocol.id}
+          showStepDetails={false}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}

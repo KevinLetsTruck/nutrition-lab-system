@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { TimelineExportButton } from '@/components/clients/TimelineExportButton';
+import { FeatureDiscovery } from '@/components/navigation/FeatureDiscovery';
 
 
 interface Client {
@@ -455,6 +456,11 @@ export default function ClientDashboard() {
             New Client
           </Button>
         </Link>
+      </div>
+
+      {/* Feature Discovery */}
+      <div className="mb-6">
+        <FeatureDiscovery showCompact={true} />
       </div>
 
       {/* Search and Filter Bar */}

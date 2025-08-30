@@ -35,6 +35,7 @@ import { ExportClientButton } from '@/components/clients/ExportClientButton';
 import { TimelineExportButton } from '@/components/clients/TimelineExportButton';
 
 import { ProtocolImportDialog } from '@/components/protocols/ProtocolImportDialog';
+import { WorkflowNavigation } from '@/components/navigation/WorkflowNavigation';
 
 // Dynamically import SimplePDFViewer with SSR disabled
 const SimplePDFViewer = dynamic(
@@ -924,6 +925,14 @@ export default function ClientDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* AI Workflow Navigation */}
+        <WorkflowNavigation 
+          currentStep="export"
+          clientId={client.id}
+          clientName={`${client.firstName} ${client.lastName}`}
+          showStepDetails={false}
+        />
 
         {/* Dynamic Four-Column Layout - Responsive */}
         <div className="flex gap-4 h-[calc(100vh-300px)] min-h-[600px] w-full overflow-hidden">

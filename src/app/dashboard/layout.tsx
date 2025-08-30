@@ -11,6 +11,11 @@ import {
   Calendar,
   ClipboardList,
   FlaskConical,
+  Brain,
+  Activity,
+  BarChart3,
+  Workflow,
+  Sparkles,
 } from 'lucide-react';
 
 export default function DashboardLayout({
@@ -73,41 +78,75 @@ export default function DashboardLayout({
               </div>
             </div>
 
-            {/* Bottom Row - Navigation Links */}
-            <div className="hidden sm:flex sm:space-x-8 pb-4">
-              <Link
-                href="/dashboard/clients"
-                className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium rounded-xl transition-all ${
-                  isActive('/dashboard/clients')
-                    ? 'text-brand-green bg-brand-green/10 border border-brand-green/30'
-                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
-                }`}
-              >
-                <Users className="h-5 w-5 mr-3" />
-                Clients
-              </Link>
-              <Link
-                href="/dashboard/protocols"
-                className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium rounded-xl transition-all ${
-                  isActive('/dashboard/protocols')
-                    ? 'text-brand-green bg-brand-green/10 border border-brand-green/30'
-                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
-                }`}
-              >
-                <FlaskConical className="h-5 w-5 mr-3" />
-                Protocols
-              </Link>
-              <Link
-                href="/dashboard/scheduled"
-                className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium rounded-xl transition-all ${
-                  isActive('/dashboard/scheduled')
-                    ? 'text-brand-green bg-brand-green/10 border border-brand-green/30'
-                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
-                }`}
-              >
-                <Calendar className="h-5 w-5 mr-3" />
-                Thursday Calls
-              </Link>
+            {/* Bottom Row - Enhanced Navigation */}
+            <div className="pb-4">
+              {/* Main Navigation */}
+              <div className="hidden sm:flex sm:space-x-6 mb-3">
+                <Link
+                  href="/dashboard/clients"
+                  className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium rounded-xl transition-all ${
+                    isActive('/dashboard/clients')
+                      ? 'text-brand-green bg-brand-green/10 border border-brand-green/30'
+                      : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                  }`}
+                >
+                  <Users className="h-5 w-5 mr-3" />
+                  Clients
+                </Link>
+                <Link
+                  href="/dashboard/protocols"
+                  className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium rounded-xl transition-all ${
+                    isActive('/dashboard/protocols')
+                      ? 'text-brand-green bg-brand-green/10 border border-brand-green/30'
+                      : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                  }`}
+                >
+                  <FlaskConical className="h-5 w-5 mr-3" />
+                  Protocols
+                </Link>
+                <Link
+                  href="/dashboard/scheduled"
+                  className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium rounded-xl transition-all ${
+                    isActive('/dashboard/scheduled')
+                      ? 'text-brand-green bg-brand-green/10 border border-brand-green/30'
+                      : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                  }`}
+                >
+                  <Calendar className="h-5 w-5 mr-3" />
+                  Thursday Calls
+                </Link>
+                <Link
+                  href="/dashboard/workflow"
+                  className={`nav-link-large inline-flex items-center px-4 py-3 text-base font-medium rounded-xl transition-all ${
+                    isActive('/dashboard/workflow')
+                      ? 'text-brand-green bg-brand-green/10 border border-brand-green/30'
+                      : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                  }`}
+                >
+                  <Sparkles className="h-5 w-5 mr-3" />
+                  AI Workflow
+                </Link>
+              </div>
+              
+              {/* AI Workflow Quick Access */}
+              <div className="hidden sm:flex sm:space-x-4 text-xs">
+                <div className="flex items-center gap-4 px-4 py-2 bg-blue-900/20 rounded-lg border border-blue-700/30">
+                  <span className="text-blue-300 font-medium">AI-Enhanced Workflow:</span>
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <BarChart3 className="h-3 w-3" />
+                    <span>Export</span>
+                    <span>→</span>
+                    <Brain className="h-3 w-3" />
+                    <span>Analyze</span>
+                    <span>→</span>
+                    <Activity className="h-3 w-3" />
+                    <span>Import</span>
+                    <span>→</span>
+                    <Workflow className="h-3 w-3" />
+                    <span>Track</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -146,6 +185,17 @@ export default function DashboardLayout({
               >
                 <Calendar className="h-5 w-5 mr-3 inline" />
                 Thursday Calls
+              </Link>
+              <Link
+                href="/dashboard/workflow"
+                className={`nav-link-large block px-4 py-3 text-base font-medium rounded-xl transition-all ${
+                  isActive('/dashboard/workflow')
+                    ? 'text-brand-green bg-brand-green/10 border border-brand-green/30'
+                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                }`}
+              >
+                <Sparkles className="h-5 w-5 mr-3 inline" />
+                AI Workflow
               </Link>
             </div>
           </div>
