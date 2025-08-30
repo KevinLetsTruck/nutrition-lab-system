@@ -43,6 +43,9 @@ export default function AIWorkflowDashboard() {
     progressReports: 0,
   });
 
+  // Force cache bust for Railway deployment
+  console.log('AI Workflow Dashboard loaded - v2.0');
+
   useEffect(() => {
     if (token) {
       fetchDashboardData();
@@ -55,7 +58,7 @@ export default function AIWorkflowDashboard() {
       const clientsResponse = await fetch('/api/clients', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       if (clientsResponse.ok) {
         const clientsData = await clientsResponse.json();
         setRecentClients(clientsData.clients?.slice(0, 5) || []);
@@ -83,8 +86,9 @@ export default function AIWorkflowDashboard() {
             </h1>
           </div>
           <p className="text-gray-300 text-lg max-w-3xl mx-auto">
-            Complete functional medicine practice management with Claude Desktop integration, 
-            intelligent protocol development, and evidence-based progress tracking.
+            Complete functional medicine practice management with Claude Desktop
+            integration, intelligent protocol development, and evidence-based
+            progress tracking.
           </p>
         </div>
 
@@ -93,31 +97,39 @@ export default function AIWorkflowDashboard() {
           <Card className="bg-gray-800 border-gray-700">
             <CardContent className="p-6 text-center">
               <Users className="h-8 w-8 text-blue-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">{stats.totalClients}</div>
+              <div className="text-2xl font-bold text-white">
+                {stats.totalClients}
+              </div>
               <div className="text-sm text-gray-400">Total Clients</div>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-gray-800 border-gray-700">
             <CardContent className="p-6 text-center">
               <FlaskConical className="h-8 w-8 text-green-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">{stats.activeProtocols}</div>
+              <div className="text-2xl font-bold text-white">
+                {stats.activeProtocols}
+              </div>
               <div className="text-sm text-gray-400">Active Protocols</div>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-gray-800 border-gray-700">
             <CardContent className="p-6 text-center">
               <BarChart3 className="h-8 w-8 text-purple-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">{stats.completedExports}</div>
+              <div className="text-2xl font-bold text-white">
+                {stats.completedExports}
+              </div>
               <div className="text-sm text-gray-400">AI Exports</div>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-gray-800 border-gray-700">
             <CardContent className="p-6 text-center">
               <TrendingUp className="h-8 w-8 text-orange-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">{stats.progressReports}</div>
+              <div className="text-2xl font-bold text-white">
+                {stats.progressReports}
+              </div>
               <div className="text-sm text-gray-400">Progress Reports</div>
             </CardContent>
           </Card>
@@ -131,12 +143,12 @@ export default function AIWorkflowDashboard() {
               Complete AI-Enhanced Workflow
             </CardTitle>
             <p className="text-gray-400">
-              Your complete functional medicine practice workflow with Claude Desktop integration
+              Your complete functional medicine practice workflow with Claude
+              Desktop integration
             </p>
           </CardHeader>
           <CardContent className="p-6">
             <div className="grid md:grid-cols-4 gap-6">
-              
               {/* Step 1: Export */}
               <div className="relative">
                 <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-6 h-full">
@@ -145,14 +157,20 @@ export default function AIWorkflowDashboard() {
                       <BarChart3 className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-white">1. Export Data</h3>
-                      <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
+                      <h3 className="font-semibold text-white">
+                        1. Export Data
+                      </h3>
+                      <Badge
+                        variant="secondary"
+                        className="text-xs bg-blue-100 text-blue-800"
+                      >
                         Enhanced
                       </Badge>
                     </div>
                   </div>
                   <p className="text-sm text-gray-300 mb-4">
-                    Export client data with intelligent Claude Desktop prompts for optimal AI analysis.
+                    Export client data with intelligent Claude Desktop prompts
+                    for optimal AI analysis.
                   </p>
                   <div className="space-y-2 text-xs text-gray-400">
                     <div className="flex items-center gap-2">
@@ -182,14 +200,20 @@ export default function AIWorkflowDashboard() {
                       <Brain className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-white">2. AI Analysis</h3>
-                      <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-800">
+                      <h3 className="font-semibold text-white">
+                        2. AI Analysis
+                      </h3>
+                      <Badge
+                        variant="secondary"
+                        className="text-xs bg-purple-100 text-purple-800"
+                      >
                         Claude Desktop
                       </Badge>
                     </div>
                   </div>
                   <p className="text-sm text-gray-300 mb-4">
-                    Claude Desktop analyzes with intelligent prompts for superior functional medicine insights.
+                    Claude Desktop analyzes with intelligent prompts for
+                    superior functional medicine insights.
                   </p>
                   <div className="space-y-2 text-xs text-gray-400">
                     <div className="flex items-center gap-2">
@@ -219,14 +243,20 @@ export default function AIWorkflowDashboard() {
                       <Activity className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-white">3. Import Results</h3>
-                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                      <h3 className="font-semibold text-white">
+                        3. Import Results
+                      </h3>
+                      <Badge
+                        variant="secondary"
+                        className="text-xs bg-green-100 text-green-800"
+                      >
                         Professional
                       </Badge>
                     </div>
                   </div>
                   <p className="text-sm text-gray-300 mb-4">
-                    Import structured protocols with auto-generated professional documents.
+                    Import structured protocols with auto-generated professional
+                    documents.
                   </p>
                   <div className="space-y-2 text-xs text-gray-400">
                     <div className="flex items-center gap-2">
@@ -255,14 +285,20 @@ export default function AIWorkflowDashboard() {
                     <Target className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-white">4. Track Progress</h3>
-                    <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">
+                    <h3 className="font-semibold text-white">
+                      4. Track Progress
+                    </h3>
+                    <Badge
+                      variant="secondary"
+                      className="text-xs bg-orange-100 text-orange-800"
+                    >
                       Monitoring
                     </Badge>
                   </div>
                 </div>
                 <p className="text-sm text-gray-300 mb-4">
-                  Monitor client progress with visual dashboards and evidence-based tracking.
+                  Monitor client progress with visual dashboards and
+                  evidence-based tracking.
                 </p>
                 <div className="space-y-2 text-xs text-gray-400">
                   <div className="flex items-center gap-2">
@@ -285,7 +321,6 @@ export default function AIWorkflowDashboard() {
 
         {/* Feature Categories */}
         <div className="grid md:grid-cols-2 gap-8">
-          
           {/* Export & Analysis Features */}
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
@@ -298,23 +333,36 @@ export default function AIWorkflowDashboard() {
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              
               <div className="p-4 bg-blue-900/20 border border-blue-700/50 rounded-lg">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <h4 className="font-medium text-white">Timeline Analysis</h4>
-                    <p className="text-xs text-gray-400">Comprehensive FM analysis with lab ranges & assessment categorization</p>
+                    <h4 className="font-medium text-white">
+                      Timeline Analysis
+                    </h4>
+                    <p className="text-xs text-gray-400">
+                      Comprehensive FM analysis with lab ranges & assessment
+                      categorization
+                    </p>
                   </div>
                   <BarChart3 className="h-5 w-5 text-blue-400" />
                 </div>
                 <div className="flex gap-2">
-                  <Badge variant="outline" className="text-xs border-blue-400 text-blue-300">
+                  <Badge
+                    variant="outline"
+                    className="text-xs border-blue-400 text-blue-300"
+                  >
                     30+ Lab Ranges
                   </Badge>
-                  <Badge variant="outline" className="text-xs border-blue-400 text-blue-300">
+                  <Badge
+                    variant="outline"
+                    className="text-xs border-blue-400 text-blue-300"
+                  >
                     16 Categories
                   </Badge>
-                  <Badge variant="outline" className="text-xs border-blue-400 text-blue-300">
+                  <Badge
+                    variant="outline"
+                    className="text-xs border-blue-400 text-blue-300"
+                  >
                     Claude Ready
                   </Badge>
                 </div>
@@ -323,19 +371,32 @@ export default function AIWorkflowDashboard() {
               <div className="p-4 bg-green-900/20 border border-green-700/50 rounded-lg">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <h4 className="font-medium text-white">Export Data + PDFs</h4>
-                    <p className="text-xs text-gray-400">ZIP with documents + intelligent Claude Desktop prompts</p>
+                    <h4 className="font-medium text-white">
+                      Export Data + PDFs
+                    </h4>
+                    <p className="text-xs text-gray-400">
+                      ZIP with documents + intelligent Claude Desktop prompts
+                    </p>
                   </div>
                   <Download className="h-5 w-5 text-green-400" />
                 </div>
                 <div className="flex gap-2">
-                  <Badge variant="outline" className="text-xs border-green-400 text-green-300">
+                  <Badge
+                    variant="outline"
+                    className="text-xs border-green-400 text-green-300"
+                  >
                     Smart Prompts
                   </Badge>
-                  <Badge variant="outline" className="text-xs border-green-400 text-green-300">
+                  <Badge
+                    variant="outline"
+                    className="text-xs border-green-400 text-green-300"
+                  >
                     All PDFs
                   </Badge>
-                  <Badge variant="outline" className="text-xs border-green-400 text-green-300">
+                  <Badge
+                    variant="outline"
+                    className="text-xs border-green-400 text-green-300"
+                  >
                     JSON Data
                   </Badge>
                 </div>
@@ -362,23 +423,34 @@ export default function AIWorkflowDashboard() {
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              
               <div className="p-4 bg-green-900/20 border border-green-700/50 rounded-lg">
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <h4 className="font-medium text-white">Import Protocol</h4>
-                    <p className="text-xs text-gray-400">Claude Desktop results with professional document generation</p>
+                    <p className="text-xs text-gray-400">
+                      Claude Desktop results with professional document
+                      generation
+                    </p>
                   </div>
                   <Upload className="h-5 w-5 text-green-400" />
                 </div>
                 <div className="flex gap-2">
-                  <Badge variant="outline" className="text-xs border-green-400 text-green-300">
+                  <Badge
+                    variant="outline"
+                    className="text-xs border-green-400 text-green-300"
+                  >
                     Coaching Notes
                   </Badge>
-                  <Badge variant="outline" className="text-xs border-green-400 text-green-300">
+                  <Badge
+                    variant="outline"
+                    className="text-xs border-green-400 text-green-300"
+                  >
                     Client Letters
                   </Badge>
-                  <Badge variant="outline" className="text-xs border-green-400 text-green-300">
+                  <Badge
+                    variant="outline"
+                    className="text-xs border-green-400 text-green-300"
+                  >
                     Supplement Lists
                   </Badge>
                 </div>
@@ -387,19 +459,33 @@ export default function AIWorkflowDashboard() {
               <div className="p-4 bg-orange-900/20 border border-orange-700/50 rounded-lg">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <h4 className="font-medium text-white">Progress Tracking</h4>
-                    <p className="text-xs text-gray-400">Client self-reporting with practitioner monitoring dashboards</p>
+                    <h4 className="font-medium text-white">
+                      Progress Tracking
+                    </h4>
+                    <p className="text-xs text-gray-400">
+                      Client self-reporting with practitioner monitoring
+                      dashboards
+                    </p>
                   </div>
                   <Target className="h-5 w-5 text-orange-400" />
                 </div>
                 <div className="flex gap-2">
-                  <Badge variant="outline" className="text-xs border-orange-400 text-orange-300">
+                  <Badge
+                    variant="outline"
+                    className="text-xs border-orange-400 text-orange-300"
+                  >
                     Health Metrics
                   </Badge>
-                  <Badge variant="outline" className="text-xs border-orange-400 text-orange-300">
+                  <Badge
+                    variant="outline"
+                    className="text-xs border-orange-400 text-orange-300"
+                  >
                     Compliance
                   </Badge>
-                  <Badge variant="outline" className="text-xs border-orange-400 text-orange-300">
+                  <Badge
+                    variant="outline"
+                    className="text-xs border-orange-400 text-orange-300"
+                  >
                     Trend Analysis
                   </Badge>
                 </div>
@@ -428,12 +514,17 @@ export default function AIWorkflowDashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-3 gap-4">
-              
-              <Button asChild variant="outline" className="h-auto p-4 border-gray-600 hover:border-blue-500">
+              <Button
+                asChild
+                variant="outline"
+                className="h-auto p-4 border-gray-600 hover:border-blue-500"
+              >
                 <Link href="/dashboard/clients" className="block text-left">
                   <div className="flex items-center gap-3 mb-2">
                     <Users className="h-5 w-5 text-blue-400" />
-                    <span className="font-medium text-white">Client Management</span>
+                    <span className="font-medium text-white">
+                      Client Management
+                    </span>
                   </div>
                   <p className="text-xs text-gray-400">
                     Add clients, upload documents, manage assessments
@@ -441,11 +532,20 @@ export default function AIWorkflowDashboard() {
                 </Link>
               </Button>
 
-              <Button asChild variant="outline" className="h-auto p-4 border-gray-600 hover:border-purple-500">
-                <Link href="/dashboard/protocols/create" className="block text-left">
+              <Button
+                asChild
+                variant="outline"
+                className="h-auto p-4 border-gray-600 hover:border-purple-500"
+              >
+                <Link
+                  href="/dashboard/protocols/create"
+                  className="block text-left"
+                >
                   <div className="flex items-center gap-3 mb-2">
                     <FlaskConical className="h-5 w-5 text-purple-400" />
-                    <span className="font-medium text-white">Create Protocol</span>
+                    <span className="font-medium text-white">
+                      Create Protocol
+                    </span>
                   </div>
                   <p className="text-xs text-gray-400">
                     Start new protocol development workflow
@@ -453,11 +553,17 @@ export default function AIWorkflowDashboard() {
                 </Link>
               </Button>
 
-              <Button asChild variant="outline" className="h-auto p-4 border-gray-600 hover:border-green-500">
+              <Button
+                asChild
+                variant="outline"
+                className="h-auto p-4 border-gray-600 hover:border-green-500"
+              >
                 <Link href="/dashboard/scheduled" className="block text-left">
                   <div className="flex items-center gap-3 mb-2">
                     <Calendar className="h-5 w-5 text-green-400" />
-                    <span className="font-medium text-white">Thursday Calls</span>
+                    <span className="font-medium text-white">
+                      Thursday Calls
+                    </span>
                   </div>
                   <p className="text-xs text-gray-400">
                     View scheduled clients and coaching calls
@@ -482,12 +588,16 @@ export default function AIWorkflowDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {recentClients.map((client) => (
-                  <div key={client.id} className="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg border border-gray-600">
+                {recentClients.map(client => (
+                  <div
+                    key={client.id}
+                    className="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg border border-gray-600"
+                  >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                         <span className="text-white font-medium text-sm">
-                          {client.firstName.charAt(0)}{client.lastName.charAt(0)}
+                          {client.firstName.charAt(0)}
+                          {client.lastName.charAt(0)}
                         </span>
                       </div>
                       <div>
@@ -495,23 +605,26 @@ export default function AIWorkflowDashboard() {
                           {client.firstName} {client.lastName}
                         </h4>
                         <div className="flex items-center gap-2 text-xs">
-                          <Badge 
-                            variant="outline" 
+                          <Badge
+                            variant="outline"
                             className={`text-xs ${
-                              client.status === 'ONGOING' ? 'border-green-400 text-green-300' :
-                              client.status === 'SCHEDULED' ? 'border-blue-400 text-blue-300' :
-                              'border-gray-400 text-gray-300'
+                              client.status === 'ONGOING'
+                                ? 'border-green-400 text-green-300'
+                                : client.status === 'SCHEDULED'
+                                  ? 'border-blue-400 text-blue-300'
+                                  : 'border-gray-400 text-gray-300'
                             }`}
                           >
                             {client.status}
                           </Badge>
                           <span className="text-gray-400">
-                            {client.protocolCount} protocol{client.protocolCount !== 1 ? 's' : ''}
+                            {client.protocolCount} protocol
+                            {client.protocolCount !== 1 ? 's' : ''}
                           </span>
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <Button asChild size="sm" variant="outline">
                         <Link href={`/dashboard/clients/${client.id}`}>
@@ -522,7 +635,7 @@ export default function AIWorkflowDashboard() {
                   </div>
                 ))}
               </div>
-              
+
               <div className="mt-4 pt-4 border-t border-gray-600">
                 <Button asChild variant="outline" className="w-full">
                   <Link href="/dashboard/clients">
@@ -566,7 +679,7 @@ export default function AIWorkflowDashboard() {
                   </div>
                 </div>
               </div>
-              
+
               <div>
                 <h4 className="font-medium text-white mb-3">Key Features</h4>
                 <div className="space-y-2 text-sm text-gray-300">
@@ -589,7 +702,7 @@ export default function AIWorkflowDashboard() {
                 </div>
               </div>
             </div>
-            
+
             <div className="mt-6 flex gap-3">
               <Button asChild>
                 <Link href="/dashboard/clients">

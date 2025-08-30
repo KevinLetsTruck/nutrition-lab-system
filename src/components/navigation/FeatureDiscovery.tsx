@@ -14,7 +14,6 @@ import {
   Upload,
   Users,
   FlaskConical,
-  Calendar,
   ArrowRight,
   X,
   HelpCircle,
@@ -31,7 +30,10 @@ interface FeatureDiscoveryProps {
   showCompact?: boolean;
 }
 
-export function FeatureDiscovery({ onDismiss, showCompact = false }: FeatureDiscoveryProps) {
+export function FeatureDiscovery({
+  onDismiss,
+  showCompact = false,
+}: FeatureDiscoveryProps) {
   const [activeFeature, setActiveFeature] = useState<string | null>(null);
 
   const features = [
@@ -54,7 +56,8 @@ export function FeatureDiscovery({ onDismiss, showCompact = false }: FeatureDisc
     {
       id: 'protocol-import',
       title: 'Protocol Import & Formatting',
-      description: 'Import Claude Desktop results with professional document generation',
+      description:
+        'Import Claude Desktop results with professional document generation',
       icon: Activity,
       color: 'green',
       badge: 'Phase 2',
@@ -86,7 +89,8 @@ export function FeatureDiscovery({ onDismiss, showCompact = false }: FeatureDisc
     {
       id: 'ai-enhancement',
       title: 'Claude Desktop Integration',
-      description: 'Intelligent prompts for superior functional medicine analysis',
+      description:
+        'Intelligent prompts for superior functional medicine analysis',
       icon: Brain,
       color: 'purple',
       badge: 'Enhanced',
@@ -155,58 +159,65 @@ export function FeatureDiscovery({ onDismiss, showCompact = false }: FeatureDisc
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        
         <div className="grid md:grid-cols-2 gap-4">
-          {features.map((feature) => {
+          {features.map(feature => {
             const FeatureIcon = feature.icon;
             const isExpanded = activeFeature === feature.id;
-            
+
             return (
               <div
                 key={feature.id}
                 className={`p-4 rounded-lg border transition-all cursor-pointer ${
-                  isExpanded 
-                    ? `bg-${feature.color}-900/30 border-${feature.color}-500` 
+                  isExpanded
+                    ? `bg-${feature.color}-900/30 border-${feature.color}-500`
                     : 'bg-gray-700/50 border-gray-600 hover:border-gray-500'
                 }`}
                 onClick={() => setActiveFeature(isExpanded ? null : feature.id)}
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <FeatureIcon className={`h-5 w-5 text-${feature.color}-400`} />
+                    <FeatureIcon
+                      className={`h-5 w-5 text-${feature.color}-400`}
+                    />
                     <div>
                       <h4 className="font-medium text-white text-sm">
                         {feature.title}
                       </h4>
-                      <Badge 
-                        variant="outline" 
+                      <Badge
+                        variant="outline"
                         className={`text-xs border-${feature.color}-400 text-${feature.color}-300`}
                       >
                         {feature.badge}
                       </Badge>
                     </div>
                   </div>
-                  <HelpCircle className={`h-4 w-4 ${isExpanded ? 'text-white' : 'text-gray-500'}`} />
+                  <HelpCircle
+                    className={`h-4 w-4 ${isExpanded ? 'text-white' : 'text-gray-500'}`}
+                  />
                 </div>
-                
+
                 <p className="text-xs text-gray-400 mb-3">
                   {feature.description}
                 </p>
-                
+
                 {isExpanded && (
                   <div className="space-y-3 mt-4 pt-3 border-t border-gray-600">
                     <div>
-                      <h5 className="text-xs font-medium text-gray-300 mb-2">Key Capabilities</h5>
+                      <h5 className="text-xs font-medium text-gray-300 mb-2">
+                        Key Capabilities
+                      </h5>
                       <div className="space-y-1">
                         {feature.capabilities.map((capability, index) => (
                           <div key={index} className="flex items-center gap-2">
                             <CheckCircle className="h-3 w-3 text-green-400 flex-shrink-0" />
-                            <span className="text-xs text-gray-300">{capability}</span>
+                            <span className="text-xs text-gray-300">
+                              {capability}
+                            </span>
                           </div>
                         ))}
                       </div>
                     </div>
-                    
+
                     <Button
                       asChild
                       size="sm"
@@ -239,7 +250,10 @@ export function FeatureDiscovery({ onDismiss, showCompact = false }: FeatureDisc
               </Link>
             </Button>
             <Button asChild size="sm" variant="outline" className="h-auto p-3">
-              <Link href="/dashboard/protocols/create" className="block text-left">
+              <Link
+                href="/dashboard/protocols/create"
+                className="block text-left"
+              >
                 <FlaskConical className="h-4 w-4 mb-1" />
                 <span className="text-xs font-medium">Create Protocol</span>
               </Link>
