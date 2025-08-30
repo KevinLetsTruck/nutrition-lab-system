@@ -227,17 +227,41 @@ export async function GET(
       console.log('✅ Functional medicine assessment analysis added to export');
 
       // Generate and add Claude Desktop prompt
-      console.log('🎯 Generating optimal Claude Desktop prompt...');
-      const { generateClaudeDesktopPrompt } = await import('@/lib/services/claude-prompt-generator');
-      const claudeDesktopPrompt = generateClaudeDesktopPrompt(
-        clientData.client,
-        clientData.documents,
-        clientData.assessments,
-        clientData.protocols || [],
-        clientData.notes || []
-      );
-      archive.append(claudeDesktopPrompt, { name: 'CLAUDE-DESKTOP-PROMPT.md' });
-      console.log('✅ Claude Desktop prompt added to export');
+      try {
+        console.log('🎯 Generating optimal Claude Desktop prompt...');
+        const { generateClaudeDesktopPrompt } = await import('@/lib/services/claude-prompt-generator');
+        const claudeDesktopPrompt = generateClaudeDesktopPrompt(
+          clientData, // Pass the full client data object
+          clientData.documents,
+          clientData.simpleAssessments,
+          clientData.protocols || [],
+          clientData.notes || []
+        );
+        archive.append(claudeDesktopPrompt, { name: 'CLAUDE-DESKTOP-PROMPT.md' });
+        console.log('✅ Claude Desktop prompt added to export');
+      } catch (promptError) {
+        console.error('❌ Failed to generate Claude Desktop prompt:', promptError);
+        // Add fallback prompt if generation fails
+        const fallbackPrompt = `# FUNCTIONAL MEDICINE ANALYSIS PROMPT - ${clientData.firstName} ${clientData.lastName}
+
+## CLIENT CONTEXT
+**Name**: ${clientData.firstName} ${clientData.lastName}
+**Analysis Date**: ${new Date().toLocaleDateString()}
+
+## ANALYSIS INSTRUCTIONS
+Please analyze the provided client data package for comprehensive functional medicine insights.
+
+Focus on:
+1. Root cause analysis using functional medicine principles
+2. System-based approach to health assessment
+3. Evidence-based protocol development
+4. Structured JSON output for FNTP system import
+
+**Note**: Enhanced prompt generation temporarily unavailable - using fallback prompt.
+`;
+        archive.append(fallbackPrompt, { name: 'CLAUDE-DESKTOP-PROMPT.md' });
+        console.log('⚠️ Using fallback Claude Desktop prompt due to generation error');
+      }
 
       // Add document files (if they exist)
       let copiedDocuments = 0;
