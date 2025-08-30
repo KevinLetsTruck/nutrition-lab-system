@@ -19,7 +19,8 @@ client-export-2025-01-28.zip
 ├── client-data.json          # Complete structured client data
 ├── client-summary.md          # Human-readable client overview  
 ├── export-metadata.json      # Export statistics and information
-├── functional-assessment-analysis.md # Basic functional assessment
+├── functional-assessment-analysis.md # Pre-processed FM insights
+├── CLAUDE-DESKTOP-PROMPT.md   # Optimal Claude Desktop prompt (NEW!)
 └── documents/                 # All uploaded PDF files
     ├── NAQ-Questions-Answers.pdf
     ├── NutriQ-Symptom-Burden-Report.pdf
@@ -30,6 +31,7 @@ client-export-2025-01-28.zip
 ```
 
 ### **Perfect For**:
+- ✅ **Claude Desktop Analysis**: Optimal prompts for enhanced AI-driven functional medicine protocols
 - ✅ **NAQ Analysis Tools**: Includes actual NAQ PDF questionnaires
 - ✅ **NutriQ Processing**: Contains NutriQ symptom burden reports and graphs
 - ✅ **External Assessment**: Structured JSON data for custom analysis tools
@@ -94,10 +96,12 @@ john-doe-protocol-timeline-20250128.md
 
 ### **Complete Workflow Example**:
 
-1. **📦 Export Data + PDFs** → Send to NAQ/NutriQ analysis tools for baseline assessment
-2. **📊 Timeline Analysis** → Generate comprehensive FM analysis for Claude Desktop protocol development
-3. **🎯 Combine Insights** → Use external tool results + timeline analysis for complete health picture
-4. **📋 Develop Protocols** → Create evidence-based treatment plans with multiple data sources
+1. **📦 Export Data + PDFs** → Send to Claude Desktop with included optimal prompt OR external tools
+2. **🎯 Enhanced AI Analysis** → Use included CLAUDE-DESKTOP-PROMPT.md for superior functional medicine insights
+3. **📥 Import Protocol** → Bring structured JSON results back into FNTP with professional documents
+4. **📊 Timeline Analysis** → Generate additional comprehensive FM analysis if needed
+5. **🎯 Combine Insights** → Complete health picture with AI-enhanced protocol development
+6. **📋 Develop Protocols** → Evidence-based treatment plans with optimal Claude Desktop integration
 
 ### **Benefits of Both Systems**:
 - **Comprehensive Coverage**: Raw documents + advanced analysis

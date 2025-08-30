@@ -226,6 +226,19 @@ export async function GET(
       });
       console.log('✅ Functional medicine assessment analysis added to export');
 
+      // Generate and add Claude Desktop prompt
+      console.log('🎯 Generating optimal Claude Desktop prompt...');
+      const { generateClaudeDesktopPrompt } = await import('@/lib/services/claude-prompt-generator');
+      const claudeDesktopPrompt = generateClaudeDesktopPrompt(
+        clientData.client,
+        clientData.documents,
+        clientData.assessments,
+        clientData.protocols || [],
+        clientData.notes || []
+      );
+      archive.append(claudeDesktopPrompt, { name: 'CLAUDE-DESKTOP-PROMPT.md' });
+      console.log('✅ Claude Desktop prompt added to export');
+
       // Add document files (if they exist)
       let copiedDocuments = 0;
       const skippedDocuments = [];
@@ -893,12 +906,29 @@ ${protocols
 
 ## Export Information
 - **Exported On:** ${new Date().toLocaleDateString()}
-- **Export Version:** 1.0.0
+- **Export Version:** 2.0.0 (Enhanced with Claude Desktop prompt)
 - **Data Completeness:** ${
     assessments.length + documents.length + notes.length + protocols.length
   } total records
 
+## 🎯 Claude Desktop Analysis Instructions
+
+### **OPTIMAL WORKFLOW (Recommended)**
+1. **Upload entire ZIP package** to Claude Desktop
+2. **Copy and paste** the contents of \`CLAUDE-DESKTOP-PROMPT.md\`
+3. **Send the prompt** to initiate comprehensive functional medicine analysis
+4. **Receive structured JSON output** ready for import back to FNTP system
+
+### **Key Files for Analysis**
+- **\`CLAUDE-DESKTOP-PROMPT.md\`** - Optimal prompt designed for this client's specific data
+- **\`functional-assessment-analysis.md\`** - Pre-processed assessment insights
+- **\`client-data.json\`** - Complete structured data for cross-referencing
+- **\`documents/\`** - Raw PDFs including NutriQ, NAQ, lab reports for direct analysis
+
+### **Expected Output**
+The included prompt generates structured JSON protocol data that can be directly imported using the FNTP "Import Protocol" feature, creating professional coaching notes, client letters, and supplement lists.
+
 ---
-*This summary was automatically generated from the FNTP assessment system.*
+*Client data package with intelligent Claude Desktop integration - FNTP Nutrition System v2.0*
 `;
 }

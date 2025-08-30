@@ -88,10 +88,10 @@ export function ExportClientButton({
               <strong>File:</strong> {filename}
             </p>
             <p className="text-xs text-gray-500 mt-2">
-              📦 ZIP includes JSON data + all PDFs (NAQ, NutriQ, lab reports)
+              📦 ZIP includes JSON data + all PDFs + Claude Desktop prompt
             </p>
             <p className="text-xs text-gray-400">
-              For external analysis tools and document review
+              Optimal Claude Desktop prompt included for enhanced AI analysis
             </p>
           </div>
         ),
@@ -100,8 +100,8 @@ export function ExportClientButton({
 
       // Optional: Show system notification
       if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('Client Data + PDFs Downloaded', {
-          body: `${clientName} ZIP export includes all PDFs and structured data`,
+        new Notification('Enhanced Export Downloaded', {
+          body: `${clientName} ZIP includes PDFs, data + optimal Claude Desktop prompt`,
           icon: '/favicon.ico',
         });
       }
