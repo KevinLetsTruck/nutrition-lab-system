@@ -22,6 +22,7 @@ import {
   Clock,
   TrendingUp,
   Zap,
+  Calendar,
 } from 'lucide-react';
 
 interface Client {
