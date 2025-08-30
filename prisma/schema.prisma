@@ -55,6 +55,7 @@ model Client {
   enhancedProtocols      EnhancedProtocol[]
   protocolGenerations    ProtocolGeneration[]
   timelineExports        TimelineExport[]
+  protocolProgress       ProtocolProgress[]
 }
 
 model SimpleAssessment {
@@ -684,6 +685,8 @@ model EnhancedProtocol {
   analysis            ClientAnalysis?       @relation(fields: [analysisId], references: [id])
   protocolSupplements ProtocolSupplement[]
   protocolGenerations ProtocolGeneration[]
+  protocolProgress    ProtocolProgress[]
+  protocolStatusChanges ProtocolStatusChanges[]
   
   @@index([clientId, status])
   @@index([analysisId])
@@ -903,4 +906,67 @@ model AssessmentQuestionCategory {
   @@unique([questionId, categoryId])
   @@index([questionId])
   @@index([categoryId])
+}
+
+model ProtocolProgress {
+  id             String   @id @default(cuid())
+  protocolId     String
+  clientId       String
+  
+  // Progress metrics (1-5 scale)
+  energyLevel         Int?     @db.SmallInt
+  sleepQuality        Int?     @db.SmallInt
+  digestionHealth     Int?     @db.SmallInt
+  overallWellbeing    Int?     @db.SmallInt
+  
+  // Compliance tracking (1-5 scale)
+  supplementCompliance Int?     @db.SmallInt
+  dietaryCompliance    Int?     @db.SmallInt
+  lifestyleCompliance  Int?     @db.SmallInt
+  
+  // Simple tracking
+  symptomsNotes    String?  @db.Text
+  challengesFaced  String?  @db.Text
+  positiveChanges  String?  @db.Text
+  questionsConcerns String? @db.Text
+  
+  // Metadata
+  weekNumber      Int      // Week 1, 2, 3, etc.
+  trackingDate    DateTime @default(now())
+  submittedBy     String   // 'client' or 'practitioner'
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  protocol        EnhancedProtocol @relation(fields: [protocolId], references: [id], onDelete: Cascade)
+  client          Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  // Constraints
+  @@unique([protocolId, weekNumber])
+  @@index([protocolId])
+  @@index([clientId])
+  @@index([weekNumber])
+  @@index([trackingDate])
+}
+
+model ProtocolStatusChanges {
+  id               String   @id @default(cuid())
+  protocolId       String
+  
+  previousStatus   String?
+  newStatus        String
+  reasonForChange  String?  @db.Text
+  adjustmentNotes  String?  @db.Text
+  
+  changedBy        String   // practitioner user ID
+  changedAt        DateTime @default(now())
+  
+  // Relations
+  protocol         EnhancedProtocol @relation(fields: [protocolId], references: [id], onDelete: Cascade)
+  
+  // Indexes
+  @@index([protocolId])
+  @@index([changedAt])
+  @@index([changedBy])
 }

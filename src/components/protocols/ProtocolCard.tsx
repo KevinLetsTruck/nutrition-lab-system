@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { format } from 'date-fns';
+import Link from 'next/link';
 import {
   Card,
   CardContent,
@@ -42,6 +43,7 @@ import {
   Brain,
   Star,
   Activity,
+  Target,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -254,6 +256,12 @@ export function ProtocolCard({
                   <DropdownMenuLabel>Protocol Actions</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/dashboard/protocols/${protocol.id}/progress`}>
+                        <Target className="h-4 w-4 mr-2" />
+                        Progress Tracking
+                      </Link>
+                    </DropdownMenuItem>
                     {onEdit && (
                       <DropdownMenuItem onClick={() => onEdit(protocol)}>
                         <Edit3 className="h-4 w-4 mr-2" />
