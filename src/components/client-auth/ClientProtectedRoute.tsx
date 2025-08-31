@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useClientAuth } from '@/lib/client-auth-context';
 
 interface ClientProtectedRouteProps {
@@ -15,9 +15,13 @@ export function ClientProtectedRoute({
 }: ClientProtectedRouteProps) {
   const { clientUser, isLoading } = useClientAuth();
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Skip protection for login page
+  const isLoginPage = pathname === '/client/login';
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && !isLoginPage) {
       if (!clientUser) {
         console.log('🔒 Client not authenticated, redirecting to login');
         router.push('/client/login');
@@ -32,7 +36,12 @@ export function ClientProtectedRoute({
 
       console.log('✅ Client access granted:', clientUser.firstName);
     }
-  }, [clientUser, isLoading, router, requireSubscription]);
+  }, [clientUser, isLoading, router, requireSubscription, isLoginPage]);
+
+  // Always render login page without protection
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
   if (isLoading) {
     return (
