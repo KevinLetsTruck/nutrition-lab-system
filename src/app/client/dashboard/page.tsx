@@ -24,6 +24,7 @@ import {
   Mail,
   Zap,
   Heart,
+  MessageCircle,
 } from 'lucide-react';
 
 interface ClientDashboardData {
