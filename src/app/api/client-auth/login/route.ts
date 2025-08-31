@@ -54,14 +54,8 @@ export async function POST(request: NextRequest) {
     }
 
     // TODO: Implement proper password verification when passwordHash field is added
-    // For now, we'll allow login if client exists (development mode)
-    // const isValidPassword = await bcrypt.compare(password, client.passwordHash);
-    // if (!isValidPassword) {
-    //   return NextResponse.json(
-    //     { error: 'Invalid email or password' },
-    //     { status: 401 }
-    //   );
-    // }
+    // For development, allow any existing client to login with any password
+    console.log('🔓 Development mode: Allowing login for existing client');
 
     // Generate JWT token for client
     const clientToken = generateClientToken({

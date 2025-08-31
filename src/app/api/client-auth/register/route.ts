@@ -45,34 +45,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash password
+    // Hash password (prepare for future use, but don't store it yet)
     const saltRounds = 12;
     const passwordHash = await bcrypt.hash(userData.password, saltRounds);
+    console.log('🔐 Password hashed for future use (not stored in current schema)');
 
     // Find practitioner by code (optional)
     let practitionerId = null;
     if (userData.practitionerCode) {
       // For now, we'll use a simple check for your coaching program code
       if (userData.practitionerCode === 'COACHING2025') {
-        // TODO: Replace with actual practitioner lookup when practitioner codes are implemented
         console.log('✅ Valid coaching program code used');
-        // practitionerId would be set to actual practitioner ID
+        // practitionerId would be set to actual practitioner ID when field is added
       } else {
         console.log('⚠️ Invalid practitioner code:', userData.practitionerCode);
       }
     }
 
-    // Create client account
+    // Create client account (compatible with current schema)
     const newClient = await prisma.client.create({
       data: {
         email: userData.email.toLowerCase(),
         firstName: userData.firstName,
         lastName: userData.lastName,
         phone: userData.phoneNumber,
-        // passwordHash, // Enable when field is added to schema
-        // practitionerId, // Enable when field is added to schema
-        // subscriptionStatus: userData.practitionerCode === 'COACHING2025' ? 'active' : 'trial', // Enable when field is added
-        // onboardingCompleted: false, // Enable when field is added
+        // passwordHash, // Will be enabled when field is added to schema
+        // practitionerId, // Will be enabled when field is added to schema  
+        // subscriptionStatus: userData.practitionerCode === 'COACHING2025' ? 'active' : 'trial', // Will be enabled when field is added
+        // onboardingCompleted: false, // Will be enabled when field is added
         assessmentCompleted: false,
         status: 'SIGNED_UP',
         isTruckDriver: true, // Default for portal users
