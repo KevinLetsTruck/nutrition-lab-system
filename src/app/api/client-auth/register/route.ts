@@ -33,17 +33,27 @@ export async function POST(request: NextRequest) {
     console.log('📝 Client registration attempt:', userData.email);
 
     // Check if client already exists
+    const normalizedEmail = userData.email.toLowerCase();
+    console.log('🔍 Checking for existing client with email:', normalizedEmail);
+    
     const existingClient = await prisma.client.findUnique({
-      where: { email: userData.email.toLowerCase() },
+      where: { email: normalizedEmail },
     });
 
     if (existingClient) {
-      console.log('❌ Client already exists:', userData.email);
+      console.log('❌ Client already exists:', {
+        email: existingClient.email,
+        name: `${existingClient.firstName} ${existingClient.lastName}`,
+        id: existingClient.id,
+        status: existingClient.status
+      });
       return NextResponse.json(
         { error: 'Account already exists with this email' },
         { status: 409 }
       );
     }
+
+    console.log('✅ No existing client found, proceeding with registration');
 
     // Hash password (prepare for future use, but don't store it yet)
     const saltRounds = 12;
@@ -63,21 +73,42 @@ export async function POST(request: NextRequest) {
     }
 
     // Create client account (compatible with current schema)
-    const newClient = await prisma.client.create({
-      data: {
-        email: userData.email.toLowerCase(),
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        phone: userData.phoneNumber,
-        // passwordHash, // Will be enabled when field is added to schema
-        // practitionerId, // Will be enabled when field is added to schema  
-        // subscriptionStatus: userData.practitionerCode === 'COACHING2025' ? 'active' : 'trial', // Will be enabled when field is added
-        // onboardingCompleted: false, // Will be enabled when field is added
-        assessmentCompleted: false,
-        status: 'SIGNED_UP',
-        isTruckDriver: true, // Default for portal users
-      },
-    });
+    let newClient;
+    try {
+      console.log('🔧 Creating new client account...');
+      newClient = await prisma.client.create({
+        data: {
+          email: normalizedEmail,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          phone: userData.phoneNumber,
+          // passwordHash, // Will be enabled when field is added to schema
+          // practitionerId, // Will be enabled when field is added to schema  
+          // subscriptionStatus: userData.practitionerCode === 'COACHING2025' ? 'active' : 'trial', // Will be enabled when field is added
+          // onboardingCompleted: false, // Will be enabled when field is added
+          assessmentCompleted: false,
+          status: 'SIGNED_UP',
+          isTruckDriver: true, // Default for portal users
+        },
+      });
+    } catch (createError: any) {
+      console.error('❌ Database error during client creation:', createError);
+      
+      // Check if it's a unique constraint violation (email already exists)
+      if (createError.code === 'P2002' && createError.meta?.target?.includes('email')) {
+        console.log('🔍 Unique constraint violation on email - client was created between our check and create');
+        return NextResponse.json(
+          { error: 'Account already exists with this email' },
+          { status: 409 }
+        );
+      }
+      
+      // Other database errors
+      return NextResponse.json(
+        { error: 'Registration failed due to database error - please try again' },
+        { status: 500 }
+      );
+    }
 
     console.log('✅ Client account created:', newClient.firstName, newClient.lastName);
 
