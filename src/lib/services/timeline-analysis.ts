@@ -13,15 +13,12 @@
 
 import { prisma } from '@/lib/db';
 import type { TimelineType } from '@prisma/client';
-import { ProtocolTimelineGenerator } from './protocol-timeline-generator';
 import {
-  functionalMedicineLabAnalysis,
-  type LabAnalysisReport,
+    functionalMedicineLabAnalysis,
+    type LabAnalysisReport,
 } from './functional-medicine-lab-analysis';
-import {
-  functionalMedicineAssessmentAnalysis,
-  type AssessmentAnalysisReport,
-} from './functional-medicine-assessment-analysis';
+import { ProtocolTimelineGenerator } from './protocol-timeline-generator';
+// Note: Assessment analysis temporarily disabled during system rebuild
 
 interface TimelineEvent {
   id: string;
@@ -156,10 +153,8 @@ export class TimelineAnalysisService {
         clientData.simpleAssessments
       ) {
         if (clientData.simpleAssessments.length > 0) {
-          assessmentAnalysis =
-            await functionalMedicineAssessmentAnalysis.generateEnhancedAssessmentAnalysis(
-              clientData.simpleAssessments
-            );
+          // Temporarily disabled during assessment system rebuild
+        assessmentAnalysis = null;
           console.log(
             `🎯 Generated functional medicine assessment analysis for ${clientData.simpleAssessments.length} assessments`
           );

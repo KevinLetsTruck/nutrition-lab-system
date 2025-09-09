@@ -45,7 +45,6 @@ model Client {
   lastLoginAt            DateTime?
   password               String?
   rememberToken          String?
-  simpleAssessments      SimpleAssessment[]
   statuses               ClientStatus[]
   documents              Document[]
   notes                  Note[]
@@ -56,35 +55,10 @@ model Client {
   protocolGenerations    ProtocolGeneration[]
   timelineExports        TimelineExport[]
   protocolProgress       ProtocolProgress[]
+  functionalMedicineAssessments FunctionalMedicineAssessment[]
+  nutriqComparisons      NutriqComparisonData[]
 }
 
-model SimpleAssessment {
-  id        String @id @default(cuid())
-  clientId  String
-  status    String @default("in_progress") // "in_progress", "completed"
-  startedAt DateTime @default(now())
-  completedAt DateTime?
-  
-  client    Client @relation(fields: [clientId], references: [id])
-  responses SimpleResponse[]
-  
-  @@index([clientId])
-}
-
-model SimpleResponse {
-  id           String @id @default(cuid())
-  assessmentId String
-  questionId   Int
-  questionText String
-  category     String
-  score        Int    // 1-5 scale
-  answeredAt   DateTime @default(now())
-  
-  assessment   SimpleAssessment @relation(fields: [assessmentId], references: [id])
-  
-  @@index([assessmentId])
-  @@unique([assessmentId, questionId])
-}
 
 model Document {
   id               String             @id @default(cuid())
@@ -856,57 +830,6 @@ model FunctionalMedicineLabRange {
   @@index([testName])
 }
 
-model AssessmentCategory {
-  id                   String    @id @default(cuid())
-  categoryName         String    @unique // e.g., "Digestive Dysfunction - SIBO/Dysbiosis"
-  categoryDescription  String?   // Detailed description of the category
-  systemFocus          String    // e.g., "digestive", "energy", "hormonal"
-  
-  // Diagnostic significance
-  diagnosticWeight     Float     @default(1.0) // 0.5-3.0 multiplier for diagnostic value
-  interventionPriority Int       @default(3)   // 1=Critical, 2=High, 3=Moderate, 4=Low
-  
-  // Pattern matching and clinical insights
-  symptomPatterns      Json?     // Common symptom combinations and timing
-  rootCauseIndicators  Json?     // What this category typically indicates
-  
-  // Standard fields
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-  
-  // Relations
-  questionCategories   AssessmentQuestionCategory[]
-  
-  // Indexes for performance
-  @@index([systemFocus])
-  @@index([interventionPriority])
-}
-
-model AssessmentQuestionCategory {
-  id                  String             @id @default(cuid())
-  questionId          Int                // Reference to assessment question
-  categoryId          String             // Reference to assessment category
-  
-  // Diagnostic scoring weights
-  diagnosticWeight    Float              @default(1.0) // Question weight within category
-  severityMultiplier  Float              @default(1.0) // Response severity impact
-  
-  // Pattern analysis indicators
-  primaryIndicator    Boolean            @default(false) // Key diagnostic question
-  secondaryIndicator  Boolean            @default(false) // Supporting diagnostic question
-  rootCauseMarker     Boolean            @default(false) // Indicates underlying cause
-  
-  // Standard fields
-  createdAt           DateTime           @default(now())
-  
-  // Relations
-  category            AssessmentCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  
-  // Ensure unique question-category mapping
-  @@unique([questionId, categoryId])
-  @@index([questionId])
-  @@index([categoryId])
-}
 
 model ProtocolProgress {
   id             String   @id @default(cuid())
@@ -969,4 +892,160 @@ model ProtocolStatusChanges {
   @@index([protocolId])
   @@index([changedAt])
   @@index([changedBy])
+}
+
+// FUNCTIONAL MEDICINE ASSESSMENT SYSTEM
+// Comprehensive digestive assessment with modern FM insights
+model FunctionalMedicineAssessment {
+  id             String @id @default(cuid())
+  clientId       String
+  assessmentType String @default("digestive_system")
+  status         String @default("draft") // draft, in_progress, completed
+  
+  // Assessment metadata
+  startedAt      DateTime @default(now())
+  completedAt    DateTime?
+  totalTimeMinutes Int?
+  completionPercentage Int @default(0)
+  
+  // Scoring results
+  overallDigestiveScore Float? // 0-100 scale
+  subsystemScores      Json?   // Upper GI, Small Intestine, Large Intestine, Liver/Gallbladder
+  rootCauseIndicators  Json?   // SIBO, dysbiosis, permeability, etc.
+  treatmentPriorities  Json?   // Ordered list of intervention priorities
+  
+  // Modern FM insights
+  environmentalFactors Json?   // Mold, toxins, EMF impacts
+  lifestyleFactors     Json?   // Stress, sleep, circadian impacts
+  rootCauseAnalysis    Json?   // Primary drivers vs. secondary symptoms
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  // Relations
+  client               Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  responses            FmDigestiveResponse[]
+  
+  @@index([clientId])
+  @@index([status])
+  @@index([assessmentType])
+  @@index([completedAt])
+}
+
+// Sophisticated question structure with modern FM categorization
+model FmDigestiveQuestion {
+  id                   Int     @id @default(autoincrement())
+  category             String  // upper_gi, small_intestine, large_intestine, liver_detox, modern_factors
+  subcategory          String? // SIBO, dysbiosis, permeability, bile_function, mold_sensitivity, etc.
+  
+  questionText         String  @db.Text
+  questionContext      String? @db.Text // Additional explanation if needed
+  clinicalSignificance String? @db.Text // Why this question matters diagnostically
+  
+  // Scoring configuration
+  scaleType            String  @default("frequency") // frequency, severity, yes_no, quantity
+  reverseScoring       Boolean @default(false)
+  diagnosticWeight     Float   @default(1.0) // 0.5-3.0 based on clinical value
+  
+  // Root cause vs symptom classification
+  symptomType          String? // root_cause, primary_symptom, secondary_symptom, modifier
+  conditionAssociations String[] // SIBO, candida, leaky_gut, bile_stasis, etc.
+  
+  // Modern FM categorization
+  isTraditional        Boolean @default(true)
+  isModernInsight      Boolean @default(false)
+  environmentalFactor  String? // mold, toxin, emf, circadian, stress
+  
+  // Question ordering and logic
+  displayOrder         Int
+  requiredLevel        String  @default("standard") // required, standard, optional
+  skipLogic            Json?   // When to skip based on previous answers
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  isActive             Boolean @default(true)
+  
+  // Relations
+  responses            FmDigestiveResponse[]
+  
+  @@index([category])
+  @@index([subcategory])
+  @@index([displayOrder])
+  @@index([isActive])
+}
+
+// Response tracking with confidence and timing
+model FmDigestiveResponse {
+  id                   String @id @default(cuid())
+  assessmentId         String
+  questionId           Int
+  
+  responseValue        Int    // 0-5 scale
+  confidenceLevel      Int    @default(5) // 1-5 how confident in answer
+  notes                String? @db.Text   // Optional client notes
+  
+  // Response metadata
+  timeSpentSeconds     Int?
+  answerChangedCount   Int    @default(0)
+  answeredAt           DateTime @default(now())
+  
+  // Relations
+  assessment           FunctionalMedicineAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  question             FmDigestiveQuestion @relation(fields: [questionId], references: [id])
+  
+  @@unique([assessmentId, questionId])
+  @@index([assessmentId])
+  @@index([questionId])
+}
+
+// Scoring algorithms and clinical validation
+model FmScoringAlgorithm {
+  id                   String @id @default(cuid())
+  systemName           String // digestive_system
+  algorithmVersion     String @default("v1.0")
+  
+  // Scoring configuration
+  scoringRules         Json   // Complex scoring algorithms
+  thresholds           Json   // Score ranges for severity levels
+  treatmentAlgorithms  Json?  // How scores map to treatments
+  
+  // Validation tracking
+  clinicalValidationData Json? // Success rates, accuracy metrics
+  comparisonMetrics      Json? // How it compares to NutriQ, etc.
+  
+  isActive             Boolean @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  @@index([systemName])
+  @@index([isActive])
+}
+
+// NutriQ comparison and validation system
+model NutriqComparisonData {
+  id                   String @id @default(cuid())
+  clientId             String
+  
+  // NutriQ imported data
+  nutriqRawResponses   Json?
+  nutriqScores         Json?
+  nutriqAssessmentDate DateTime?
+  
+  // FM assessment comparison
+  fmAssessmentId       String?
+  fmScores             Json?
+  
+  // Comparison analytics
+  scoreCorrelations    Json?
+  diagnosticAgreement  Json?
+  improvementTracking  Json?
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  // Relations
+  client               Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@index([clientId])
+  @@index([nutriqAssessmentDate])
 }

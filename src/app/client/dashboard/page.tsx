@@ -1,31 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useClientAuth } from '@/lib/client-auth-context';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useClientAuth } from '@/lib/client-auth-context';
 import {
-  BarChart3,
-  MapPin,
-  Calendar,
-  TrendingUp,
-  Target,
-  Truck,
-  CheckCircle,
-  AlertTriangle,
-  ArrowRight,
-  Activity,
-  Clock,
-  Star,
-  Users,
-  Phone,
-  Mail,
-  Zap,
-  Heart,
-  MessageCircle,
+    Activity,
+    ArrowRight,
+    BarChart3,
+    Calendar,
+    CheckCircle,
+    Clock,
+    Heart,
+    Mail,
+    MapPin,
+    MessageCircle,
+    Phone,
+    Star,
+    TrendingUp,
+    Users,
+    Zap
 } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 interface ClientDashboardData {
   recentAssessment?: {
@@ -167,7 +164,7 @@ export default function ClientDashboard() {
         </CardContent>
       </Card>
 
-      {/* Assessment Status */}
+      {/* Functional Medicine Assessment Status */}
       {!clientUser?.assessmentCompleted ? (
         <Card className="bg-gradient-to-br from-blue-50 to-green-50 border-2 border-blue-200">
           <CardContent className="p-6">
@@ -176,15 +173,30 @@ export default function ClientDashboard() {
                 <BarChart3 className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">
-                Complete Your Health Assessment
+                Complete Your Digestive Health Assessment
               </h3>
               <p className="text-gray-600 mb-4">
-                Get personalized insights about your health in just 15 minutes. This helps us create the perfect plan for your life on the road.
+                Advanced functional medicine assessment that goes beyond traditional questionnaires. 
+                Get insights into root causes, modern lifestyle factors, and personalized treatment priorities.
               </p>
+              <div className="grid grid-cols-3 gap-3 mb-4 text-xs">
+                <div className="p-2 bg-white rounded border">
+                  <div className="font-semibold text-blue-600">45+</div>
+                  <div className="text-gray-600">Questions</div>
+                </div>
+                <div className="p-2 bg-white rounded border">
+                  <div className="font-semibold text-green-600">15</div>
+                  <div className="text-gray-600">Minutes</div>
+                </div>
+                <div className="p-2 bg-white rounded border">
+                  <div className="font-semibold text-purple-600">Root</div>
+                  <div className="text-gray-600">Causes</div>
+                </div>
+              </div>
               <Button asChild className="w-full h-12 text-base bg-gradient-to-r from-blue-600 to-green-600">
                 <Link href="/client/assessment">
                   <BarChart3 className="h-5 w-5 mr-2" />
-                  Start Your Assessment
+                  Start Functional Medicine Assessment
                 </Link>
               </Button>
             </div>
@@ -202,7 +214,7 @@ export default function ClientDashboard() {
                   Assessment Complete ✨
                 </h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  Your health profile is ready! View your results and track your progress over time.
+                  Your comprehensive digestive health analysis is ready with root cause insights and treatment priorities!
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   <Button asChild size="sm" variant="outline" className="h-10">
@@ -212,7 +224,7 @@ export default function ClientDashboard() {
                     </Link>
                   </Button>
                   <Button asChild size="sm" className="h-10">
-                    <Link href="/client/assessment/new">
+                    <Link href="/client/assessment">
                       <BarChart3 className="h-4 w-4 mr-2" />
                       New Assessment
                     </Link>

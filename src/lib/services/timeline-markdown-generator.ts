@@ -15,8 +15,7 @@
 
 import type { LabAnalysisReport } from './functional-medicine-lab-analysis';
 import { functionalMedicineLabAnalysis } from './functional-medicine-lab-analysis';
-import type { AssessmentAnalysisReport } from './functional-medicine-assessment-analysis';
-import { functionalMedicineAssessmentAnalysis } from './functional-medicine-assessment-analysis';
+// Note: Assessment analysis temporarily disabled during system rebuild
 
 interface TimelineEvent {
   id: string;
@@ -691,9 +690,8 @@ ${assessment.findings ? this.formatFindings(assessment.findings) : ''}
     }
 
     // Generate markdown using the assessment analysis service
-    return functionalMedicineAssessmentAnalysis.generateAssessmentAnalysisMarkdown(
-      analysis.assessmentAnalysis
-    );
+    // Temporarily disabled during assessment system rebuild
+    return "Assessment analysis temporarily unavailable - system being rebuilt with enhanced capabilities.";
   }
 
   private static calculateQualityScore(analysis: TimelineAnalysis): number {

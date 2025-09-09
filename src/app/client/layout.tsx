@@ -1,22 +1,19 @@
 'use client';
 
-import { ClientAuthProvider } from '@/lib/client-auth-context';
 import { ClientProtectedRoute } from '@/components/client-auth/ClientProtectedRoute';
-import Link from 'next/link';
-import { useClientAuth } from '@/lib/client-auth-context';
-import { usePathname } from 'next/navigation';
+import { ClientAuthProvider, useClientAuth } from '@/lib/client-auth-context';
 import {
-  Home,
-  BarChart3,
-  MapPin,
-  MessageCircle,
-  Calendar,
-  LogOut,
-  User,
-  Truck,
-  Bell,
-  Settings,
+    BarChart3,
+    Bell,
+    Home,
+    LogOut,
+    MapPin,
+    MessageCircle,
+    Truck,
+    User
 } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 function ClientNavigation({ children }: { children: React.ReactNode }) {
   const { clientUser, logout } = useClientAuth();
