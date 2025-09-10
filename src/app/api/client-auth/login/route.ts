@@ -53,9 +53,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Implement proper password verification when passwordHash field is added
-    // For development, allow any existing client to login with any password
-    console.log('🔓 Development mode: Allowing login for existing client');
+    // For now, allow any existing client to login with any password
+    // TODO: Implement proper password verification when Client.password field is populated
+    console.log('🔓 Bypassing password check: Allowing login for existing client');
 
     // Generate JWT token for client
     const clientToken = generateClientToken({
