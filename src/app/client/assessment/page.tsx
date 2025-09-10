@@ -211,7 +211,7 @@ export default function StreamlinedAssessmentPage() {
   const getSimpleScaleOptions = (scaleType: string) => {
     const scales: { [key: string]: Array<{ value: number, label: string }> } = {
       frequency: [
-        { value: 0, label: 'Never' },
+        { value: 0, label: 'Never / N/A' },
         { value: 1, label: 'Rarely' },  
         { value: 2, label: 'Sometimes' },
         { value: 3, label: 'Often' },
