@@ -209,41 +209,6 @@ export default function StreamlinedAssessmentPage() {
     }
   };
 
-  const completeAssessment = async () => {
-    if (!assessmentState) return;
-
-    try {
-      console.log('🎯 Completing FM assessment and generating analysis...');
-      toast.info('Generating your comprehensive analysis...', { duration: 3000 });
-
-      const response = await fetch(`/api/fm-assessment/digestive/${assessmentState.id}/complete`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${clientToken}`
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      
-      if (data.success) {
-        toast.success('Assessment completed! Redirecting to your results...');
-        setTimeout(() => {
-          router.push(`/client/assessment/results/${assessmentState.id}`);
-        }, 1500);
-      } else {
-        throw new Error(data.error || 'Failed to complete assessment');
-      }
-    } catch (error) {
-      console.error('❌ Complete assessment error:', error);
-      toast.error('Failed to complete assessment. Please try again.');
-    }
-  };
-
   // Streamlined scale options - no descriptions, fast completion
   const getSimpleScaleOptions = (scaleType: string) => {
     const scales: { [key: string]: Array<{ value: number, label: string }> } = {
