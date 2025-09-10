@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
           firstName: userData.firstName,
           lastName: userData.lastName,
           phone: userData.phoneNumber,
-          // passwordHash, // Will be enabled when field is added to schema
+          password: passwordHash, // Store hashed password for secure authentication
           // practitionerId, // Will be enabled when field is added to schema  
           // subscriptionStatus: userData.practitionerCode === 'COACHING2025' ? 'active' : 'trial', // Will be enabled when field is added
           // onboardingCompleted: false, // Will be enabled when field is added

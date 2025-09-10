@@ -34,14 +34,12 @@ export async function POST(request: NextRequest) {
         firstName: true,
         lastName: true,
         phone: true,
+        password: true, // Include password for verification
         // practitionerId: true, // Enable when field is added
         // subscriptionStatus: true, // Enable when field is added
         assessmentCompleted: true,
         // onboardingCompleted: true, // Enable when field is added
-        // passwordHash: true, // Enable when field is added
         createdAt: true,
-        // For now, we'll use a simple password check since passwordHash may not exist
-        // In production, you'll want to add passwordHash field to Client model
       },
     });
 
@@ -53,9 +51,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For now, allow any existing client to login with any password
-    // TODO: Implement proper password verification when Client.password field is populated
-    console.log('🔓 Bypassing password check: Allowing login for existing client');
+    // Verify password for secure authentication
+    if (!client.password) {
+      console.log('❌ Client has no password set - legacy user needs to reset password');
+      return NextResponse.json(
+        { error: 'Account needs password reset. Please contact support.' },
+        { status: 401 }
+      );
+    }
+
+    // Verify password using bcrypt
+    const isValidPassword = await bcrypt.compare(password, client.password);
+    if (!isValidPassword) {
+      console.log('❌ Invalid password for client:', email);
+      return NextResponse.json(
+        { error: 'Invalid email or password' },
+        { status: 401 }
+      );
+    }
+
+    console.log('✅ Password verification successful for client:', email);
 
     // Generate JWT token for client
     const clientToken = generateClientToken({
