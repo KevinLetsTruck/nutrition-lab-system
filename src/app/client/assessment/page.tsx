@@ -26,8 +26,9 @@ import {
     TrendingUp
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { useClientAuth } from '@/lib/client-auth-context';
 
 interface Question {
   id: number;
@@ -41,8 +42,8 @@ interface Question {
 }
 
 interface RealTimeInsight {
-  categoryScores: any[];
-  earlyIndicators: any[];
+  categoryScores: Array<{category: string; score: number}>;
+  earlyIndicators: Array<{condition: string; probability: number}>;
   overallTrend: string;
 }
 
@@ -61,6 +62,7 @@ interface AssessmentState {
 
 export default function FunctionalMedicineAssessmentPage() {
   const router = useRouter();
+  const { clientToken } = useClientAuth();
   
   // Core state
   const [assessmentState, setAssessmentState] = useState<AssessmentState | null>(null);
@@ -75,19 +77,23 @@ export default function FunctionalMedicineAssessmentPage() {
   const [showContext, setShowContext] = useState<boolean>(false);
   const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
 
-  // Initialize assessment
-  useEffect(() => {
-    startOrResumeAssessment();
-  }, []);
+  const startOrResumeAssessment = useCallback(async () => {
+    if (!clientToken) {
+      console.error('❌ No client token available');
+      toast.error('Authentication required. Please refresh and try again.');
+      return;
+    }
 
-  const startOrResumeAssessment = async () => {
     try {
       setLoading(true);
       console.log('🧠 Starting/resuming FM digestive assessment...');
 
       const response = await fetch('/api/fm-assessment/digestive/start', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${clientToken}`
+        },
       });
 
       if (!response.ok) {
@@ -120,7 +126,14 @@ export default function FunctionalMedicineAssessmentPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [clientToken]);
+
+  // Initialize assessment
+  useEffect(() => {
+    if (clientToken) {
+      startOrResumeAssessment();
+    }
+  }, [clientToken, startOrResumeAssessment]);
 
   const submitResponse = async (responseValue: number) => {
     if (!assessmentState || !currentQuestion || submitting) return;
@@ -132,7 +145,10 @@ export default function FunctionalMedicineAssessmentPage() {
       
       const response = await fetch(`/api/fm-assessment/digestive/${assessmentState.id}/response`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${clientToken}`
+        },
         body: JSON.stringify({
           questionId: currentQuestion.id,
           responseValue,
@@ -189,6 +205,10 @@ export default function FunctionalMedicineAssessmentPage() {
 
       const response = await fetch(`/api/fm-assessment/digestive/${assessmentState.id}/complete`, {
         method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${clientToken}`
+        },
       });
 
       if (!response.ok) {
@@ -509,7 +529,7 @@ export default function FunctionalMedicineAssessmentPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {assessmentState.realTimeInsights.earlyIndicators.map((indicator: any, index: number) => (
+                {assessmentState.realTimeInsights.earlyIndicators.map((indicator: {condition: string; probability: number}, index: number) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-purple-200">
                     <div>
                       <p className="font-medium text-gray-900">{indicator.condition}</p>
