@@ -30,8 +30,9 @@ import {
     Zap
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { useClientAuth } from '@/lib/client-auth-context';
 
 interface AssessmentResults {
   assessmentInfo: {
@@ -72,20 +73,33 @@ interface AssessmentResults {
 
 export default function AssessmentResultsPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { clientToken } = useClientAuth();
   const [results, setResults] = useState<AssessmentResults | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchResults();
-  }, [params.id]);
+    if (clientToken) {
+      fetchResults();
+    }
+  }, [clientToken, fetchResults]);
 
-  const fetchResults = async () => {
+  const fetchResults = useCallback(async () => {
+    if (!clientToken) {
+      setError('Authentication required');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       console.log(`📊 Fetching FM assessment results: ${params.id}`);
 
-      const response = await fetch(`/api/fm-assessment/digestive/${params.id}/results`);
+      const response = await fetch(`/api/fm-assessment/digestive/${params.id}/results`, {
+        headers: {
+          'Authorization': `Bearer ${clientToken}`
+        }
+      });
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -109,7 +123,7 @@ export default function AssessmentResultsPage({ params }: { params: { id: string
     } finally {
       setLoading(false);
     }
-  };
+  }, [clientToken, params.id]);
 
   const getScoreColor = (score: number) => {
     if (score <= 20) return 'text-green-600 bg-green-100';

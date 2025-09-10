@@ -11,18 +11,16 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { useClientAuth } from '@/lib/client-auth-context';
 import {
     AlertTriangle,
     ArrowLeft,
     Brain,
-    CheckCircle,
-    Clock,
-    Target
+    CheckCircle
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { useClientAuth } from '@/lib/client-auth-context';
 
 interface Question {
   id: number;
