@@ -11,7 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Textarea } from '@/components/ui/textarea';
 import {
     AlertTriangle,
     ArrowLeft,
@@ -72,8 +71,6 @@ export default function FunctionalMedicineAssessmentPage() {
   
   // UI state
   const [selectedResponse, setSelectedResponse] = useState<number | null>(null);
-  const [confidence, setConfidence] = useState<number>(5);
-  const [notes, setNotes] = useState<string>('');
   const [showContext, setShowContext] = useState<boolean>(false);
   const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
 
@@ -152,8 +149,8 @@ export default function FunctionalMedicineAssessmentPage() {
         body: JSON.stringify({
           questionId: currentQuestion.id,
           responseValue,
-          confidenceLevel: confidence,
-          notes: notes.trim() || undefined,
+          confidenceLevel: 5, // Default high confidence for streamlined flow
+          notes: undefined, // Removed notes for simplicity
           timeSpentSeconds: timeSpent
         })
       });
@@ -179,8 +176,6 @@ export default function FunctionalMedicineAssessmentPage() {
           // Move to next question
           setCurrentQuestion(data.assessment.nextQuestion);
           setSelectedResponse(null);
-          setNotes('');
-          setConfidence(5);
           setQuestionStartTime(Date.now());
           
           toast.success('Response saved!', { duration: 1000 });
@@ -447,49 +442,7 @@ export default function FunctionalMedicineAssessmentPage() {
               ))}
             </div>
 
-            {/* Optional Notes */}
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-900">
-                  Additional Notes (Optional)
-                </label>
-                <Badge variant="outline" className="text-xs">Optional</Badge>
-              </div>
-              <Textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Any additional details about this symptom..."
-                className="resize-none"
-                rows={2}
-                disabled={submitting}
-              />
-            </div>
-
-            {/* Confidence Level */}
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-gray-900">
-                How confident are you in your answer?
-              </label>
-              <div className="flex space-x-2">
-                {[1, 2, 3, 4, 5].map((level) => (
-                  <button
-                    key={level}
-                    onClick={() => setConfidence(level)}
-                    className={`flex-1 p-2 rounded text-center text-sm font-medium transition-colors ${
-                      confidence === level
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                    disabled={submitting}
-                  >
-                    {level}
-                  </button>
-                ))}
-              </div>
-              <p className="text-xs text-gray-500 text-center">
-                1 = Not sure, 5 = Very confident
-              </p>
-            </div>
+            {/* Streamlined interface - removed notes and confidence for higher completion rates */}
 
             {/* Submit Button */}
             <div className="pt-4">
