@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { generateClientToken } from '@/lib/client-auth-utils';
 import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
-import { generateClientToken } from '@/lib/client-auth-utils';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 const RegisterSchema = z.object({
