@@ -51,6 +51,15 @@ function ClientNavigation({ children }: { children: React.ReactNode }) {
               </div>
             </Link>
 
+            {/* Quick Assessment Access */}
+            <Link 
+              href="/client/assessment" 
+              className="hidden sm:flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium text-sm"
+            >
+              <BarChart3 className="h-4 w-4" />
+              Assessment
+            </Link>
+
             {/* User Menu */}
             <div className="flex items-center gap-3">
               {/* Notifications */}
