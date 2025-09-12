@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Redirect based on user role
     if (data.user.role === 'CLIENT') {
-      router.push('/dashboard');
+      router.push('/client/dashboard');  // Fixed: Client users go to client portal
     } else {
       router.push('/dashboard/clients');
     }
