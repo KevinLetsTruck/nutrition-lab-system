@@ -78,12 +78,6 @@ export default function AssessmentResultsPage({ params }: { params: { id: string
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (clientToken) {
-      fetchResults();
-    }
-  }, [clientToken, fetchResults]);
-
   const fetchResults = useCallback(async () => {
     if (!clientToken) {
       setError('Authentication required');
@@ -124,6 +118,12 @@ export default function AssessmentResultsPage({ params }: { params: { id: string
       setLoading(false);
     }
   }, [clientToken, params.id]);
+
+  useEffect(() => {
+    if (clientToken) {
+      fetchResults();
+    }
+  }, [clientToken, fetchResults]);
 
   const getScoreColor = (score: number) => {
     if (score <= 20) return 'text-green-600 bg-green-100';
