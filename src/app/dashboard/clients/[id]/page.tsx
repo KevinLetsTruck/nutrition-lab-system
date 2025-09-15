@@ -28,6 +28,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
 import { ExportClientButton } from "@/components/clients/ExportClientButton";
+import { ClaudePromptsModal } from "@/components/exports/ClaudePromptsModal";
 
 // Dynamically import SimplePDFViewer with SSR disabled
 const SimplePDFViewer = dynamic(
@@ -134,6 +135,10 @@ export default function ClientDetailPage() {
   } | null>(null);
   const [isDocumentViewerOpen, setIsDocumentViewerOpen] = useState(false);
 
+  // Claude prompts modal state
+  const [isClaudePromptsOpen, setIsClaudePromptsOpen] = useState(false);
+  const [claudeExportResult, setClaudeExportResult] = useState<any>(null);
+
   useEffect(() => {
     const fetchCompleteClientData = async () => {
       try {
@@ -177,6 +182,20 @@ export default function ClientDetailPage() {
       fetchCompleteClientData();
     }
   }, [params.id, router]);
+
+  // Listen for Claude prompts ready event
+  useEffect(() => {
+    const handleClaudePromptsReady = (event: CustomEvent) => {
+      setClaudeExportResult(event.detail);
+      setIsClaudePromptsOpen(true);
+    };
+
+    window.addEventListener('claudePromptsReady', handleClaudePromptsReady as EventListener);
+    
+    return () => {
+      window.removeEventListener('claudePromptsReady', handleClaudePromptsReady as EventListener);
+    };
+  }, []);
 
   // Note: Filtering is now done locally since we have all notes in memory
 
@@ -1175,6 +1194,18 @@ export default function ClientDetailPage() {
             setIsDocumentViewerOpen(false);
             setSelectedDocument(null);
           }}
+        />
+      )}
+
+      {/* Claude Prompts Modal */}
+      {isClaudePromptsOpen && claudeExportResult && (
+        <ClaudePromptsModal
+          isOpen={isClaudePromptsOpen}
+          onClose={() => {
+            setIsClaudePromptsOpen(false);
+            setClaudeExportResult(null);
+          }}
+          exportResult={claudeExportResult}
         />
       )}
     </div>

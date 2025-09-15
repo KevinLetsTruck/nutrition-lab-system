@@ -7,7 +7,8 @@ import archiver from "archiver";
 import { medicalDocStorage } from "@/lib/medical/storage-service";
 
 // Claude Desktop Analysis System directory
-const CLAUDE_ANALYSIS_DIR = "/Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports";
+const CLAUDE_ANALYSIS_DIR =
+  "/Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports";
 
 export async function GET(
   request: NextRequest,
@@ -26,15 +27,21 @@ export async function GET(
     try {
       if (!fs.existsSync(CLAUDE_ANALYSIS_DIR)) {
         fs.mkdirSync(CLAUDE_ANALYSIS_DIR, { recursive: true });
-        console.log(`📁 Created Claude Analysis directory: ${CLAUDE_ANALYSIS_DIR}`);
+        console.log(
+          `📁 Created Claude Analysis directory: ${CLAUDE_ANALYSIS_DIR}`
+        );
       }
     } catch (dirError) {
       console.error("❌ Failed to create Claude Analysis directory:", dirError);
-      return NextResponse.json({
-        error: "Failed to access Claude Analysis System directory",
-        details: "Please ensure /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/ is accessible",
-        requiredPath: CLAUDE_ANALYSIS_DIR
-      }, { status: 500 });
+      return NextResponse.json(
+        {
+          error: "Failed to access Claude Analysis System directory",
+          details:
+            "Please ensure /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/ is accessible",
+          requiredPath: CLAUDE_ANALYSIS_DIR,
+        },
+        { status: 500 }
+      );
     }
 
     // Fetch complete client data from current database tables
@@ -74,7 +81,7 @@ export async function GET(
     let finalZipPath = zipFilePath;
     let finalFilename = zipFilename;
     let version = 1;
-    
+
     while (fs.existsSync(finalZipPath)) {
       const versionedFilename = `${clientName}-${timestamp}_v${version}.zip`;
       finalZipPath = path.join(CLAUDE_ANALYSIS_DIR, versionedFilename);
@@ -89,16 +96,30 @@ export async function GET(
         name: `${clientData.firstName} ${clientData.lastName}`,
         email: clientData.email,
         phone: clientData.phone || "",
-        dateOfBirth: clientData.dateOfBirth ? clientData.dateOfBirth.toISOString().split('T')[0] : null,
+        dateOfBirth: clientData.dateOfBirth
+          ? clientData.dateOfBirth.toISOString().split("T")[0]
+          : null,
         gender: clientData.gender || "",
-        healthGoals: Array.isArray(clientData.healthGoals) ? clientData.healthGoals : 
-                    (clientData.healthGoals ? [String(clientData.healthGoals)] : []),
-        medications: Array.isArray(clientData.medications) ? clientData.medications : 
-                    (clientData.medications ? [String(clientData.medications)] : []),
-        conditions: Array.isArray(clientData.conditions) ? clientData.conditions : 
-                   (clientData.conditions ? [String(clientData.conditions)] : []),
-        allergies: Array.isArray(clientData.allergies) ? clientData.allergies : 
-                  (clientData.allergies ? [String(clientData.allergies)] : [])
+        healthGoals: Array.isArray(clientData.healthGoals)
+          ? clientData.healthGoals
+          : clientData.healthGoals
+          ? [String(clientData.healthGoals)]
+          : [],
+        medications: Array.isArray(clientData.medications)
+          ? clientData.medications
+          : clientData.medications
+          ? [String(clientData.medications)]
+          : [],
+        conditions: Array.isArray(clientData.conditions)
+          ? clientData.conditions
+          : clientData.conditions
+          ? [String(clientData.conditions)]
+          : [],
+        allergies: Array.isArray(clientData.allergies)
+          ? clientData.allergies
+          : clientData.allergies
+          ? [String(clientData.allergies)]
+          : [],
       },
       assessments: [], // No assessment data in current schema
       documents: clientData.documents.map((doc) => ({
@@ -112,8 +133,8 @@ export async function GET(
           value: lab.value,
           unit: lab.unit || "",
           referenceRange: lab.referenceRange || "",
-          status: lab.flag || (lab.isOutOfRange ? "ABNORMAL" : "NORMAL")
-        }))
+          status: lab.flag || (lab.isOutOfRange ? "ABNORMAL" : "NORMAL"),
+        })),
       })),
       notes: clientData.notes.map((note) => ({
         id: note.id,
@@ -122,7 +143,7 @@ export async function GET(
         chiefComplaints: note.chiefComplaints || "",
         healthHistory: note.healthHistory || "",
         goals: note.goals || "",
-        createdAt: note.createdAt.toISOString()
+        createdAt: note.createdAt.toISOString(),
       })),
       protocols: clientData.protocols.map((protocol) => ({
         id: protocol.id,
@@ -131,8 +152,8 @@ export async function GET(
         supplements: protocol.supplements || {},
         dietary: protocol.dietary || {},
         lifestyle: protocol.lifestyle || {},
-        createdAt: protocol.createdAt.toISOString()
-      }))
+        createdAt: protocol.createdAt.toISOString(),
+      })),
     };
 
     // Create export metadata for Claude
@@ -140,11 +161,14 @@ export async function GET(
       exportDate: new Date().toISOString(),
       exportVersion: "1.0",
       clientId: clientData.id,
-      systemVersion: "v2.2.0-export-system-stable-claude-ready"
+      systemVersion: "v2.2.0-export-system-stable-claude-ready",
     };
 
     // Generate client summary for Claude
     const clientSummary = generateClaudeCompatibleSummary(claudeExportData);
+
+    // Generate Claude Desktop prompts
+    const claudePrompts = generateClaudeDesktopPrompts(claudeExportData, finalFilename);
 
     // Create ZIP file and save to Claude Analysis System
     return new Promise(async (resolve) => {
@@ -152,9 +176,11 @@ export async function GET(
       const output = fs.createWriteStream(finalZipPath);
 
       output.on("close", () => {
-        console.log(`✅ Export saved to Claude Analysis System: ${finalZipPath}`);
+        console.log(
+          `✅ Export saved to Claude Analysis System: ${finalZipPath}`
+        );
         console.log(`📊 Total bytes: ${archive.pointer()}`);
-        
+
         resolve(
           NextResponse.json({
             success: true,
@@ -162,6 +188,13 @@ export async function GET(
             filename: finalFilename,
             location: `📁 Location: ${CLAUDE_ANALYSIS_DIR}`,
             exportPath: finalZipPath,
+            prompts: claudePrompts,
+            clientContext: {
+              name: `${clientData.firstName} ${clientData.lastName}`,
+              primaryConcerns: extractPrimaryConcerns(claudeExportData),
+              medications: claudeExportData.client.medications,
+              keyLabs: extractKeyLabValues(claudeExportData)
+            },
             summary: {
               clientName: `${clientData.firstName} ${clientData.lastName}`,
               totalDocuments: clientData.documents.length,
@@ -171,9 +204,9 @@ export async function GET(
                 "client-data.json",
                 "client-summary.md",
                 "export-metadata.json",
-                `${clientData.documents.length} PDF documents`
-              ]
-            }
+                `${clientData.documents.length} PDF documents`,
+              ],
+            },
           })
         );
       });
@@ -181,26 +214,32 @@ export async function GET(
       output.on("error", (err) => {
         console.error("❌ File system error:", err);
         resolve(
-          NextResponse.json({
-            error: "Failed to save export to Claude Analysis System",
-            details: `File system error: ${err.message}`,
-            location: CLAUDE_ANALYSIS_DIR,
-            troubleshooting: [
-              "Check directory permissions",
-              "Ensure sufficient disk space",
-              "Verify path accessibility"
-            ]
-          }, { status: 500 })
+          NextResponse.json(
+            {
+              error: "Failed to save export to Claude Analysis System",
+              details: `File system error: ${err.message}`,
+              location: CLAUDE_ANALYSIS_DIR,
+              troubleshooting: [
+                "Check directory permissions",
+                "Ensure sufficient disk space",
+                "Verify path accessibility",
+              ],
+            },
+            { status: 500 }
+          )
         );
       });
 
       archive.on("error", (err) => {
         console.error("❌ Archive error:", err);
         resolve(
-          NextResponse.json({
-            error: "Failed to create export archive",
-            details: err.message
-          }, { status: 500 })
+          NextResponse.json(
+            {
+              error: "Failed to create export archive",
+              details: err.message,
+            },
+            { status: 500 }
+          )
         );
       });
 
@@ -211,8 +250,8 @@ export async function GET(
         name: "client-data.json",
       });
 
-      archive.append(clientSummary, { 
-        name: "client-summary.md" 
+      archive.append(clientSummary, {
+        name: "client-summary.md",
       });
 
       archive.append(JSON.stringify(exportMetadata, null, 2), {
@@ -222,7 +261,9 @@ export async function GET(
       // Add document files (if they exist)
       let copiedDocuments = 0;
       const skippedDocuments = [];
-      console.log(`🔍 Processing ${clientData.documents.length} documents for Claude export...`);
+      console.log(
+        `🔍 Processing ${clientData.documents.length} documents for Claude export...`
+      );
 
       for (const doc of clientData.documents) {
         try {
@@ -341,11 +382,14 @@ To recover these documents:
     });
   } catch (error) {
     console.error("❌ Claude export error:", error);
-    return NextResponse.json({
-      error: error instanceof Error ? error.message : "Export failed",
-      details: "Failed to export client data to Claude Analysis System",
-      location: CLAUDE_ANALYSIS_DIR
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Export failed",
+        details: "Failed to export client data to Claude Analysis System",
+        location: CLAUDE_ANALYSIS_DIR,
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -501,4 +545,150 @@ ${protocols
 ---
 *This summary was automatically generated from the FNTP assessment system.*
 `;
+}
+
+// Generate Claude Desktop prompts for different analysis types
+function generateClaudeDesktopPrompts(clientData: any, filename: string) {
+  const client = clientData.client;
+  const concerns = extractPrimaryConcerns(clientData);
+  const meds = client.medications.length > 0 ? client.medications.join(", ") : "None";
+  const keyLabs = extractKeyLabValues(clientData);
+  const timestamp = new Date().toLocaleDateString();
+
+  const comprehensivePrompt = `FNTP FUNCTIONAL MEDICINE ANALYSIS REQUEST
+
+SYSTEM ACTIVATION: Load my FNTP analysis system from /Users/kr/FNTP-Claude-Analysis-System/
+
+CLIENT: ${client.name} (exported ${timestamp})
+FILE: ${filename}
+
+ANALYSIS SCOPE: Comprehensive functional medicine analysis using my clinical frameworks
+- Pattern recognition: metabolic dysfunction, inflammation, digestive issues, hormonal imbalances
+- LetsTruck supplement hierarchy (business priority)
+- 3-phase protocol generation (Foundation → Targeted → Optimization)
+- Complete practitioner notes with clinical reasoning
+
+PRIMARY HEALTH CONCERNS: ${concerns}
+CURRENT MEDICATIONS: ${meds}
+KEY LAB VALUES: ${keyLabs}
+
+TASK: Generate comprehensive functional medicine protocol with LetsTruck supplement recommendations, detailed implementation guidance, and practitioner coaching notes.
+
+OUTPUT: Save complete analysis JSON to /3-analysis-outputs/ directory for web app import.`;
+
+  const focusedPrompts = {
+    gut: `FNTP GUT HEALTH FOCUSED ANALYSIS
+
+CLIENT: ${client.name}
+FILE: ${filename}
+
+FOCUS: Digestive system optimization and gut barrier restoration
+- SIBO/dysbiosis patterns
+- Food sensitivity analysis  
+- Digestive enzyme and HCl assessment
+- Microbiome restoration protocol
+
+PRIMARY CONCERNS: ${concerns}
+MEDICATIONS: ${meds}
+
+Generate targeted gut health protocol with LetsTruck digestive supplements.`,
+
+    metabolic: `FNTP METABOLIC DYSFUNCTION ANALYSIS
+
+CLIENT: ${client.name}
+FILE: ${filename}
+
+FOCUS: Blood sugar regulation and metabolic optimization
+- Insulin resistance patterns
+- Glucose dysregulation
+- Metabolic syndrome markers
+- Energy production pathways
+
+KEY LABS: ${keyLabs}
+CONCERNS: ${concerns}
+
+Generate metabolic optimization protocol with LetsTruck blood sugar support supplements.`,
+
+    hormonal: `FNTP HORMONAL BALANCE ANALYSIS
+
+CLIENT: ${client.name}
+FILE: ${filename}
+
+FOCUS: Hormonal optimization and energy restoration
+- Thyroid function assessment
+- Adrenal health evaluation
+- Sex hormone balance
+- Circadian rhythm optimization
+
+CONCERNS: ${concerns}
+MEDICATIONS: ${meds}
+
+Generate hormonal balance protocol with LetsTruck hormone support supplements.`
+  };
+
+  const followupPrompt = `FNTP FOLLOW-UP ANALYSIS
+
+CLIENT: ${client.name} - Progress Review
+FILE: ${filename}
+
+FOCUS: Evaluate protocol effectiveness and adjust recommendations
+- Review previous protocol compliance
+- Assess symptom improvement
+- Identify areas needing adjustment
+- Optimize supplement regimen
+
+CURRENT STATUS: ${concerns}
+MEDICATIONS: ${meds}
+
+Generate updated protocol recommendations based on progress and current needs.`;
+
+  return {
+    comprehensive: comprehensivePrompt,
+    focused: focusedPrompts,
+    followup: followupPrompt
+  };
+}
+
+// Extract primary health concerns from client data
+function extractPrimaryConcerns(clientData: any): string {
+  const concerns = [];
+  
+  // Extract from health goals
+  if (clientData.client.healthGoals.length > 0) {
+    concerns.push(...clientData.client.healthGoals);
+  }
+  
+  // Extract from chief complaints in notes
+  clientData.notes.forEach((note: any) => {
+    if (note.chiefComplaints) {
+      concerns.push(note.chiefComplaints);
+    }
+  });
+  
+  // Extract from conditions
+  if (clientData.client.conditions.length > 0) {
+    concerns.push(...clientData.client.conditions);
+  }
+  
+  return concerns.length > 0 ? concerns.slice(0, 3).join(", ") : "General health optimization";
+}
+
+// Extract key lab values for prompt context
+function extractKeyLabValues(clientData: any): string {
+  const keyLabs = [];
+  
+  clientData.documents.forEach((doc: any) => {
+    doc.labValues.forEach((lab: any) => {
+      // Focus on key metabolic markers
+      if (lab.testName.toLowerCase().includes('glucose') ||
+          lab.testName.toLowerCase().includes('hba1c') ||
+          lab.testName.toLowerCase().includes('crp') ||
+          lab.testName.toLowerCase().includes('tsh') ||
+          lab.testName.toLowerCase().includes('vitamin d')) {
+        keyLabs.push(`${lab.testName}: ${lab.value} ${lab.unit}`);
+      }
+    });
+  });
+  
+  return keyLabs.length > 0 ? keyLabs.slice(0, 5).join(", ") : "No key lab values available";
 }

@@ -63,6 +63,8 @@ export function ExportClientButton({
       const exportResult = await response.json();
 
       setExportStatus("success");
+      
+      // Show success toast with basic info
       toast.success(exportResult.message, {
         description: (
           <div className="space-y-1">
@@ -75,10 +77,24 @@ export function ExportClientButton({
             <p className="text-xs text-gray-500 mt-2">
               {exportResult.location}
             </p>
+            <p className="text-xs text-blue-400 mt-2">
+              🤖 Claude prompts generated - check modal for copy-paste options
+            </p>
           </div>
         ),
-        duration: 8000,
+        duration: 6000,
       });
+
+      // Store prompts for modal display (you'll implement the modal next)
+      if (typeof window !== 'undefined') {
+        (window as any).claudePrompts = exportResult.prompts;
+        (window as any).claudeExportResult = exportResult;
+        
+        // Trigger custom event for modal display
+        window.dispatchEvent(new CustomEvent('claudePromptsReady', { 
+          detail: exportResult 
+        }));
+      }
 
       // Optional: Show system notification
       if ("Notification" in window && Notification.permission === "granted") {

@@ -247,11 +247,8 @@ export async function DELETE(
 
       // Delete audit logs related to this client (if clientId field exists)
       await tx.auditLog.deleteMany({
-        where: { 
-          OR: [
-            { clientId },
-            { resourceId: clientId }
-          ]
+        where: {
+          OR: [{ clientId }, { resourceId: clientId }],
         },
       });
 
