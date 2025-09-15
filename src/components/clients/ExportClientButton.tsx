@@ -59,44 +59,59 @@ export function ExportClientButton({
         throw new Error(errorMessage);
       }
 
-      // Handle file download (original working functionality)
-      const blob = await response.blob();
-      const contentDisposition = response.headers.get('content-disposition');
-      const filenameMatch = contentDisposition?.match(/filename="([^"]+)"/);
-      const filename = filenameMatch ? filenameMatch[1] : `${clientName}-export.zip`;
+      // Handle JSON response with file data and prompts
+      const exportResult = await response.json();
 
-      // Create download link
+      // Create and trigger file download from the file data
+      const zipBuffer = new Uint8Array(exportResult.fileData);
+      const blob = new Blob([zipBuffer], { type: 'application/zip' });
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = filename;
+      a.download = exportResult.filename;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
       setExportStatus("success");
-      toast.success("Export Downloaded!", {
+      
+      // Show success toast
+      toast.success(exportResult.message, {
         description: (
           <div className="space-y-1">
             <p>
               <strong>Client:</strong> {clientName}
             </p>
             <p>
-              <strong>File:</strong> {filename}
+              <strong>File:</strong> {exportResult.filename}
             </p>
             <p className="text-xs text-gray-500 mt-2">
-              📦 ZIP file downloaded to your Downloads folder
+              {exportResult.location}
+            </p>
+            <p className="text-xs text-blue-400 mt-2">
+              🤖 Claude prompts modal opening...
             </p>
           </div>
         ),
         duration: 6000,
       });
 
+      // Show the beautiful prompts modal
+      if (typeof window !== 'undefined') {
+        (window as any).claudePrompts = exportResult.prompts;
+        (window as any).claudeExportResult = exportResult;
+        
+        // Trigger custom event for modal display
+        window.dispatchEvent(new CustomEvent('claudePromptsReady', { 
+          detail: exportResult 
+        }));
+      }
+
       // Optional: Show system notification
       if ("Notification" in window && Notification.permission === "granted") {
-        new Notification("FNTP Client Export Downloaded", {
-          body: `${clientName} data downloaded as ${filename}`,
+        new Notification("FNTP Client Export Complete", {
+          body: `${clientName} data exported with Claude prompts ready`,
           icon: "/favicon.ico",
         });
       }

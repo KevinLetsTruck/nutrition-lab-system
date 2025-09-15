@@ -155,17 +155,40 @@ export async function GET(
       archive.on("end", () => {
         const zipBuffer = Buffer.concat(chunks);
 
-        // Create response with ZIP file download
-        const response = new NextResponse(zipBuffer, {
-          status: 200,
-          headers: {
-            "Content-Type": "application/zip",
-            "Content-Disposition": `attachment; filename="${zipFilename}"`,
-            "Content-Length": zipBuffer.length.toString(),
-          },
-        });
+        // Generate Claude Desktop prompts for the modal
+        const claudePrompts = generateClaudeDesktopPrompts(exportData, zipFilename);
 
-        resolve(response);
+        // Return JSON response with prompts AND file data for modal + download
+        resolve(
+          NextResponse.json({
+            success: true,
+            message: `✅ Client exported successfully: ${zipFilename}`,
+            filename: zipFilename,
+            location: "📁 Downloaded to your Downloads folder",
+            fileData: Array.from(zipBuffer), // Convert buffer to array for JSON
+            prompts: claudePrompts,
+            clientContext: {
+              name: `${clientData.firstName} ${clientData.lastName}`,
+              primaryConcerns: extractPrimaryConcerns(exportData),
+              medications: exportData.client.medications || [],
+              keyLabs: extractKeyLabValues(exportData)
+            },
+            summary: {
+              clientName: `${clientData.firstName} ${clientData.lastName}`,
+              totalDocuments: clientData.Document.length,
+              totalNotes: clientData.Note.length,
+              totalProtocols: clientData.Protocol.length,
+              exportedFiles: [
+                "client-data.json",
+                "client-summary.md",
+                "export-metadata.json",
+                "claude-prompts.json",
+                "claude-comprehensive-prompt.txt",
+                `${clientData.Document.length} PDF documents`,
+              ],
+            },
+          })
+        );
       });
 
       archive.on("error", (err) => {
@@ -190,6 +213,22 @@ export async function GET(
       // Add metadata
       archive.append(JSON.stringify(exportData.exportMetadata, null, 2), {
         name: "export-metadata.json",
+      });
+
+      // Generate Claude Desktop prompts
+      const claudePrompts = generateClaudeDesktopPrompts(
+        exportData,
+        zipFilename
+      );
+
+      // Add Claude prompts to the ZIP file
+      archive.append(JSON.stringify(claudePrompts, null, 2), {
+        name: "claude-prompts.json",
+      });
+
+      // Add comprehensive prompt as text file for easy copying
+      archive.append(claudePrompts.comprehensive, {
+        name: "claude-comprehensive-prompt.txt",
       });
 
       // Add document files (if they exist)
@@ -484,7 +523,10 @@ ${protocols
 function generateClaudeDesktopPrompts(clientData: any, filename: string) {
   const client = clientData.client;
   const concerns = extractPrimaryConcerns(clientData);
-  const meds = client.medications && client.medications.length > 0 ? client.medications.join(", ") : "None";
+  const meds =
+    client.medications && client.medications.length > 0
+      ? client.medications.join(", ")
+      : "None";
   const keyLabs = extractKeyLabValues(clientData);
   const timestamp = new Date().toLocaleDateString();
 
@@ -556,21 +598,25 @@ ACTION: BEGIN ANALYSIS NOW - FILE IS READY FOR PROCESSING`;
     comprehensive: comprehensivePrompt,
     focused: {
       gut: "GUT HEALTH ANALYSIS - Use exported data",
-      metabolic: "METABOLIC ANALYSIS - Use exported data", 
-      hormonal: "HORMONAL ANALYSIS - Use exported data"
+      metabolic: "METABOLIC ANALYSIS - Use exported data",
+      hormonal: "HORMONAL ANALYSIS - Use exported data",
     },
-    followup: "FOLLOW-UP ANALYSIS - Use exported data"
+    followup: "FOLLOW-UP ANALYSIS - Use exported data",
   };
 }
 
 // Extract primary health concerns from client data
 function extractPrimaryConcerns(clientData: any): string {
   const concerns = [];
-  
+
   if (clientData.client.healthGoals) {
-    concerns.push(...(Array.isArray(clientData.client.healthGoals) ? clientData.client.healthGoals : [clientData.client.healthGoals]));
+    concerns.push(
+      ...(Array.isArray(clientData.client.healthGoals)
+        ? clientData.client.healthGoals
+        : [clientData.client.healthGoals])
+    );
   }
-  
+
   if (clientData.notes && clientData.notes.length > 0) {
     clientData.notes.forEach((note: any) => {
       if (note.chiefComplaints) {
@@ -578,25 +624,29 @@ function extractPrimaryConcerns(clientData: any): string {
       }
     });
   }
-  
-  return concerns.length > 0 ? concerns.slice(0, 3).join(", ") : "General health optimization";
+
+  return concerns.length > 0
+    ? concerns.slice(0, 3).join(", ")
+    : "General health optimization";
 }
 
 // Extract key lab values for prompt context
 function extractKeyLabValues(clientData: any): string {
   const keyLabs = [];
-  
+
   if (clientData.documents && clientData.documents.length > 0) {
     clientData.documents.forEach((doc: any) => {
       if (doc.labValues && doc.labValues.length > 0) {
         doc.labValues.forEach((lab: any) => {
-          if (lab.testName && lab.testName.toLowerCase().includes('glucose')) {
+          if (lab.testName && lab.testName.toLowerCase().includes("glucose")) {
             keyLabs.push(`${lab.testName}: ${lab.value} ${lab.unit || ""}`);
           }
         });
       }
     });
   }
-  
-  return keyLabs.length > 0 ? keyLabs.slice(0, 3).join(", ") : "Lab values in exported file";
+
+  return keyLabs.length > 0
+    ? keyLabs.slice(0, 3).join(", ")
+    : "Lab values in exported file";
 }
