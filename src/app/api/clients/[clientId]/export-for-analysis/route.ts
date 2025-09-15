@@ -6,9 +6,12 @@ import path from "path";
 import archiver from "archiver";
 import { medicalDocStorage } from "@/lib/medical/storage-service";
 
-// Claude Desktop Analysis System directory
-const CLAUDE_ANALYSIS_DIR =
-  "/Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports";
+// Claude Desktop Analysis System directory (local development only)
+const CLAUDE_ANALYSIS_DIR = "/Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports";
+
+// Check if we're running in production (Railway) or local development
+const isProduction = process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT;
+const canWriteToLocalFS = !isProduction && process.platform === "darwin"; // macOS only
 
 export async function GET(
   request: NextRequest,
@@ -23,25 +26,20 @@ export async function GET(
 
     const { clientId } = params;
 
-    // Create Claude Desktop directory if it doesn't exist
-    try {
-      if (!fs.existsSync(CLAUDE_ANALYSIS_DIR)) {
-        fs.mkdirSync(CLAUDE_ANALYSIS_DIR, { recursive: true });
-        console.log(
-          `📁 Created Claude Analysis directory: ${CLAUDE_ANALYSIS_DIR}`
-        );
+    // Handle local vs production environment
+    if (canWriteToLocalFS) {
+      // Local development - try to create Claude Desktop directory
+      try {
+        if (!fs.existsSync(CLAUDE_ANALYSIS_DIR)) {
+          fs.mkdirSync(CLAUDE_ANALYSIS_DIR, { recursive: true });
+          console.log(`📁 Created Claude Analysis directory: ${CLAUDE_ANALYSIS_DIR}`);
+        }
+      } catch (dirError) {
+        console.warn("❌ Could not create Claude Analysis directory, falling back to download:", dirError);
+        // Fall back to browser download if local directory creation fails
       }
-    } catch (dirError) {
-      console.error("❌ Failed to create Claude Analysis directory:", dirError);
-      return NextResponse.json(
-        {
-          error: "Failed to access Claude Analysis System directory",
-          details:
-            "Please ensure /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/ is accessible",
-          requiredPath: CLAUDE_ANALYSIS_DIR,
-        },
-        { status: 500 }
-      );
+    } else {
+      console.log("🌐 Production environment detected - using browser download mode");
     }
 
     // Fetch complete client data from current database tables
@@ -170,65 +168,83 @@ export async function GET(
     // Generate Claude Desktop prompts
     const claudePrompts = generateClaudeDesktopPrompts(claudeExportData, finalFilename);
 
-    // Create ZIP file and save to Claude Analysis System
+    // Create ZIP file - handle both local save and browser download
     return new Promise(async (resolve) => {
       const archive = archiver("zip", { zlib: { level: 9 } });
-      const output = fs.createWriteStream(finalZipPath);
+      
+      if (canWriteToLocalFS && fs.existsSync(path.dirname(finalZipPath))) {
+        // Local development - save to Claude Desktop directory
+        const output = fs.createWriteStream(finalZipPath);
 
-      output.on("close", () => {
-        console.log(
-          `✅ Export saved to Claude Analysis System: ${finalZipPath}`
-        );
-        console.log(`📊 Total bytes: ${archive.pointer()}`);
+        output.on("close", () => {
+          console.log(`✅ Export saved to Claude Analysis System: ${finalZipPath}`);
+          console.log(`📊 Total bytes: ${archive.pointer()}`);
 
-        resolve(
-          NextResponse.json({
-            success: true,
-            message: `✅ Client exported to Claude Analysis System: ${finalFilename}`,
-            filename: finalFilename,
-            location: `📁 Location: ${CLAUDE_ANALYSIS_DIR}`,
-            exportPath: finalZipPath,
-            prompts: claudePrompts,
-            clientContext: {
-              name: `${clientData.firstName} ${clientData.lastName}`,
-              primaryConcerns: extractPrimaryConcerns(claudeExportData),
-              medications: claudeExportData.client.medications,
-              keyLabs: extractKeyLabValues(claudeExportData)
-            },
-            summary: {
-              clientName: `${clientData.firstName} ${clientData.lastName}`,
-        totalDocuments: clientData.Document.length,
-        totalNotes: clientData.Note.length,
-        totalProtocols: clientData.Protocol.length,
-              exportedFiles: [
-                "client-data.json",
-                "client-summary.md",
-                "export-metadata.json",
-                `${clientData.Document.length} PDF documents`,
-              ],
-            },
-          })
-        );
-      });
+          resolve(
+            NextResponse.json({
+              success: true,
+              message: `✅ Client exported to Claude Analysis System: ${finalFilename}`,
+              filename: finalFilename,
+              location: `📁 Location: ${CLAUDE_ANALYSIS_DIR}`,
+              exportPath: finalZipPath,
+              exportMode: "local_save",
+              prompts: claudePrompts,
+              clientContext: {
+                name: `${clientData.firstName} ${clientData.lastName}`,
+                primaryConcerns: extractPrimaryConcerns(claudeExportData),
+                medications: claudeExportData.client.medications,
+                keyLabs: extractKeyLabValues(claudeExportData)
+              },
+              summary: {
+                clientName: `${clientData.firstName} ${clientData.lastName}`,
+                totalDocuments: clientData.Document.length,
+                totalNotes: clientData.Note.length,
+                totalProtocols: clientData.Protocol.length,
+                exportedFiles: [
+                  "client-data.json",
+                  "client-summary.md",
+                  "export-metadata.json",
+                  `${clientData.Document.length} PDF documents`,
+                ],
+              },
+            })
+          );
+        });
 
-      output.on("error", (err) => {
-        console.error("❌ File system error:", err);
-        resolve(
-          NextResponse.json(
-            {
-              error: "Failed to save export to Claude Analysis System",
-              details: `File system error: ${err.message}`,
-              location: CLAUDE_ANALYSIS_DIR,
-              troubleshooting: [
-                "Check directory permissions",
-                "Ensure sufficient disk space",
-                "Verify path accessibility",
-              ],
-            },
-            { status: 500 }
-          )
-        );
-      });
+        output.on("error", (err) => {
+          console.error("❌ File system error, falling back to download:", err);
+          // Fall back to browser download
+          handleBrowserDownload();
+        });
+
+        archive.pipe(output);
+      } else {
+        // Production environment - use browser download
+        handleBrowserDownload();
+      }
+
+      function handleBrowserDownload() {
+        const chunks: Buffer[] = [];
+
+        archive.on("data", (chunk) => {
+          chunks.push(chunk);
+        });
+
+        archive.on("end", () => {
+          const zipBuffer = Buffer.concat(chunks);
+
+          resolve(
+            new NextResponse(zipBuffer, {
+              status: 200,
+              headers: {
+                "Content-Type": "application/zip",
+                "Content-Disposition": `attachment; filename="${finalFilename}"`,
+                "Content-Length": zipBuffer.length.toString(),
+              },
+            })
+          );
+        });
+      }
 
       archive.on("error", (err) => {
         console.error("❌ Archive error:", err);
