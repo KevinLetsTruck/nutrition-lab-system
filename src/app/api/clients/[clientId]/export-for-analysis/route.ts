@@ -42,85 +42,101 @@ export async function GET(
       console.log("🌐 Production environment detected - using browser download mode");
     }
 
-    // Fetch complete client data from current database tables
+    // Fetch client data with simplified queries for speed
     const clientData = await prisma.client.findUnique({
       where: { id: clientId },
-      include: {
-        // Document data with analysis
-        Document: {
-          include: {
-            DocumentAnalysis: true,
-            LabValue: true,
-          },
-          orderBy: { uploadedAt: "desc" },
-        },
-        // Clinical notes
-        Note: {
-          orderBy: { createdAt: "desc" },
-        },
-        // Treatment protocols
-        Protocol: {
-          orderBy: { createdAt: "desc" },
-        },
-      },
     });
 
     if (!clientData) {
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
 
+    // Fetch related data separately for better performance
+    const [documents, notes, protocols] = await Promise.all([
+      prisma.document.findMany({
+        where: { clientId },
+        orderBy: { uploadedAt: "desc" },
+        take: 10, // Limit to recent documents for speed
+        include: {
+          LabValue: {
+            take: 20, // Limit lab values for speed
+          },
+        },
+      }).catch(() => []),
+      prisma.note.findMany({
+        where: { clientId },
+        orderBy: { createdAt: "desc" },
+        take: 20, // Limit notes for speed
+      }).catch(() => []),
+      prisma.protocol.findMany({
+        where: { clientId },
+        orderBy: { createdAt: "desc" },
+        take: 5, // Limit protocols for speed
+      }).catch(() => []),
+    ]);
+
+    // Reconstruct clientData object for compatibility
+    const optimizedClientData = {
+      ...clientData,
+      Document: documents,
+      Note: notes,
+      Protocol: protocols,
+    };
+
     // Prepare filename for Claude Desktop (underscore in name, hyphen before date)
-    const clientName = `${clientData.firstName}_${clientData.lastName}`;
+    const clientName = `${optimizedClientData.firstName}_${optimizedClientData.lastName}`;
     const timestamp = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
     const zipFilename = `${clientName}-${timestamp}.zip`;
     const zipFilePath = path.join(CLAUDE_ANALYSIS_DIR, zipFilename);
 
-    // Check if file already exists and handle versioning
+    // Check if file already exists and handle versioning (only for local)
     let finalZipPath = zipFilePath;
     let finalFilename = zipFilename;
     let version = 1;
 
-    while (fs.existsSync(finalZipPath)) {
-      const versionedFilename = `${clientName}-${timestamp}_v${version}.zip`;
-      finalZipPath = path.join(CLAUDE_ANALYSIS_DIR, versionedFilename);
-      finalFilename = versionedFilename;
-      version++;
+    if (canWriteToLocalFS) {
+      while (fs.existsSync(finalZipPath)) {
+        const versionedFilename = `${clientName}-${timestamp}_v${version}.zip`;
+        finalZipPath = path.join(CLAUDE_ANALYSIS_DIR, versionedFilename);
+        finalFilename = versionedFilename;
+        version++;
+      }
     }
 
-    // Prepare Claude-compatible client data structure
+    // Prepare Claude-compatible client data structure (simplified for speed)
     const claudeExportData = {
       client: {
-        id: clientData.id,
-        name: `${clientData.firstName} ${clientData.lastName}`,
-        email: clientData.email,
-        phone: clientData.phone || "",
-        dateOfBirth: clientData.dateOfBirth
-          ? clientData.dateOfBirth.toISOString().split("T")[0]
+        id: optimizedClientData.id,
+        name: `${optimizedClientData.firstName} ${optimizedClientData.lastName}`,
+        email: optimizedClientData.email,
+        phone: optimizedClientData.phone || "",
+        dateOfBirth: optimizedClientData.dateOfBirth
+          ? optimizedClientData.dateOfBirth.toISOString().split("T")[0]
           : null,
-        gender: clientData.gender || "",
-        healthGoals: Array.isArray(clientData.healthGoals)
-          ? clientData.healthGoals
-          : clientData.healthGoals
-          ? [String(clientData.healthGoals)]
+        gender: optimizedClientData.gender || "",
+        healthGoals: Array.isArray(optimizedClientData.healthGoals)
+          ? optimizedClientData.healthGoals
+          : optimizedClientData.healthGoals
+          ? [String(optimizedClientData.healthGoals)]
           : [],
-        medications: Array.isArray(clientData.medications)
-          ? clientData.medications
-          : clientData.medications
-          ? [String(clientData.medications)]
+        medications: Array.isArray(optimizedClientData.medications)
+          ? optimizedClientData.medications
+          : optimizedClientData.medications
+          ? [String(optimizedClientData.medications)]
           : [],
-        conditions: Array.isArray(clientData.conditions)
-          ? clientData.conditions
-          : clientData.conditions
-          ? [String(clientData.conditions)]
+        conditions: Array.isArray(optimizedClientData.conditions)
+          ? optimizedClientData.conditions
+          : optimizedClientData.conditions
+          ? [String(optimizedClientData.conditions)]
           : [],
-        allergies: Array.isArray(clientData.allergies)
-          ? clientData.allergies
-          : clientData.allergies
-          ? [String(clientData.allergies)]
+        allergies: Array.isArray(optimizedClientData.allergies)
+          ? optimizedClientData.allergies
+          : optimizedClientData.allergies
+          ? [String(optimizedClientData.allergies)]
           : [],
       },
       assessments: [], // No assessment data in current schema
-      documents: clientData.Document.map((doc) => ({
+      documents: optimizedClientData.Document.map((doc) => ({
         id: doc.id,
         fileName: doc.fileName,
         fileType: doc.fileType,
@@ -202,23 +218,23 @@ export async function GET(
               exportMode: "local_save",
               prompts: claudePrompts,
               clientContext: {
-                name: `${clientData.firstName} ${clientData.lastName}`,
+                name: `${optimizedClientData.firstName} ${optimizedClientData.lastName}`,
                 primaryConcerns: extractPrimaryConcerns(claudeExportData),
                 medications: claudeExportData.client.medications,
                 keyLabs: extractKeyLabValues(claudeExportData)
               },
-              summary: {
-                clientName: `${clientData.firstName} ${clientData.lastName}`,
-                totalDocuments: clientData.Document.length,
-                totalNotes: clientData.Note.length,
-                totalProtocols: clientData.Protocol.length,
-                exportedFiles: [
-                  "client-data.json",
-                  "client-summary.md",
-                  "export-metadata.json",
-                  `${clientData.Document.length} PDF documents`,
-                ],
-              },
+            summary: {
+              clientName: `${optimizedClientData.firstName} ${optimizedClientData.lastName}`,
+              totalDocuments: optimizedClientData.Document.length,
+              totalNotes: optimizedClientData.Note.length,
+              totalProtocols: optimizedClientData.Protocol.length,
+              exportedFiles: [
+                "client-data.json",
+                "client-summary.md",
+                "export-metadata.json",
+                "documents-summary.txt (metadata only for speed)",
+              ],
+            },
             })
           );
         });
@@ -287,124 +303,30 @@ export async function GET(
         name: "export-metadata.json",
       });
 
-      // Add document files (if they exist)
-      let copiedDocuments = 0;
-      const skippedDocuments = [];
-      console.log(
-        `🔍 Processing ${clientData.Document.length} documents for Claude export...`
-      );
+      // Skip document file downloads for speed - just include metadata
+      const documentSummary = `DOCUMENT SUMMARY FOR CLAUDE ANALYSIS
 
-      for (const doc of clientData.Document) {
-        try {
-          console.log(`📄 Processing document: ${doc.fileName}`);
-          console.log(`📁 FileUrl: ${doc.fileUrl}`);
-          console.log(`🗄️ Storage Provider: ${doc.storageProvider || "LOCAL"}`);
+Total Documents: ${optimizedClientData.Document.length}
 
-          let fileBuffer = null;
-          let fileName = doc.fileName;
+${optimizedClientData.Document.map((doc, index) => `
+${index + 1}. ${doc.fileName}
+   - Type: ${doc.documentType}
+   - Uploaded: ${doc.uploadedAt.toISOString()}
+   - Lab Values: ${doc.LabValue?.length || 0} values extracted
+   ${doc.LabValue?.length > 0 ? `
+   Key Lab Values:
+   ${doc.LabValue.slice(0, 10).map(lab => `   - ${lab.testName}: ${lab.value} ${lab.unit || ""}`).join('\n')}
+   ` : ""}
+`).join("")}
 
-          // Try LOCAL storage first
-          if (!doc.storageProvider || doc.storageProvider === "LOCAL") {
-            const sourcePath = path.join(process.cwd(), "public", doc.fileUrl);
-            console.log(`🔍 Checking local file: ${sourcePath}`);
+NOTE: Document files are available in the web application.
+For complete analysis, access documents through the FNTP system interface.
+This export focuses on structured data for rapid Claude analysis.`;
 
-            if (fs.existsSync(sourcePath)) {
-              console.log(`✅ Local file found: ${fileName}`);
-              archive.file(sourcePath, { name: fileName });
-              copiedDocuments++;
-              continue;
-            } else {
-              console.warn(`❌ Local file not found: ${sourcePath}`);
-            }
-          }
+      archive.append(documentSummary, { name: "documents-summary.txt" });
+      console.log(`📄 Added document summary (${optimizedClientData.Document.length} documents listed)`);
 
-          // If LOCAL failed or storage is S3, try S3 download
-          if (doc.storageProvider === "S3" || doc.fileUrl?.startsWith("http")) {
-            console.log(`☁️ S3 file detected: ${doc.fileUrl}`);
-
-            try {
-              // Attempt to download from S3
-              const s3Result = await medicalDocStorage.downloadFileByUrl(
-                doc.fileUrl
-              );
-
-              // Add the actual file to the ZIP
-              archive.append(s3Result.buffer, {
-                name: fileName,
-              });
-              copiedDocuments++;
-              console.log(`✅ S3 file downloaded and added: ${fileName}`);
-              continue;
-            } catch (s3Error) {
-              console.warn(`❌ S3 download failed for ${fileName}:`, s3Error);
-
-              // Fallback: Add informative placeholder
-              const placeholderContent = `This document could not be downloaded from S3.
-
-Document Details:
-- Name: ${doc.fileName}
-- Type: ${doc.fileType}
-- Size: ${doc.fileSize} bytes
-- Uploaded: ${doc.uploadedAt}
-- Storage: S3
-- File URL: ${doc.fileUrl}
-
-Error: ${s3Error instanceof Error ? s3Error.message : "Unknown S3 error"}
-
-To access this document:
-1. Check S3 bucket permissions
-2. Verify AWS credentials are configured
-3. Use the application interface to access the file
-4. Contact support for S3 file recovery`;
-
-              archive.append(placeholderContent, {
-                name: fileName.replace(".pdf", ".txt"),
-              });
-              console.log(`📝 Added S3 error placeholder for: ${fileName}`);
-              copiedDocuments++;
-              continue;
-            }
-          }
-
-          // If we get here, document couldn't be processed
-          skippedDocuments.push(fileName);
-          console.warn(`⚠️ Skipped document: ${fileName} (not found)`);
-        } catch (error) {
-          console.error(
-            `❌ Failed to process document ${doc.fileName}:`,
-            error
-          );
-          skippedDocuments.push(doc.fileName);
-        }
-      }
-
-      // Add summary of skipped documents if any
-      if (skippedDocuments.length > 0) {
-        const skippedSummary = `The following documents could not be included in this export:
-
-${skippedDocuments.map((name) => `- ${name}`).join("\n")}
-
-Possible reasons:
-- Files were lost during server deployment (ephemeral file system)
-- Documents are stored in external storage (S3) without download access
-- File corruption or permission issues
-
-To recover these documents:
-1. Re-upload them to the client record
-2. Contact support for S3 file recovery
-3. Check the original source files`;
-
-        archive.append(skippedSummary, { name: "missing-documents.txt" });
-        console.log(
-          `📋 Added missing documents summary (${skippedDocuments.length} files)`
-        );
-      }
-
-      console.log(
-        `📊 Export summary: ${copiedDocuments}/${clientData.Document.length} documents processed`
-      );
-      console.log(`✅ Successfully exported: ${copiedDocuments}`);
-      console.log(`⚠️ Skipped: ${skippedDocuments.length}`);
+      console.log(`📊 Fast export: Metadata only (no file downloads for speed)`);
 
       // Finalize the archive
       archive.finalize();
