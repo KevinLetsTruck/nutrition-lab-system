@@ -21,11 +21,10 @@ export async function GET(
           select: {
             id: true,
             fileName: true,
-            originalFileName: true,
             documentType: true,
             uploadedAt: true,
             fileUrl: true,
-            status: true,
+            analysisStatus: true,
             fileSize: true,
             fileType: true,
           },
