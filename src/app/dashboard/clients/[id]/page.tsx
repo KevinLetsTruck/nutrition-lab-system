@@ -1050,10 +1050,10 @@ export default function ClientDetailPage() {
                               e.stopPropagation();
                               handleDocumentClick(doc as any);
                             }}
-                            className="p-1 hover:bg-gray-600 rounded transition-colors text-blue-400"
+                            className="p-2 hover:bg-gray-600 rounded transition-colors text-blue-400"
                             title="View"
                           >
-                            <Eye className="w-3 h-3" />
+                            <Eye className="w-5 h-5" />
                           </button>
                           <button
                             onClick={(e) => {
@@ -1061,10 +1061,10 @@ export default function ClientDetailPage() {
                               setDocumentToDelete(doc);
                               setShowDeleteConfirm(true);
                             }}
-                            className="p-1 hover:bg-red-600/20 rounded transition-colors text-red-400"
+                            className="p-2 hover:bg-red-600/20 rounded transition-colors text-red-400"
                             title="Delete"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
                       </div>

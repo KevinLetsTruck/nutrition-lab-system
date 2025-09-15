@@ -442,10 +442,10 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                       href={doc.fileUrl || doc.url}
                       download={doc.fileName}
                       onClick={(e) => e.stopPropagation()}
-                      className="p-1 hover:bg-opacity-20 rounded transition-colors"
+                      className="p-2 hover:bg-opacity-20 rounded transition-colors"
                       title="Download"
                     >
-                      <Download className="w-3 h-3" />
+                      <Download className="w-5 h-5" />
                     </a>
                   )}
                   {onDelete && (
@@ -454,10 +454,10 @@ export const ClientDocumentViewer: React.FC<ClientDocumentViewerProps> = ({
                         e.stopPropagation();
                         handleDeleteClick(doc);
                       }}
-                      className="p-1 hover:bg-red-100 rounded transition-colors"
+                      className="p-2 hover:bg-red-100 rounded transition-colors"
                       title="Delete Document"
                     >
-                      <Trash2 className="w-3 h-3 text-red-600" />
+                      <Trash2 className="w-5 h-5 text-red-600" />
                     </button>
                   )}
                 </div>
