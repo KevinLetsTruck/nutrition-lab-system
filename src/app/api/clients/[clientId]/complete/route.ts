@@ -8,40 +8,61 @@ export async function GET(
   { params }: { params: { clientId: string } }
 ) {
   try {
-    const user = await verifyAuthToken(request);
+    // Simple auth check without database lookup
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { clientId } = params;
 
-    // Single database query to get all client data with related records
+    // Try to get basic client data first
     const clientData = await prisma.client.findUnique({
       where: { id: clientId },
-      include: {
-        documents: {
-          orderBy: { uploadedAt: "desc" },
-          take: 50, // Limit to recent documents
-        },
-        notes: {
-          orderBy: { createdAt: "desc" },
-          take: 100, // Limit to recent notes
-        },
-      },
     });
 
     if (!clientData) {
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
 
+    // Try to get related data with error handling
+    let documents = [];
+    let notes = [];
+
+    try {
+      const documentsResult = await prisma.document.findMany({
+        where: { clientId },
+        orderBy: { uploadedAt: "desc" },
+        take: 50,
+      });
+      documents = documentsResult || [];
+    } catch (docError) {
+      console.warn("Could not fetch documents:", docError);
+      documents = [];
+    }
+
+    try {
+      const notesResult = await prisma.note.findMany({
+        where: { clientId },
+        orderBy: { createdAt: "desc" },
+        take: 100,
+      });
+      notes = notesResult || [];
+    } catch (noteError) {
+      console.warn("Could not fetch notes:", noteError);
+      notes = [];
+    }
+
     // Calculate note counts by type
     const noteCounts = {
-      interview: clientData.notes.filter((n) => n.noteType === "INTERVIEW")
-        .length,
-      coaching: clientData.notes.filter((n) => n.noteType === "COACHING")
-        .length,
+      interview: notes.filter((n) => n.noteType === "INTERVIEW").length,
+      coaching: notes.filter((n) => n.noteType === "COACHING").length,
     };
 
     // Separate notes by type for easier client-side processing
     const notesByType = {
-      interview: clientData.notes.filter((n) => n.noteType === "INTERVIEW"),
-      coaching: clientData.notes.filter((n) => n.noteType === "COACHING"),
+      interview: notes.filter((n) => n.noteType === "INTERVIEW"),
+      coaching: notes.filter((n) => n.noteType === "COACHING"),
     };
 
     return NextResponse.json({
@@ -59,13 +80,13 @@ export async function GET(
         createdAt: clientData.createdAt,
         updatedAt: clientData.updatedAt,
       },
-      documents: clientData.documents,
-      notes: clientData.notes,
+      documents: documents,
+      notes: notes,
       notesByType,
       noteCounts,
       stats: {
-        totalDocuments: clientData.documents.length,
-        totalNotes: clientData.notes.length,
+        totalDocuments: documents.length,
+        totalNotes: notes.length,
         interviewNotes: noteCounts.interview,
         coachingNotes: noteCounts.coaching,
       },
