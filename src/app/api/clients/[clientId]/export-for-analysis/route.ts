@@ -26,8 +26,8 @@ export async function GET(
         // Document data with analysis
         documents: {
           include: {
-            documentAnalyses: true,
-            labValues: true,
+            DocumentAnalysis: true,
+            LabValue: true,
           },
           orderBy: { uploadedAt: "desc" },
         },
@@ -82,7 +82,7 @@ export async function GET(
         documentType: doc.documentType,
         labType: doc.labType,
         analysisStatus: doc.analysisStatus,
-        analysis: doc.documentAnalyses.map((analysis) => ({
+        analysis: doc.DocumentAnalysis.map((analysis) => ({
           analysisType: analysis.analysisType,
           patterns: analysis.patterns,
           findings: analysis.findings,
@@ -91,7 +91,7 @@ export async function GET(
           confidence: analysis.confidence,
           createdAt: analysis.createdAt,
         })),
-        labValues: doc.labValues.map((lab) => ({
+        labValues: doc.LabValue.map((lab) => ({
           testName: lab.testName,
           value: lab.value,
           unit: lab.unit,
