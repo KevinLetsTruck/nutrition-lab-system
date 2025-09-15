@@ -217,21 +217,7 @@ export async function DELETE(
 
     // Delete all related records first to avoid foreign key constraints
     await prisma.$transaction(async (tx) => {
-      // Delete simple assessments and their responses
-      const simpleAssessments = await tx.simpleAssessment.findMany({
-        where: { clientId },
-        select: { id: true },
-      });
-
-      for (const assessment of simpleAssessments) {
-        await tx.simpleResponse.deleteMany({
-          where: { assessmentId: assessment.id },
-        });
-      }
-
-      await tx.simpleAssessment.deleteMany({
-        where: { clientId },
-      });
+      // No assessment tables to delete in current schema
 
       // Delete other related records
       await tx.clientStatus.deleteMany({
@@ -259,13 +245,14 @@ export async function DELETE(
         where: { clientId },
       });
 
-      await tx.medicalDocument.deleteMany({
-        where: { clientId },
-      });
-
-      // Delete audit logs related to this client
+      // Delete audit logs related to this client (if clientId field exists)
       await tx.auditLog.deleteMany({
-        where: { clientId },
+        where: { 
+          OR: [
+            { clientId },
+            { resourceId: clientId }
+          ]
+        },
       });
 
       // Finally delete the client

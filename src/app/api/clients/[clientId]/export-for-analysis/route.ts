@@ -19,22 +19,15 @@ export async function GET(
 
     const { clientId } = params;
 
-    // Fetch complete client data from all 5 main tables
+    // Fetch complete client data from current database tables
     const clientData = await prisma.client.findUnique({
       where: { id: clientId },
       include: {
-        // SimpleAssessment data
-        simpleAssessments: {
-          include: {
-            responses: true,
-          },
-          orderBy: { startedAt: "desc" },
-        },
         // Document data with analysis
         documents: {
           include: {
-            DocumentAnalysis: true,
-            LabValue: true,
+            documentAnalyses: true,
+            labValues: true,
           },
           orderBy: { uploadedAt: "desc" },
         },
@@ -78,25 +71,7 @@ export async function GET(
         createdAt: clientData.createdAt,
         lastVisit: clientData.lastVisit,
       },
-      assessments: clientData.simpleAssessments.map((assessment) => ({
-        id: assessment.id,
-        status: assessment.status,
-        startedAt: assessment.startedAt,
-        completedAt: assessment.completedAt,
-        responses: assessment.responses.map((response) => ({
-          questionId: response.questionId,
-          questionText: response.questionText,
-          category: response.category,
-          score: response.score,
-          answeredAt: response.answeredAt,
-        })),
-        totalQuestions: assessment.responses.length,
-        averageScore:
-          assessment.responses.length > 0
-            ? assessment.responses.reduce((sum, r) => sum + r.score, 0) /
-              assessment.responses.length
-            : 0,
-      })),
+      assessments: [], // No assessment data in current schema
       documents: clientData.documents.map((doc) => ({
         id: doc.id,
         fileName: doc.fileName,
@@ -107,7 +82,7 @@ export async function GET(
         documentType: doc.documentType,
         labType: doc.labType,
         analysisStatus: doc.analysisStatus,
-        analysis: doc.DocumentAnalysis.map((analysis) => ({
+        analysis: doc.documentAnalyses.map((analysis) => ({
           analysisType: analysis.analysisType,
           patterns: analysis.patterns,
           findings: analysis.findings,
@@ -116,7 +91,7 @@ export async function GET(
           confidence: analysis.confidence,
           createdAt: analysis.createdAt,
         })),
-        labValues: doc.LabValue.map((lab) => ({
+        labValues: doc.labValues.map((lab) => ({
           testName: lab.testName,
           value: lab.value,
           unit: lab.unit,
@@ -161,7 +136,7 @@ export async function GET(
         exportedAt: new Date(),
         exportedBy: authUser.email,
         version: "1.0.0",
-        totalAssessments: clientData.simpleAssessments.length,
+        totalAssessments: 0, // No assessments in current schema
         totalDocuments: clientData.documents.length,
         totalNotes: clientData.notes.length,
         totalProtocols: clientData.protocols.length,
