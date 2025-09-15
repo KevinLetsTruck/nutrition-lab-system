@@ -565,44 +565,10 @@ export default function ScheduledClientsPage() {
                       </div>
                     </div>
 
-                    {/* Three-Column Content Layout - Full Width */}
-                    <div className="grid grid-cols-12 gap-6 h-[calc(100vh-400px)]">
-                      {/* Left Column - Health Goals */}
-                      <div className="col-span-3 bg-gray-700 rounded-lg border border-gray-600 overflow-hidden">
-                        <div className="bg-gray-600 px-4 py-3 border-b border-gray-500">
-                          <h3 className="font-semibold text-white flex items-center">
-                            <Target className="w-4 h-4 mr-2 text-green-400" />
-                            Health Goals
-                          </h3>
-                        </div>
-                        <div className="p-4 h-full overflow-y-auto">
-                          {getHealthGoalsArray(client.healthGoals).length >
-                          0 ? (
-                            <div className="space-y-2">
-                              {getHealthGoalsArray(client.healthGoals).map(
-                                (goal, index) => (
-                                  <div
-                                    key={index}
-                                    className="p-3 rounded-lg bg-gray-600 border border-gray-500 hover:bg-gray-500 transition-colors"
-                                  >
-                                    <p className="text-white text-sm">{goal}</p>
-                                  </div>
-                                )
-                              )}
-                            </div>
-                          ) : (
-                            <div className="text-center py-8">
-                              <Target className="w-8 h-8 text-gray-500 mx-auto mb-2" />
-                              <p className="text-gray-400 text-sm">
-                                No health goals set
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Center Column - Notes */}
-                      <div className="col-span-6 bg-gray-700 rounded-lg border border-gray-600 overflow-hidden flex flex-col">
+                    {/* Two-Column Content Layout - Notes and Documents */}
+                    <div className="grid grid-cols-2 gap-6 h-[calc(100vh-400px)]">
+                      {/* Left Column - Notes */}
+                      <div className="bg-gray-700 rounded-lg border border-gray-600 overflow-hidden flex flex-col">
                         <div className="bg-gray-600 px-4 py-3 border-b border-gray-500">
                           <h3 className="font-semibold text-white flex items-center justify-between">
                             <div className="flex items-center">
@@ -682,7 +648,7 @@ export default function ScheduledClientsPage() {
                       </div>
 
                       {/* Right Column - Documents */}
-                      <div className="col-span-3 bg-gray-700 rounded-lg border border-gray-600 overflow-hidden">
+                      <div className="bg-gray-700 rounded-lg border border-gray-600 overflow-hidden">
                         <div className="bg-gray-600 px-4 py-3 border-b border-gray-500">
                           <h3 className="font-semibold text-white flex items-center justify-between">
                             <div className="flex items-center">
@@ -712,7 +678,7 @@ export default function ScheduledClientsPage() {
                                         {document.fileName}
                                       </p>
                                     </div>
-                                    <Eye className="w-3 h-3 text-gray-400" />
+                                    <Eye className="w-5 h-5 text-gray-400" />
                                   </div>
                                   <div className="flex items-center justify-between text-xs">
                                     <span
