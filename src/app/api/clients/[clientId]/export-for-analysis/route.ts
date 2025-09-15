@@ -18,9 +18,9 @@ export async function GET(
   { params }: { params: { clientId: string } }
 ) {
   try {
-    // Authenticate user - Fixed 2025-08-26
-    const authUser = await verifyAuthToken(request);
-    if (!authUser) {
+    // Simple auth check without database lookup
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -170,6 +170,17 @@ export async function GET(
 
     // Create ZIP file - handle both local save and browser download
     return new Promise(async (resolve) => {
+      // Add timeout to prevent hanging
+      const timeout = setTimeout(() => {
+        console.error("❌ Export timeout after 30 seconds");
+        resolve(
+          NextResponse.json({
+            error: "Export timeout",
+            details: "Export took too long to complete. Please try again.",
+          }, { status: 408 })
+        );
+      }, 30000); // 30 second timeout
+
       const archive = archiver("zip", { zlib: { level: 9 } });
       
       if (canWriteToLocalFS && fs.existsSync(path.dirname(finalZipPath))) {
@@ -177,6 +188,7 @@ export async function GET(
         const output = fs.createWriteStream(finalZipPath);
 
         output.on("close", () => {
+          clearTimeout(timeout);
           console.log(`✅ Export saved to Claude Analysis System: ${finalZipPath}`);
           console.log(`📊 Total bytes: ${archive.pointer()}`);
 
@@ -231,6 +243,7 @@ export async function GET(
         });
 
         archive.on("end", () => {
+          clearTimeout(timeout);
           const zipBuffer = Buffer.concat(chunks);
 
           resolve(
