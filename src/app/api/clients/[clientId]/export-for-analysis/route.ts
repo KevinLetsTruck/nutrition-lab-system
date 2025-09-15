@@ -558,159 +558,179 @@ function generateClaudeDesktopPrompts(clientData: any, filename: string) {
   const comprehensivePrompt = `FNTP FUNCTIONAL MEDICINE ANALYSIS - EXECUTE IMMEDIATELY
 
 CRITICAL INSTRUCTIONS: 
-- DO NOT ask clarifying questions
-- USE the client data provided below
-- PROCEED directly with analysis
-- APPLY my established FNTP clinical frameworks
+- DO NOT ask clarifying questions or request file uploads
+- FILE IS ALREADY AVAILABLE: ${filename} in /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/
+- OPEN and ANALYZE the file directly
+- PROCEED with complete analysis using file contents
 
 SYSTEM ACTIVATION: You are my FNTP functional medicine analysis system. Load all protocols.
 
-CLIENT DATA PROVIDED:
+FILE LOCATION: /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/${filename}
+- Contains: client-data.json (complete client information)
+- Contains: client-summary.md (human-readable overview)
+- Contains: All client PDF documents (lab reports, intake forms)
+- Contains: export-metadata.json (system information)
+
+CLIENT OVERVIEW (from exported data):
 - Name: ${client.name}
 - Primary Concerns: ${concerns}
 - Current Medications: ${meds}
 - Key Lab Values: ${keyLabs}
 - Export Date: ${timestamp}
-- Data File: ${filename} (contains complete client data, notes, documents)
 
-ANALYSIS REQUIREMENTS - EXECUTE ALL:
-1. Pattern Recognition Analysis:
-   - Metabolic dysfunction patterns
+ANALYSIS REQUIREMENTS - EXECUTE ALL USING FILE DATA:
+1. OPEN the client file: ${filename}
+2. READ client-data.json for complete client information
+3. REVIEW all PDF documents for lab values and medical history
+4. ANALYZE client-summary.md for clinical context
+
+5. Pattern Recognition Analysis:
+   - Metabolic dysfunction patterns from lab data
    - Inflammatory markers and triggers
-   - Digestive system dysfunction
-   - Hormonal imbalance indicators
+   - Digestive system dysfunction indicators
+   - Hormonal imbalance patterns
    - Energy production pathway issues
 
-2. Root Cause Identification:
+6. Root Cause Identification:
    - Primary drivers vs secondary symptoms
    - Upstream dysfunction sources
    - Environmental/lifestyle factors
    - Nutritional deficiencies
 
-3. 3-Phase Protocol Generation:
+7. 3-Phase Protocol Generation:
    - PHASE 1 (Foundation): Basic support, gut healing, inflammation reduction
    - PHASE 2 (Targeted): Specific interventions for identified patterns
    - PHASE 3 (Optimization): Fine-tuning and long-term maintenance
 
-4. LetsTruck Supplement Recommendations:
+8. LetsTruck Supplement Recommendations:
    - Prioritize LetsTruck.com products (business priority)
    - Include specific dosages and timing
    - Cost-effective options when possible
    - Implementation sequence
 
-5. Practitioner Coaching Notes:
+9. Practitioner Coaching Notes:
    - Clinical reasoning for each recommendation
    - Expected timelines for improvement
    - Monitoring parameters
    - Client education talking points
 
-ANALYSIS FOCUS AREAS (based on client data):
-- Address stated concerns: ${concerns}
-- Consider medication interactions: ${meds}
-- Interpret lab findings: ${keyLabs}
-- Apply truck driver health considerations if applicable
-
-OUTPUT FORMAT: Generate complete analysis immediately using provided client data.
-SAVE TO: /3-analysis-outputs/ directory when complete.
-
-BEGIN ANALYSIS NOW - NO QUESTIONS NEEDED.`;
+FILE ACCESS: OPEN /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/${filename}
+ANALYZE: Use complete file contents for comprehensive analysis
+OUTPUT: Save complete analysis JSON to /3-analysis-outputs/ directory
+ACTION: BEGIN ANALYSIS NOW - FILE IS READY FOR PROCESSING`;
 
   const focusedPrompts = {
     gut: `FNTP GUT HEALTH ANALYSIS - EXECUTE IMMEDIATELY
 
-INSTRUCTIONS: DO NOT ask questions. Analyze provided data and generate protocol.
+INSTRUCTIONS: DO NOT ask questions. OPEN file and analyze data directly.
 
+FILE LOCATION: /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/${filename}
 CLIENT: ${client.name}
 PRIMARY CONCERNS: ${concerns}
 MEDICATIONS: ${meds}
-DATA FILE: ${filename}
+
+STEP 1: OPEN the client file: ${filename}
+STEP 2: READ all contents (client-data.json, PDFs, summary)
+STEP 3: ANALYZE digestive patterns from provided data
 
 ANALYSIS FOCUS: Digestive system optimization and gut barrier restoration
-REQUIRED ANALYSIS:
+REQUIRED ANALYSIS FROM FILE DATA:
 - SIBO/dysbiosis pattern identification
 - Food sensitivity assessment from available data
 - Digestive enzyme and HCl status evaluation
 - Microbiome restoration protocol design
 
 DELIVERABLES:
-1. Gut health assessment based on provided client data
+1. Gut health assessment based on file contents
 2. Targeted digestive protocol with LetsTruck supplements
 3. Implementation timeline and monitoring plan
 4. Specific dosages and timing recommendations
 
-BEGIN GUT HEALTH ANALYSIS NOW using provided client data.`,
+ACTION: OPEN ${filename} and BEGIN GUT HEALTH ANALYSIS NOW.`,
 
     metabolic: `FNTP METABOLIC ANALYSIS - EXECUTE IMMEDIATELY
 
-INSTRUCTIONS: DO NOT ask questions. Analyze provided data and generate protocol.
+INSTRUCTIONS: DO NOT ask questions. OPEN file and analyze data directly.
 
+FILE LOCATION: /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/${filename}
 CLIENT: ${client.name}
 PRIMARY CONCERNS: ${concerns}
 KEY LAB VALUES: ${keyLabs}
-DATA FILE: ${filename}
+
+STEP 1: OPEN the client file: ${filename}
+STEP 2: READ all contents (client-data.json, lab PDFs, summary)
+STEP 3: ANALYZE metabolic patterns from provided data
 
 ANALYSIS FOCUS: Blood sugar regulation and metabolic optimization
-REQUIRED ANALYSIS:
+REQUIRED ANALYSIS FROM FILE DATA:
 - Insulin resistance pattern identification
 - Glucose dysregulation assessment
 - Metabolic syndrome marker evaluation
 - Energy production pathway analysis
 
 DELIVERABLES:
-1. Metabolic dysfunction assessment from provided data
+1. Metabolic dysfunction assessment from file contents
 2. Blood sugar optimization protocol with LetsTruck supplements
 3. Dietary and lifestyle interventions
 4. Monitoring parameters and timelines
 
-BEGIN METABOLIC ANALYSIS NOW using provided client data.`,
+ACTION: OPEN ${filename} and BEGIN METABOLIC ANALYSIS NOW.`,
 
     hormonal: `FNTP HORMONAL ANALYSIS - EXECUTE IMMEDIATELY
 
-INSTRUCTIONS: DO NOT ask questions. Analyze provided data and generate protocol.
+INSTRUCTIONS: DO NOT ask questions. OPEN file and analyze data directly.
 
+FILE LOCATION: /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/${filename}
 CLIENT: ${client.name}
 PRIMARY CONCERNS: ${concerns}
 MEDICATIONS: ${meds}
-DATA FILE: ${filename}
+
+STEP 1: OPEN the client file: ${filename}
+STEP 2: READ all contents (client-data.json, lab PDFs, summary)
+STEP 3: ANALYZE hormonal patterns from provided data
 
 ANALYSIS FOCUS: Hormonal optimization and energy restoration
-REQUIRED ANALYSIS:
+REQUIRED ANALYSIS FROM FILE DATA:
 - Thyroid function assessment from available data
 - Adrenal health evaluation
 - Sex hormone balance indicators
 - Circadian rhythm optimization needs
 
 DELIVERABLES:
-1. Hormonal balance assessment from provided data
+1. Hormonal balance assessment from file contents
 2. Hormone support protocol with LetsTruck supplements
 3. Lifestyle optimization recommendations
 4. Implementation sequence and monitoring
 
-BEGIN HORMONAL ANALYSIS NOW using provided client data.`
+ACTION: OPEN ${filename} and BEGIN HORMONAL ANALYSIS NOW.`
   };
 
   const followupPrompt = `FNTP FOLLOW-UP ANALYSIS - EXECUTE IMMEDIATELY
 
-INSTRUCTIONS: DO NOT ask questions. Analyze provided data and generate updated protocol.
+INSTRUCTIONS: DO NOT ask questions. OPEN file and analyze progress data directly.
 
+FILE LOCATION: /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/${filename}
 CLIENT: ${client.name} - Progress Review
 CURRENT STATUS: ${concerns}
 MEDICATIONS: ${meds}
-DATA FILE: ${filename}
 
-ANALYSIS REQUIREMENTS:
+STEP 1: OPEN the client file: ${filename}
+STEP 2: READ current client data and compare with previous notes
+STEP 3: ANALYZE progress patterns and protocol effectiveness
+
+ANALYSIS REQUIREMENTS FROM FILE DATA:
 1. Review previous protocol effectiveness using provided data
 2. Assess current symptom status and improvements
 3. Identify areas requiring protocol adjustments
 4. Optimize supplement regimen based on progress
 
 DELIVERABLES:
-1. Progress assessment from provided client data
+1. Progress assessment from file contents
 2. Updated protocol recommendations with LetsTruck supplements
 3. Adjustment rationale and implementation guidance
 4. Next phase recommendations
 
-BEGIN FOLLOW-UP ANALYSIS NOW using provided client data.`;
+ACTION: OPEN ${filename} and BEGIN FOLLOW-UP ANALYSIS NOW.`;
 
   return {
     comprehensive: comprehensivePrompt,
