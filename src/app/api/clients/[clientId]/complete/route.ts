@@ -18,38 +18,10 @@ export async function GET(
         documents: {
           orderBy: { uploadedAt: "desc" },
           take: 50, // Limit to recent documents
-          select: {
-            id: true,
-            fileName: true,
-            documentType: true,
-            uploadedAt: true,
-            fileUrl: true,
-            analysisStatus: true,
-            fileSize: true,
-            fileType: true,
-          },
         },
         notes: {
           orderBy: { createdAt: "desc" },
           take: 100, // Limit to recent notes
-          select: {
-            id: true,
-            noteType: true,
-            title: true,
-            createdAt: true,
-            updatedAt: true,
-            chiefComplaints: true,
-            healthHistory: true,
-            currentMedications: true,
-            goals: true,
-            protocolAdjustments: true,
-            complianceNotes: true,
-            progressMetrics: true,
-            nextSteps: true,
-            generalNotes: true,
-            isImportant: true,
-            followUpNeeded: true,
-          },
         },
       },
     });
