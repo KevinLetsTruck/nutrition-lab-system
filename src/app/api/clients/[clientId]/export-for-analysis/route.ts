@@ -136,13 +136,13 @@ export async function GET(
           : [],
       },
       assessments: [], // No assessment data in current schema
-      documents: optimizedClientData.Document.map((doc) => ({
+      documents: (optimizedClientData.Document || []).map((doc) => ({
         id: doc.id,
         fileName: doc.fileName,
         fileType: doc.fileType,
         documentType: doc.documentType,
         uploadedAt: doc.uploadedAt.toISOString(),
-        labValues: doc.LabValue.map((lab) => ({
+        labValues: (doc.LabValue || []).map((lab) => ({
           testName: lab.testName,
           value: lab.value,
           unit: lab.unit || "",
@@ -150,7 +150,7 @@ export async function GET(
           status: lab.flag || (lab.isOutOfRange ? "ABNORMAL" : "NORMAL"),
         })),
       })),
-      notes: clientData.Note.map((note) => ({
+      notes: (optimizedClientData.Note || []).map((note) => ({
         id: note.id,
         noteType: note.noteType,
         title: note.title || "",
@@ -159,7 +159,7 @@ export async function GET(
         goals: note.goals || "",
         createdAt: note.createdAt.toISOString(),
       })),
-      protocols: clientData.Protocol.map((protocol) => ({
+      protocols: (optimizedClientData.Protocol || []).map((protocol) => ({
         id: protocol.id,
         protocolName: protocol.protocolName || "",
         status: protocol.status || "",
@@ -306,9 +306,9 @@ export async function GET(
       // Skip document file downloads for speed - just include metadata
       const documentSummary = `DOCUMENT SUMMARY FOR CLAUDE ANALYSIS
 
-Total Documents: ${optimizedClientData.Document.length}
+Total Documents: ${(optimizedClientData.Document || []).length}
 
-${optimizedClientData.Document.map((doc, index) => `
+${(optimizedClientData.Document || []).map((doc, index) => `
 ${index + 1}. ${doc.fileName}
    - Type: ${doc.documentType}
    - Uploaded: ${doc.uploadedAt.toISOString()}
