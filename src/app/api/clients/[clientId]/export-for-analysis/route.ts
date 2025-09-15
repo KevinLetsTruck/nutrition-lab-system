@@ -6,313 +6,327 @@ import path from "path";
 import archiver from "archiver";
 import { medicalDocStorage } from "@/lib/medical/storage-service";
 
-// Claude Desktop Analysis System directory (local development only)
-const CLAUDE_ANALYSIS_DIR = "/Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports";
-
-// Check if we're running in production (Railway) or local development
-const isProduction = process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT;
-const canWriteToLocalFS = !isProduction && process.platform === "darwin"; // macOS only
-
 export async function GET(
   request: NextRequest,
   { params }: { params: { clientId: string } }
 ) {
   try {
-    // Simple auth check without database lookup
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    // Authenticate user - Fixed 2025-08-26
+    const authUser = await verifyAuthToken(request);
+    if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { clientId } = params;
 
-    // Handle local vs production environment
-    if (canWriteToLocalFS) {
-      // Local development - try to create Claude Desktop directory
-      try {
-        if (!fs.existsSync(CLAUDE_ANALYSIS_DIR)) {
-          fs.mkdirSync(CLAUDE_ANALYSIS_DIR, { recursive: true });
-          console.log(`📁 Created Claude Analysis directory: ${CLAUDE_ANALYSIS_DIR}`);
-        }
-      } catch (dirError) {
-        console.warn("❌ Could not create Claude Analysis directory, falling back to download:", dirError);
-        // Fall back to browser download if local directory creation fails
-      }
-    } else {
-      console.log("🌐 Production environment detected - using browser download mode");
-    }
-
-    // Fetch client data with simplified queries for speed
+    // Fetch complete client data from all 5 main tables
     const clientData = await prisma.client.findUnique({
       where: { id: clientId },
+      include: {
+        // Document data with analysis
+        Document: {
+          include: {
+            DocumentAnalysis: true,
+            LabValue: true,
+          },
+          orderBy: { uploadedAt: "desc" },
+        },
+        // Clinical notes
+        Note: {
+          orderBy: { createdAt: "desc" },
+        },
+        // Treatment protocols
+        Protocol: {
+          orderBy: { createdAt: "desc" },
+        },
+      },
     });
 
     if (!clientData) {
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
 
-    // Skip complex database queries for speed - use basic client data only
-    const optimizedClientData = {
-      ...clientData,
-      Document: [], // Skip documents for speed
-      Note: [],     // Skip notes for speed  
-      Protocol: [], // Skip protocols for speed
-    };
-
-    // Prepare filename for Claude Desktop (underscore in name, hyphen before date)
-    const clientName = `${optimizedClientData.firstName}_${optimizedClientData.lastName}`;
+    // Prepare ZIP filename
+    const clientName = `${clientData.firstName}-${clientData.lastName}`;
     const timestamp = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
     const zipFilename = `${clientName}-${timestamp}.zip`;
-    const zipFilePath = path.join(CLAUDE_ANALYSIS_DIR, zipFilename);
 
-    // Check if file already exists and handle versioning (only for local)
-    let finalZipPath = zipFilePath;
-    let finalFilename = zipFilename;
-    let version = 1;
-
-    if (canWriteToLocalFS) {
-      while (fs.existsSync(finalZipPath)) {
-        const versionedFilename = `${clientName}-${timestamp}_v${version}.zip`;
-        finalZipPath = path.join(CLAUDE_ANALYSIS_DIR, versionedFilename);
-        finalFilename = versionedFilename;
-        version++;
-      }
-    }
-
-    // Prepare Claude-compatible client data structure (simplified for speed)
-    const claudeExportData = {
+    // Prepare structured client data
+    const exportData = {
       client: {
-        id: optimizedClientData.id,
-        name: `${optimizedClientData.firstName} ${optimizedClientData.lastName}`,
-        email: optimizedClientData.email,
-        phone: optimizedClientData.phone || "",
-        dateOfBirth: optimizedClientData.dateOfBirth
-          ? optimizedClientData.dateOfBirth.toISOString().split("T")[0]
-          : null,
-        gender: optimizedClientData.gender || "",
-        healthGoals: Array.isArray(optimizedClientData.healthGoals)
-          ? optimizedClientData.healthGoals
-          : optimizedClientData.healthGoals
-          ? [String(optimizedClientData.healthGoals)]
-          : [],
-        medications: Array.isArray(optimizedClientData.medications)
-          ? optimizedClientData.medications
-          : optimizedClientData.medications
-          ? [String(optimizedClientData.medications)]
-          : [],
-        conditions: Array.isArray(optimizedClientData.conditions)
-          ? optimizedClientData.conditions
-          : optimizedClientData.conditions
-          ? [String(optimizedClientData.conditions)]
-          : [],
-        allergies: Array.isArray(optimizedClientData.allergies)
-          ? optimizedClientData.allergies
-          : optimizedClientData.allergies
-          ? [String(optimizedClientData.allergies)]
-          : [],
+        id: clientData.id,
+        name: `${clientData.firstName} ${clientData.lastName}`,
+        email: clientData.email,
+        phone: clientData.phone,
+        dateOfBirth: clientData.dateOfBirth,
+        gender: clientData.gender,
+        isTruckDriver: clientData.isTruckDriver,
+        dotNumber: clientData.dotNumber,
+        cdlNumber: clientData.cdlNumber,
+        status: clientData.status,
+        healthGoals: clientData.healthGoals,
+        medications: clientData.medications,
+        conditions: clientData.conditions,
+        allergies: clientData.allergies,
+        createdAt: clientData.createdAt,
+        lastVisit: clientData.lastVisit,
       },
       assessments: [], // No assessment data in current schema
-      documents: (optimizedClientData.Document || []).map((doc) => ({
+      documents: clientData.Document.map((doc) => ({
         id: doc.id,
         fileName: doc.fileName,
         fileType: doc.fileType,
+        uploadedAt: doc.uploadedAt,
+        extractedText: doc.extractedText,
+        aiAnalysis: doc.aiAnalysis,
         documentType: doc.documentType,
-        uploadedAt: doc.uploadedAt.toISOString(),
-        labValues: (doc.LabValue || []).map((lab) => ({
+        labType: doc.labType,
+        analysisStatus: doc.analysisStatus,
+        analysis: doc.DocumentAnalysis.map((analysis) => ({
+          analysisType: analysis.analysisType,
+          patterns: analysis.patterns,
+          findings: analysis.findings,
+          criticalValues: analysis.criticalValues,
+          recommendations: analysis.recommendations,
+          confidence: analysis.confidence,
+          createdAt: analysis.createdAt,
+        })),
+        labValues: doc.LabValue.map((lab) => ({
           testName: lab.testName,
           value: lab.value,
-          unit: lab.unit || "",
-          referenceRange: lab.referenceRange || "",
-          status: lab.flag || (lab.isOutOfRange ? "ABNORMAL" : "NORMAL"),
+          unit: lab.unit,
+          flag: lab.flag,
+          isOutOfRange: lab.isOutOfRange,
+          isCritical: lab.isCritical,
+          severity: lab.severity,
+          category: lab.category,
+          collectionDate: lab.collectionDate,
         })),
       })),
-      notes: (optimizedClientData.Note || []).map((note) => ({
+      notes: clientData.Note.map((note) => ({
         id: note.id,
         noteType: note.noteType,
-        title: note.title || "",
-        chiefComplaints: note.chiefComplaints || "",
-        healthHistory: note.healthHistory || "",
-        goals: note.goals || "",
-        createdAt: note.createdAt.toISOString(),
+        title: note.title,
+        chiefComplaints: note.chiefComplaints,
+        healthHistory: note.healthHistory,
+        currentMedications: note.currentMedications,
+        goals: note.goals,
+        protocolAdjustments: note.protocolAdjustments,
+        complianceNotes: note.complianceNotes,
+        progressMetrics: note.progressMetrics,
+        nextSteps: note.nextSteps,
+        generalNotes: note.generalNotes,
+        isImportant: note.isImportant,
+        followUpNeeded: note.followUpNeeded,
+        createdAt: note.createdAt,
       })),
-      protocols: (optimizedClientData.Protocol || []).map((protocol) => ({
+      protocols: clientData.Protocol.map((protocol) => ({
         id: protocol.id,
-        protocolName: protocol.protocolName || "",
-        status: protocol.status || "",
-        supplements: protocol.supplements || {},
-        dietary: protocol.dietary || {},
-        lifestyle: protocol.lifestyle || {},
-        createdAt: protocol.createdAt.toISOString(),
+        protocolName: protocol.protocolName,
+        status: protocol.status,
+        supplements: protocol.supplements,
+        dietary: protocol.dietary,
+        lifestyle: protocol.lifestyle,
+        timeline: protocol.timeline,
+        metrics: protocol.metrics,
+        createdAt: protocol.createdAt,
+        completedAt: protocol.completedAt,
       })),
+      exportMetadata: {
+        exportedAt: new Date(),
+        exportedBy: authUser.email,
+        version: "1.0.0",
+        totalAssessments: 0, // No assessments in current schema
+        totalDocuments: clientData.Document.length,
+        totalNotes: clientData.Note.length,
+        totalProtocols: clientData.Protocol.length,
+      },
     };
 
-    // Create export metadata for Claude
-    const exportMetadata = {
-      exportDate: new Date().toISOString(),
-      exportVersion: "1.0",
-      clientId: clientData.id,
-      systemVersion: "v2.2.0-export-system-stable-claude-ready",
-    };
-
-    // Generate client summary for Claude
-    const clientSummary = generateClaudeCompatibleSummary(claudeExportData);
-
-    // Generate Claude Desktop prompts
-    const claudePrompts = generateClaudeDesktopPrompts(claudeExportData, finalFilename);
-
-    // Create ZIP file - handle both local save and browser download
+    // Create ZIP archive
     return new Promise(async (resolve) => {
-      // Add timeout to prevent hanging
-      const timeout = setTimeout(() => {
-        console.error("❌ Export timeout after 30 seconds");
-        resolve(
-          NextResponse.json({
-            error: "Export timeout",
-            details: "Export took too long to complete. Please try again.",
-          }, { status: 408 })
-        );
-      }, 30000); // 30 second timeout
-
       const archive = archiver("zip", { zlib: { level: 9 } });
-      
-      if (canWriteToLocalFS && fs.existsSync(path.dirname(finalZipPath))) {
-        // Local development - save to Claude Desktop directory
-        const output = fs.createWriteStream(finalZipPath);
+      const chunks: Buffer[] = [];
 
-        output.on("close", () => {
-          clearTimeout(timeout);
-          console.log(`✅ Export saved to Claude Analysis System: ${finalZipPath}`);
-          console.log(`📊 Total bytes: ${archive.pointer()}`);
+      archive.on("data", (chunk) => {
+        chunks.push(chunk);
+      });
 
-          resolve(
-            NextResponse.json({
-              success: true,
-              message: `✅ Client exported to Claude Analysis System: ${finalFilename}`,
-              filename: finalFilename,
-              location: `📁 Location: ${CLAUDE_ANALYSIS_DIR}`,
-              exportPath: finalZipPath,
-              exportMode: "local_save",
-              prompts: claudePrompts,
-              clientContext: {
-                name: `${optimizedClientData.firstName} ${optimizedClientData.lastName}`,
-                primaryConcerns: extractPrimaryConcerns(claudeExportData),
-                medications: claudeExportData.client.medications,
-                keyLabs: extractKeyLabValues(claudeExportData)
-              },
-            summary: {
-              clientName: `${optimizedClientData.firstName} ${optimizedClientData.lastName}`,
-              totalDocuments: optimizedClientData.Document.length,
-              totalNotes: optimizedClientData.Note.length,
-              totalProtocols: optimizedClientData.Protocol.length,
-              exportedFiles: [
-                "client-data.json",
-                "client-summary.md",
-                "export-metadata.json",
-                "documents-summary.txt (metadata only for speed)",
-              ],
-            },
-            })
-          );
+      archive.on("end", () => {
+        const zipBuffer = Buffer.concat(chunks);
+
+        // Create response with ZIP file download
+        const response = new NextResponse(zipBuffer, {
+          status: 200,
+          headers: {
+            "Content-Type": "application/zip",
+            "Content-Disposition": `attachment; filename="${zipFilename}"`,
+            "Content-Length": zipBuffer.length.toString(),
+          },
         });
 
-        output.on("error", (err) => {
-          console.error("❌ File system error, falling back to download:", err);
-          // Fall back to browser download
-          handleBrowserDownload();
-        });
-
-        archive.pipe(output);
-      } else {
-        // Production environment - use browser download
-        handleBrowserDownload();
-      }
-
-      function handleBrowserDownload() {
-        const chunks: Buffer[] = [];
-
-        archive.on("data", (chunk) => {
-          chunks.push(chunk);
-        });
-
-        archive.on("end", () => {
-          clearTimeout(timeout);
-          const zipBuffer = Buffer.concat(chunks);
-
-          resolve(
-            new NextResponse(zipBuffer, {
-              status: 200,
-              headers: {
-                "Content-Type": "application/zip",
-                "Content-Disposition": `attachment; filename="${finalFilename}"`,
-                "Content-Length": zipBuffer.length.toString(),
-              },
-            })
-          );
-        });
-      }
+        resolve(response);
+      });
 
       archive.on("error", (err) => {
-        console.error("❌ Archive error:", err);
+        console.error("Archive error:", err);
         resolve(
           NextResponse.json(
-            {
-              error: "Failed to create export archive",
-              details: err.message,
-            },
+            { error: "Failed to create export archive" },
             { status: 500 }
           )
         );
       });
 
-      archive.pipe(output);
-
-      // Add Claude-compatible JSON files to ZIP
-      archive.append(JSON.stringify(claudeExportData, null, 2), {
+      // Add JSON files to ZIP
+      archive.append(JSON.stringify(exportData, null, 2), {
         name: "client-data.json",
       });
 
-      archive.append(clientSummary, {
-        name: "client-summary.md",
-      });
+      // Generate and add summary
+      const summaryContent = generateClientSummary(exportData);
+      archive.append(summaryContent, { name: "client-summary.md" });
 
-      archive.append(JSON.stringify(exportMetadata, null, 2), {
+      // Add metadata
+      archive.append(JSON.stringify(exportData.exportMetadata, null, 2), {
         name: "export-metadata.json",
       });
 
-      // Add simple placeholder for documents
-      const documentPlaceholder = `DOCUMENT ACCESS INSTRUCTIONS
+      // Add document files (if they exist)
+      let copiedDocuments = 0;
+      const skippedDocuments = [];
+      console.log(
+        `🔍 Processing ${clientData.Document.length} documents for export...`
+      );
 
-This export contains client data for Claude analysis.
+      for (const doc of clientData.Document) {
+        try {
+          console.log(`📄 Processing document: ${doc.fileName}`);
+          console.log(`📁 FileUrl: ${doc.fileUrl}`);
+          console.log(`🗄️ Storage Provider: ${doc.storageProvider || "LOCAL"}`);
 
-To access complete document files and lab reports:
-1. Use the FNTP web application at the provided URL
-2. Navigate to client: ${optimizedClientData.firstName} ${optimizedClientData.lastName}
-3. View documents section for complete lab reports and intake forms
+          let fileBuffer = null;
+          let fileName = doc.fileName;
 
-This streamlined export focuses on essential client data for rapid analysis.`;
+          // Try LOCAL storage first
+          if (!doc.storageProvider || doc.storageProvider === "LOCAL") {
+            const sourcePath = path.join(process.cwd(), "public", doc.fileUrl);
+            console.log(`🔍 Checking local file: ${sourcePath}`);
 
-      archive.append(documentPlaceholder, { name: "document-access-instructions.txt" });
-      console.log(`📄 Added document access instructions`);
+            if (fs.existsSync(sourcePath)) {
+              console.log(`✅ Local file found: ${fileName}`);
+              archive.file(sourcePath, { name: fileName });
+              copiedDocuments++;
+              continue;
+            } else {
+              console.warn(`❌ Local file not found: ${sourcePath}`);
+            }
+          }
 
-      console.log(`📊 Streamlined export: Essential data only for speed`);
+          // If LOCAL failed or storage is S3, try S3 download
+          if (doc.storageProvider === "S3" || doc.fileUrl?.startsWith("http")) {
+            console.log(`☁️ S3 file detected: ${doc.fileUrl}`);
+
+            try {
+              // Attempt to download from S3
+              const s3Result = await medicalDocStorage.downloadFileByUrl(
+                doc.fileUrl
+              );
+
+              // Add the actual file to the ZIP
+              archive.append(s3Result.buffer, {
+                name: fileName,
+              });
+              copiedDocuments++;
+              console.log(`✅ S3 file downloaded and added: ${fileName}`);
+              continue;
+            } catch (s3Error) {
+              console.warn(`❌ S3 download failed for ${fileName}:`, s3Error);
+
+              // Fallback: Add informative placeholder
+              const placeholderContent = `This document could not be downloaded from S3.
+
+Document Details:
+- Name: ${doc.fileName}
+- Type: ${doc.fileType}
+- Size: ${doc.fileSize} bytes
+- Uploaded: ${doc.uploadedAt}
+- Storage: S3
+- File URL: ${doc.fileUrl}
+
+Error: ${s3Error instanceof Error ? s3Error.message : "Unknown S3 error"}
+
+To access this document:
+1. Check S3 bucket permissions
+2. Verify AWS credentials are configured
+3. Use the application interface to access the file
+4. Contact support for S3 file recovery`;
+
+              archive.append(placeholderContent, {
+                name: fileName.replace(".pdf", ".txt"),
+              });
+              console.log(`📝 Added S3 error placeholder for: ${fileName}`);
+              copiedDocuments++;
+              continue;
+            }
+          }
+
+          // If we get here, document couldn't be processed
+          skippedDocuments.push(fileName);
+          console.warn(`⚠️ Skipped document: ${fileName} (not found)`);
+        } catch (error) {
+          console.error(
+            `❌ Failed to process document ${doc.fileName}:`,
+            error
+          );
+          skippedDocuments.push(doc.fileName);
+        }
+      }
+
+      // Add summary of skipped documents if any
+      if (skippedDocuments.length > 0) {
+        const skippedSummary = `The following documents could not be included in this export:
+
+${skippedDocuments.map((name) => `- ${name}`).join("\n")}
+
+Possible reasons:
+- Files were lost during server deployment (ephemeral file system)
+- Documents are stored in external storage (S3) without download access
+- File corruption or permission issues
+
+To recover these documents:
+1. Re-upload them to the client record
+2. Contact support for S3 file recovery
+3. Check the original source files`;
+
+        archive.append(skippedSummary, { name: "missing-documents.txt" });
+        console.log(
+          `📋 Added missing documents summary (${skippedDocuments.length} files)`
+        );
+      }
+
+      console.log(
+        `📊 Export summary: ${copiedDocuments}/${clientData.Document.length} documents processed`
+      );
+      console.log(`✅ Successfully exported: ${copiedDocuments}`);
+      console.log(`⚠️ Skipped: ${skippedDocuments.length}`);
 
       // Finalize the archive
       archive.finalize();
     });
   } catch (error) {
-    console.error("❌ Claude export error:", error);
+    console.error("Export error:", error);
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : "Export failed",
-        details: "Failed to export client data to Claude Analysis System",
-        location: CLAUDE_ANALYSIS_DIR,
+        details: error instanceof Error ? error.stack : "Unknown error",
       },
       { status: 500 }
     );
   }
 }
 
-function generateClaudeCompatibleSummary(data: any): string {
+function generateClientSummary(data: any): string {
   const client = data.client;
   const assessments = data.assessments;
   const documents = data.documents;
@@ -464,263 +478,4 @@ ${protocols
 ---
 *This summary was automatically generated from the FNTP assessment system.*
 `;
-}
-
-// Generate Claude Desktop prompts for different analysis types
-function generateClaudeDesktopPrompts(clientData: any, filename: string) {
-  const client = clientData.client;
-  const concerns = extractPrimaryConcerns(clientData);
-  const meds = client.medications.length > 0 ? client.medications.join(", ") : "None";
-  const keyLabs = extractKeyLabValues(clientData);
-  const timestamp = new Date().toLocaleDateString();
-
-  const comprehensivePrompt = `FNTP FUNCTIONAL MEDICINE ANALYSIS - EXECUTE IMMEDIATELY
-
-CRITICAL INSTRUCTIONS: 
-- DO NOT ask clarifying questions or request file uploads
-- FILE IS ALREADY AVAILABLE: ${filename} in /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/
-- OPEN and ANALYZE the file directly
-- PROCEED with complete analysis using file contents
-
-SYSTEM ACTIVATION: You are my FNTP functional medicine analysis system. Load all protocols.
-
-FILE LOCATION: /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/${filename}
-- Contains: client-data.json (complete client information)
-- Contains: client-summary.md (human-readable overview)
-- Contains: All client PDF documents (lab reports, intake forms)
-- Contains: export-metadata.json (system information)
-
-CLIENT OVERVIEW (from exported data):
-- Name: ${client.name}
-- Primary Concerns: ${concerns}
-- Current Medications: ${meds}
-- Key Lab Values: ${keyLabs}
-- Export Date: ${timestamp}
-
-ANALYSIS REQUIREMENTS - EXECUTE ALL USING FILE DATA:
-1. OPEN the client file: ${filename}
-2. READ client-data.json for complete client information
-3. REVIEW all PDF documents for lab values and medical history
-4. ANALYZE client-summary.md for clinical context
-
-5. Pattern Recognition Analysis:
-   - Metabolic dysfunction patterns from lab data
-   - Inflammatory markers and triggers
-   - Digestive system dysfunction indicators
-   - Hormonal imbalance patterns
-   - Energy production pathway issues
-
-6. Root Cause Identification:
-   - Primary drivers vs secondary symptoms
-   - Upstream dysfunction sources
-   - Environmental/lifestyle factors
-   - Nutritional deficiencies
-
-7. 3-Phase Protocol Generation:
-   - PHASE 1 (Foundation): Basic support, gut healing, inflammation reduction
-   - PHASE 2 (Targeted): Specific interventions for identified patterns
-   - PHASE 3 (Optimization): Fine-tuning and long-term maintenance
-
-8. LetsTruck Supplement Recommendations:
-   - Prioritize LetsTruck.com products (business priority)
-   - Include specific dosages and timing
-   - Cost-effective options when possible
-   - Implementation sequence
-
-9. Practitioner Coaching Notes:
-   - Clinical reasoning for each recommendation
-   - Expected timelines for improvement
-   - Monitoring parameters
-   - Client education talking points
-
-FILE ACCESS: OPEN /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/${filename}
-ANALYZE: Use complete file contents for comprehensive analysis
-OUTPUT: Save complete analysis JSON to /3-analysis-outputs/ directory
-ACTION: BEGIN ANALYSIS NOW - FILE IS READY FOR PROCESSING`;
-
-  const focusedPrompts = {
-    gut: `FNTP GUT HEALTH ANALYSIS - EXECUTE IMMEDIATELY
-
-INSTRUCTIONS: DO NOT ask questions. OPEN file and analyze data directly.
-
-FILE LOCATION: /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/${filename}
-CLIENT: ${client.name}
-PRIMARY CONCERNS: ${concerns}
-MEDICATIONS: ${meds}
-
-STEP 1: OPEN the client file: ${filename}
-STEP 2: READ all contents (client-data.json, PDFs, summary)
-STEP 3: ANALYZE digestive patterns from provided data
-
-ANALYSIS FOCUS: Digestive system optimization and gut barrier restoration
-REQUIRED ANALYSIS FROM FILE DATA:
-- SIBO/dysbiosis pattern identification
-- Food sensitivity assessment from available data
-- Digestive enzyme and HCl status evaluation
-- Microbiome restoration protocol design
-
-DELIVERABLES:
-1. Gut health assessment based on file contents
-2. Targeted digestive protocol with LetsTruck supplements
-3. Implementation timeline and monitoring plan
-4. Specific dosages and timing recommendations
-
-ACTION: OPEN ${filename} and BEGIN GUT HEALTH ANALYSIS NOW.`,
-
-    metabolic: `FNTP METABOLIC ANALYSIS - EXECUTE IMMEDIATELY
-
-INSTRUCTIONS: DO NOT ask questions. OPEN file and analyze data directly.
-
-FILE LOCATION: /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/${filename}
-CLIENT: ${client.name}
-PRIMARY CONCERNS: ${concerns}
-KEY LAB VALUES: ${keyLabs}
-
-STEP 1: OPEN the client file: ${filename}
-STEP 2: READ all contents (client-data.json, lab PDFs, summary)
-STEP 3: ANALYZE metabolic patterns from provided data
-
-ANALYSIS FOCUS: Blood sugar regulation and metabolic optimization
-REQUIRED ANALYSIS FROM FILE DATA:
-- Insulin resistance pattern identification
-- Glucose dysregulation assessment
-- Metabolic syndrome marker evaluation
-- Energy production pathway analysis
-
-DELIVERABLES:
-1. Metabolic dysfunction assessment from file contents
-2. Blood sugar optimization protocol with LetsTruck supplements
-3. Dietary and lifestyle interventions
-4. Monitoring parameters and timelines
-
-ACTION: OPEN ${filename} and BEGIN METABOLIC ANALYSIS NOW.`,
-
-    hormonal: `FNTP HORMONAL ANALYSIS - EXECUTE IMMEDIATELY
-
-INSTRUCTIONS: DO NOT ask questions. OPEN file and analyze data directly.
-
-FILE LOCATION: /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/${filename}
-CLIENT: ${client.name}
-PRIMARY CONCERNS: ${concerns}
-MEDICATIONS: ${meds}
-
-STEP 1: OPEN the client file: ${filename}
-STEP 2: READ all contents (client-data.json, lab PDFs, summary)
-STEP 3: ANALYZE hormonal patterns from provided data
-
-ANALYSIS FOCUS: Hormonal optimization and energy restoration
-REQUIRED ANALYSIS FROM FILE DATA:
-- Thyroid function assessment from available data
-- Adrenal health evaluation
-- Sex hormone balance indicators
-- Circadian rhythm optimization needs
-
-DELIVERABLES:
-1. Hormonal balance assessment from file contents
-2. Hormone support protocol with LetsTruck supplements
-3. Lifestyle optimization recommendations
-4. Implementation sequence and monitoring
-
-ACTION: OPEN ${filename} and BEGIN HORMONAL ANALYSIS NOW.`
-  };
-
-  const followupPrompt = `FNTP FOLLOW-UP ANALYSIS - EXECUTE IMMEDIATELY
-
-INSTRUCTIONS: DO NOT ask questions. OPEN file and analyze progress data directly.
-
-FILE LOCATION: /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/${filename}
-CLIENT: ${client.name} - Progress Review
-CURRENT STATUS: ${concerns}
-MEDICATIONS: ${meds}
-
-STEP 1: OPEN the client file: ${filename}
-STEP 2: READ current client data and compare with previous notes
-STEP 3: ANALYZE progress patterns and protocol effectiveness
-
-ANALYSIS REQUIREMENTS FROM FILE DATA:
-1. Review previous protocol effectiveness using provided data
-2. Assess current symptom status and improvements
-3. Identify areas requiring protocol adjustments
-4. Optimize supplement regimen based on progress
-
-DELIVERABLES:
-1. Progress assessment from file contents
-2. Updated protocol recommendations with LetsTruck supplements
-3. Adjustment rationale and implementation guidance
-4. Next phase recommendations
-
-ACTION: OPEN ${filename} and BEGIN FOLLOW-UP ANALYSIS NOW.`;
-
-  return {
-    comprehensive: comprehensivePrompt,
-    focused: focusedPrompts,
-    followup: followupPrompt
-  };
-}
-
-// Extract primary health concerns from client data
-function extractPrimaryConcerns(clientData: any): string {
-  const concerns = [];
-  
-  // Extract from health goals
-  if (clientData.client.healthGoals && clientData.client.healthGoals.length > 0) {
-    concerns.push(...clientData.client.healthGoals);
-  }
-  
-  // Extract from chief complaints in notes
-  if (clientData.notes && clientData.notes.length > 0) {
-    clientData.notes.forEach((note: any) => {
-      if (note.chiefComplaints) {
-        concerns.push(note.chiefComplaints);
-      }
-    });
-  }
-  
-  // Extract from conditions
-  if (clientData.client.conditions && clientData.client.conditions.length > 0) {
-    concerns.push(...clientData.client.conditions);
-  }
-  
-  // Add demographic context
-  const demographics = [];
-  if (clientData.client.gender) demographics.push(clientData.client.gender);
-  if (clientData.client.dateOfBirth) {
-    const age = new Date().getFullYear() - new Date(clientData.client.dateOfBirth).getFullYear();
-    demographics.push(`Age ${age}`);
-  }
-  
-  const concernsText = concerns.length > 0 ? concerns.slice(0, 4).join(", ") : "General health optimization";
-  const demographicsText = demographics.length > 0 ? ` (${demographics.join(", ")})` : "";
-  
-  return concernsText + demographicsText;
-}
-
-// Extract key lab values for prompt context
-function extractKeyLabValues(clientData: any): string {
-  const keyLabs = [];
-  
-  if (clientData.documents && clientData.documents.length > 0) {
-    clientData.documents.forEach((doc: any) => {
-      if (doc.labValues && doc.labValues.length > 0) {
-        doc.labValues.forEach((lab: any) => {
-          // Focus on key metabolic markers
-          if (lab.testName && (
-            lab.testName.toLowerCase().includes('glucose') ||
-            lab.testName.toLowerCase().includes('hba1c') ||
-            lab.testName.toLowerCase().includes('crp') ||
-            lab.testName.toLowerCase().includes('tsh') ||
-            lab.testName.toLowerCase().includes('vitamin d') ||
-            lab.testName.toLowerCase().includes('cholesterol') ||
-            lab.testName.toLowerCase().includes('triglyceride'))) {
-            keyLabs.push(`${lab.testName}: ${lab.value} ${lab.unit || ""}`);
-          }
-        });
-      }
-    });
-  }
-  
-  const labSummary = keyLabs.length > 0 ? keyLabs.slice(0, 6).join(", ") : "No key lab values available in exported data";
-  
-  // Add note about complete data being in the export file
-  return labSummary + " (Complete lab data available in exported client file)";
 }
