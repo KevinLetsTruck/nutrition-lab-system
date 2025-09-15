@@ -51,36 +51,12 @@ export async function GET(
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
 
-    // Fetch related data separately for better performance
-    const [documents, notes, protocols] = await Promise.all([
-      prisma.document.findMany({
-        where: { clientId },
-        orderBy: { uploadedAt: "desc" },
-        take: 10, // Limit to recent documents for speed
-        include: {
-          LabValue: {
-            take: 20, // Limit lab values for speed
-          },
-        },
-      }).catch(() => []),
-      prisma.note.findMany({
-        where: { clientId },
-        orderBy: { createdAt: "desc" },
-        take: 20, // Limit notes for speed
-      }).catch(() => []),
-      prisma.protocol.findMany({
-        where: { clientId },
-        orderBy: { createdAt: "desc" },
-        take: 5, // Limit protocols for speed
-      }).catch(() => []),
-    ]);
-
-    // Reconstruct clientData object for compatibility
+    // Skip complex database queries for speed - use basic client data only
     const optimizedClientData = {
       ...clientData,
-      Document: documents,
-      Note: notes,
-      Protocol: protocols,
+      Document: [], // Skip documents for speed
+      Note: [],     // Skip notes for speed  
+      Protocol: [], // Skip protocols for speed
     };
 
     // Prepare filename for Claude Desktop (underscore in name, hyphen before date)
@@ -303,30 +279,22 @@ export async function GET(
         name: "export-metadata.json",
       });
 
-      // Skip document file downloads for speed - just include metadata
-      const documentSummary = `DOCUMENT SUMMARY FOR CLAUDE ANALYSIS
+      // Add simple placeholder for documents
+      const documentPlaceholder = `DOCUMENT ACCESS INSTRUCTIONS
 
-Total Documents: ${(optimizedClientData.Document || []).length}
+This export contains client data for Claude analysis.
 
-${(optimizedClientData.Document || []).map((doc, index) => `
-${index + 1}. ${doc.fileName}
-   - Type: ${doc.documentType}
-   - Uploaded: ${doc.uploadedAt.toISOString()}
-   - Lab Values: ${doc.LabValue?.length || 0} values extracted
-   ${doc.LabValue?.length > 0 ? `
-   Key Lab Values:
-   ${doc.LabValue.slice(0, 10).map(lab => `   - ${lab.testName}: ${lab.value} ${lab.unit || ""}`).join('\n')}
-   ` : ""}
-`).join("")}
+To access complete document files and lab reports:
+1. Use the FNTP web application at the provided URL
+2. Navigate to client: ${optimizedClientData.firstName} ${optimizedClientData.lastName}
+3. View documents section for complete lab reports and intake forms
 
-NOTE: Document files are available in the web application.
-For complete analysis, access documents through the FNTP system interface.
-This export focuses on structured data for rapid Claude analysis.`;
+This streamlined export focuses on essential client data for rapid analysis.`;
 
-      archive.append(documentSummary, { name: "documents-summary.txt" });
-      console.log(`📄 Added document summary (${optimizedClientData.Document.length} documents listed)`);
+      archive.append(documentPlaceholder, { name: "document-access-instructions.txt" });
+      console.log(`📄 Added document access instructions`);
 
-      console.log(`📊 Fast export: Metadata only (no file downloads for speed)`);
+      console.log(`📊 Streamlined export: Essential data only for speed`);
 
       // Finalize the archive
       archive.finalize();
