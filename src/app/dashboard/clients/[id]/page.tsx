@@ -107,9 +107,6 @@ export default function ClientDetailPage() {
   const [activeTab, setActiveTab] = useState<"interview" | "coaching">(
     "interview"
   );
-  const [activeMainTab, setActiveMainTab] = useState<
-    "health-goals" | "notes" | "documents"
-  >("health-goals");
   const [searchTerm, setSearchTerm] = useState("");
   const [showImportant, setShowImportant] = useState(false);
   const [showFollowUp, setShowFollowUp] = useState(false);
@@ -861,41 +858,10 @@ export default function ClientDetailPage() {
           </div>
         </div>
 
-        {/* Dynamic Three-Column Layout - Responsive */}
+        {/* Two-Column Layout - Notes and Documents */}
         <div className="flex gap-4 h-[calc(100vh-300px)] min-h-[600px] w-full overflow-hidden">
-          {/* Left Column - Health Goals */}
-          <div className="flex-shrink-0 w-80 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden flex flex-col">
-            <div className="bg-gray-700 px-4 py-3 border-b border-gray-600">
-              <h3 className="font-semibold text-white flex items-center">
-                <span className="text-lg mr-2">🎯</span>
-                Health Goals
-              </h3>
-            </div>
-            <div className="flex-1 p-4 overflow-y-auto">
-              {getHealthGoalsArray(client.healthGoals).length > 0 ? (
-                <div className="space-y-3">
-                  {getHealthGoalsArray(client.healthGoals).map(
-                    (goal, index) => (
-                      <div
-                        key={index}
-                        className="p-3 rounded-lg bg-gray-700 border border-gray-600 hover:bg-gray-600 transition-colors"
-                      >
-                        <p className="text-white text-sm">{goal}</p>
-                      </div>
-                    )
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="text-3xl mb-2">🎯</div>
-                  <p className="text-gray-400 text-sm">No health goals set</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Center Column - Notes */}
-          <div className="flex-shrink-0 w-80 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden flex flex-col">
+          {/* Left Column - Notes */}
+          <div className="flex-1 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden flex flex-col">
             <div className="bg-gray-700 px-4 py-3 border-b border-gray-600">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-white flex items-center">
@@ -1016,7 +982,7 @@ export default function ClientDetailPage() {
           </div>
 
           {/* Right Column - Documents */}
-          <div className="flex-shrink-0 w-80 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden flex flex-col">
+          <div className="flex-1 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden flex flex-col">
             <div className="bg-gray-700 px-4 py-3 border-b border-gray-600">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-white flex items-center">
