@@ -49,7 +49,7 @@ export async function GET(
       where: { id: clientId },
       include: {
         // Document data with analysis
-        documents: {
+        Document: {
           include: {
             DocumentAnalysis: true,
             LabValue: true,
@@ -57,11 +57,11 @@ export async function GET(
           orderBy: { uploadedAt: "desc" },
         },
         // Clinical notes
-        notes: {
+        Note: {
           orderBy: { createdAt: "desc" },
         },
         // Treatment protocols
-        protocols: {
+        Protocol: {
           orderBy: { createdAt: "desc" },
         },
       },
@@ -122,7 +122,7 @@ export async function GET(
           : [],
       },
       assessments: [], // No assessment data in current schema
-      documents: clientData.documents.map((doc) => ({
+      documents: clientData.Document.map((doc) => ({
         id: doc.id,
         fileName: doc.fileName,
         fileType: doc.fileType,
@@ -136,7 +136,7 @@ export async function GET(
           status: lab.flag || (lab.isOutOfRange ? "ABNORMAL" : "NORMAL"),
         })),
       })),
-      notes: clientData.notes.map((note) => ({
+      notes: clientData.Note.map((note) => ({
         id: note.id,
         noteType: note.noteType,
         title: note.title || "",
@@ -145,7 +145,7 @@ export async function GET(
         goals: note.goals || "",
         createdAt: note.createdAt.toISOString(),
       })),
-      protocols: clientData.protocols.map((protocol) => ({
+      protocols: clientData.Protocol.map((protocol) => ({
         id: protocol.id,
         protocolName: protocol.protocolName || "",
         status: protocol.status || "",
@@ -197,14 +197,14 @@ export async function GET(
             },
             summary: {
               clientName: `${clientData.firstName} ${clientData.lastName}`,
-              totalDocuments: clientData.documents.length,
-              totalNotes: clientData.notes.length,
-              totalProtocols: clientData.protocols.length,
+        totalDocuments: clientData.Document.length,
+        totalNotes: clientData.Note.length,
+        totalProtocols: clientData.Protocol.length,
               exportedFiles: [
                 "client-data.json",
                 "client-summary.md",
                 "export-metadata.json",
-                `${clientData.documents.length} PDF documents`,
+                `${clientData.Document.length} PDF documents`,
               ],
             },
           })
@@ -262,10 +262,10 @@ export async function GET(
       let copiedDocuments = 0;
       const skippedDocuments = [];
       console.log(
-        `🔍 Processing ${clientData.documents.length} documents for Claude export...`
+        `🔍 Processing ${clientData.Document.length} documents for Claude export...`
       );
 
-      for (const doc of clientData.documents) {
+      for (const doc of clientData.Document) {
         try {
           console.log(`📄 Processing document: ${doc.fileName}`);
           console.log(`📁 FileUrl: ${doc.fileUrl}`);
@@ -372,7 +372,7 @@ To recover these documents:
       }
 
       console.log(
-        `📊 Export summary: ${copiedDocuments}/${clientData.documents.length} documents processed`
+        `📊 Export summary: ${copiedDocuments}/${clientData.Document.length} documents processed`
       );
       console.log(`✅ Successfully exported: ${copiedDocuments}`);
       console.log(`⚠️ Skipped: ${skippedDocuments.length}`);
