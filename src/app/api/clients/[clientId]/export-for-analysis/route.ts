@@ -479,3 +479,124 @@ ${protocols
 *This summary was automatically generated from the FNTP assessment system.*
 `;
 }
+
+// Generate Claude Desktop prompts for different analysis types
+function generateClaudeDesktopPrompts(clientData: any, filename: string) {
+  const client = clientData.client;
+  const concerns = extractPrimaryConcerns(clientData);
+  const meds = client.medications && client.medications.length > 0 ? client.medications.join(", ") : "None";
+  const keyLabs = extractKeyLabValues(clientData);
+  const timestamp = new Date().toLocaleDateString();
+
+  const comprehensivePrompt = `FNTP FUNCTIONAL MEDICINE ANALYSIS - EXECUTE IMMEDIATELY
+
+CRITICAL INSTRUCTIONS: 
+- DO NOT ask clarifying questions or request file uploads
+- FILE IS ALREADY AVAILABLE: ${filename} in /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/
+- OPEN and ANALYZE the file directly
+- PROCEED with complete analysis using file contents
+
+SYSTEM ACTIVATION: You are my FNTP functional medicine analysis system. Load all protocols.
+
+FILE LOCATION: /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/${filename}
+- Contains: client-data.json (complete client information)
+- Contains: client-summary.md (human-readable overview)
+- Contains: All client PDF documents (lab reports, intake forms)
+- Contains: export-metadata.json (system information)
+
+CLIENT OVERVIEW (from exported data):
+- Name: ${client.name}
+- Primary Concerns: ${concerns}
+- Current Medications: ${meds}
+- Key Lab Values: ${keyLabs}
+- Export Date: ${timestamp}
+
+ANALYSIS REQUIREMENTS - EXECUTE ALL USING FILE DATA:
+1. OPEN the client file: ${filename}
+2. READ client-data.json for complete client information
+3. REVIEW all PDF documents for lab values and medical history
+4. ANALYZE client-summary.md for clinical context
+
+5. Pattern Recognition Analysis:
+   - Metabolic dysfunction patterns from lab data
+   - Inflammatory markers and triggers
+   - Digestive system dysfunction indicators
+   - Hormonal imbalance patterns
+   - Energy production pathway issues
+
+6. Root Cause Identification:
+   - Primary drivers vs secondary symptoms
+   - Upstream dysfunction sources
+   - Environmental/lifestyle factors
+   - Nutritional deficiencies
+
+7. 3-Phase Protocol Generation:
+   - PHASE 1 (Foundation): Basic support, gut healing, inflammation reduction
+   - PHASE 2 (Targeted): Specific interventions for identified patterns
+   - PHASE 3 (Optimization): Fine-tuning and long-term maintenance
+
+8. LetsTruck Supplement Recommendations:
+   - Prioritize LetsTruck.com products (business priority)
+   - Include specific dosages and timing
+   - Cost-effective options when possible
+   - Implementation sequence
+
+9. Practitioner Coaching Notes:
+   - Clinical reasoning for each recommendation
+   - Expected timelines for improvement
+   - Monitoring parameters
+   - Client education talking points
+
+FILE ACCESS: OPEN /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/${filename}
+ANALYZE: Use complete file contents for comprehensive analysis
+OUTPUT: Save complete analysis JSON to /3-analysis-outputs/ directory
+ACTION: BEGIN ANALYSIS NOW - FILE IS READY FOR PROCESSING`;
+
+  return {
+    comprehensive: comprehensivePrompt,
+    focused: {
+      gut: "GUT HEALTH ANALYSIS - Use exported data",
+      metabolic: "METABOLIC ANALYSIS - Use exported data", 
+      hormonal: "HORMONAL ANALYSIS - Use exported data"
+    },
+    followup: "FOLLOW-UP ANALYSIS - Use exported data"
+  };
+}
+
+// Extract primary health concerns from client data
+function extractPrimaryConcerns(clientData: any): string {
+  const concerns = [];
+  
+  if (clientData.client.healthGoals) {
+    concerns.push(...(Array.isArray(clientData.client.healthGoals) ? clientData.client.healthGoals : [clientData.client.healthGoals]));
+  }
+  
+  if (clientData.notes && clientData.notes.length > 0) {
+    clientData.notes.forEach((note: any) => {
+      if (note.chiefComplaints) {
+        concerns.push(note.chiefComplaints);
+      }
+    });
+  }
+  
+  return concerns.length > 0 ? concerns.slice(0, 3).join(", ") : "General health optimization";
+}
+
+// Extract key lab values for prompt context
+function extractKeyLabValues(clientData: any): string {
+  const keyLabs = [];
+  
+  if (clientData.documents && clientData.documents.length > 0) {
+    clientData.documents.forEach((doc: any) => {
+      if (doc.labValues && doc.labValues.length > 0) {
+        doc.labValues.forEach((lab: any) => {
+          if (lab.testName && lab.testName.toLowerCase().includes('glucose')) {
+            keyLabs.push(`${lab.testName}: ${lab.value} ${lab.unit || ""}`);
+          }
+        });
+      }
+    });
+  }
+  
+  return keyLabs.length > 0 ? keyLabs.slice(0, 3).join(", ") : "Lab values in exported file";
+}

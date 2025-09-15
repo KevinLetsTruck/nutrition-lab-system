@@ -59,84 +59,44 @@ export function ExportClientButton({
         throw new Error(errorMessage);
       }
 
-      // Check if response is JSON (local save) or blob (browser download)
-      const contentType = response.headers.get('content-type');
-      
-      if (contentType?.includes('application/json')) {
-        // Local save mode - handle JSON response with prompts
-        const exportResult = await response.json();
+      // Handle file download (original working functionality)
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get('content-disposition');
+      const filenameMatch = contentDisposition?.match(/filename="([^"]+)"/);
+      const filename = filenameMatch ? filenameMatch[1] : `${clientName}-export.zip`;
 
-        setExportStatus("success");
-        
-        toast.success(exportResult.message, {
-          description: (
-            <div className="space-y-1">
-              <p><strong>Client:</strong> {clientName}</p>
-              <p><strong>File:</strong> {exportResult.filename}</p>
-              <p className="text-xs text-gray-500 mt-2">{exportResult.location}</p>
-              <p className="text-xs text-blue-400 mt-2">
-                🤖 Claude prompts generated - check modal for copy-paste options
-              </p>
-            </div>
-          ),
-          duration: 6000,
-        });
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
 
-        // Store prompts for modal display
-        if (typeof window !== 'undefined') {
-          (window as any).claudePrompts = exportResult.prompts;
-          (window as any).claudeExportResult = exportResult;
-          
-          window.dispatchEvent(new CustomEvent('claudePromptsReady', { 
-            detail: exportResult 
-          }));
-        }
-      } else {
-        // Browser download mode - handle blob response
-        const blob = await response.blob();
-        const contentDisposition = response.headers.get('content-disposition');
-        const filenameMatch = contentDisposition?.match(/filename="([^"]+)"/);
-        const filename = filenameMatch ? filenameMatch[1] : `${clientName}-export.zip`;
-
-        // Create download link
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-
-        setExportStatus("success");
-        toast.success("Export Downloaded!", {
-          description: (
-            <div className="space-y-1">
-              <p><strong>Client:</strong> {clientName}</p>
-              <p><strong>File:</strong> {filename}</p>
-              <p className="text-xs text-gray-500 mt-2">
-                📦 ZIP file downloaded to your Downloads folder
-              </p>
-              <p className="text-xs text-blue-400 mt-2">
-                💡 Save to /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/ for Claude Desktop analysis
-              </p>
-            </div>
-          ),
-          duration: 8000,
-        });
-      }
+      setExportStatus("success");
+      toast.success("Export Downloaded!", {
+        description: (
+          <div className="space-y-1">
+            <p>
+              <strong>Client:</strong> {clientName}
+            </p>
+            <p>
+              <strong>File:</strong> {filename}
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              📦 ZIP file downloaded to your Downloads folder
+            </p>
+          </div>
+        ),
+        duration: 6000,
+      });
 
       // Optional: Show system notification
       if ("Notification" in window && Notification.permission === "granted") {
-        const notificationTitle = contentType?.includes('application/json') 
-          ? "FNTP Client Exported to Claude Analysis System"
-          : "FNTP Client Export Downloaded";
-        const filename = contentType?.includes('application/json') 
-          ? (window as any).claudeExportResult?.filename || "export.zip"
-          : filename || "export.zip";
-          
-        new Notification(notificationTitle, {
-          body: `${clientName} data exported as ${filename}`,
+        new Notification("FNTP Client Export Downloaded", {
+          body: `${clientName} data downloaded as ${filename}`,
           icon: "/favicon.ico",
         });
       }
