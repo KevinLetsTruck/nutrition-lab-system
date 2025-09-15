@@ -6,6 +6,9 @@ import path from "path";
 import archiver from "archiver";
 import { medicalDocStorage } from "@/lib/medical/storage-service";
 
+// Claude Desktop Analysis System directory
+const CLAUDE_ANALYSIS_DIR = "/Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports";
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { clientId: string } }
@@ -18,6 +21,21 @@ export async function GET(
     }
 
     const { clientId } = params;
+
+    // Create Claude Desktop directory if it doesn't exist
+    try {
+      if (!fs.existsSync(CLAUDE_ANALYSIS_DIR)) {
+        fs.mkdirSync(CLAUDE_ANALYSIS_DIR, { recursive: true });
+        console.log(`📁 Created Claude Analysis directory: ${CLAUDE_ANALYSIS_DIR}`);
+      }
+    } catch (dirError) {
+      console.error("❌ Failed to create Claude Analysis directory:", dirError);
+      return NextResponse.json({
+        error: "Failed to access Claude Analysis System directory",
+        details: "Please ensure /Users/kr/FNTP-Claude-Analysis-System/1-incoming-exports/ is accessible",
+        requiredPath: CLAUDE_ANALYSIS_DIR
+      }, { status: 500 });
+    }
 
     // Fetch complete client data from current database tables
     const clientData = await prisma.client.findUnique({
@@ -46,158 +64,165 @@ export async function GET(
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
 
-    // Prepare ZIP filename
-    const clientName = `${clientData.firstName}-${clientData.lastName}`;
+    // Prepare filename for Claude Desktop (underscore in name, hyphen before date)
+    const clientName = `${clientData.firstName}_${clientData.lastName}`;
     const timestamp = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
     const zipFilename = `${clientName}-${timestamp}.zip`;
+    const zipFilePath = path.join(CLAUDE_ANALYSIS_DIR, zipFilename);
 
-    // Prepare structured client data
-    const exportData = {
+    // Check if file already exists and handle versioning
+    let finalZipPath = zipFilePath;
+    let finalFilename = zipFilename;
+    let version = 1;
+    
+    while (fs.existsSync(finalZipPath)) {
+      const versionedFilename = `${clientName}-${timestamp}_v${version}.zip`;
+      finalZipPath = path.join(CLAUDE_ANALYSIS_DIR, versionedFilename);
+      finalFilename = versionedFilename;
+      version++;
+    }
+
+    // Prepare Claude-compatible client data structure
+    const claudeExportData = {
       client: {
         id: clientData.id,
         name: `${clientData.firstName} ${clientData.lastName}`,
         email: clientData.email,
-        phone: clientData.phone,
-        dateOfBirth: clientData.dateOfBirth,
-        gender: clientData.gender,
-        isTruckDriver: clientData.isTruckDriver,
-        dotNumber: clientData.dotNumber,
-        cdlNumber: clientData.cdlNumber,
-        status: clientData.status,
-        healthGoals: clientData.healthGoals,
-        medications: clientData.medications,
-        conditions: clientData.conditions,
-        allergies: clientData.allergies,
-        createdAt: clientData.createdAt,
-        lastVisit: clientData.lastVisit,
+        phone: clientData.phone || "",
+        dateOfBirth: clientData.dateOfBirth ? clientData.dateOfBirth.toISOString().split('T')[0] : null,
+        gender: clientData.gender || "",
+        healthGoals: Array.isArray(clientData.healthGoals) ? clientData.healthGoals : 
+                    (clientData.healthGoals ? [String(clientData.healthGoals)] : []),
+        medications: Array.isArray(clientData.medications) ? clientData.medications : 
+                    (clientData.medications ? [String(clientData.medications)] : []),
+        conditions: Array.isArray(clientData.conditions) ? clientData.conditions : 
+                   (clientData.conditions ? [String(clientData.conditions)] : []),
+        allergies: Array.isArray(clientData.allergies) ? clientData.allergies : 
+                  (clientData.allergies ? [String(clientData.allergies)] : [])
       },
       assessments: [], // No assessment data in current schema
       documents: clientData.documents.map((doc) => ({
         id: doc.id,
         fileName: doc.fileName,
         fileType: doc.fileType,
-        uploadedAt: doc.uploadedAt,
-        extractedText: doc.extractedText,
-        aiAnalysis: doc.aiAnalysis,
         documentType: doc.documentType,
-        labType: doc.labType,
-        analysisStatus: doc.analysisStatus,
-        analysis: doc.DocumentAnalysis.map((analysis) => ({
-          analysisType: analysis.analysisType,
-          patterns: analysis.patterns,
-          findings: analysis.findings,
-          criticalValues: analysis.criticalValues,
-          recommendations: analysis.recommendations,
-          confidence: analysis.confidence,
-          createdAt: analysis.createdAt,
-        })),
+        uploadedAt: doc.uploadedAt.toISOString(),
         labValues: doc.LabValue.map((lab) => ({
           testName: lab.testName,
           value: lab.value,
-          unit: lab.unit,
-          flag: lab.flag,
-          isOutOfRange: lab.isOutOfRange,
-          isCritical: lab.isCritical,
-          severity: lab.severity,
-          category: lab.category,
-          collectionDate: lab.collectionDate,
-        })),
+          unit: lab.unit || "",
+          referenceRange: lab.referenceRange || "",
+          status: lab.flag || (lab.isOutOfRange ? "ABNORMAL" : "NORMAL")
+        }))
       })),
       notes: clientData.notes.map((note) => ({
         id: note.id,
         noteType: note.noteType,
-        title: note.title,
-        chiefComplaints: note.chiefComplaints,
-        healthHistory: note.healthHistory,
-        currentMedications: note.currentMedications,
-        goals: note.goals,
-        protocolAdjustments: note.protocolAdjustments,
-        complianceNotes: note.complianceNotes,
-        progressMetrics: note.progressMetrics,
-        nextSteps: note.nextSteps,
-        generalNotes: note.generalNotes,
-        isImportant: note.isImportant,
-        followUpNeeded: note.followUpNeeded,
-        createdAt: note.createdAt,
+        title: note.title || "",
+        chiefComplaints: note.chiefComplaints || "",
+        healthHistory: note.healthHistory || "",
+        goals: note.goals || "",
+        createdAt: note.createdAt.toISOString()
       })),
       protocols: clientData.protocols.map((protocol) => ({
         id: protocol.id,
-        protocolName: protocol.protocolName,
-        status: protocol.status,
-        supplements: protocol.supplements,
-        dietary: protocol.dietary,
-        lifestyle: protocol.lifestyle,
-        timeline: protocol.timeline,
-        metrics: protocol.metrics,
-        createdAt: protocol.createdAt,
-        completedAt: protocol.completedAt,
-      })),
-      exportMetadata: {
-        exportedAt: new Date(),
-        exportedBy: authUser.email,
-        version: "1.0.0",
-        totalAssessments: 0, // No assessments in current schema
-        totalDocuments: clientData.documents.length,
-        totalNotes: clientData.notes.length,
-        totalProtocols: clientData.protocols.length,
-      },
+        protocolName: protocol.protocolName || "",
+        status: protocol.status || "",
+        supplements: protocol.supplements || {},
+        dietary: protocol.dietary || {},
+        lifestyle: protocol.lifestyle || {},
+        createdAt: protocol.createdAt.toISOString()
+      }))
     };
 
-    // Create ZIP archive
+    // Create export metadata for Claude
+    const exportMetadata = {
+      exportDate: new Date().toISOString(),
+      exportVersion: "1.0",
+      clientId: clientData.id,
+      systemVersion: "v2.2.0-export-system-stable-claude-ready"
+    };
+
+    // Generate client summary for Claude
+    const clientSummary = generateClaudeCompatibleSummary(claudeExportData);
+
+    // Create ZIP file and save to Claude Analysis System
     return new Promise(async (resolve) => {
       const archive = archiver("zip", { zlib: { level: 9 } });
-      const chunks: Buffer[] = [];
+      const output = fs.createWriteStream(finalZipPath);
 
-      archive.on("data", (chunk) => {
-        chunks.push(chunk);
-      });
-
-      archive.on("end", () => {
-        const zipBuffer = Buffer.concat(chunks);
-
-        // Create response with ZIP file download
-        const response = new NextResponse(zipBuffer, {
-          status: 200,
-          headers: {
-            "Content-Type": "application/zip",
-            "Content-Disposition": `attachment; filename="${zipFilename}"`,
-            "Content-Length": zipBuffer.length.toString(),
-          },
-        });
-
-        resolve(response);
-      });
-
-      archive.on("error", (err) => {
-        console.error("Archive error:", err);
+      output.on("close", () => {
+        console.log(`✅ Export saved to Claude Analysis System: ${finalZipPath}`);
+        console.log(`📊 Total bytes: ${archive.pointer()}`);
+        
         resolve(
-          NextResponse.json(
-            { error: "Failed to create export archive" },
-            { status: 500 }
-          )
+          NextResponse.json({
+            success: true,
+            message: `✅ Client exported to Claude Analysis System: ${finalFilename}`,
+            filename: finalFilename,
+            location: `📁 Location: ${CLAUDE_ANALYSIS_DIR}`,
+            exportPath: finalZipPath,
+            summary: {
+              clientName: `${clientData.firstName} ${clientData.lastName}`,
+              totalDocuments: clientData.documents.length,
+              totalNotes: clientData.notes.length,
+              totalProtocols: clientData.protocols.length,
+              exportedFiles: [
+                "client-data.json",
+                "client-summary.md",
+                "export-metadata.json",
+                `${clientData.documents.length} PDF documents`
+              ]
+            }
+          })
         );
       });
 
-      // Add JSON files to ZIP
-      archive.append(JSON.stringify(exportData, null, 2), {
+      output.on("error", (err) => {
+        console.error("❌ File system error:", err);
+        resolve(
+          NextResponse.json({
+            error: "Failed to save export to Claude Analysis System",
+            details: `File system error: ${err.message}`,
+            location: CLAUDE_ANALYSIS_DIR,
+            troubleshooting: [
+              "Check directory permissions",
+              "Ensure sufficient disk space",
+              "Verify path accessibility"
+            ]
+          }, { status: 500 })
+        );
+      });
+
+      archive.on("error", (err) => {
+        console.error("❌ Archive error:", err);
+        resolve(
+          NextResponse.json({
+            error: "Failed to create export archive",
+            details: err.message
+          }, { status: 500 })
+        );
+      });
+
+      archive.pipe(output);
+
+      // Add Claude-compatible JSON files to ZIP
+      archive.append(JSON.stringify(claudeExportData, null, 2), {
         name: "client-data.json",
       });
 
-      // Generate and add summary
-      const summaryContent = generateClientSummary(exportData);
-      archive.append(summaryContent, { name: "client-summary.md" });
+      archive.append(clientSummary, { 
+        name: "client-summary.md" 
+      });
 
-      // Add metadata
-      archive.append(JSON.stringify(exportData.exportMetadata, null, 2), {
+      archive.append(JSON.stringify(exportMetadata, null, 2), {
         name: "export-metadata.json",
       });
 
       // Add document files (if they exist)
       let copiedDocuments = 0;
       const skippedDocuments = [];
-      console.log(
-        `🔍 Processing ${clientData.documents.length} documents for export...`
-      );
+      console.log(`🔍 Processing ${clientData.documents.length} documents for Claude export...`);
 
       for (const doc of clientData.documents) {
         try {
@@ -315,18 +340,16 @@ To recover these documents:
       archive.finalize();
     });
   } catch (error) {
-    console.error("Export error:", error);
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Export failed",
-        details: error instanceof Error ? error.stack : "Unknown error",
-      },
-      { status: 500 }
-    );
+    console.error("❌ Claude export error:", error);
+    return NextResponse.json({
+      error: error instanceof Error ? error.message : "Export failed",
+      details: "Failed to export client data to Claude Analysis System",
+      location: CLAUDE_ANALYSIS_DIR
+    }, { status: 500 });
   }
 }
 
-function generateClientSummary(data: any): string {
+function generateClaudeCompatibleSummary(data: any): string {
   const client = data.client;
   const assessments = data.assessments;
   const documents = data.documents;
