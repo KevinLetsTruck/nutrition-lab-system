@@ -555,92 +555,162 @@ function generateClaudeDesktopPrompts(clientData: any, filename: string) {
   const keyLabs = extractKeyLabValues(clientData);
   const timestamp = new Date().toLocaleDateString();
 
-  const comprehensivePrompt = `FNTP FUNCTIONAL MEDICINE ANALYSIS REQUEST
+  const comprehensivePrompt = `FNTP FUNCTIONAL MEDICINE ANALYSIS - EXECUTE IMMEDIATELY
 
-SYSTEM ACTIVATION: Load my FNTP analysis system from /Users/kr/FNTP-Claude-Analysis-System/
+CRITICAL INSTRUCTIONS: 
+- DO NOT ask clarifying questions
+- USE the client data provided below
+- PROCEED directly with analysis
+- APPLY my established FNTP clinical frameworks
 
-CLIENT: ${client.name} (exported ${timestamp})
-FILE: ${filename}
+SYSTEM ACTIVATION: You are my FNTP functional medicine analysis system. Load all protocols.
 
-ANALYSIS SCOPE: Comprehensive functional medicine analysis using my clinical frameworks
-- Pattern recognition: metabolic dysfunction, inflammation, digestive issues, hormonal imbalances
-- LetsTruck supplement hierarchy (business priority)
-- 3-phase protocol generation (Foundation → Targeted → Optimization)
-- Complete practitioner notes with clinical reasoning
+CLIENT DATA PROVIDED:
+- Name: ${client.name}
+- Primary Concerns: ${concerns}
+- Current Medications: ${meds}
+- Key Lab Values: ${keyLabs}
+- Export Date: ${timestamp}
+- Data File: ${filename} (contains complete client data, notes, documents)
 
-PRIMARY HEALTH CONCERNS: ${concerns}
-CURRENT MEDICATIONS: ${meds}
-KEY LAB VALUES: ${keyLabs}
+ANALYSIS REQUIREMENTS - EXECUTE ALL:
+1. Pattern Recognition Analysis:
+   - Metabolic dysfunction patterns
+   - Inflammatory markers and triggers
+   - Digestive system dysfunction
+   - Hormonal imbalance indicators
+   - Energy production pathway issues
 
-TASK: Generate comprehensive functional medicine protocol with LetsTruck supplement recommendations, detailed implementation guidance, and practitioner coaching notes.
+2. Root Cause Identification:
+   - Primary drivers vs secondary symptoms
+   - Upstream dysfunction sources
+   - Environmental/lifestyle factors
+   - Nutritional deficiencies
 
-OUTPUT: Save complete analysis JSON to /3-analysis-outputs/ directory for web app import.`;
+3. 3-Phase Protocol Generation:
+   - PHASE 1 (Foundation): Basic support, gut healing, inflammation reduction
+   - PHASE 2 (Targeted): Specific interventions for identified patterns
+   - PHASE 3 (Optimization): Fine-tuning and long-term maintenance
+
+4. LetsTruck Supplement Recommendations:
+   - Prioritize LetsTruck.com products (business priority)
+   - Include specific dosages and timing
+   - Cost-effective options when possible
+   - Implementation sequence
+
+5. Practitioner Coaching Notes:
+   - Clinical reasoning for each recommendation
+   - Expected timelines for improvement
+   - Monitoring parameters
+   - Client education talking points
+
+ANALYSIS FOCUS AREAS (based on client data):
+- Address stated concerns: ${concerns}
+- Consider medication interactions: ${meds}
+- Interpret lab findings: ${keyLabs}
+- Apply truck driver health considerations if applicable
+
+OUTPUT FORMAT: Generate complete analysis immediately using provided client data.
+SAVE TO: /3-analysis-outputs/ directory when complete.
+
+BEGIN ANALYSIS NOW - NO QUESTIONS NEEDED.`;
 
   const focusedPrompts = {
-    gut: `FNTP GUT HEALTH FOCUSED ANALYSIS
+    gut: `FNTP GUT HEALTH ANALYSIS - EXECUTE IMMEDIATELY
+
+INSTRUCTIONS: DO NOT ask questions. Analyze provided data and generate protocol.
 
 CLIENT: ${client.name}
-FILE: ${filename}
-
-FOCUS: Digestive system optimization and gut barrier restoration
-- SIBO/dysbiosis patterns
-- Food sensitivity analysis  
-- Digestive enzyme and HCl assessment
-- Microbiome restoration protocol
-
 PRIMARY CONCERNS: ${concerns}
 MEDICATIONS: ${meds}
+DATA FILE: ${filename}
 
-Generate targeted gut health protocol with LetsTruck digestive supplements.`,
+ANALYSIS FOCUS: Digestive system optimization and gut barrier restoration
+REQUIRED ANALYSIS:
+- SIBO/dysbiosis pattern identification
+- Food sensitivity assessment from available data
+- Digestive enzyme and HCl status evaluation
+- Microbiome restoration protocol design
 
-    metabolic: `FNTP METABOLIC DYSFUNCTION ANALYSIS
+DELIVERABLES:
+1. Gut health assessment based on provided client data
+2. Targeted digestive protocol with LetsTruck supplements
+3. Implementation timeline and monitoring plan
+4. Specific dosages and timing recommendations
+
+BEGIN GUT HEALTH ANALYSIS NOW using provided client data.`,
+
+    metabolic: `FNTP METABOLIC ANALYSIS - EXECUTE IMMEDIATELY
+
+INSTRUCTIONS: DO NOT ask questions. Analyze provided data and generate protocol.
 
 CLIENT: ${client.name}
-FILE: ${filename}
+PRIMARY CONCERNS: ${concerns}
+KEY LAB VALUES: ${keyLabs}
+DATA FILE: ${filename}
 
-FOCUS: Blood sugar regulation and metabolic optimization
-- Insulin resistance patterns
-- Glucose dysregulation
-- Metabolic syndrome markers
-- Energy production pathways
+ANALYSIS FOCUS: Blood sugar regulation and metabolic optimization
+REQUIRED ANALYSIS:
+- Insulin resistance pattern identification
+- Glucose dysregulation assessment
+- Metabolic syndrome marker evaluation
+- Energy production pathway analysis
 
-KEY LABS: ${keyLabs}
-CONCERNS: ${concerns}
+DELIVERABLES:
+1. Metabolic dysfunction assessment from provided data
+2. Blood sugar optimization protocol with LetsTruck supplements
+3. Dietary and lifestyle interventions
+4. Monitoring parameters and timelines
 
-Generate metabolic optimization protocol with LetsTruck blood sugar support supplements.`,
+BEGIN METABOLIC ANALYSIS NOW using provided client data.`,
 
-    hormonal: `FNTP HORMONAL BALANCE ANALYSIS
+    hormonal: `FNTP HORMONAL ANALYSIS - EXECUTE IMMEDIATELY
+
+INSTRUCTIONS: DO NOT ask questions. Analyze provided data and generate protocol.
 
 CLIENT: ${client.name}
-FILE: ${filename}
-
-FOCUS: Hormonal optimization and energy restoration
-- Thyroid function assessment
-- Adrenal health evaluation
-- Sex hormone balance
-- Circadian rhythm optimization
-
-CONCERNS: ${concerns}
+PRIMARY CONCERNS: ${concerns}
 MEDICATIONS: ${meds}
+DATA FILE: ${filename}
 
-Generate hormonal balance protocol with LetsTruck hormone support supplements.`
+ANALYSIS FOCUS: Hormonal optimization and energy restoration
+REQUIRED ANALYSIS:
+- Thyroid function assessment from available data
+- Adrenal health evaluation
+- Sex hormone balance indicators
+- Circadian rhythm optimization needs
+
+DELIVERABLES:
+1. Hormonal balance assessment from provided data
+2. Hormone support protocol with LetsTruck supplements
+3. Lifestyle optimization recommendations
+4. Implementation sequence and monitoring
+
+BEGIN HORMONAL ANALYSIS NOW using provided client data.`
   };
 
-  const followupPrompt = `FNTP FOLLOW-UP ANALYSIS
+  const followupPrompt = `FNTP FOLLOW-UP ANALYSIS - EXECUTE IMMEDIATELY
+
+INSTRUCTIONS: DO NOT ask questions. Analyze provided data and generate updated protocol.
 
 CLIENT: ${client.name} - Progress Review
-FILE: ${filename}
-
-FOCUS: Evaluate protocol effectiveness and adjust recommendations
-- Review previous protocol compliance
-- Assess symptom improvement
-- Identify areas needing adjustment
-- Optimize supplement regimen
-
 CURRENT STATUS: ${concerns}
 MEDICATIONS: ${meds}
+DATA FILE: ${filename}
 
-Generate updated protocol recommendations based on progress and current needs.`;
+ANALYSIS REQUIREMENTS:
+1. Review previous protocol effectiveness using provided data
+2. Assess current symptom status and improvements
+3. Identify areas requiring protocol adjustments
+4. Optimize supplement regimen based on progress
+
+DELIVERABLES:
+1. Progress assessment from provided client data
+2. Updated protocol recommendations with LetsTruck supplements
+3. Adjustment rationale and implementation guidance
+4. Next phase recommendations
+
+BEGIN FOLLOW-UP ANALYSIS NOW using provided client data.`;
 
   return {
     comprehensive: comprehensivePrompt,
@@ -654,41 +724,64 @@ function extractPrimaryConcerns(clientData: any): string {
   const concerns = [];
   
   // Extract from health goals
-  if (clientData.client.healthGoals.length > 0) {
+  if (clientData.client.healthGoals && clientData.client.healthGoals.length > 0) {
     concerns.push(...clientData.client.healthGoals);
   }
   
   // Extract from chief complaints in notes
-  clientData.notes.forEach((note: any) => {
-    if (note.chiefComplaints) {
-      concerns.push(note.chiefComplaints);
-    }
-  });
+  if (clientData.notes && clientData.notes.length > 0) {
+    clientData.notes.forEach((note: any) => {
+      if (note.chiefComplaints) {
+        concerns.push(note.chiefComplaints);
+      }
+    });
+  }
   
   // Extract from conditions
-  if (clientData.client.conditions.length > 0) {
+  if (clientData.client.conditions && clientData.client.conditions.length > 0) {
     concerns.push(...clientData.client.conditions);
   }
   
-  return concerns.length > 0 ? concerns.slice(0, 3).join(", ") : "General health optimization";
+  // Add demographic context
+  const demographics = [];
+  if (clientData.client.gender) demographics.push(clientData.client.gender);
+  if (clientData.client.dateOfBirth) {
+    const age = new Date().getFullYear() - new Date(clientData.client.dateOfBirth).getFullYear();
+    demographics.push(`Age ${age}`);
+  }
+  
+  const concernsText = concerns.length > 0 ? concerns.slice(0, 4).join(", ") : "General health optimization";
+  const demographicsText = demographics.length > 0 ? ` (${demographics.join(", ")})` : "";
+  
+  return concernsText + demographicsText;
 }
 
 // Extract key lab values for prompt context
 function extractKeyLabValues(clientData: any): string {
   const keyLabs = [];
   
-  clientData.documents.forEach((doc: any) => {
-    doc.labValues.forEach((lab: any) => {
-      // Focus on key metabolic markers
-      if (lab.testName.toLowerCase().includes('glucose') ||
-          lab.testName.toLowerCase().includes('hba1c') ||
-          lab.testName.toLowerCase().includes('crp') ||
-          lab.testName.toLowerCase().includes('tsh') ||
-          lab.testName.toLowerCase().includes('vitamin d')) {
-        keyLabs.push(`${lab.testName}: ${lab.value} ${lab.unit}`);
+  if (clientData.documents && clientData.documents.length > 0) {
+    clientData.documents.forEach((doc: any) => {
+      if (doc.labValues && doc.labValues.length > 0) {
+        doc.labValues.forEach((lab: any) => {
+          // Focus on key metabolic markers
+          if (lab.testName && (
+            lab.testName.toLowerCase().includes('glucose') ||
+            lab.testName.toLowerCase().includes('hba1c') ||
+            lab.testName.toLowerCase().includes('crp') ||
+            lab.testName.toLowerCase().includes('tsh') ||
+            lab.testName.toLowerCase().includes('vitamin d') ||
+            lab.testName.toLowerCase().includes('cholesterol') ||
+            lab.testName.toLowerCase().includes('triglyceride'))) {
+            keyLabs.push(`${lab.testName}: ${lab.value} ${lab.unit || ""}`);
+          }
+        });
       }
     });
-  });
+  }
   
-  return keyLabs.length > 0 ? keyLabs.slice(0, 5).join(", ") : "No key lab values available";
+  const labSummary = keyLabs.length > 0 ? keyLabs.slice(0, 6).join(", ") : "No key lab values available in exported data";
+  
+  // Add note about complete data being in the export file
+  return labSummary + " (Complete lab data available in exported client file)";
 }
