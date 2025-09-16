@@ -87,18 +87,23 @@ export function AnalysisResultsViewer({
 
   const fetchAnalyses = async () => {
     try {
+      console.log('🔍 AnalysisResultsViewer: Fetching analyses for client:', clientId);
       const token = localStorage.getItem("token");
       if (!token) {
+        console.log('❌ No token found');
         setAnalyses([]);
         setLoading(false);
         return;
       }
 
+      console.log('📡 Making API call to:', `/api/clients/${clientId}/import-analysis`);
       const response = await fetch(`/api/clients/${clientId}/import-analysis`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      console.log('📊 API Response status:', response.status);
 
       if (!response.ok) {
         // If it's a 404 or 500, just show no analyses instead of error
@@ -109,6 +114,18 @@ export function AnalysisResultsViewer({
       }
 
       const data = await response.json();
+      console.log('📋 API Response data:', data);
+      console.log('🎯 Analyses found:', data.analyses?.length || 0);
+      
+      if (data.analyses && data.analyses.length > 0) {
+        console.log('✅ First analysis:', {
+          id: data.analyses[0].id,
+          protocolPhases: data.analyses[0].protocolPhases?.length || 0,
+          supplements: data.analyses[0].supplements?.length || 0,
+          rootCauses: data.analyses[0].rootCauses?.length || 0
+        });
+      }
+      
       setAnalyses(data.analyses || []);
       if (data.analyses && data.analyses.length > 0) {
         setSelectedAnalysis(data.analyses[0]); // Select most recent
