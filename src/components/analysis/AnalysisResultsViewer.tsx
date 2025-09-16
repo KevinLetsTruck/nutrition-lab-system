@@ -233,7 +233,7 @@ export function AnalysisResultsViewer({
                     </span>
                   </div>
                   <div className="text-xs text-gray-400">
-                    {analysis.rootCauses.length} root causes • {analysis.supplements.length} supplements
+                    {(analysis.rootCauses || []).length} root causes • {(analysis.supplements || []).length} supplements
                   </div>
                 </button>
               ))}
@@ -281,7 +281,7 @@ export function AnalysisResultsViewer({
                     Root Causes
                   </h4>
                   <div className="space-y-1">
-                    {selectedAnalysis.rootCauses.map((cause, index) => (
+                    {(selectedAnalysis.rootCauses || []).map((cause, index) => (
                       <div key={index} className="p-2 bg-red-500/10 border border-red-500/20 rounded text-red-300 text-sm">
                         {cause}
                       </div>
@@ -296,7 +296,7 @@ export function AnalysisResultsViewer({
                     Priority Intervention Areas
                   </h4>
                   <div className="space-y-1">
-                    {selectedAnalysis.priorityAreas.map((area, index) => (
+                    {(selectedAnalysis.priorityAreas || []).map((area, index) => (
                       <div key={index} className="p-2 bg-yellow-500/10 border border-yellow-500/20 rounded text-yellow-300 text-sm">
                         {area}
                       </div>
@@ -311,7 +311,7 @@ export function AnalysisResultsViewer({
                     Risk Factors
                   </h4>
                   <div className="space-y-1">
-                    {selectedAnalysis.riskFactors.map((factor, index) => (
+                    {(selectedAnalysis.riskFactors || []).map((factor, index) => (
                       <div key={index} className="p-2 bg-orange-500/10 border border-orange-500/20 rounded text-orange-300 text-sm">
                         {factor}
                       </div>
@@ -321,7 +321,7 @@ export function AnalysisResultsViewer({
               </TabsContent>
 
               <TabsContent value="phases" className="space-y-4">
-                {selectedAnalysis.protocolPhases.map((phase) => (
+                {(selectedAnalysis.protocolPhases || []).map((phase) => (
                   <Card key={phase.id} className="bg-gray-700 border-gray-600">
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
@@ -333,27 +333,27 @@ export function AnalysisResultsViewer({
                       <p className="text-gray-400 text-sm">{phase.description}</p>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      {phase.supplements.length > 0 && (
+                      {(phase.supplements || []).length > 0 && (
                         <div>
                           <h5 className="text-sm font-medium text-white mb-1">Supplements</h5>
                           <div className="text-xs text-gray-300">
-                            {phase.supplements.length} recommendations
+                            {(phase.supplements || []).length} recommendations
                           </div>
                         </div>
                       )}
-                      {phase.lifestyle.length > 0 && (
+                      {(phase.lifestyle || []).length > 0 && (
                         <div>
                           <h5 className="text-sm font-medium text-white mb-1">Lifestyle</h5>
                           <div className="text-xs text-gray-300">
-                            {phase.lifestyle.length} interventions
+                            {(phase.lifestyle || []).length} interventions
                           </div>
                         </div>
                       )}
-                      {phase.dietary.length > 0 && (
+                      {(phase.dietary || []).length > 0 && (
                         <div>
                           <h5 className="text-sm font-medium text-white mb-1">Dietary</h5>
                           <div className="text-xs text-gray-300">
-                            {phase.dietary.length} recommendations
+                            {(phase.dietary || []).length} recommendations
                           </div>
                         </div>
                       )}
@@ -364,7 +364,7 @@ export function AnalysisResultsViewer({
 
               <TabsContent value="supplements" className="space-y-4">
                 <div className="grid gap-3">
-                  {selectedAnalysis.supplements.map((supplement) => (
+                  {(selectedAnalysis.supplements || []).map((supplement) => (
                     <Card key={supplement.id} className="bg-gray-700 border-gray-600">
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between mb-2">
@@ -423,7 +423,7 @@ export function AnalysisResultsViewer({
 
               <TabsContent value="history" className="space-y-4">
                 <div className="space-y-2">
-                  {selectedAnalysis.protocolHistory.map((entry) => (
+                  {(selectedAnalysis.protocolHistory || []).map((entry) => (
                     <div key={entry.id} className="p-3 bg-gray-700 border border-gray-600 rounded">
                       <div className="flex items-center justify-between mb-1">
                         <span className="font-medium text-white">{entry.action}</span>
