@@ -159,94 +159,137 @@ export async function GET(
       });
     }
     
+    // Navigate to the nested analysis structure
+    const nestedAnalysis = analysisData.analysisData?.analysis || analysisData.analysis || analysisData;
+    
     // Extract root causes, risk factors, priority areas from Claude analysis
-    const extractedRootCauses = analysisData.rootCauses || 
-                               analysisData.root_causes ||
-                               analysisData.primaryConcerns ||
+    const extractedRootCauses = nestedAnalysis.rootCauses || 
+                               nestedAnalysis.root_causes ||
+                               nestedAnalysis.primaryConcerns ||
+                               analysisData.rootCauses ||
                                ["Claude analysis imported successfully"];
                                
-    const extractedRiskFactors = analysisData.riskFactors ||
-                                analysisData.risk_factors ||
-                                analysisData.concerns ||
+    const extractedRiskFactors = nestedAnalysis.riskFactors ||
+                                nestedAnalysis.risk_factors ||
+                                nestedAnalysis.concerns ||
+                                analysisData.riskFactors ||
                                 [`Analysis file size: ${claudeAnalysis.fileSize} bytes`];
                                 
-    const extractedPriorityAreas = analysisData.priorityAreas ||
-                                  analysisData.priority_areas ||
-                                  analysisData.recommendations ||
+    const extractedPriorityAreas = nestedAnalysis.priorityAreas ||
+                                  nestedAnalysis.priority_areas ||
+                                  nestedAnalysis.recommendations ||
+                                  analysisData.priorityAreas ||
                                   ["Review complete analysis data"];
 
     // Extract protocol phases from Claude analysis
     const protocolPhases = [];
-    console.log('🔍 Looking for phases in:', {
+    const protocolsData = nestedAnalysis.protocols || analysisData.protocols || analysisData.protocolPhases || analysisData.phases;
+    
+    console.log('🔍 Looking for protocols in:', {
+      nestedProtocols: !!nestedAnalysis.protocols,
+      protocols: !!analysisData.protocols,
       protocolPhases: !!analysisData.protocolPhases,
-      phases: !!analysisData.phases,
-      protocol: !!analysisData.protocol
+      phases: !!analysisData.phases
     });
     
-    if (analysisData.protocolPhases || analysisData.phases || analysisData.protocol) {
-      const phases = analysisData.protocolPhases || analysisData.phases || analysisData.protocol;
-      console.log('✅ Found phases data:', Object.keys(phases || {}));
+    if (protocolsData) {
+      console.log('✅ Found protocols data:', Object.keys(protocolsData || {}));
       
-      if (phases.phase1 || phases.foundation) {
+      if (protocolsData.phase1 || protocolsData.foundation) {
+        const phase1Data = protocolsData.phase1 || protocolsData.foundation;
         protocolPhases.push({
           id: clientId + "-phase1",
           phase: "PHASE1",
-          name: "Foundation Phase",
-          description: "Basic support and foundational interventions",
-          duration: "30 days",
-          supplements: phases.phase1?.supplements || phases.foundation?.supplements || [],
-          lifestyle: phases.phase1?.lifestyle || phases.foundation?.lifestyle || [],
-          dietary: phases.phase1?.dietary || phases.foundation?.dietary || [],
-          monitoring: phases.phase1?.monitoring || phases.foundation?.monitoring || [],
+          name: phase1Data.name || "Foundation Phase",
+          description: phase1Data.description || "Basic support and foundational interventions",
+          duration: phase1Data.duration || "60 days",
+          supplements: phase1Data.supplements || [],
+          lifestyle: phase1Data.lifestyle || [],
+          dietary: phase1Data.dietary || [],
+          monitoring: phase1Data.monitoring || [],
           status: "PLANNED",
         });
       }
       
-      if (phases.phase2 || phases.targeted) {
+      if (protocolsData.phase2 || protocolsData.targeted) {
+        const phase2Data = protocolsData.phase2 || protocolsData.targeted;
         protocolPhases.push({
           id: clientId + "-phase2", 
           phase: "PHASE2",
-          name: "Targeted Phase",
-          description: "Specific targeted interventions",
-          duration: "60 days",
-          supplements: phases.phase2?.supplements || phases.targeted?.supplements || [],
-          lifestyle: phases.phase2?.lifestyle || phases.targeted?.lifestyle || [],
-          dietary: phases.phase2?.dietary || phases.targeted?.dietary || [],
-          monitoring: phases.phase2?.monitoring || phases.targeted?.monitoring || [],
+          name: phase2Data.name || "Targeted Phase",
+          description: phase2Data.description || "Specific targeted interventions",
+          duration: phase2Data.duration || "90 days",
+          supplements: phase2Data.supplements || [],
+          lifestyle: phase2Data.lifestyle || [],
+          dietary: phase2Data.dietary || [],
+          monitoring: phase2Data.monitoring || [],
           status: "PLANNED",
         });
       }
       
-      if (phases.phase3 || phases.optimization) {
+      if (protocolsData.phase3 || protocolsData.optimization) {
+        const phase3Data = protocolsData.phase3 || protocolsData.optimization;
         protocolPhases.push({
           id: clientId + "-phase3",
           phase: "PHASE3", 
-          name: "Optimization Phase",
-          description: "Long-term optimization and maintenance",
-          duration: "90 days",
-          supplements: phases.phase3?.supplements || phases.optimization?.supplements || [],
-          lifestyle: phases.phase3?.lifestyle || phases.optimization?.lifestyle || [],
-          dietary: phases.phase3?.dietary || phases.optimization?.dietary || [],
-          monitoring: phases.phase3?.monitoring || phases.optimization?.monitoring || [],
+          name: phase3Data.name || "Optimization Phase",
+          description: phase3Data.description || "Long-term optimization and maintenance",
+          duration: phase3Data.duration || "90 days",
+          supplements: phase3Data.supplements || [],
+          lifestyle: phase3Data.lifestyle || [],
+          dietary: phase3Data.dietary || [],
+          monitoring: phase3Data.monitoring || [],
           status: "PLANNED",
         });
       }
     }
 
-    // Extract supplements from Claude analysis
+    // Extract supplements from Claude analysis - collect from all phases
     const supplements = [];
-    const supplementData = analysisData.supplements || 
-                          analysisData.supplementRecommendations ||
-                          analysisData.recommendations?.supplements ||
-                          [];
+    let supplementIndex = 0;
     
-    console.log('💊 Supplement data found:', !!supplementData, 'Count:', Array.isArray(supplementData) ? supplementData.length : 'Not array');
-                          
-    if (Array.isArray(supplementData)) {
-      supplementData.forEach((supp, index) => {
+    console.log('💊 Looking for supplements in protocols...');
+    
+    // Collect supplements from all phases
+    if (protocolsData) {
+      ['phase1', 'phase2', 'phase3', 'foundation', 'targeted', 'optimization'].forEach(phaseName => {
+        const phaseData = protocolsData[phaseName];
+        if (phaseData && phaseData.supplements && Array.isArray(phaseData.supplements)) {
+          console.log(`💊 Found ${phaseData.supplements.length} supplements in ${phaseName}`);
+          
+          phaseData.supplements.forEach((supp) => {
+            supplements.push({
+              id: clientId + "-supp-" + supplementIndex,
+              name: supp.name || supp.supplement || `Supplement ${supplementIndex + 1}`,
+              dosage: supp.dosage || supp.dose || "As directed",
+              timing: supp.timing || supp.when || "With meals",
+              duration: supp.duration || "30 days",
+              priority: supp.priority || "MEDIUM",
+              category: supp.category || "General",
+              phase: phaseName.toUpperCase().replace(/[0-9]/g, match => match),
+              rationale: supp.rationale || supp.reason || "",
+              productUrl: supp.productUrl || supp.url || null,
+              estimatedCost: supp.estimatedCost || supp.cost || 0,
+              status: "RECOMMENDED",
+            });
+            supplementIndex++;
+          });
+        }
+      });
+    }
+    
+    // Also check for direct supplements array
+    const directSupplementData = analysisData.supplements || 
+                                analysisData.supplementRecommendations ||
+                                analysisData.recommendations?.supplements ||
+                                [];
+                                
+    if (Array.isArray(directSupplementData) && directSupplementData.length > 0) {
+      console.log('💊 Found', directSupplementData.length, 'direct supplements');
+      directSupplementData.forEach((supp) => {
         supplements.push({
-          id: clientId + "-supp-" + index,
-          name: supp.name || supp.supplement || `Supplement ${index + 1}`,
+          id: clientId + "-supp-" + supplementIndex,
+          name: supp.name || supp.supplement || `Supplement ${supplementIndex + 1}`,
           dosage: supp.dosage || supp.dose || "As directed",
           timing: supp.timing || supp.when || "With meals",
           duration: supp.duration || "30 days",
@@ -258,8 +301,11 @@ export async function GET(
           estimatedCost: supp.estimatedCost || supp.cost || 0,
           status: "RECOMMENDED",
         });
+        supplementIndex++;
       });
     }
+    
+    console.log('💊 Total supplements extracted:', supplements.length);
 
     // Convert stored analysis to display format
     const analysis = {
