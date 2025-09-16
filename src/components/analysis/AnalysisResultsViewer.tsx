@@ -273,51 +273,125 @@ export function AnalysisResultsViewer({
                 <TabsTrigger value="history">History</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="overview" className="space-y-4">
-                {/* Root Causes */}
-                <div>
-                  <h4 className="font-semibold text-white mb-2 flex items-center">
-                    <Target className="w-4 h-4 mr-2 text-red-400" />
-                    Root Causes
-                  </h4>
-                  <div className="space-y-1">
-                    {(selectedAnalysis.rootCauses || []).map((cause, index) => (
-                      <div key={index} className="p-2 bg-red-500/10 border border-red-500/20 rounded text-red-300 text-sm">
-                        {cause}
+              <TabsContent value="overview" className="space-y-6">
+                {/* Analysis Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                  <Card className="bg-gradient-to-br from-red-900/40 to-red-800/20 border-red-500/30">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <Target className="w-6 h-6 text-red-400" />
+                        <Badge variant="outline" className="text-red-300 border-red-400">
+                          {(selectedAnalysis.rootCauses || []).length} Issues
+                        </Badge>
                       </div>
-                    ))}
-                  </div>
+                      <h3 className="font-semibold text-white mb-1">Root Causes</h3>
+                      <p className="text-red-200 text-xs">Primary dysfunction patterns</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-yellow-900/40 to-yellow-800/20 border-yellow-500/30">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <Star className="w-6 h-6 text-yellow-400" />
+                        <Badge variant="outline" className="text-yellow-300 border-yellow-400">
+                          {(selectedAnalysis.priorityAreas || []).length} Areas
+                        </Badge>
+                      </div>
+                      <h3 className="font-semibold text-white mb-1">Priority Areas</h3>
+                      <p className="text-yellow-200 text-xs">Focus intervention points</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-orange-900/40 to-orange-800/20 border-orange-500/30">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <AlertTriangle className="w-6 h-6 text-orange-400" />
+                        <Badge variant="outline" className="text-orange-300 border-orange-400">
+                          {(selectedAnalysis.riskFactors || []).length} Factors
+                        </Badge>
+                      </div>
+                      <h3 className="font-semibold text-white mb-1">Risk Factors</h3>
+                      <p className="text-orange-200 text-xs">Environmental & lifestyle</p>
+                    </CardContent>
+                  </Card>
                 </div>
 
-                {/* Priority Areas */}
-                <div>
-                  <h4 className="font-semibold text-white mb-2 flex items-center">
-                    <Star className="w-4 h-4 mr-2 text-yellow-400" />
-                    Priority Intervention Areas
-                  </h4>
-                  <div className="space-y-1">
-                    {(selectedAnalysis.priorityAreas || []).map((area, index) => (
-                      <div key={index} className="p-2 bg-yellow-500/10 border border-yellow-500/20 rounded text-yellow-300 text-sm">
-                        {area}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                {/* Detailed Root Causes */}
+                <Card className="bg-gray-800/50 border-red-500/20">
+                  <CardHeader>
+                    <h4 className="font-semibold text-white flex items-center">
+                      <Target className="w-5 h-5 mr-2 text-red-400" />
+                      Primary Dysfunction Patterns
+                      <Badge variant="outline" className="ml-2 text-red-300 border-red-400">
+                        {(selectedAnalysis.rootCauses || []).length} identified
+                      </Badge>
+                    </h4>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-3">
+                      {(selectedAnalysis.rootCauses || []).map((cause, index) => (
+                        <div key={index} className="flex items-start space-x-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                          <div className="w-6 h-6 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-red-300 text-xs font-semibold">{index + 1}</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-red-200 text-sm leading-relaxed">{cause}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Priority Intervention Areas */}
+                <Card className="bg-gray-800/50 border-yellow-500/20">
+                  <CardHeader>
+                    <h4 className="font-semibold text-white flex items-center">
+                      <Star className="w-5 h-5 mr-2 text-yellow-400" />
+                      Priority Intervention Areas
+                      <Badge variant="outline" className="ml-2 text-yellow-300 border-yellow-400">
+                        High Impact
+                      </Badge>
+                    </h4>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {(selectedAnalysis.priorityAreas || []).map((area, index) => (
+                        <div key={index} className="flex items-start space-x-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                          <Zap className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-1" />
+                          <div className="flex-1">
+                            <p className="text-yellow-200 text-sm leading-relaxed">{area}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {/* Risk Factors */}
-                <div>
-                  <h4 className="font-semibold text-white mb-2 flex items-center">
-                    <AlertTriangle className="w-4 h-4 mr-2 text-orange-400" />
-                    Risk Factors
-                  </h4>
-                  <div className="space-y-1">
-                    {(selectedAnalysis.riskFactors || []).map((factor, index) => (
-                      <div key={index} className="p-2 bg-orange-500/10 border border-orange-500/20 rounded text-orange-300 text-sm">
-                        {factor}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <Card className="bg-gray-800/50 border-orange-500/20">
+                  <CardHeader>
+                    <h4 className="font-semibold text-white flex items-center">
+                      <AlertTriangle className="w-5 h-5 mr-2 text-orange-400" />
+                      Environmental & Lifestyle Risk Factors
+                      <Badge variant="outline" className="ml-2 text-orange-300 border-orange-400">
+                        Monitor
+                      </Badge>
+                    </h4>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {(selectedAnalysis.riskFactors || []).map((factor, index) => (
+                        <div key={index} className="flex items-start space-x-3 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                          <Activity className="w-4 h-4 text-orange-400 flex-shrink-0 mt-1" />
+                          <div className="flex-1">
+                            <p className="text-orange-200 text-sm leading-relaxed">{factor}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               <TabsContent value="phases" className="space-y-4">
