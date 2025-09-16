@@ -133,24 +133,122 @@ export async function GET(
       });
     }
 
+    // Extract actual data from Claude analysis
+    const analysisData = claudeAnalysis.analysisData || {};
+    
+    // Extract root causes, risk factors, priority areas from Claude analysis
+    const extractedRootCauses = analysisData.rootCauses || 
+                               analysisData.root_causes ||
+                               analysisData.primaryConcerns ||
+                               ["Claude analysis imported successfully"];
+                               
+    const extractedRiskFactors = analysisData.riskFactors ||
+                                analysisData.risk_factors ||
+                                analysisData.concerns ||
+                                [`Analysis file size: ${claudeAnalysis.fileSize} bytes`];
+                                
+    const extractedPriorityAreas = analysisData.priorityAreas ||
+                                  analysisData.priority_areas ||
+                                  analysisData.recommendations ||
+                                  ["Review complete analysis data"];
+
+    // Extract protocol phases from Claude analysis
+    const protocolPhases = [];
+    if (analysisData.protocolPhases || analysisData.phases || analysisData.protocol) {
+      const phases = analysisData.protocolPhases || analysisData.phases || analysisData.protocol;
+      
+      if (phases.phase1 || phases.foundation) {
+        protocolPhases.push({
+          id: clientId + "-phase1",
+          phase: "PHASE1",
+          name: "Foundation Phase",
+          description: "Basic support and foundational interventions",
+          duration: "30 days",
+          supplements: phases.phase1?.supplements || phases.foundation?.supplements || [],
+          lifestyle: phases.phase1?.lifestyle || phases.foundation?.lifestyle || [],
+          dietary: phases.phase1?.dietary || phases.foundation?.dietary || [],
+          monitoring: phases.phase1?.monitoring || phases.foundation?.monitoring || [],
+          status: "PLANNED",
+        });
+      }
+      
+      if (phases.phase2 || phases.targeted) {
+        protocolPhases.push({
+          id: clientId + "-phase2", 
+          phase: "PHASE2",
+          name: "Targeted Phase",
+          description: "Specific targeted interventions",
+          duration: "60 days",
+          supplements: phases.phase2?.supplements || phases.targeted?.supplements || [],
+          lifestyle: phases.phase2?.lifestyle || phases.targeted?.lifestyle || [],
+          dietary: phases.phase2?.dietary || phases.targeted?.dietary || [],
+          monitoring: phases.phase2?.monitoring || phases.targeted?.monitoring || [],
+          status: "PLANNED",
+        });
+      }
+      
+      if (phases.phase3 || phases.optimization) {
+        protocolPhases.push({
+          id: clientId + "-phase3",
+          phase: "PHASE3", 
+          name: "Optimization Phase",
+          description: "Long-term optimization and maintenance",
+          duration: "90 days",
+          supplements: phases.phase3?.supplements || phases.optimization?.supplements || [],
+          lifestyle: phases.phase3?.lifestyle || phases.optimization?.lifestyle || [],
+          dietary: phases.phase3?.dietary || phases.optimization?.dietary || [],
+          monitoring: phases.phase3?.monitoring || phases.optimization?.monitoring || [],
+          status: "PLANNED",
+        });
+      }
+    }
+
+    // Extract supplements from Claude analysis
+    const supplements = [];
+    const supplementData = analysisData.supplements || 
+                          analysisData.supplementRecommendations ||
+                          analysisData.recommendations?.supplements ||
+                          [];
+                          
+    if (Array.isArray(supplementData)) {
+      supplementData.forEach((supp, index) => {
+        supplements.push({
+          id: clientId + "-supp-" + index,
+          name: supp.name || supp.supplement || `Supplement ${index + 1}`,
+          dosage: supp.dosage || supp.dose || "As directed",
+          timing: supp.timing || supp.when || "With meals",
+          duration: supp.duration || "30 days",
+          priority: supp.priority || "MEDIUM",
+          category: supp.category || "General",
+          phase: supp.phase || "PHASE1",
+          rationale: supp.rationale || supp.reason || "",
+          productUrl: supp.productUrl || supp.url || null,
+          estimatedCost: supp.estimatedCost || supp.cost || 0,
+          status: "RECOMMENDED",
+        });
+      });
+    }
+
     // Convert stored analysis to display format
     const analysis = {
       id: clientId + "-analysis",
-      analysisData: claudeAnalysis.analysisData || {},
-      rootCauses: ["Claude analysis imported successfully"],
-      riskFactors: [`Analysis file size: ${claudeAnalysis.fileSize} bytes`],
-      priorityAreas: ["Review complete analysis data"],
+      analysisData: analysisData,
+      rootCauses: Array.isArray(extractedRootCauses) ? extractedRootCauses : [extractedRootCauses],
+      riskFactors: Array.isArray(extractedRiskFactors) ? extractedRiskFactors : [extractedRiskFactors],
+      priorityAreas: Array.isArray(extractedPriorityAreas) ? extractedPriorityAreas : [extractedPriorityAreas],
       confidence: claudeAnalysis.confidence || 0.8,
       analysisDate: claudeAnalysis.importedAt,
       version: "1.0",
-      protocolPhases: [],
-      supplements: [],
+      protocolPhases: protocolPhases,
+      supplements: supplements,
       protocolHistory: [{
         id: clientId + "-import-history",
         action: "ANALYSIS_IMPORTED",
         details: { 
           importedAt: claudeAnalysis.importedAt,
-          fileSize: claudeAnalysis.fileSize 
+          fileSize: claudeAnalysis.fileSize,
+          protocolPhases: protocolPhases.length,
+          supplements: supplements.length,
         },
         timestamp: claudeAnalysis.importedAt,
       }],
@@ -162,8 +260,8 @@ export async function GET(
       summary: {
         totalAnalyses: 1,
         latestAnalysis: analysis,
-        totalSupplements: 0,
-        totalPhases: 0,
+        totalSupplements: supplements.length,
+        totalPhases: protocolPhases.length,
       },
     });
 
