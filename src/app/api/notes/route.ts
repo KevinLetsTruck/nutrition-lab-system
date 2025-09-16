@@ -89,23 +89,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
 
+    // Create note with explicit field mapping to avoid schema mismatches
+    const noteData = {
+      clientId: validatedData.clientId,
+      noteType: validatedData.noteType,
+      title: validatedData.title || null,
+      chiefComplaints: validatedData.chiefComplaints || null,
+      healthHistory: validatedData.healthHistory || null,
+      currentMedications: validatedData.currentMedications || null,
+      goals: validatedData.goals || null,
+      protocolAdjustments: validatedData.protocolAdjustments || null,
+      complianceNotes: validatedData.complianceNotes || null,
+      progressMetrics: validatedData.progressMetrics || null,
+      nextSteps: validatedData.nextSteps || null,
+      generalNotes: validatedData.generalNotes || null,
+      isImportant: validatedData.isImportant || false,
+      followUpNeeded: validatedData.followUpNeeded || false,
+      updatedAt: new Date(),
+    };
+
+    console.log('📝 Creating note with data:', noteData);
+
     const note = await prisma.note.create({
-      data: {
-        clientId: validatedData.clientId,
-        noteType: validatedData.noteType,
-        title: validatedData.title,
-        chiefComplaints: validatedData.chiefComplaints,
-        healthHistory: validatedData.healthHistory,
-        currentMedications: validatedData.currentMedications,
-        goals: validatedData.goals,
-        protocolAdjustments: validatedData.protocolAdjustments,
-        complianceNotes: validatedData.complianceNotes,
-        progressMetrics: validatedData.progressMetrics,
-        nextSteps: validatedData.nextSteps,
-        generalNotes: validatedData.generalNotes,
-        isImportant: validatedData.isImportant || false,
-        followUpNeeded: validatedData.followUpNeeded || false,
-      },
+      data: noteData,
       include: {
         client: {
           select: {
