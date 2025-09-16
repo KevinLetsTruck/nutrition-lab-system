@@ -145,19 +145,7 @@ export async function GET(
     console.log('📋 Analysis data keys:', Object.keys(analysisData));
     console.log('📄 Analysis data preview:', JSON.stringify(analysisData).substring(0, 200) + '...');
     
-    // TEMPORARY: Return raw data structure for debugging
-    if (request.nextUrl.searchParams.get('debug') === 'true') {
-      return NextResponse.json({
-        debug: true,
-        clientId: clientId,
-        clientName: `${client.firstName} ${client.lastName}`,
-        healthGoalsKeys: Object.keys(healthGoals),
-        claudeAnalysisKeys: claudeAnalysis ? Object.keys(claudeAnalysis) : null,
-        analysisDataKeys: Object.keys(analysisData),
-        rawAnalysisData: analysisData,
-        analysisDataPreview: JSON.stringify(analysisData).substring(0, 500) + '...',
-      });
-    }
+    // DEBUG CONDITIONS REMOVED - protocols found successfully!
     
     // Navigate to the nested analysis structure
     const nestedAnalysis = analysisData.analysisData?.analysis || analysisData.analysis || analysisData;
