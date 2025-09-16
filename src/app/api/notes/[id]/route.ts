@@ -1,56 +1,88 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import jwt from "jsonwebtoken";
-import { z } from "zod";
 
-// Helper function to verify JWT token
-function verifyAuthToken(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new Error("No valid authorization header");
-  }
-
-  const token = authHeader.substring(7);
-
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    return payload;
-  } catch (error) {
+    console.log('🗑️ DELETE note endpoint called');
+    
+    // Simple auth check
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.log('❌ Auth failed');
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    throw new Error("Invalid token");
+    const { id } = await params;
+    console.log('🗑️ Deleting note with ID:', id);
+
+    // Check if note exists
+    const existingNote = await prisma.note.findUnique({
+      where: { id },
+      include: {
+        Client: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (!existingNote) {
+      console.log('❌ Note not found:', id);
+      return NextResponse.json({ error: "Note not found" }, { status: 404 });
+    }
+
+    console.log('👤 Note belongs to client:', existingNote.Client.firstName, existingNote.Client.lastName);
+
+    // Delete the note
+    await prisma.note.delete({
+      where: { id },
+    });
+
+    console.log('✅ Note deleted successfully:', id);
+
+    return NextResponse.json({
+      success: true,
+      message: "Note deleted successfully",
+      deletedNoteId: id,
+      client: `${existingNote.Client.firstName} ${existingNote.Client.lastName}`,
+    });
+
+  } catch (error) {
+    console.error('❌ Error deleting note:', error);
+    return NextResponse.json(
+      {
+        error: "Failed to delete note",
+        details: error instanceof Error ? error.message : "Unknown error",
+        errorType: error instanceof Error ? error.name : typeof error,
+      },
+      { status: 500 }
+    );
   }
 }
-
-// Validation schema for updating notes
-const updateNoteSchema = z.object({
-  title: z.string().optional(),
-  chiefComplaints: z.string().optional(),
-  healthHistory: z.string().optional(),
-  currentMedications: z.string().optional(),
-  goals: z.string().optional(),
-  protocolAdjustments: z.string().optional(),
-  complianceNotes: z.string().optional(),
-  progressMetrics: z.string().optional(),
-  nextSteps: z.string().optional(),
-  generalNotes: z.string().optional(),
-  isImportant: z.boolean().optional(),
-  followUpNeeded: z.boolean().optional(),
-});
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Verify authentication
-    const user = verifyAuthToken(request);
+    // Simple auth check
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const { id } = await params;
+
     const note = await prisma.note.findUnique({
       where: { id },
       include: {
-        client: {
+        Client: {
           select: {
             id: true,
             firstName: true,
@@ -67,111 +99,9 @@ export async function GET(
 
     return NextResponse.json(note);
   } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
-    ) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
-    }
-
+    console.error('❌ Error fetching note:', error);
     return NextResponse.json(
       { error: "Failed to fetch note" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    // Verify authentication
-    const user = verifyAuthToken(request);
-
-    const { id } = await params;
-    const body = await request.json();
-    const validatedData = updateNoteSchema.parse(body);
-
-    const note = await prisma.note.update({
-      where: { id },
-      data: validatedData,
-      include: {
-        client: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-      },
-    });
-
-    return NextResponse.json(note);
-  } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
-    ) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
-    }
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid input", details: error.errors },
-        { status: 400 }
-      );
-    }
-
-    if (
-      error instanceof Error &&
-      error.message.includes("Record to update not found")
-    ) {
-      return NextResponse.json({ error: "Note not found" }, { status: 404 });
-    }
-
-    return NextResponse.json(
-      { error: "Failed to update note" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    // Verify authentication
-    const user = verifyAuthToken(request);
-
-    const { id } = await params;
-    await prisma.note.delete({
-      where: { id },
-    });
-
-    return NextResponse.json({ message: "Note deleted successfully" });
-  } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
-    ) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
-    }
-
-    if (
-      error instanceof Error &&
-      error.message.includes("Record to delete does not exist")
-    ) {
-      return NextResponse.json({ error: "Note not found" }, { status: 404 });
-    }
-
-    return NextResponse.json(
-      { error: "Failed to delete note" },
       { status: 500 }
     );
   }

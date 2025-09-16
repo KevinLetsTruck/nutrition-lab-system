@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Edit, Star, AlertCircle, Calendar, User } from "lucide-react";
+import { X, Edit, Star, AlertCircle, Calendar, User, Trash2 } from "lucide-react";
 
 interface Note {
   id: string;
@@ -35,6 +35,7 @@ interface NoteViewerModalProps {
   client: Client | null;
   onClose: () => void;
   onEdit?: (note: Note) => void;
+  onDelete?: (noteId: string) => void;
 }
 
 export default function NoteViewerModal({
@@ -43,6 +44,7 @@ export default function NoteViewerModal({
   client,
   onClose,
   onEdit,
+  onDelete,
 }: NoteViewerModalProps) {
   if (!isOpen || !note || !client) return null;
 
@@ -101,6 +103,20 @@ export default function NoteViewerModal({
               >
                 <Edit className="w-4 h-4 mr-2" />
                 Edit
+              </button>
+            )}
+            {onDelete && (
+              <button
+                onClick={() => {
+                  if (confirm(`Are you sure you want to delete this ${note.noteType.toLowerCase()} note?`)) {
+                    onDelete(note.id);
+                    onClose();
+                  }
+                }}
+                className="flex items-center px-4 py-2 rounded-lg transition-colors bg-red-600 text-white hover:bg-red-700"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
               </button>
             )}
             <button

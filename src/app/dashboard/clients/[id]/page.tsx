@@ -977,11 +977,13 @@ export default function ClientDetailPage() {
                       .map((note) => (
                         <div
                           key={note.id}
-                          className="p-3 rounded-lg bg-gray-700 border border-gray-600 hover:bg-gray-600 transition-colors cursor-pointer"
-                          onClick={() => handleViewNote(note)}
+                          className="p-3 rounded-lg bg-gray-700 border border-gray-600 hover:bg-gray-600 transition-colors"
                         >
                           <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-white text-sm">
+                            <h4 
+                              className="font-medium text-white text-sm cursor-pointer hover:text-blue-300"
+                              onClick={() => handleViewNote(note)}
+                            >
                               {note.title ||
                                 `${note.noteType.toLowerCase()} note`}
                             </h4>
@@ -1005,9 +1007,24 @@ export default function ClientDetailPage() {
                               <span className="text-gray-400 text-xs">
                                 {formatDate(note.createdAt)}
                               </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (confirm(`Are you sure you want to delete this ${note.noteType.toLowerCase()} note?`)) {
+                                    handleDeleteNote(note.id);
+                                  }
+                                }}
+                                className="text-red-400 hover:text-red-300 transition-colors p-1"
+                                title="Delete note"
+                              >
+                                <Trash2 size={14} />
+                              </button>
                             </div>
                           </div>
-                          <p className="text-gray-300 text-xs line-clamp-2">
+                          <p 
+                            className="text-gray-300 text-xs line-clamp-2 cursor-pointer"
+                            onClick={() => handleViewNote(note)}
+                          >
                             {note.chiefComplaints ||
                               note.generalNotes ||
                               "Click to view details..."}
@@ -1138,6 +1155,7 @@ export default function ClientDetailPage() {
           setViewingNote(null);
         }}
         onEdit={handleEditFromViewer}
+        onDelete={handleDeleteNote}
       />
 
       {/* Document Upload Modal */}
