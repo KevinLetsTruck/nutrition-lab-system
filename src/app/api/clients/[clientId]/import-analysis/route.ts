@@ -161,6 +161,7 @@ export async function GET(
     
     // Navigate to the nested analysis structure
     const nestedAnalysis = analysisData.analysisData?.analysis || analysisData.analysis || analysisData;
+    console.log('🔍 Nested analysis keys:', Object.keys(nestedAnalysis));
     
     // Extract root causes, risk factors, priority areas from Claude analysis
     const extractedRootCauses = nestedAnalysis.rootCauses || 
@@ -183,7 +184,17 @@ export async function GET(
 
     // Extract protocol phases from Claude analysis
     const protocolPhases = [];
-    const protocolsData = nestedAnalysis.protocols || analysisData.protocols || analysisData.protocolPhases || analysisData.phases;
+    // Based on debug data: analysisData.analysisData.analysis.protocols
+    const protocolsData = analysisData.analysisData?.analysis?.protocols || 
+                         nestedAnalysis.protocols || 
+                         analysisData.protocols || 
+                         analysisData.protocolPhases || 
+                         analysisData.phases;
+    
+    console.log('🎯 Protocols data found:', !!protocolsData);
+    if (protocolsData) {
+      console.log('🎯 Protocols keys:', Object.keys(protocolsData));
+    }
     
     console.log('🔍 Looking for protocols in:', {
       nestedProtocols: !!nestedAnalysis.protocols,
