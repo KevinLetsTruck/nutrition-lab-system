@@ -23,7 +23,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ clientId: string }> }
 ) {
-  console.log('🚀 POST /api/clients/[clientId]/notes endpoint called');
+  console.log('🚀 POST /api/clients/[clientId]/notes endpoint called - FIXED VERSION');
   
   try {
     // Simple auth check
