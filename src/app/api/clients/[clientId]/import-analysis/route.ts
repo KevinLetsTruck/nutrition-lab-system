@@ -56,140 +56,42 @@ export async function POST(
     const priorityAreas = validatedData.priorityAreas || analysisData.priorityAreas || [];
     const confidence = validatedData.confidence || analysisData.confidence || 0.8;
 
-    // Create analysis record
-    const analysis = await prisma.analysis.create({
+    // Store analysis as a special note until Analysis tables are available on production
+    const analysisNote = await prisma.note.create({
       data: {
         clientId,
-        analysisData: body, // Store the entire original JSON
-        rootCauses: Array.isArray(rootCauses) ? rootCauses : [],
-        riskFactors: Array.isArray(riskFactors) ? riskFactors : [],
-        priorityAreas: Array.isArray(priorityAreas) ? priorityAreas : [],
-        confidence: typeof confidence === 'number' ? confidence : 0.8,
-        version: validatedData.version || "1.0",
-        analysisDate: validatedData.analysisDate 
-          ? new Date(validatedData.analysisDate)
-          : new Date(),
+        noteType: "COACHING",
+        title: `Claude Analysis - ${new Date().toLocaleDateString()}`,
+        generalNotes: JSON.stringify({
+          type: "CLAUDE_ANALYSIS",
+          analysisData: body,
+          rootCauses: Array.isArray(rootCauses) ? rootCauses : [],
+          riskFactors: Array.isArray(riskFactors) ? riskFactors : [],
+          priorityAreas: Array.isArray(priorityAreas) ? priorityAreas : [],
+          confidence: typeof confidence === 'number' ? confidence : 0.8,
+          version: validatedData.version || "1.0",
+          importedAt: new Date().toISOString(),
+        }, null, 2),
+        isImportant: true,
       },
     });
 
-    // Create protocol phases if provided (flexible extraction)
-    const protocolData = validatedData.protocolRecommendations || 
-                        analysisData.protocolRecommendations || 
-                        analysisData.protocols || 
-                        analysisData.phases;
-                        
-    if (protocolData) {
-      
-      const phases = [];
-      if (protocolData.phase1) {
-        phases.push({
-          analysisId: analysis.id,
-          clientId,
-          phase: "PHASE1",
-          name: "Foundation Phase",
-          description: "Basic support, gut healing, inflammation reduction",
-          duration: "30 days",
-          supplements: Array.isArray(protocolData.phase1.supplements) ? protocolData.phase1.supplements : [],
-          lifestyle: Array.isArray(protocolData.phase1.lifestyle) ? protocolData.phase1.lifestyle : [],
-          dietary: Array.isArray(protocolData.phase1.dietary) ? protocolData.phase1.dietary : [],
-          monitoring: Array.isArray(protocolData.phase1.monitoring) ? protocolData.phase1.monitoring : [],
-        });
-      }
-      
-      if (protocolData.phase2) {
-        phases.push({
-          analysisId: analysis.id,
-          clientId,
-          phase: "PHASE2",
-          name: "Targeted Phase",
-          description: "Specific interventions for identified patterns",
-          duration: "60 days",
-          supplements: Array.isArray(protocolData.phase2.supplements) ? protocolData.phase2.supplements : [],
-          lifestyle: Array.isArray(protocolData.phase2.lifestyle) ? protocolData.phase2.lifestyle : [],
-          dietary: Array.isArray(protocolData.phase2.dietary) ? protocolData.phase2.dietary : [],
-          monitoring: Array.isArray(protocolData.phase2.monitoring) ? protocolData.phase2.monitoring : [],
-        });
-      }
-      
-      if (protocolData.phase3) {
-        phases.push({
-          analysisId: analysis.id,
-          clientId,
-          phase: "PHASE3",
-          name: "Optimization Phase",
-          description: "Fine-tuning and long-term maintenance",
-          duration: "90 days",
-          supplements: Array.isArray(protocolData.phase3.supplements) ? protocolData.phase3.supplements : [],
-          lifestyle: Array.isArray(protocolData.phase3.lifestyle) ? protocolData.phase3.lifestyle : [],
-          dietary: Array.isArray(protocolData.phase3.dietary) ? protocolData.phase3.dietary : [],
-          monitoring: Array.isArray(protocolData.phase3.monitoring) ? protocolData.phase3.monitoring : [],
-        });
-      }
-
-      if (phases.length > 0) {
-        await prisma.protocolPhase.createMany({
-          data: phases,
-        });
-      }
-    }
-
-    // Create individual supplement records if provided (flexible extraction)
-    const supplements = validatedData.supplements || 
-                       analysisData.supplements || 
-                       analysisData.supplementRecommendations || 
-                       [];
-                       
-    if (supplements && supplements.length > 0) {
-      const supplementData = supplements.map((supp: any) => ({
-        clientId,
-        analysisId: analysis.id,
-        name: supp.name || supp.supplement || "Unknown Supplement",
-        dosage: supp.dosage || supp.dose || "As directed",
-        timing: supp.timing || supp.when || "With meals",
-        duration: supp.duration || "30 days",
-        priority: (supp.priority || "MEDIUM") as any,
-        category: supp.category || "General",
-        phase: supp.phase || "PHASE1",
-        rationale: supp.rationale || supp.reason || null,
-        productUrl: supp.productUrl || supp.url || null,
-        estimatedCost: supp.estimatedCost || supp.cost || 0,
-      }));
-
-      await prisma.supplement.createMany({
-        data: supplementData,
-      });
-    }
-
-    // Create protocol history entry
-    await prisma.protocolHistory.create({
-      data: {
-        clientId,
-        analysisId: analysis.id,
-        action: "ANALYSIS_IMPORTED",
-        details: {
-          importedBy: "system",
-          analysisVersion: validatedData.version || "1.0",
-          rootCausesCount: rootCauses?.length || 0,
-          supplementsCount: supplements?.length || 0,
-          confidence: confidence,
-        },
-      },
-    });
+    // Skip complex table operations for now - just store in note
 
     return NextResponse.json({
       success: true,
-      message: "Analysis imported successfully",
+      message: "Analysis imported successfully and stored as clinical note",
       analysis: {
-        id: analysis.id,
-        confidence: analysis.confidence,
-        rootCauses: analysis.rootCauses,
-        priorityAreas: analysis.priorityAreas,
+        id: analysisNote.id,
+        confidence: confidence,
+        rootCauses: rootCauses,
+        priorityAreas: priorityAreas,
       },
       summary: {
-        protocolPhases: protocolData ? Object.keys(protocolData).length : 0,
-        supplements: supplements?.length || 0,
+        noteId: analysisNote.id,
         rootCauses: rootCauses?.length || 0,
         confidence: confidence,
+        storedAs: "Clinical Note",
       },
     }, { status: 201 });
 
@@ -223,23 +125,38 @@ export async function GET(
 
     const { clientId } = await params;
 
-    // Get all analyses for this client
-    const analyses = await prisma.analysis.findMany({
-      where: { clientId },
-      include: {
-        protocolPhases: {
-          orderBy: { phase: "asc" },
-        },
-        supplements: {
-          orderBy: { priority: "desc" },
-        },
-        protocolHistory: {
-          orderBy: { timestamp: "desc" },
-          take: 10,
-        },
+    // Look for analysis notes instead of Analysis table (fallback for production)
+    const analysisNotes = await prisma.note.findMany({
+      where: { 
+        clientId,
+        title: {
+          contains: "Claude Analysis"
+        }
       },
-      orderBy: { analysisDate: "desc" },
+      orderBy: { createdAt: "desc" },
     });
+
+    // Convert notes back to analysis format
+    const analyses = analysisNotes.map(note => {
+      try {
+        const analysisData = JSON.parse(note.generalNotes || "{}");
+        return {
+          id: note.id,
+          analysisData: analysisData.analysisData || {},
+          rootCauses: analysisData.rootCauses || [],
+          riskFactors: analysisData.riskFactors || [],
+          priorityAreas: analysisData.priorityAreas || [],
+          confidence: analysisData.confidence || 0.8,
+          analysisDate: note.createdAt,
+          version: analysisData.version || "1.0",
+          protocolPhases: [],
+          supplements: [],
+          protocolHistory: [],
+        };
+      } catch {
+        return null;
+      }
+    }).filter(Boolean);
 
     return NextResponse.json({
       success: true,
@@ -247,8 +164,8 @@ export async function GET(
       summary: {
         totalAnalyses: analyses.length,
         latestAnalysis: analyses[0] || null,
-        totalSupplements: analyses.reduce((sum, a) => sum + a.supplements.length, 0),
-        totalPhases: analyses.reduce((sum, a) => sum + a.protocolPhases.length, 0),
+        totalSupplements: 0,
+        totalPhases: 0,
       },
     });
 
