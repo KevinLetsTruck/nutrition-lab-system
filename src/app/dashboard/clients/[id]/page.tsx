@@ -880,8 +880,8 @@ export default function ClientDetailPage() {
                   variant="outline"
                   size="sm"
                   onImportSuccess={() => {
-                    // Refresh client data after successful import
-                    window.location.reload();
+                    // Don't reload immediately - let user see the success message
+                    console.log("✅ Analysis imported successfully");
                   }}
                 />
               </div>

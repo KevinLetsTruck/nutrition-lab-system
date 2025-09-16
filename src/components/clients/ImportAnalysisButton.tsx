@@ -54,11 +54,14 @@ export function ImportAnalysisButton({
 
       setIsImporting(true);
       setImportStatus("idle");
+      console.log("🚀 Starting import process for file:", file.name);
 
       try {
         // Read file content
         const fileContent = await file.text();
+        console.log("📄 File content length:", fileContent.length);
         const analysisData = JSON.parse(fileContent);
+        console.log("📊 Parsed analysis data:", analysisData);
 
         // Import analysis via API
         const response = await fetch(
@@ -83,6 +86,7 @@ export function ImportAnalysisButton({
         }
 
         const result = await response.json();
+        console.log("✅ Import successful, result:", result);
 
         setImportStatus("success");
         toast.success("Analysis Imported Successfully!", {
