@@ -1017,7 +1017,7 @@ export default function ClientDetailPage() {
                                 className="text-red-400 hover:text-red-300 transition-colors p-1"
                                 title="Delete note"
                               >
-                                <Trash2 size={14} />
+                                <Trash2 size={18} />
                               </button>
                             </div>
                           </div>
