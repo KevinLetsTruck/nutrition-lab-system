@@ -145,6 +145,20 @@ export async function GET(
     console.log('📋 Analysis data keys:', Object.keys(analysisData));
     console.log('📄 Analysis data preview:', JSON.stringify(analysisData).substring(0, 200) + '...');
     
+    // TEMPORARY: Return raw data structure for debugging
+    if (request.nextUrl.searchParams.get('debug') === 'true') {
+      return NextResponse.json({
+        debug: true,
+        clientId: clientId,
+        clientName: `${client.firstName} ${client.lastName}`,
+        healthGoalsKeys: Object.keys(healthGoals),
+        claudeAnalysisKeys: claudeAnalysis ? Object.keys(claudeAnalysis) : null,
+        analysisDataKeys: Object.keys(analysisData),
+        rawAnalysisData: analysisData,
+        analysisDataPreview: JSON.stringify(analysisData).substring(0, 500) + '...',
+      });
+    }
+    
     // Extract root causes, risk factors, priority areas from Claude analysis
     const extractedRootCauses = analysisData.rootCauses || 
                                analysisData.root_causes ||

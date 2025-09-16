@@ -7,27 +7,30 @@ export async function GET(
 ) {
   try {
     const { clientId } = await params;
-    console.log('🔍 DEBUG: Getting Claude data for client:', clientId);
+    console.log("🔍 DEBUG: Getting Claude data for client:", clientId);
 
     // Get client with stored Claude analysis
     const client = await prisma.client.findUnique({
       where: { id: clientId },
-      select: { 
-        healthGoals: true, 
-        firstName: true, 
+      select: {
+        healthGoals: true,
+        firstName: true,
         lastName: true,
-        id: true 
-      }
+        id: true,
+      },
     });
 
     if (!client) {
-      return NextResponse.json({
-        error: "Client not found",
-        clientId: clientId
-      }, { status: 404 });
+      return NextResponse.json(
+        {
+          error: "Client not found",
+          clientId: clientId,
+        },
+        { status: 404 }
+      );
     }
 
-    console.log('👤 Found client:', client.firstName, client.lastName);
+    console.log("👤 Found client:", client.firstName, client.lastName);
 
     if (!client.healthGoals) {
       return NextResponse.json({
@@ -37,7 +40,7 @@ export async function GET(
         },
         healthGoals: null,
         claudeAnalysis: null,
-        message: "No healthGoals data found"
+        message: "No healthGoals data found",
       });
     }
 
@@ -51,15 +54,19 @@ export async function GET(
       },
       healthGoalsKeys: Object.keys(healthGoals),
       claudeAnalysis: claudeAnalysis,
-      analysisDataKeys: claudeAnalysis?.analysisData ? Object.keys(claudeAnalysis.analysisData) : null,
+      analysisDataKeys: claudeAnalysis?.analysisData
+        ? Object.keys(claudeAnalysis.analysisData)
+        : null,
       rawAnalysisData: claudeAnalysis?.analysisData || null,
     });
-
   } catch (error) {
     console.error("🚨 DEBUG API Error:", error);
-    return NextResponse.json({
-      error: "Internal server error",
-      details: error instanceof Error ? error.message : "Unknown error"
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }
