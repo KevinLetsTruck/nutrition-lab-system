@@ -88,6 +88,12 @@ export function AnalysisResultsViewer({
   const fetchAnalyses = async () => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        setAnalyses([]);
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch(`/api/clients/${clientId}/import-analysis`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -95,16 +101,22 @@ export function AnalysisResultsViewer({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch analyses");
+        // If it's a 404 or 500, just show no analyses instead of error
+        console.warn("Could not fetch analyses:", response.status);
+        setAnalyses([]);
+        setLoading(false);
+        return;
       }
 
       const data = await response.json();
       setAnalyses(data.analyses || []);
-      if (data.analyses.length > 0) {
+      if (data.analyses && data.analyses.length > 0) {
         setSelectedAnalysis(data.analyses[0]); // Select most recent
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load analyses");
+      console.warn("Error fetching analyses:", err);
+      // Don't show error, just show no analyses
+      setAnalyses([]);
     } finally {
       setLoading(false);
     }
