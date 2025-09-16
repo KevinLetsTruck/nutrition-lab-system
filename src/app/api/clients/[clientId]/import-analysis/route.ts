@@ -3,41 +3,23 @@ import { prisma } from "@/lib/db";
 import { verifyAuthToken } from "@/lib/auth";
 import { z } from "zod";
 
-// Validation schema for Claude analysis import
+// Flexible validation schema for Claude analysis import
 const importAnalysisSchema = z.object({
-  analysisData: z.object({
-    rootCauses: z.array(z.string()),
-    riskFactors: z.array(z.string()),
-    priorityAreas: z.array(z.string()),
-    confidence: z.number().min(0).max(1),
-    systemFindings: z.object({
-      digestive: z.any().optional(),
-      metabolic: z.any().optional(),
-      hormonal: z.any().optional(),
-      inflammatory: z.any().optional(),
-      detoxification: z.any().optional(),
-    }).optional(),
-    protocolRecommendations: z.object({
-      phase1: z.any().optional(),
-      phase2: z.any().optional(),
-      phase3: z.any().optional(),
-    }).optional(),
-    supplements: z.array(z.object({
-      name: z.string(),
-      dosage: z.string(),
-      timing: z.string(),
-      duration: z.string(),
-      priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
-      category: z.string(),
-      phase: z.string(),
-      rationale: z.string().optional(),
-      productUrl: z.string().optional(),
-      estimatedCost: z.number().optional(),
-    })).optional(),
-  }),
+  // Accept any structure from Claude - we'll extract what we can
+  analysisData: z.any().optional(),
   version: z.string().default("1.0"),
   analysisDate: z.string().optional(),
-});
+  
+  // Allow direct fields at root level too
+  rootCauses: z.array(z.string()).optional(),
+  riskFactors: z.array(z.string()).optional(),
+  priorityAreas: z.array(z.string()).optional(),
+  confidence: z.number().min(0).max(1).optional(),
+  supplements: z.array(z.any()).optional(),
+  protocolRecommendations: z.any().optional(),
+  
+  // Accept any other fields Claude might provide
+}).passthrough();
 
 export async function POST(
   request: NextRequest,
@@ -50,6 +32,8 @@ export async function POST(
 
     // Parse and validate request body
     const body = await request.json();
+    console.log("📄 Received analysis data:", JSON.stringify(body, null, 2));
+    
     const validatedData = importAnalysisSchema.parse(body);
 
     // Verify client exists
@@ -61,25 +45,36 @@ export async function POST(
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
 
+    // Extract data from flexible structure
+    const analysisData = validatedData.analysisData || validatedData;
+    const rootCauses = validatedData.rootCauses || analysisData.rootCauses || [];
+    const riskFactors = validatedData.riskFactors || analysisData.riskFactors || [];
+    const priorityAreas = validatedData.priorityAreas || analysisData.priorityAreas || [];
+    const confidence = validatedData.confidence || analysisData.confidence || 0.8;
+
     // Create analysis record
     const analysis = await prisma.analysis.create({
       data: {
         clientId,
-        analysisData: validatedData.analysisData as any,
-        rootCauses: validatedData.analysisData.rootCauses,
-        riskFactors: validatedData.analysisData.riskFactors,
-        priorityAreas: validatedData.analysisData.priorityAreas,
-        confidence: validatedData.analysisData.confidence,
-        version: validatedData.version,
+        analysisData: body, // Store the entire original JSON
+        rootCauses: Array.isArray(rootCauses) ? rootCauses : [],
+        riskFactors: Array.isArray(riskFactors) ? riskFactors : [],
+        priorityAreas: Array.isArray(priorityAreas) ? priorityAreas : [],
+        confidence: typeof confidence === 'number' ? confidence : 0.8,
+        version: validatedData.version || "1.0",
         analysisDate: validatedData.analysisDate 
           ? new Date(validatedData.analysisDate)
           : new Date(),
       },
     });
 
-    // Create protocol phases if provided
-    if (validatedData.analysisData.protocolRecommendations) {
-      const protocolData = validatedData.analysisData.protocolRecommendations;
+    // Create protocol phases if provided (flexible extraction)
+    const protocolData = validatedData.protocolRecommendations || 
+                        analysisData.protocolRecommendations || 
+                        analysisData.protocols || 
+                        analysisData.phases;
+                        
+    if (protocolData) {
       
       const phases = [];
       if (protocolData.phase1) {
@@ -134,21 +129,26 @@ export async function POST(
       }
     }
 
-    // Create individual supplement records if provided
-    if (validatedData.analysisData.supplements && validatedData.analysisData.supplements.length > 0) {
-      const supplementData = validatedData.analysisData.supplements.map(supp => ({
+    // Create individual supplement records if provided (flexible extraction)
+    const supplements = validatedData.supplements || 
+                       analysisData.supplements || 
+                       analysisData.supplementRecommendations || 
+                       [];
+                       
+    if (supplements && supplements.length > 0) {
+      const supplementData = supplements.map((supp: any) => ({
         clientId,
         analysisId: analysis.id,
-        name: supp.name,
-        dosage: supp.dosage,
-        timing: supp.timing,
-        duration: supp.duration,
-        priority: supp.priority as any,
-        category: supp.category,
-        phase: supp.phase,
-        rationale: supp.rationale || null,
-        productUrl: supp.productUrl || null,
-        estimatedCost: supp.estimatedCost || 0,
+        name: supp.name || supp.supplement || "Unknown Supplement",
+        dosage: supp.dosage || supp.dose || "As directed",
+        timing: supp.timing || supp.when || "With meals",
+        duration: supp.duration || "30 days",
+        priority: (supp.priority || "MEDIUM") as any,
+        category: supp.category || "General",
+        phase: supp.phase || "PHASE1",
+        rationale: supp.rationale || supp.reason || null,
+        productUrl: supp.productUrl || supp.url || null,
+        estimatedCost: supp.estimatedCost || supp.cost || 0,
       }));
 
       await prisma.supplement.createMany({
@@ -182,10 +182,10 @@ export async function POST(
         priorityAreas: analysis.priorityAreas,
       },
       summary: {
-        protocolPhases: phases.length,
-        supplements: validatedData.analysisData.supplements?.length || 0,
-        rootCauses: validatedData.analysisData.rootCauses.length,
-        confidence: validatedData.analysisData.confidence,
+        protocolPhases: protocolData ? Object.keys(protocolData).length : 0,
+        supplements: supplements?.length || 0,
+        rootCauses: rootCauses?.length || 0,
+        confidence: confidence,
       },
     }, { status: 201 });
 
