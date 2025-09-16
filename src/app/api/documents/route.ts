@@ -19,10 +19,10 @@ export async function GET(request: NextRequest) {
     const documents = await prisma.document.findMany({
       where: {
         ...(clientId && { clientId }),
-        ...(status && { status }),
+        ...(status && { analysisStatus: status }),
       },
       include: {
-        client: {
+        Client: {
           select: {
             id: true,
             firstName: true,
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
         tags: [], // Empty array for now, can be populated later
       },
       include: {
-        client: {
+        Client: {
           select: {
             id: true,
             firstName: true,
