@@ -97,12 +97,16 @@ export async function GET(
 ) {
   try {
     const { clientId } = await params;
+    console.log('🔍 GET Analysis - Client ID:', clientId);
 
     // Get client with stored Claude analysis
     const client = await prisma.client.findUnique({
       where: { id: clientId },
       select: { healthGoals: true, firstName: true, lastName: true }
     });
+
+    console.log('👤 Found client:', client?.firstName, client?.lastName);
+    console.log('📊 HealthGoals exists:', !!client?.healthGoals);
 
     if (!client || !client.healthGoals) {
       return NextResponse.json({
@@ -118,7 +122,10 @@ export async function GET(
     }
 
     const healthGoals = client.healthGoals as any;
+    console.log('🎯 HealthGoals keys:', Object.keys(healthGoals || {}));
+    
     const claudeAnalysis = healthGoals.claudeAnalysis;
+    console.log('🤖 Claude analysis exists:', !!claudeAnalysis);
 
     if (!claudeAnalysis) {
       return NextResponse.json({
@@ -135,6 +142,8 @@ export async function GET(
 
     // Extract actual data from Claude analysis
     const analysisData = claudeAnalysis.analysisData || {};
+    console.log('📋 Analysis data keys:', Object.keys(analysisData));
+    console.log('📄 Analysis data preview:', JSON.stringify(analysisData).substring(0, 200) + '...');
     
     // Extract root causes, risk factors, priority areas from Claude analysis
     const extractedRootCauses = analysisData.rootCauses || 
@@ -154,8 +163,15 @@ export async function GET(
 
     // Extract protocol phases from Claude analysis
     const protocolPhases = [];
+    console.log('🔍 Looking for phases in:', {
+      protocolPhases: !!analysisData.protocolPhases,
+      phases: !!analysisData.phases,
+      protocol: !!analysisData.protocol
+    });
+    
     if (analysisData.protocolPhases || analysisData.phases || analysisData.protocol) {
       const phases = analysisData.protocolPhases || analysisData.phases || analysisData.protocol;
+      console.log('✅ Found phases data:', Object.keys(phases || {}));
       
       if (phases.phase1 || phases.foundation) {
         protocolPhases.push({
@@ -209,6 +225,8 @@ export async function GET(
                           analysisData.supplementRecommendations ||
                           analysisData.recommendations?.supplements ||
                           [];
+    
+    console.log('💊 Supplement data found:', !!supplementData, 'Count:', Array.isArray(supplementData) ? supplementData.length : 'Not array');
                           
     if (Array.isArray(supplementData)) {
       supplementData.forEach((supp, index) => {
@@ -253,6 +271,13 @@ export async function GET(
         timestamp: claudeAnalysis.importedAt,
       }],
     };
+
+    console.log('📊 Final results:', {
+      protocolPhases: protocolPhases.length,
+      supplements: supplements.length,
+      rootCauses: extractedRootCauses.length,
+      priorityAreas: extractedPriorityAreas.length
+    });
 
     return NextResponse.json({
       success: true,
