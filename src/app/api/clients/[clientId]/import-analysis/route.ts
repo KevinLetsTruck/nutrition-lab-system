@@ -339,8 +339,8 @@ export async function GET(
       priorityAreas: extractedPriorityAreas.length
     });
 
-    // TEMPORARY: Return debug info in the response
-    if (protocolPhases.length === 0 || supplements.length === 0) {
+    // TEMPORARY: Return debug info in the response - ALWAYS TRIGGER FOR DEBUGGING
+    if (true) {
       return NextResponse.json({
         success: true,
         debug: true,
