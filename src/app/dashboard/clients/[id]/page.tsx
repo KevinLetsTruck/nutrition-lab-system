@@ -28,7 +28,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
 import { ExportClientButton } from "@/components/clients/ExportClientButton";
+import { ImportAnalysisButton } from "@/components/clients/ImportAnalysisButton";
 import { ClaudePromptsModal } from "@/components/exports/ClaudePromptsModal";
+import { AnalysisResultsViewer } from "@/components/analysis/AnalysisResultsViewer";
 
 // Dynamically import SimplePDFViewer with SSR disabled
 const SimplePDFViewer = dynamic(
@@ -864,7 +866,7 @@ export default function ClientDetailPage() {
                 </div>
               </div>
 
-              {/* Export Button */}
+              {/* Export and Import Buttons */}
               <div className="flex gap-2">
                 <ExportClientButton
                   clientId={client.id}
@@ -872,9 +874,27 @@ export default function ClientDetailPage() {
                   variant="secondary"
                   size="sm"
                 />
+                <ImportAnalysisButton
+                  clientId={client.id}
+                  clientName={`${client.firstName} ${client.lastName}`}
+                  variant="outline"
+                  size="sm"
+                  onImportSuccess={() => {
+                    // Refresh client data after successful import
+                    window.location.reload();
+                  }}
+                />
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Analysis Results Section */}
+        <div className="mb-6">
+          <AnalysisResultsViewer
+            clientId={client.id}
+            clientName={`${client.firstName} ${client.lastName}`}
+          />
         </div>
 
         {/* Two-Column Layout - Notes and Documents */}
