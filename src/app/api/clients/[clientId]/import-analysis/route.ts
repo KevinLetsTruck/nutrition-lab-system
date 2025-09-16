@@ -96,20 +96,79 @@ export async function GET(
   { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
-    // Return empty for now to avoid database issues
+    const { clientId } = await params;
+
+    // Get client with stored Claude analysis
+    const client = await prisma.client.findUnique({
+      where: { id: clientId },
+      select: { healthGoals: true, firstName: true, lastName: true }
+    });
+
+    if (!client || !client.healthGoals) {
+      return NextResponse.json({
+        success: true,
+        analyses: [],
+        summary: {
+          totalAnalyses: 0,
+          latestAnalysis: null,
+          totalSupplements: 0,
+          totalPhases: 0,
+        },
+      });
+    }
+
+    const healthGoals = client.healthGoals as any;
+    const claudeAnalysis = healthGoals.claudeAnalysis;
+
+    if (!claudeAnalysis) {
+      return NextResponse.json({
+        success: true,
+        analyses: [],
+        summary: {
+          totalAnalyses: 0,
+          latestAnalysis: null,
+          totalSupplements: 0,
+          totalPhases: 0,
+        },
+      });
+    }
+
+    // Convert stored analysis to display format
+    const analysis = {
+      id: clientId + "-analysis",
+      analysisData: claudeAnalysis.analysisData || {},
+      rootCauses: ["Claude analysis imported successfully"],
+      riskFactors: [`Analysis file size: ${claudeAnalysis.fileSize} bytes`],
+      priorityAreas: ["Review complete analysis data"],
+      confidence: claudeAnalysis.confidence || 0.8,
+      analysisDate: claudeAnalysis.importedAt,
+      version: "1.0",
+      protocolPhases: [],
+      supplements: [],
+      protocolHistory: [{
+        id: clientId + "-import-history",
+        action: "ANALYSIS_IMPORTED",
+        details: { 
+          importedAt: claudeAnalysis.importedAt,
+          fileSize: claudeAnalysis.fileSize 
+        },
+        timestamp: claudeAnalysis.importedAt,
+      }],
+    };
+
     return NextResponse.json({
       success: true,
-      analyses: [],
+      analyses: [analysis],
       summary: {
-        totalAnalyses: 0,
-        latestAnalysis: null,
+        totalAnalyses: 1,
+        latestAnalysis: analysis,
         totalSupplements: 0,
         totalPhases: 0,
       },
     });
 
   } catch (error) {
-    console.error("Error fetching analysis notes:", error);
+    console.error("Error fetching stored analysis:", error);
     return NextResponse.json({
       success: true,
       analyses: [],
