@@ -100,12 +100,8 @@ interface SelectedDocument {
 }
 
 type StatusType =
-  | "SIGNED_UP"
-  | "INITIAL_INTERVIEW_COMPLETED"
-  | "ASSESSMENT_COMPLETED"
-  | "DOCS_UPLOADED"
-  | "SCHEDULED"
   | "ONGOING"
+  | "SCHEDULED"
   | "ARCHIVED";
 
 export default function ScheduledClientsPage() {
@@ -329,12 +325,8 @@ export default function ScheduledClientsPage() {
 
   const getStatusLabel = (status: StatusType) => {
     const statusLabels: Record<StatusType, string> = {
-      SIGNED_UP: "Signed Up",
-      INITIAL_INTERVIEW_COMPLETED: "Interview Completed",
-      ASSESSMENT_COMPLETED: "Assessment Completed",
-      DOCS_UPLOADED: "Docs Uploaded",
-      SCHEDULED: "Scheduled",
       ONGOING: "Ongoing",
+      SCHEDULED: "Scheduled",
       ARCHIVED: "Archived",
     };
     return statusLabels[status];
@@ -342,12 +334,8 @@ export default function ScheduledClientsPage() {
 
   const getStatusColor = (status: StatusType) => {
     const statusColors: Record<StatusType, string> = {
-      SIGNED_UP: "#3b82f6",
-      INITIAL_INTERVIEW_COMPLETED: "#f59e0b",
-      ASSESSMENT_COMPLETED: "#8b5cf6",
-      DOCS_UPLOADED: "#06b6d4",
-      SCHEDULED: "#10b981",
       ONGOING: "#84cc16",
+      SCHEDULED: "#10b981",
       ARCHIVED: "#6b7280",
     };
     return statusColors[status] || "#6b7280";

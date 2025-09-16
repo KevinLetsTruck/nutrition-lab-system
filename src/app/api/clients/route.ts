@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         dateOfBirth: validatedData.dateOfBirth
           ? new Date(validatedData.dateOfBirth)
           : undefined,
-        status: "SIGNED_UP",
+        status: "ONGOING",
       },
     });
 

@@ -156,13 +156,9 @@ export default function ClientDashboard() {
   // Define status priority for sorting
   const getStatusPriority = (status: string) => {
     const priorities: { [key: string]: number } = {
-      SIGNED_UP: 1,
-      INITIAL_INTERVIEW_COMPLETED: 2,
-      ASSESSMENT_COMPLETED: 3,
-      DOCS_UPLOADED: 4,
-      SCHEDULED: 5,
-      ONGOING: 6,
-      ARCHIVED: 7,
+      ONGOING: 1,
+      SCHEDULED: 2,
+      ARCHIVED: 3,
     };
     return priorities[status] || 0;
   };
@@ -220,12 +216,8 @@ export default function ClientDashboard() {
   // Status utility functions
   const getStatusVariant = (status: string) => {
     const statusConfig: { [key: string]: string } = {
-      SIGNED_UP: "default",
-      INITIAL_INTERVIEW_COMPLETED: "secondary",
-      ASSESSMENT_COMPLETED: "outline",
-      DOCS_UPLOADED: "secondary",
-      SCHEDULED: "outline",
       ONGOING: "default",
+      SCHEDULED: "outline",
       ARCHIVED: "destructive",
     };
     return statusConfig[status] || "default";
@@ -235,12 +227,8 @@ export default function ClientDashboard() {
     if (!status) return "Unknown Status";
 
     const statusConfig: { [key: string]: string } = {
-      SIGNED_UP: "Signed Up",
-      INITIAL_INTERVIEW_COMPLETED: "Interview Completed",
-      ASSESSMENT_COMPLETED: "Assessment Completed",
-      DOCS_UPLOADED: "Docs Uploaded",
-      SCHEDULED: "Scheduled",
       ONGOING: "Ongoing",
+      SCHEDULED: "Scheduled",
       ARCHIVED: "Archived",
     };
 
@@ -509,16 +497,8 @@ export default function ClientDashboard() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Clients</SelectItem>
-                  <SelectItem value="SIGNED_UP">Signed Up</SelectItem>
-                  <SelectItem value="INITIAL_INTERVIEW_COMPLETED">
-                    Interview Completed
-                  </SelectItem>
-                  <SelectItem value="ASSESSMENT_COMPLETED">
-                    Assessment Completed
-                  </SelectItem>
-                  <SelectItem value="DOCS_UPLOADED">Docs Uploaded</SelectItem>
-                  <SelectItem value="SCHEDULED">Scheduled</SelectItem>
                   <SelectItem value="ONGOING">Ongoing</SelectItem>
+                  <SelectItem value="SCHEDULED">Scheduled</SelectItem>
                   <SelectItem value="ARCHIVED">Archived</SelectItem>
                 </SelectContent>
               </Select>
@@ -637,16 +617,8 @@ export default function ClientDashboard() {
                                 : "text-[#94a3b8]"
                             }`}
                           >
-                            <option value="SIGNED_UP">Signed Up</option>
-                            <option value="INITIAL_INTERVIEW_COMPLETED">
-                              Interview Completed
-                            </option>
-                            <option value="ASSESSMENT_COMPLETED">
-                              Assessment Completed
-                            </option>
-                            <option value="DOCS_UPLOADED">Docs Uploaded</option>
-                            <option value="SCHEDULED">Scheduled</option>
                             <option value="ONGOING">Ongoing</option>
+                            <option value="SCHEDULED">Scheduled</option>
                             <option value="ARCHIVED">Archived</option>
                           </select>
                         )}
