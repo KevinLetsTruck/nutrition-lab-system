@@ -184,10 +184,10 @@ export async function GET(
 
     // Extract protocol phases from Claude analysis
     const protocolPhases = [];
-    // Based on debug data: analysisData.analysisData.analysis.protocols
-    const protocolsData = analysisData.analysisData?.analysis?.protocols || 
-                         nestedAnalysis.protocols || 
+    // Based on debug data: protocols are in analysisData.analysisData.protocols (NOT in analysis sub-object)
+    const protocolsData = analysisData.analysisData?.protocols || 
                          analysisData.protocols || 
+                         nestedAnalysis.protocols || 
                          analysisData.protocolPhases || 
                          analysisData.phases;
     
