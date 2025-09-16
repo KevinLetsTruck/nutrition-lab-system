@@ -87,7 +87,7 @@ export async function POST(
     const note = await prisma.note.create({
       data: noteDataWithId,
       include: {
-        client: {
+        Client: {
           select: {
             id: true,
             firstName: true,
@@ -200,7 +200,7 @@ export async function GET(
     const notes = await prisma.note.findMany({
       where: whereClause,
       include: {
-        client: {
+        Client: {
           select: {
             id: true,
             firstName: true,

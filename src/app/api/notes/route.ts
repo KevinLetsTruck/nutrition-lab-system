@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
         ...(noteType && { noteType: noteType as "INTERVIEW" | "COACHING" }),
       },
       include: {
-        client: {
+        Client: {
           select: {
             id: true,
             firstName: true,
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
     const note = await prisma.note.create({
       data: noteDataWithId,
       include: {
-        client: {
+        Client: {
           select: {
             id: true,
             firstName: true,
