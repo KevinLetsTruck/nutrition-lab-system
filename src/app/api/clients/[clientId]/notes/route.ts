@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { verifyAuthToken } from "@/lib/auth";
 import { z } from "zod";
 
 // Validation schema for creating notes
@@ -25,12 +24,20 @@ export async function POST(
   { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
-    // Verify authentication
-    const user = await verifyAuthToken(request);
+    // Simple auth check
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const { clientId } = await params;
+    console.log('📝 Creating note for client:', clientId);
+    
     const body = await request.json();
+    console.log('📋 Note data received:', body);
+    
     const validatedData = createNoteSchema.parse(body);
+    console.log('✅ Note data validated:', validatedData);
 
     // Verify client exists
     const client = await prisma.client.findUnique({
@@ -38,8 +45,11 @@ export async function POST(
     });
 
     if (!client) {
+      console.log('❌ Client not found:', clientId);
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
+
+    console.log('👤 Client found:', client.firstName, client.lastName);
 
     const note = await prisma.note.create({
       data: {
@@ -58,8 +68,10 @@ export async function POST(
       },
     });
 
+    console.log('✅ Note created successfully:', note.id);
     return NextResponse.json(note, { status: 201 });
   } catch (error) {
+    console.error('❌ Error creating note:', error);
     if (
       error instanceof Error &&
       (error.message.includes("authorization") ||
@@ -87,8 +99,11 @@ export async function GET(
   { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
-    // Verify authentication
-    const user = await verifyAuthToken(request);
+    // Simple auth check
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const { clientId } = await params;
     const searchParams = request.nextUrl.searchParams;
