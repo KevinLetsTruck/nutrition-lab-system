@@ -23,10 +23,15 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ clientId: string }> }
 ) {
+  console.log('🚀 POST /api/clients/[clientId]/notes endpoint called');
+  
   try {
     // Simple auth check
     const authHeader = request.headers.get("authorization");
+    console.log('🔐 Auth header present:', !!authHeader);
+    
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.log('❌ Auth failed - no bearer token');
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -90,6 +95,13 @@ export async function POST(
     return NextResponse.json(note, { status: 201 });
   } catch (error) {
     console.error('❌ Error creating note:', error);
+    console.error('❌ Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace',
+      cause: error instanceof Error ? error.cause : undefined
+    });
+    
     if (
       error instanceof Error &&
       (error.message.includes("authorization") ||
@@ -105,8 +117,14 @@ export async function POST(
       );
     }
 
+    // Return detailed error information for debugging
     return NextResponse.json(
-      { error: "Failed to create note" },
+      { 
+        error: "Failed to create note",
+        details: error instanceof Error ? error.message : "Unknown error",
+        errorType: error instanceof Error ? error.name : typeof error,
+        timestamp: new Date().toISOString()
+      },
       { status: 500 }
     );
   }
