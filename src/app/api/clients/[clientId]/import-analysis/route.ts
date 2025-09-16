@@ -339,6 +339,33 @@ export async function GET(
       priorityAreas: extractedPriorityAreas.length
     });
 
+    // TEMPORARY: Return debug info in the response
+    if (protocolPhases.length === 0 || supplements.length === 0) {
+      return NextResponse.json({
+        success: true,
+        debug: true,
+        analyses: [{
+          id: clientId + "-analysis",
+          debugInfo: {
+            analysisDataKeys: Object.keys(analysisData),
+            nestedAnalysisKeys: Object.keys(nestedAnalysis),
+            hasProtocols: !!protocolsData,
+            protocolsKeys: protocolsData ? Object.keys(protocolsData) : null,
+            protocolPhasesFound: protocolPhases.length,
+            supplementsFound: supplements.length,
+            rootCausesFound: extractedRootCauses.length,
+            sampleProtocolData: protocolsData ? JSON.stringify(protocolsData).substring(0, 500) + '...' : null
+          }
+        }],
+        summary: {
+          totalAnalyses: 1,
+          latestAnalysis: null,
+          totalSupplements: 0,
+          totalPhases: 0,
+        },
+      });
+    }
+
     return NextResponse.json({
       success: true,
       analyses: [analysis],
