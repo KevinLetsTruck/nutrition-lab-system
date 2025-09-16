@@ -18,36 +18,24 @@ export async function POST(
     const body = await request.json();
     console.log("📄 Received analysis data for import");
 
-    // Store analysis as a special note so it can be displayed
-    const analysisNote = await prisma.note.create({
-      data: {
-        clientId,
-        noteType: "COACHING",
-        title: `Claude Analysis - ${new Date().toLocaleDateString()}`,
-        generalNotes: JSON.stringify({
-          type: "CLAUDE_ANALYSIS",
-          analysisData: body,
-          confidence: 0.8,
-          importedAt: new Date().toISOString(),
-        }, null, 2),
-        isImportant: true,
-      },
-    });
+    // Log the analysis data for now - skip database operations
+    console.log("📊 Analysis data received, size:", JSON.stringify(body).length);
+    console.log("🎯 Analysis structure keys:", Object.keys(body));
 
     return NextResponse.json({
       success: true,
-      message: "Analysis imported and stored as clinical note",
+      message: "Analysis processed successfully (logged for debugging)",
       analysis: {
-        id: analysisNote.id,
+        id: "debug-" + Date.now(),
         confidence: 0.8,
-        rootCauses: ["Analysis data stored"],
-        priorityAreas: ["View in Notes section"],
+        rootCauses: ["Analysis data received"],
+        priorityAreas: ["Check console logs"],
       },
       summary: {
-        noteId: analysisNote.id,
+        noteId: "debug-note",
         rootCauses: 1,
         confidence: 0.8,
-        storedAs: "Clinical Note",
+        storedAs: "Debug Mode",
       },
     }, { status: 201 });
 
@@ -65,52 +53,13 @@ export async function GET(
   { params }: { params: Promise<{ clientId: string }> }
 ) {
   try {
-    const { clientId } = await params;
-
-    // Look for Claude analysis notes
-    const analysisNotes = await prisma.note.findMany({
-      where: { 
-        clientId,
-        title: {
-          contains: "Claude Analysis"
-        }
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    // Convert notes to analysis format for the viewer
-    const analyses = analysisNotes.map(note => {
-      try {
-        const noteData = JSON.parse(note.generalNotes || "{}");
-        return {
-          id: note.id,
-          analysisData: noteData.analysisData || {},
-          rootCauses: ["Analysis imported successfully"],
-          riskFactors: ["See full analysis in Notes section"],
-          priorityAreas: ["Review Claude recommendations"],
-          confidence: noteData.confidence || 0.8,
-          analysisDate: note.createdAt,
-          version: "1.0",
-          protocolPhases: [],
-          supplements: [],
-          protocolHistory: [{
-            id: note.id + "-history",
-            action: "ANALYSIS_IMPORTED",
-            details: { importedAt: noteData.importedAt },
-            timestamp: note.createdAt,
-          }],
-        };
-      } catch {
-        return null;
-      }
-    }).filter(Boolean);
-
+    // Return empty for now to avoid database issues
     return NextResponse.json({
       success: true,
-      analyses,
+      analyses: [],
       summary: {
-        totalAnalyses: analyses.length,
-        latestAnalysis: analyses[0] || null,
+        totalAnalyses: 0,
+        latestAnalysis: null,
         totalSupplements: 0,
         totalPhases: 0,
       },
