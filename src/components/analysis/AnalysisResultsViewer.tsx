@@ -496,23 +496,126 @@ export function AnalysisResultsViewer({
               </TabsContent>
 
               <TabsContent value="history" className="space-y-4">
-                <div className="space-y-2">
-                  {(selectedAnalysis.protocolHistory || []).map((entry) => (
-                    <div key={entry.id} className="p-3 bg-gray-700 border border-gray-600 rounded">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-medium text-white">{entry.action}</span>
-                        <span className="text-xs text-gray-400">
-                          {new Date(entry.timestamp).toLocaleDateString()}
-                        </span>
+                {(selectedAnalysis.protocolHistory || []).length === 0 ? (
+                  <Card className="bg-gray-800 border-gray-700">
+                    <CardContent className="p-6">
+                      <div className="text-center">
+                        <Clock className="w-12 h-12 text-gray-500 mx-auto mb-2" />
+                        <p className="text-gray-400 mb-2">No history available</p>
+                        <p className="text-gray-500 text-sm">
+                          Protocol changes and updates will appear here
+                        </p>
                       </div>
-                      {entry.details && (
-                        <div className="text-xs text-gray-300">
-                          {JSON.stringify(entry.details, null, 2)}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-3">
+                    {(selectedAnalysis.protocolHistory || []).map((entry) => (
+                      <Card key={entry.id} className="bg-gray-800/50 border-gray-600">
+                        <CardContent className="p-4">
+                          <div className="flex items-start space-x-4">
+                            {/* Timeline Icon */}
+                            <div className="flex-shrink-0">
+                              {entry.action === 'ANALYSIS_IMPORTED' && (
+                                <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
+                                  <Brain className="w-4 h-4 text-blue-400" />
+                                </div>
+                              )}
+                              {entry.action === 'PROTOCOL_UPDATED' && (
+                                <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
+                                  <CheckCircle className="w-4 h-4 text-green-400" />
+                                </div>
+                              )}
+                              {entry.action === 'SUPPLEMENT_MODIFIED' && (
+                                <div className="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center">
+                                  <Pills className="w-4 h-4 text-purple-400" />
+                                </div>
+                              )}
+                              {!['ANALYSIS_IMPORTED', 'PROTOCOL_UPDATED', 'SUPPLEMENT_MODIFIED'].includes(entry.action) && (
+                                <div className="w-8 h-8 bg-gray-500/20 rounded-full flex items-center justify-center">
+                                  <Activity className="w-4 h-4 text-gray-400" />
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium text-white">
+                                  {entry.action === 'ANALYSIS_IMPORTED' && 'Claude Analysis Imported'}
+                                  {entry.action === 'PROTOCOL_UPDATED' && 'Protocol Updated'}
+                                  {entry.action === 'SUPPLEMENT_MODIFIED' && 'Supplement Modified'}
+                                  {!['ANALYSIS_IMPORTED', 'PROTOCOL_UPDATED', 'SUPPLEMENT_MODIFIED'].includes(entry.action) && entry.action.replace(/_/g, ' ')}
+                                </h4>
+                                <span className="text-xs text-gray-400 flex items-center">
+                                  <Clock className="w-3 h-3 mr-1" />
+                                  {new Date(entry.timestamp).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </span>
+                              </div>
+
+                              {/* Details */}
+                              {entry.details && (
+                                <div className="space-y-2">
+                                  {entry.action === 'ANALYSIS_IMPORTED' && (
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                                      {entry.details.importedAt && (
+                                        <div className="bg-gray-700/50 p-2 rounded">
+                                          <div className="text-gray-400">Imported</div>
+                                          <div className="text-white font-medium">
+                                            {new Date(entry.details.importedAt).toLocaleDateString()}
+                                          </div>
+                                        </div>
+                                      )}
+                                      {entry.details.fileSize && (
+                                        <div className="bg-gray-700/50 p-2 rounded">
+                                          <div className="text-gray-400">File Size</div>
+                                          <div className="text-white font-medium">
+                                            {(entry.details.fileSize / 1024).toFixed(1)} KB
+                                          </div>
+                                        </div>
+                                      )}
+                                      {entry.details.protocolPhases !== undefined && (
+                                        <div className="bg-gray-700/50 p-2 rounded">
+                                          <div className="text-gray-400">Protocol Phases</div>
+                                          <div className="text-white font-medium">
+                                            {entry.details.protocolPhases}
+                                          </div>
+                                        </div>
+                                      )}
+                                      {entry.details.supplements !== undefined && (
+                                        <div className="bg-gray-700/50 p-2 rounded">
+                                          <div className="text-gray-400">Supplements</div>
+                                          <div className="text-white font-medium">
+                                            {entry.details.supplements}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                  
+                                  {/* Fallback for other action types */}
+                                  {entry.action !== 'ANALYSIS_IMPORTED' && entry.details && (
+                                    <div className="bg-gray-700/30 p-3 rounded border border-gray-600">
+                                      <pre className="text-xs text-gray-300 whitespace-pre-wrap overflow-auto">
+                                        {typeof entry.details === 'string' ? entry.details : JSON.stringify(entry.details, null, 2)}
+                                      </pre>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </CardContent>
