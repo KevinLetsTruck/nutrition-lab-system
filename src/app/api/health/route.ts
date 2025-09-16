@@ -80,8 +80,13 @@ export async function POST(request: NextRequest) {
     
     // Step 7: Note creation test
     console.log('🔄 Step 7: Creating test note...');
+    
+    // Generate a unique ID for the note
+    const noteId = `cm${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
+    
     const note = await prisma.note.create({
       data: {
+        id: noteId,
         clientId,
         noteType: "COACHING",
         title: "Test Note via Health Endpoint",

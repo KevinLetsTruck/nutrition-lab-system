@@ -75,10 +75,17 @@ export async function POST(
       updatedAt: new Date(),
     };
 
-    console.log('📝 Creating note with data:', noteData);
+    // Generate a unique ID for the note
+    const noteId = `cm${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
+    const noteDataWithId = {
+      id: noteId,
+      ...noteData
+    };
+
+    console.log('📝 Creating note with data:', noteDataWithId);
 
     const note = await prisma.note.create({
-      data: noteData,
+      data: noteDataWithId,
       include: {
         client: {
           select: {
