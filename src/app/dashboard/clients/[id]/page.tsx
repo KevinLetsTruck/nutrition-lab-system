@@ -423,24 +423,7 @@ export default function ClientDetailPage() {
     const uploadPromises: Promise<any>[] = [];
 
     for (const file of files) {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("clientId", params.id as string);
-      formData.append("documentType", "other"); // Default type, AI will determine actual type
-
-      const uploadPromise = fetch("/api/documents", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      }).then((response) => {
-        if (!response.ok) {
-          throw new Error(`Failed to upload ${file.name}`);
-        }
-        return response.json();
-      });
-
+      const uploadPromise = uploadFileWithRetry(file, token);
       uploadPromises.push(uploadPromise);
     }
 
@@ -453,6 +436,54 @@ export default function ClientDetailPage() {
       );
       throw err; // Re-throw to let modal handle the error state
     }
+  };
+
+  const uploadFileWithRetry = async (file: File, token: string | null, maxRetries = 3): Promise<any> => {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`🔄 Upload attempt ${attempt}/${maxRetries} for ${file.name}`);
+        
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("clientId", params.id as string);
+        formData.append("documentType", "other");
+
+        const response = await fetch("/api/documents", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        if (response.ok) {
+          console.log(`✅ Upload successful for ${file.name}`);
+          return await response.json();
+        }
+
+        // If it's a 500 error and we have retries left, try again
+        if (response.status === 500 && attempt < maxRetries) {
+          console.log(`⚠️ 500 error, retrying in ${attempt * 1000}ms...`);
+          await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+          continue;
+        }
+
+        // If it's not a 500 error or we're out of retries, throw
+        throw new Error(`HTTP ${response.status}: Failed to upload ${file.name}`);
+
+      } catch (error) {
+        console.error(`❌ Upload attempt ${attempt} failed:`, error);
+        
+        if (attempt === maxRetries) {
+          throw error;
+        }
+        
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+      }
+    }
+    
+    throw new Error(`Failed to upload ${file.name} after ${maxRetries} attempts`);
   };
 
   const fetchNoteCounts = async () => {

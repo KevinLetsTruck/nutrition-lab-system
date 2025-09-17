@@ -1,58 +1,60 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Upload Test</title>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Direct Upload Test</h1>
-    <input type="file" id="fileInput">
+    <input type="file" id="fileInput" />
     <button onclick="testUpload()">Test Upload</button>
     <div id="result"></div>
 
     <script>
-        async function testUpload() {
-            const fileInput = document.getElementById('fileInput');
-            const resultDiv = document.getElementById('result');
-            
-            if (!fileInput.files[0]) {
-                resultDiv.innerHTML = 'Please select a file first';
-                return;
+      async function testUpload() {
+        const fileInput = document.getElementById("fileInput");
+        const resultDiv = document.getElementById("result");
+
+        if (!fileInput.files[0]) {
+          resultDiv.innerHTML = "Please select a file first";
+          return;
+        }
+
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("clientId", "cmf5lrk08000xmy2y6l40kg94");
+        formData.append("documentType", "other");
+
+        console.log("🔍 Sending request...");
+        console.log("📁 File:", file.name, file.size, file.type);
+
+        try {
+          const response = await fetch(
+            "https://nutrition-lab-system-production-0fa7.up.railway.app/api/documents",
+            {
+              method: "POST",
+              headers: {
+                Authorization: "Bearer test-token-from-browser",
+              },
+              body: formData,
             }
-            
-            const file = fileInput.files[0];
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('clientId', 'cmf5lrk08000xmy2y6l40kg94');
-            formData.append('documentType', 'other');
-            
-            console.log('🔍 Sending request...');
-            console.log('📁 File:', file.name, file.size, file.type);
-            
-            try {
-                const response = await fetch('https://nutrition-lab-system-production-0fa7.up.railway.app/api/documents', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer test-token-from-browser'
-                    },
-                    body: formData
-                });
-                
-                console.log('📊 Response status:', response.status);
-                console.log('📋 Response headers:', [...response.headers.entries()]);
-                
-                const responseText = await response.text();
-                console.log('📄 Response body:', responseText);
-                
-                resultDiv.innerHTML = `
+          );
+
+          console.log("📊 Response status:", response.status);
+          console.log("📋 Response headers:", [...response.headers.entries()]);
+
+          const responseText = await response.text();
+          console.log("📄 Response body:", responseText);
+
+          resultDiv.innerHTML = `
                     <h3>Response Status: ${response.status}</h3>
                     <pre>${responseText}</pre>
                 `;
-                
-            } catch (error) {
-                console.error('❌ Request failed:', error);
-                resultDiv.innerHTML = `<h3>Error: ${error.message}</h3>`;
-            }
+        } catch (error) {
+          console.error("❌ Request failed:", error);
+          resultDiv.innerHTML = `<h3>Error: ${error.message}</h3>`;
         }
+      }
     </script>
-</body>
+  </body>
 </html>
