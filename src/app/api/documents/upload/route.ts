@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { medicalDocStorage } from "@/lib/medical/storage-service";
+import { v4 as uuidv4 } from "uuid";
 
 interface AuthPayload {
   id: string;
@@ -133,6 +134,7 @@ export async function POST(request: NextRequest) {
     // Create document record
     const document = await prisma.document.create({
       data: {
+        id: uuidv4(), // Generate unique ID for the document
         clientId,
         fileName: file.name,
         originalFileName: file.name,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { promises as fs } from "fs";
 import path from "path";
+import { v4 as uuidv4 } from "uuid";
 
 export async function GET(request: NextRequest) {
   try {
@@ -149,6 +150,7 @@ export async function POST(request: NextRequest) {
     try {
       document = await prisma.document.create({
         data: {
+          id: uuidv4(), // Generate unique ID for the document
           clientId,
           fileName: file.name,
           originalFileName: file.name,
