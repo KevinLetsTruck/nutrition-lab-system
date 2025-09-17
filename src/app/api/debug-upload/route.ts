@@ -8,60 +8,77 @@ export async function POST(request: NextRequest) {
     console.log("📝 Method:", request.method);
     console.log("📏 Content-Length:", request.headers.get("content-length"));
     console.log("📄 Content-Type:", request.headers.get("content-type"));
-    
+
     // Try to get the raw body first
     try {
       const contentType = request.headers.get("content-type") || "";
       console.log("🔍 Content-Type:", contentType);
-      
+
       if (contentType.includes("multipart/form-data")) {
         console.log("📦 Attempting FormData parsing...");
         const formData = await request.formData();
         console.log("✅ FormData parsed successfully");
-        
+
         const entries = Array.from(formData.entries());
         console.log("📋 FormData entries:", entries.length);
-        
+
         for (const [key, value] of entries) {
-          if (typeof value === 'object' && value !== null && 'name' in value && 'size' in value) {
+          if (
+            typeof value === "object" &&
+            value !== null &&
+            "name" in value &&
+            "size" in value
+          ) {
             // This is likely a File object
-            console.log(`📁 ${key}: File(${(value as any).name}, ${(value as any).size} bytes, ${(value as any).type})`);
+            console.log(
+              `📁 ${key}: File(${(value as any).name}, ${
+                (value as any).size
+              } bytes, ${(value as any).type})`
+            );
           } else {
             console.log(`📝 ${key}: ${value}`);
           }
         }
-        
-        return NextResponse.json({ 
-          success: true, 
+
+        return NextResponse.json({
+          success: true,
           message: "FormData parsed successfully",
-          entries: entries.length 
+          entries: entries.length,
         });
       } else {
         console.log("📄 Not FormData, trying text...");
         const text = await request.text();
         console.log("📄 Body text length:", text.length);
         console.log("📄 Body preview:", text.substring(0, 200));
-        
-        return NextResponse.json({ 
-          success: true, 
+
+        return NextResponse.json({
+          success: true,
           message: "Text body received",
           bodyLength: text.length,
-          contentType 
+          contentType,
         });
       }
     } catch (parseError) {
       console.log("❌ Body parsing failed:", parseError);
-      return NextResponse.json({ 
-        error: "Body parsing failed", 
-        details: parseError instanceof Error ? parseError.message : "Unknown parse error" 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Body parsing failed",
+          details:
+            parseError instanceof Error
+              ? parseError.message
+              : "Unknown parse error",
+        },
+        { status: 400 }
+      );
     }
-    
   } catch (error) {
     console.log("❌ Debug endpoint error:", error);
-    return NextResponse.json({ 
-      error: "Debug endpoint failed", 
-      details: error instanceof Error ? error.message : "Unknown error" 
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Debug endpoint failed",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }
