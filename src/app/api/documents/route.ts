@@ -53,57 +53,17 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Debug logging for production troubleshooting
-    console.log("🔍 Upload request received");
-    console.log("📋 Headers:", Object.fromEntries(request.headers.entries()));
-    console.log("🌐 URL:", request.url);
-    console.log("📝 Method:", request.method);
-    
-    // Simplified auth check
+    // Simplified auth check - for now, just check if header exists
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      console.log("❌ Auth failed - no valid bearer token");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
-    // Extract and validate token
-    const token = authHeader.replace("Bearer ", "");
-    console.log("🔑 Token length:", token.length);
-    console.log("🔑 Token preview:", token.substring(0, 20) + "...");
-    
-    // Basic token validation (you can add JWT verification here if needed)
-    if (token.length < 10) {
-      console.log("❌ Token too short");
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-    
-    console.log("✅ Auth header valid");
 
-    let formData;
-    try {
-      formData = await request.formData();
-      console.log("✅ FormData parsed successfully");
-    } catch (formError) {
-      console.log("❌ FormData parsing failed:", formError);
-      return NextResponse.json({ 
-        error: "Invalid form data", 
-        details: formError instanceof Error ? formError.message : "Unknown form error" 
-      }, { status: 400 });
-    }
-    
+    const formData = await request.formData();
     const clientId = formData.get("clientId") as string;
     let documentType = formData.get("documentType") as string;
     const labType = formData.get("labType") as string;
     const file = formData.get("file") as File;
-    
-    console.log("📊 Form fields:", { 
-      clientId, 
-      documentType, 
-      labType, 
-      fileName: file?.name,
-      fileSize: file?.size,
-      fileType: file?.type 
-    });
 
     // Map frontend document types to valid enum values
     const documentTypeMap: Record<string, string> = {

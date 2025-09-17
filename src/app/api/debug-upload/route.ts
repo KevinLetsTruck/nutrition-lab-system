@@ -23,8 +23,9 @@ export async function POST(request: NextRequest) {
         console.log("📋 FormData entries:", entries.length);
         
         for (const [key, value] of entries) {
-          if (value instanceof File) {
-            console.log(`📁 ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+          if (typeof value === 'object' && value !== null && 'name' in value && 'size' in value) {
+            // This is likely a File object
+            console.log(`📁 ${key}: File(${(value as any).name}, ${(value as any).size} bytes, ${(value as any).type})`);
           } else {
             console.log(`📝 ${key}: ${value}`);
           }

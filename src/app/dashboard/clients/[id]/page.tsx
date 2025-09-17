@@ -422,7 +422,7 @@ export default function ClientDetailPage() {
       formData.append("clientId", params.id as string);
       formData.append("documentType", "other"); // Default type, AI will determine actual type
 
-      const uploadPromise = fetch("/api/debug-upload", {
+      const uploadPromise = fetch("/api/documents", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
