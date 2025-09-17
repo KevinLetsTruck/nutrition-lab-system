@@ -67,7 +67,11 @@ export async function POST(request: NextRequest) {
     // Simplified auth check - for now, just check if header exists
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const errorResponse = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      errorResponse.headers.set("Access-Control-Allow-Origin", "*");
+      errorResponse.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+      errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      return errorResponse;
     }
 
     const formData = await request.formData();
@@ -94,10 +98,14 @@ export async function POST(request: NextRequest) {
     documentType = documentTypeMap[documentType?.toLowerCase()] || "UNKNOWN";
 
     if (!clientId || !documentType || !file) {
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
+      errorResponse.headers.set("Access-Control-Allow-Origin", "*");
+      errorResponse.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+      errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      return errorResponse;
     }
 
     // Verify client exists
@@ -107,14 +115,18 @@ export async function POST(request: NextRequest) {
       });
 
       if (!client) {
-        return NextResponse.json(
+        const errorResponse = NextResponse.json(
           { error: "Client not found" },
           { status: 404 }
         );
+        errorResponse.headers.set("Access-Control-Allow-Origin", "*");
+        errorResponse.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+        errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        return errorResponse;
       }
     } catch (dbError) {
       console.error("Database connection error:", dbError);
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         {
           error: "Database connection failed",
           details:
@@ -124,6 +136,10 @@ export async function POST(request: NextRequest) {
         },
         { status: 500 }
       );
+      errorResponse.headers.set("Access-Control-Allow-Origin", "*");
+      errorResponse.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+      errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      return errorResponse;
     }
 
     // Convert file to buffer and upload to S3
@@ -194,7 +210,7 @@ export async function POST(request: NextRequest) {
       });
     } catch (createError) {
       console.error("Document creation error:", createError);
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         {
           error: "Failed to create document record",
           details:
@@ -204,6 +220,10 @@ export async function POST(request: NextRequest) {
         },
         { status: 500 }
       );
+      errorResponse.headers.set("Access-Control-Allow-Origin", "*");
+      errorResponse.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+      errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      return errorResponse;
     }
 
     const response = NextResponse.json(document, { status: 201 });
@@ -227,24 +247,32 @@ export async function POST(request: NextRequest) {
       console.error("Error stack:", error.stack);
     }
 
+    let errorResponse;
     if (
       error instanceof Error &&
       (error.message.includes("authorization") ||
         error.message.includes("token"))
     ) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
+      errorResponse = NextResponse.json({ error: error.message }, { status: 401 });
+    } else {
+      // Return more detailed error information for debugging
+      errorResponse = NextResponse.json(
+        {
+          error:
+            error instanceof Error ? error.message : "Failed to create document",
+          details: error instanceof Error ? error.stack : "Unknown error",
+          timestamp: new Date().toISOString(),
+        },
+        { status: 500 }
+      );
     }
 
-    // Return more detailed error information for debugging
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Failed to create document",
-        details: error instanceof Error ? error.stack : "Unknown error",
-        timestamp: new Date().toISOString(),
-      },
-      { status: 500 }
-    );
+    // Add CORS headers to error responses too
+    errorResponse.headers.set("Access-Control-Allow-Origin", "*");
+    errorResponse.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+    return errorResponse;
   }
 }
 
