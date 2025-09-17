@@ -95,14 +95,20 @@ export async function POST(request: NextRequest) {
       });
 
       if (!client) {
-        return NextResponse.json({ error: "Client not found" }, { status: 404 });
+        return NextResponse.json(
+          { error: "Client not found" },
+          { status: 404 }
+        );
       }
     } catch (dbError) {
       console.error("Database connection error:", dbError);
       return NextResponse.json(
-        { 
+        {
           error: "Database connection failed",
-          details: dbError instanceof Error ? dbError.message : "Unknown database error"
+          details:
+            dbError instanceof Error
+              ? dbError.message
+              : "Unknown database error",
         },
         { status: 500 }
       );
@@ -113,7 +119,12 @@ export async function POST(request: NextRequest) {
 
     // Generate secure filename to prevent conflicts
     const timestamp = Date.now();
-    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    // More aggressive filename sanitization for production stability
+    const sanitizedFileName = file.name
+      .replace(/[^a-zA-Z0-9.-]/g, "_")
+      .replace(/_+/g, "_") // Replace multiple underscores with single
+      .replace(/^_|_$/g, "") // Remove leading/trailing underscores
+      .toLowerCase();
     const uniqueFileName = `${timestamp}_${sanitizedFileName}`;
 
     // Import and use S3 storage service
@@ -171,9 +182,12 @@ export async function POST(request: NextRequest) {
     } catch (createError) {
       console.error("Document creation error:", createError);
       return NextResponse.json(
-        { 
+        {
           error: "Failed to create document record",
-          details: createError instanceof Error ? createError.message : "Unknown creation error"
+          details:
+            createError instanceof Error
+              ? createError.message
+              : "Unknown creation error",
         },
         { status: 500 }
       );
@@ -182,7 +196,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(document, { status: 201 });
   } catch (error) {
     console.error("❌ Document creation error:", error);
-    
+
     // Enhanced error logging for production debugging
     if (error instanceof Error) {
       console.error("Error name:", error.name);
@@ -201,7 +215,8 @@ export async function POST(request: NextRequest) {
     // Return more detailed error information for debugging
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Failed to create document",
+        error:
+          error instanceof Error ? error.message : "Failed to create document",
         details: error instanceof Error ? error.stack : "Unknown error",
         timestamp: new Date().toISOString(),
       },
