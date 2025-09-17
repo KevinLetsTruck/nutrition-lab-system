@@ -52,28 +52,17 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("🚀 Document upload started");
-
     // Simplified auth check
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      console.log("❌ No auth header found");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    console.log("✅ Auth header present");
 
     const formData = await request.formData();
     const clientId = formData.get("clientId") as string;
     let documentType = formData.get("documentType") as string;
     const labType = formData.get("labType") as string;
     const file = formData.get("file") as File;
-
-    console.log("📋 Form data:", {
-      clientId,
-      documentType,
-      labType,
-      fileName: file?.name,
-    });
 
     // Map frontend document types to valid enum values
     const documentTypeMap: Record<string, string> = {
@@ -91,32 +80,33 @@ export async function POST(request: NextRequest) {
 
     // Convert to valid enum value or default to UNKNOWN
     documentType = documentTypeMap[documentType?.toLowerCase()] || "UNKNOWN";
-    console.log("🔄 Mapped documentType:", documentType);
 
     if (!clientId || !documentType || !file) {
-      console.log("❌ Missing required fields:", {
-        clientId: !!clientId,
-        documentType: !!documentType,
-        file: !!file,
-      });
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
-    console.log("✅ All required fields present");
 
     // Verify client exists
-    console.log("🔍 Looking up client:", clientId);
-    const client = await prisma.client.findUnique({
-      where: { id: clientId },
-    });
+    try {
+      const client = await prisma.client.findUnique({
+        where: { id: clientId },
+      });
 
-    if (!client) {
-      console.log("❌ Client not found:", clientId);
-      return NextResponse.json({ error: "Client not found" }, { status: 404 });
+      if (!client) {
+        return NextResponse.json({ error: "Client not found" }, { status: 404 });
+      }
+    } catch (dbError) {
+      console.error("Database connection error:", dbError);
+      return NextResponse.json(
+        { 
+          error: "Database connection failed",
+          details: dbError instanceof Error ? dbError.message : "Unknown database error"
+        },
+        { status: 500 }
+      );
     }
-    console.log("✅ Client found:", client.firstName, client.lastName);
 
     // Convert file to buffer and upload to S3
     const fileBuffer = Buffer.from(await file.arrayBuffer());
@@ -130,7 +120,6 @@ export async function POST(request: NextRequest) {
     const { medicalDocStorage } = await import("@/lib/medical/storage-service");
 
     // Upload to S3
-    console.log("📤 Starting file upload...");
     const uploadResult = await medicalDocStorage.uploadFile(
       fileBuffer,
       uniqueFileName,
@@ -144,47 +133,62 @@ export async function POST(request: NextRequest) {
         },
       }
     );
-    console.log("✅ File upload completed:", uploadResult.url);
 
-    console.log("💾 Creating database record...");
-    const document = await prisma.document.create({
-      data: {
-        clientId,
-        fileName: file.name,
-        originalFileName: file.name,
-        fileType: file.type,
-        fileSize: file.size,
-        fileUrl: uploadResult.url, // S3 URL
-        storageProvider: "S3", // Mark as S3 storage
-        storageKey: uploadResult.key, // S3 key for retrieval
-        documentType,
-        labType: labType || null,
-        analysisStatus: "PENDING", // Using the correct enum value
-        status: "UPLOADED", // Processing status
-        tags: [], // Empty array for now, can be populated later
-        metadata: {
+    let document;
+    try {
+      document = await prisma.document.create({
+        data: {
+          clientId,
+          fileName: file.name,
           originalFileName: file.name,
-          uploadedAt: new Date().toISOString(),
-          labType: labType || undefined,
-        },
-      },
-      include: {
-        Client: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
+          fileType: file.type,
+          fileSize: file.size,
+          fileUrl: uploadResult.url, // S3 URL
+          storageProvider: "S3", // Mark as S3 storage
+          storageKey: uploadResult.key, // S3 key for retrieval
+          documentType,
+          labType: labType || null,
+          analysisStatus: "PENDING", // Using the correct enum value
+          status: "UPLOADED", // Processing status
+          tags: [], // Empty array for now, can be populated later
+          metadata: {
+            originalFileName: file.name,
+            uploadedAt: new Date().toISOString(),
+            labType: labType || undefined,
           },
         },
-      },
-    });
-    console.log("✅ Database record created:", document.id);
+        include: {
+          Client: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      });
+    } catch (createError) {
+      console.error("Document creation error:", createError);
+      return NextResponse.json(
+        { 
+          error: "Failed to create document record",
+          details: createError instanceof Error ? createError.message : "Unknown creation error"
+        },
+        { status: 500 }
+      );
+    }
 
-    console.log("🎉 Upload completed successfully");
     return NextResponse.json(document, { status: 201 });
   } catch (error) {
     console.error("❌ Document creation error:", error);
+    
+    // Enhanced error logging for production debugging
+    if (error instanceof Error) {
+      console.error("Error name:", error.name);
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
 
     if (
       error instanceof Error &&
@@ -194,10 +198,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
+    // Return more detailed error information for debugging
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to create document",
+        error: error instanceof Error ? error.message : "Failed to create document",
+        details: error instanceof Error ? error.stack : "Unknown error",
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );
