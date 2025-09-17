@@ -65,6 +65,18 @@ export async function POST(request: NextRequest) {
       console.log("❌ Auth failed - no valid bearer token");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    
+    // Extract and validate token
+    const token = authHeader.replace("Bearer ", "");
+    console.log("🔑 Token length:", token.length);
+    console.log("🔑 Token preview:", token.substring(0, 20) + "...");
+    
+    // Basic token validation (you can add JWT verification here if needed)
+    if (token.length < 10) {
+      console.log("❌ Token too short");
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+    
     console.log("✅ Auth header valid");
 
     let formData;
