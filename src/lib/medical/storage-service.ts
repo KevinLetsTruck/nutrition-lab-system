@@ -92,6 +92,24 @@ export class S3StorageService {
       };
     }
 
+    // Sanitize metadata values for HTTP headers (S3 metadata becomes x-amz-meta-* headers)
+    const sanitizeMetadataValue = (value: string): string => {
+      return value
+        .replace(/[^\x20-\x7E]/g, '') // Remove non-ASCII characters
+        .replace(/[\r\n\t]/g, ' ')    // Replace line breaks and tabs with spaces
+        .replace(/\s+/g, ' ')         // Replace multiple spaces with single space
+        .trim();                      // Remove leading/trailing whitespace
+    };
+
+    const sanitizedMetadata: Record<string, string> = {};
+    if (options.metadata) {
+      for (const [key, value] of Object.entries(options.metadata)) {
+        if (value !== undefined) {
+          sanitizedMetadata[key] = sanitizeMetadataValue(value);
+        }
+      }
+    }
+
     const uploadParams = {
       Bucket: this.bucketName,
       Key: key,
@@ -101,7 +119,7 @@ export class S3StorageService {
         clientId,
         documentType: options.documentType || "unknown",
         uploadedAt: new Date().toISOString(),
-        ...options.metadata,
+        ...sanitizedMetadata,
       },
     };
 

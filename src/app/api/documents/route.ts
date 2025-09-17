@@ -67,10 +67,19 @@ export async function POST(request: NextRequest) {
     // Simplified auth check - for now, just check if header exists
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      const errorResponse = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const errorResponse = NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
       errorResponse.headers.set("Access-Control-Allow-Origin", "*");
-      errorResponse.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-      errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      errorResponse.headers.set(
+        "Access-Control-Allow-Methods",
+        "POST, OPTIONS"
+      );
+      errorResponse.headers.set(
+        "Access-Control-Allow-Headers",
+        "Content-Type, Authorization"
+      );
       return errorResponse;
     }
 
@@ -103,8 +112,14 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
       errorResponse.headers.set("Access-Control-Allow-Origin", "*");
-      errorResponse.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-      errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      errorResponse.headers.set(
+        "Access-Control-Allow-Methods",
+        "POST, OPTIONS"
+      );
+      errorResponse.headers.set(
+        "Access-Control-Allow-Headers",
+        "Content-Type, Authorization"
+      );
       return errorResponse;
     }
 
@@ -120,8 +135,14 @@ export async function POST(request: NextRequest) {
           { status: 404 }
         );
         errorResponse.headers.set("Access-Control-Allow-Origin", "*");
-        errorResponse.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-        errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        errorResponse.headers.set(
+          "Access-Control-Allow-Methods",
+          "POST, OPTIONS"
+        );
+        errorResponse.headers.set(
+          "Access-Control-Allow-Headers",
+          "Content-Type, Authorization"
+        );
         return errorResponse;
       }
     } catch (dbError) {
@@ -137,8 +158,14 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
       errorResponse.headers.set("Access-Control-Allow-Origin", "*");
-      errorResponse.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-      errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      errorResponse.headers.set(
+        "Access-Control-Allow-Methods",
+        "POST, OPTIONS"
+      );
+      errorResponse.headers.set(
+        "Access-Control-Allow-Headers",
+        "Content-Type, Authorization"
+      );
       return errorResponse;
     }
 
@@ -167,7 +194,7 @@ export async function POST(request: NextRequest) {
         contentType: file.type,
         documentType,
         metadata: {
-          originalFileName: file.name,
+          originalFileName: file.name, // Original filename (will be sanitized by storage service)
           labType: labType || undefined,
         },
       }
@@ -221,8 +248,14 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
       errorResponse.headers.set("Access-Control-Allow-Origin", "*");
-      errorResponse.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-      errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      errorResponse.headers.set(
+        "Access-Control-Allow-Methods",
+        "POST, OPTIONS"
+      );
+      errorResponse.headers.set(
+        "Access-Control-Allow-Headers",
+        "Content-Type, Authorization"
+      );
       return errorResponse;
     }
 
@@ -253,13 +286,18 @@ export async function POST(request: NextRequest) {
       (error.message.includes("authorization") ||
         error.message.includes("token"))
     ) {
-      errorResponse = NextResponse.json({ error: error.message }, { status: 401 });
+      errorResponse = NextResponse.json(
+        { error: error.message },
+        { status: 401 }
+      );
     } else {
       // Return more detailed error information for debugging
       errorResponse = NextResponse.json(
         {
           error:
-            error instanceof Error ? error.message : "Failed to create document",
+            error instanceof Error
+              ? error.message
+              : "Failed to create document",
           details: error instanceof Error ? error.stack : "Unknown error",
           timestamp: new Date().toISOString(),
         },
@@ -270,7 +308,10 @@ export async function POST(request: NextRequest) {
     // Add CORS headers to error responses too
     errorResponse.headers.set("Access-Control-Allow-Origin", "*");
     errorResponse.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-    errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    errorResponse.headers.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization"
+    );
 
     return errorResponse;
   }
