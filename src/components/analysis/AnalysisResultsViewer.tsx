@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Brain,
   Target,
-  Pills,
+  Pill,
   TrendingUp,
   AlertTriangle,
   CheckCircle,
@@ -72,14 +72,16 @@ interface AnalysisResultsViewerProps {
   clientName: string;
 }
 
-export function AnalysisResultsViewer({ 
-  clientId, 
-  clientName 
+export function AnalysisResultsViewer({
+  clientId,
+  clientName,
 }: AnalysisResultsViewerProps) {
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedAnalysis, setSelectedAnalysis] = useState<Analysis | null>(null);
+  const [selectedAnalysis, setSelectedAnalysis] = useState<Analysis | null>(
+    null
+  );
 
   useEffect(() => {
     fetchAnalyses();
@@ -87,23 +89,29 @@ export function AnalysisResultsViewer({
 
   const fetchAnalyses = async () => {
     try {
-      console.log('🔍 AnalysisResultsViewer: Fetching analyses for client:', clientId);
+      console.log(
+        "🔍 AnalysisResultsViewer: Fetching analyses for client:",
+        clientId
+      );
       const token = localStorage.getItem("token");
       if (!token) {
-        console.log('❌ No token found');
+        console.log("❌ No token found");
         setAnalyses([]);
         setLoading(false);
         return;
       }
 
-      console.log('📡 Making API call to:', `/api/clients/${clientId}/import-analysis`);
+      console.log(
+        "📡 Making API call to:",
+        `/api/clients/${clientId}/import-analysis`
+      );
       const response = await fetch(`/api/clients/${clientId}/import-analysis`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      console.log('📊 API Response status:', response.status);
+      console.log("📊 API Response status:", response.status);
 
       if (!response.ok) {
         // If it's a 404 or 500, just show no analyses instead of error
@@ -114,18 +122,18 @@ export function AnalysisResultsViewer({
       }
 
       const data = await response.json();
-      console.log('📋 API Response data:', data);
-      console.log('🎯 Analyses found:', data.analyses?.length || 0);
-      
+      console.log("📋 API Response data:", data);
+      console.log("🎯 Analyses found:", data.analyses?.length || 0);
+
       if (data.analyses && data.analyses.length > 0) {
-        console.log('✅ First analysis:', {
+        console.log("✅ First analysis:", {
           id: data.analyses[0].id,
           protocolPhases: data.analyses[0].protocolPhases?.length || 0,
           supplements: data.analyses[0].supplements?.length || 0,
-          rootCauses: data.analyses[0].rootCauses?.length || 0
+          rootCauses: data.analyses[0].rootCauses?.length || 0,
         });
       }
-      
+
       setAnalyses(data.analyses || []);
       if (data.analyses && data.analyses.length > 0) {
         setSelectedAnalysis(data.analyses[0]); // Select most recent
@@ -147,11 +155,16 @@ export function AnalysisResultsViewer({
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "CRITICAL": return "bg-red-500";
-      case "HIGH": return "bg-orange-500";
-      case "MEDIUM": return "bg-yellow-500";
-      case "LOW": return "bg-blue-500";
-      default: return "bg-gray-500";
+      case "CRITICAL":
+        return "bg-red-500";
+      case "HIGH":
+        return "bg-orange-500";
+      case "MEDIUM":
+        return "bg-yellow-500";
+      case "LOW":
+        return "bg-blue-500";
+      default:
+        return "bg-gray-500";
     }
   };
 
@@ -228,12 +241,17 @@ export function AnalysisResultsViewer({
                     <span className="font-medium">
                       {new Date(analysis.analysisDate).toLocaleDateString()}
                     </span>
-                    <span className={`text-sm ${getConfidenceColor(analysis.confidence)}`}>
+                    <span
+                      className={`text-sm ${getConfidenceColor(
+                        analysis.confidence
+                      )}`}
+                    >
                       {(analysis.confidence * 100).toFixed(0)}%
                     </span>
                   </div>
                   <div className="text-xs text-gray-400">
-                    {(analysis.rootCauses || []).length} root causes • {(analysis.supplements || []).length} supplements
+                    {(analysis.rootCauses || []).length} root causes •{" "}
+                    {(analysis.supplements || []).length} supplements
                   </div>
                 </button>
               ))}
@@ -255,8 +273,8 @@ export function AnalysisResultsViewer({
                 <Badge variant="outline" className="text-gray-300">
                   v{selectedAnalysis.version}
                 </Badge>
-                <Badge 
-                  variant="outline" 
+                <Badge
+                  variant="outline"
                   className={getConfidenceColor(selectedAnalysis.confidence)}
                 >
                   {(selectedAnalysis.confidence * 100).toFixed(1)}% Confidence
@@ -280,12 +298,19 @@ export function AnalysisResultsViewer({
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-2">
                         <Target className="w-6 h-6 text-red-400" />
-                        <Badge variant="outline" className="text-red-300 border-red-400">
+                        <Badge
+                          variant="outline"
+                          className="text-red-300 border-red-400"
+                        >
                           {(selectedAnalysis.rootCauses || []).length} Issues
                         </Badge>
                       </div>
-                      <h3 className="font-semibold text-white mb-1">Root Causes</h3>
-                      <p className="text-red-200 text-xs">Primary dysfunction patterns</p>
+                      <h3 className="font-semibold text-white mb-1">
+                        Root Causes
+                      </h3>
+                      <p className="text-red-200 text-xs">
+                        Primary dysfunction patterns
+                      </p>
                     </CardContent>
                   </Card>
 
@@ -293,12 +318,19 @@ export function AnalysisResultsViewer({
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-2">
                         <Star className="w-6 h-6 text-yellow-400" />
-                        <Badge variant="outline" className="text-yellow-300 border-yellow-400">
+                        <Badge
+                          variant="outline"
+                          className="text-yellow-300 border-yellow-400"
+                        >
                           {(selectedAnalysis.priorityAreas || []).length} Areas
                         </Badge>
                       </div>
-                      <h3 className="font-semibold text-white mb-1">Priority Areas</h3>
-                      <p className="text-yellow-200 text-xs">Focus intervention points</p>
+                      <h3 className="font-semibold text-white mb-1">
+                        Priority Areas
+                      </h3>
+                      <p className="text-yellow-200 text-xs">
+                        Focus intervention points
+                      </p>
                     </CardContent>
                   </Card>
 
@@ -306,12 +338,19 @@ export function AnalysisResultsViewer({
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-2">
                         <AlertTriangle className="w-6 h-6 text-orange-400" />
-                        <Badge variant="outline" className="text-orange-300 border-orange-400">
+                        <Badge
+                          variant="outline"
+                          className="text-orange-300 border-orange-400"
+                        >
                           {(selectedAnalysis.riskFactors || []).length} Factors
                         </Badge>
                       </div>
-                      <h3 className="font-semibold text-white mb-1">Risk Factors</h3>
-                      <p className="text-orange-200 text-xs">Environmental & lifestyle</p>
+                      <h3 className="font-semibold text-white mb-1">
+                        Risk Factors
+                      </h3>
+                      <p className="text-orange-200 text-xs">
+                        Environmental & lifestyle
+                      </p>
                     </CardContent>
                   </Card>
                 </div>
@@ -322,23 +361,35 @@ export function AnalysisResultsViewer({
                     <h4 className="font-semibold text-white flex items-center">
                       <Target className="w-5 h-5 mr-2 text-red-400" />
                       Primary Dysfunction Patterns
-                      <Badge variant="outline" className="ml-2 text-red-300 border-red-400">
+                      <Badge
+                        variant="outline"
+                        className="ml-2 text-red-300 border-red-400"
+                      >
                         {(selectedAnalysis.rootCauses || []).length} identified
                       </Badge>
                     </h4>
                   </CardHeader>
                   <CardContent>
                     <div className="grid gap-3">
-                      {(selectedAnalysis.rootCauses || []).map((cause, index) => (
-                        <div key={index} className="flex items-start space-x-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                          <div className="w-6 h-6 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <span className="text-red-300 text-xs font-semibold">{index + 1}</span>
+                      {(selectedAnalysis.rootCauses || []).map(
+                        (cause, index) => (
+                          <div
+                            key={index}
+                            className="flex items-start space-x-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg"
+                          >
+                            <div className="w-6 h-6 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-red-300 text-xs font-semibold">
+                                {index + 1}
+                              </span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-red-200 text-sm leading-relaxed">
+                                {cause}
+                              </p>
+                            </div>
                           </div>
-                          <div className="flex-1">
-                            <p className="text-red-200 text-sm leading-relaxed">{cause}</p>
-                          </div>
-                        </div>
-                      ))}
+                        )
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -349,21 +400,31 @@ export function AnalysisResultsViewer({
                     <h4 className="font-semibold text-white flex items-center">
                       <Star className="w-5 h-5 mr-2 text-yellow-400" />
                       Priority Intervention Areas
-                      <Badge variant="outline" className="ml-2 text-yellow-300 border-yellow-400">
+                      <Badge
+                        variant="outline"
+                        className="ml-2 text-yellow-300 border-yellow-400"
+                      >
                         High Impact
                       </Badge>
                     </h4>
                   </CardHeader>
                   <CardContent>
                     <div className="grid md:grid-cols-2 gap-3">
-                      {(selectedAnalysis.priorityAreas || []).map((area, index) => (
-                        <div key={index} className="flex items-start space-x-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                          <Zap className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-1" />
-                          <div className="flex-1">
-                            <p className="text-yellow-200 text-sm leading-relaxed">{area}</p>
+                      {(selectedAnalysis.priorityAreas || []).map(
+                        (area, index) => (
+                          <div
+                            key={index}
+                            className="flex items-start space-x-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg"
+                          >
+                            <Zap className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-1" />
+                            <div className="flex-1">
+                              <p className="text-yellow-200 text-sm leading-relaxed">
+                                {area}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        )
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -374,21 +435,31 @@ export function AnalysisResultsViewer({
                     <h4 className="font-semibold text-white flex items-center">
                       <AlertTriangle className="w-5 h-5 mr-2 text-orange-400" />
                       Environmental & Lifestyle Risk Factors
-                      <Badge variant="outline" className="ml-2 text-orange-300 border-orange-400">
+                      <Badge
+                        variant="outline"
+                        className="ml-2 text-orange-300 border-orange-400"
+                      >
                         Monitor
                       </Badge>
                     </h4>
                   </CardHeader>
                   <CardContent>
                     <div className="grid md:grid-cols-2 gap-3">
-                      {(selectedAnalysis.riskFactors || []).map((factor, index) => (
-                        <div key={index} className="flex items-start space-x-3 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
-                          <Activity className="w-4 h-4 text-orange-400 flex-shrink-0 mt-1" />
-                          <div className="flex-1">
-                            <p className="text-orange-200 text-sm leading-relaxed">{factor}</p>
+                      {(selectedAnalysis.riskFactors || []).map(
+                        (factor, index) => (
+                          <div
+                            key={index}
+                            className="flex items-start space-x-3 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg"
+                          >
+                            <Activity className="w-4 h-4 text-orange-400 flex-shrink-0 mt-1" />
+                            <div className="flex-1">
+                              <p className="text-orange-200 text-sm leading-relaxed">
+                                {factor}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        )
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -399,17 +470,23 @@ export function AnalysisResultsViewer({
                   <Card key={phase.id} className="bg-gray-700 border-gray-600">
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-white">{phase.name}</h4>
+                        <h4 className="font-semibold text-white">
+                          {phase.name}
+                        </h4>
                         <Badge variant="outline" className="text-gray-300">
                           {phase.duration}
                         </Badge>
                       </div>
-                      <p className="text-gray-400 text-sm">{phase.description}</p>
+                      <p className="text-gray-400 text-sm">
+                        {phase.description}
+                      </p>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       {(phase.supplements || []).length > 0 && (
                         <div>
-                          <h5 className="text-sm font-medium text-white mb-1">Supplements</h5>
+                          <h5 className="text-sm font-medium text-white mb-1">
+                            Supplements
+                          </h5>
                           <div className="text-xs text-gray-300">
                             {(phase.supplements || []).length} recommendations
                           </div>
@@ -417,7 +494,9 @@ export function AnalysisResultsViewer({
                       )}
                       {(phase.lifestyle || []).length > 0 && (
                         <div>
-                          <h5 className="text-sm font-medium text-white mb-1">Lifestyle</h5>
+                          <h5 className="text-sm font-medium text-white mb-1">
+                            Lifestyle
+                          </h5>
                           <div className="text-xs text-gray-300">
                             {(phase.lifestyle || []).length} interventions
                           </div>
@@ -425,7 +504,9 @@ export function AnalysisResultsViewer({
                       )}
                       {(phase.dietary || []).length > 0 && (
                         <div>
-                          <h5 className="text-sm font-medium text-white mb-1">Dietary</h5>
+                          <h5 className="text-sm font-medium text-white mb-1">
+                            Dietary
+                          </h5>
                           <div className="text-xs text-gray-300">
                             {(phase.dietary || []).length} recommendations
                           </div>
@@ -439,13 +520,20 @@ export function AnalysisResultsViewer({
               <TabsContent value="supplements" className="space-y-4">
                 <div className="grid gap-3">
                   {(selectedAnalysis.supplements || []).map((supplement) => (
-                    <Card key={supplement.id} className="bg-gray-700 border-gray-600">
+                    <Card
+                      key={supplement.id}
+                      className="bg-gray-700 border-gray-600"
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold text-white">{supplement.name}</h4>
+                          <h4 className="font-semibold text-white">
+                            {supplement.name}
+                          </h4>
                           <div className="flex items-center space-x-2">
-                            <Badge 
-                              className={`${getPriorityColor(supplement.priority)} text-white`}
+                            <Badge
+                              className={`${getPriorityColor(
+                                supplement.priority
+                              )} text-white`}
                             >
                               {supplement.priority}
                             </Badge>
@@ -457,19 +545,27 @@ export function AnalysisResultsViewer({
                         <div className="grid grid-cols-2 gap-2 text-sm">
                           <div>
                             <span className="text-gray-400">Dosage:</span>
-                            <span className="text-white ml-1">{supplement.dosage}</span>
+                            <span className="text-white ml-1">
+                              {supplement.dosage}
+                            </span>
                           </div>
                           <div>
                             <span className="text-gray-400">Timing:</span>
-                            <span className="text-white ml-1">{supplement.timing}</span>
+                            <span className="text-white ml-1">
+                              {supplement.timing}
+                            </span>
                           </div>
                           <div>
                             <span className="text-gray-400">Duration:</span>
-                            <span className="text-white ml-1">{supplement.duration}</span>
+                            <span className="text-white ml-1">
+                              {supplement.duration}
+                            </span>
                           </div>
                           <div>
                             <span className="text-gray-400">Category:</span>
-                            <span className="text-white ml-1">{supplement.category}</span>
+                            <span className="text-white ml-1">
+                              {supplement.category}
+                            </span>
                           </div>
                         </div>
                         {supplement.rationale && (
@@ -479,7 +575,7 @@ export function AnalysisResultsViewer({
                         )}
                         {supplement.productUrl && (
                           <div className="mt-2">
-                            <a 
+                            <a
                               href={supplement.productUrl}
                               target="_blank"
                               rel="noopener noreferrer"
@@ -501,7 +597,9 @@ export function AnalysisResultsViewer({
                     <CardContent className="p-6">
                       <div className="text-center">
                         <Clock className="w-12 h-12 text-gray-500 mx-auto mb-2" />
-                        <p className="text-gray-400 mb-2">No history available</p>
+                        <p className="text-gray-400 mb-2">
+                          No history available
+                        </p>
                         <p className="text-gray-500 text-sm">
                           Protocol changes and updates will appear here
                         </p>
@@ -511,27 +609,34 @@ export function AnalysisResultsViewer({
                 ) : (
                   <div className="space-y-3">
                     {(selectedAnalysis.protocolHistory || []).map((entry) => (
-                      <Card key={entry.id} className="bg-gray-800/50 border-gray-600">
+                      <Card
+                        key={entry.id}
+                        className="bg-gray-800/50 border-gray-600"
+                      >
                         <CardContent className="p-4">
                           <div className="flex items-start space-x-4">
                             {/* Timeline Icon */}
                             <div className="flex-shrink-0">
-                              {entry.action === 'ANALYSIS_IMPORTED' && (
+                              {entry.action === "ANALYSIS_IMPORTED" && (
                                 <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
                                   <Brain className="w-4 h-4 text-blue-400" />
                                 </div>
                               )}
-                              {entry.action === 'PROTOCOL_UPDATED' && (
+                              {entry.action === "PROTOCOL_UPDATED" && (
                                 <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
                                   <CheckCircle className="w-4 h-4 text-green-400" />
                                 </div>
                               )}
-                              {entry.action === 'SUPPLEMENT_MODIFIED' && (
+                              {entry.action === "SUPPLEMENT_MODIFIED" && (
                                 <div className="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center">
-                                  <Pills className="w-4 h-4 text-purple-400" />
+                                  <Pill className="w-4 h-4 text-purple-400" />
                                 </div>
                               )}
-                              {!['ANALYSIS_IMPORTED', 'PROTOCOL_UPDATED', 'SUPPLEMENT_MODIFIED'].includes(entry.action) && (
+                              {![
+                                "ANALYSIS_IMPORTED",
+                                "PROTOCOL_UPDATED",
+                                "SUPPLEMENT_MODIFIED",
+                              ].includes(entry.action) && (
                                 <div className="w-8 h-8 bg-gray-500/20 rounded-full flex items-center justify-center">
                                   <Activity className="w-4 h-4 text-gray-400" />
                                 </div>
@@ -542,55 +647,81 @@ export function AnalysisResultsViewer({
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-2">
                                 <h4 className="font-medium text-white">
-                                  {entry.action === 'ANALYSIS_IMPORTED' && 'Claude Analysis Imported'}
-                                  {entry.action === 'PROTOCOL_UPDATED' && 'Protocol Updated'}
-                                  {entry.action === 'SUPPLEMENT_MODIFIED' && 'Supplement Modified'}
-                                  {!['ANALYSIS_IMPORTED', 'PROTOCOL_UPDATED', 'SUPPLEMENT_MODIFIED'].includes(entry.action) && entry.action.replace(/_/g, ' ')}
+                                  {entry.action === "ANALYSIS_IMPORTED" &&
+                                    "Claude Analysis Imported"}
+                                  {entry.action === "PROTOCOL_UPDATED" &&
+                                    "Protocol Updated"}
+                                  {entry.action === "SUPPLEMENT_MODIFIED" &&
+                                    "Supplement Modified"}
+                                  {![
+                                    "ANALYSIS_IMPORTED",
+                                    "PROTOCOL_UPDATED",
+                                    "SUPPLEMENT_MODIFIED",
+                                  ].includes(entry.action) &&
+                                    entry.action.replace(/_/g, " ")}
                                 </h4>
                                 <span className="text-xs text-gray-400 flex items-center">
                                   <Clock className="w-3 h-3 mr-1" />
-                                  {new Date(entry.timestamp).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
+                                  {new Date(entry.timestamp).toLocaleDateString(
+                                    "en-US",
+                                    {
+                                      year: "numeric",
+                                      month: "short",
+                                      day: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    }
+                                  )}
                                 </span>
                               </div>
 
                               {/* Details */}
                               {entry.details && (
                                 <div className="space-y-2">
-                                  {entry.action === 'ANALYSIS_IMPORTED' && (
+                                  {entry.action === "ANALYSIS_IMPORTED" && (
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                                       {entry.details.importedAt && (
                                         <div className="bg-gray-700/50 p-2 rounded">
-                                          <div className="text-gray-400">Imported</div>
+                                          <div className="text-gray-400">
+                                            Imported
+                                          </div>
                                           <div className="text-white font-medium">
-                                            {new Date(entry.details.importedAt).toLocaleDateString()}
+                                            {new Date(
+                                              entry.details.importedAt
+                                            ).toLocaleDateString()}
                                           </div>
                                         </div>
                                       )}
                                       {entry.details.fileSize && (
                                         <div className="bg-gray-700/50 p-2 rounded">
-                                          <div className="text-gray-400">File Size</div>
+                                          <div className="text-gray-400">
+                                            File Size
+                                          </div>
                                           <div className="text-white font-medium">
-                                            {(entry.details.fileSize / 1024).toFixed(1)} KB
+                                            {(
+                                              entry.details.fileSize / 1024
+                                            ).toFixed(1)}{" "}
+                                            KB
                                           </div>
                                         </div>
                                       )}
-                                      {entry.details.protocolPhases !== undefined && (
+                                      {entry.details.protocolPhases !==
+                                        undefined && (
                                         <div className="bg-gray-700/50 p-2 rounded">
-                                          <div className="text-gray-400">Protocol Phases</div>
+                                          <div className="text-gray-400">
+                                            Protocol Phases
+                                          </div>
                                           <div className="text-white font-medium">
                                             {entry.details.protocolPhases}
                                           </div>
                                         </div>
                                       )}
-                                      {entry.details.supplements !== undefined && (
+                                      {entry.details.supplements !==
+                                        undefined && (
                                         <div className="bg-gray-700/50 p-2 rounded">
-                                          <div className="text-gray-400">Supplements</div>
+                                          <div className="text-gray-400">
+                                            Supplements
+                                          </div>
                                           <div className="text-white font-medium">
                                             {entry.details.supplements}
                                           </div>
@@ -598,15 +729,22 @@ export function AnalysisResultsViewer({
                                       )}
                                     </div>
                                   )}
-                                  
+
                                   {/* Fallback for other action types */}
-                                  {entry.action !== 'ANALYSIS_IMPORTED' && entry.details && (
-                                    <div className="bg-gray-700/30 p-3 rounded border border-gray-600">
-                                      <pre className="text-xs text-gray-300 whitespace-pre-wrap overflow-auto">
-                                        {typeof entry.details === 'string' ? entry.details : JSON.stringify(entry.details, null, 2)}
-                                      </pre>
-                                    </div>
-                                  )}
+                                  {entry.action !== "ANALYSIS_IMPORTED" &&
+                                    entry.details && (
+                                      <div className="bg-gray-700/30 p-3 rounded border border-gray-600">
+                                        <pre className="text-xs text-gray-300 whitespace-pre-wrap overflow-auto">
+                                          {typeof entry.details === "string"
+                                            ? entry.details
+                                            : JSON.stringify(
+                                                entry.details,
+                                                null,
+                                                2
+                                              )}
+                                        </pre>
+                                      </div>
+                                    )}
                                 </div>
                               )}
                             </div>

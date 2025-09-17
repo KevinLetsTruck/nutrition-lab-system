@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import jwt from "jsonwebtoken";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { medicalDocStorage } from "@/lib/medical/storage-service";
 
 interface AuthPayload {
   id: string;
@@ -56,14 +57,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file
-    const validation = validateFile(file);
-    if (!validation.valid) {
+    // Basic file validation
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    const allowedTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/png",
+      "image/tiff",
+      "text/plain",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    if (file.size > maxSize) {
       return NextResponse.json(
         {
           success: false,
-          error: "File validation failed",
-          details: validation.errors,
+          error: "File too large",
+          details: "File size must be under 50MB",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid file type",
+          details: `Allowed types: ${allowedTypes.join(", ")}`,
         },
         { status: 400 }
       );
@@ -88,10 +110,12 @@ export async function POST(request: NextRequest) {
     const fileBuffer = Buffer.from(await file.arrayBuffer());
 
     // Generate secure filename
-    const secureFileName = generateSecureFileName(file.name, clientId);
+    const timestamp = Date.now();
+    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const secureFileName = `${timestamp}_${sanitizedFileName}`;
 
     // Upload to storage
-    const uploadResult = await storageService.uploadFile(
+    const uploadResult = await medicalDocStorage.uploadFile(
       fileBuffer,
       secureFileName,
       clientId,
@@ -110,11 +134,18 @@ export async function POST(request: NextRequest) {
     const document = await prisma.document.create({
       data: {
         clientId,
-        documentType,
+        fileName: file.name,
         originalFileName: file.name,
-        s3Url: uploadResult.url,
-        s3Key: uploadResult.id,
-        status: "PENDING",
+        fileType: file.type,
+        fileSize: file.size,
+        fileUrl: uploadResult.url,
+        storageKey: uploadResult.key,
+        storageProvider: "S3",
+        documentType,
+        labType: labType || null,
+        analysisStatus: "PENDING",
+        status: "UPLOADED",
+        tags: [],
         metadata: {
           fileName: secureFileName,
           fileType: file.type,
@@ -128,12 +159,12 @@ export async function POST(request: NextRequest) {
     documentId = document.id;
 
     // Add OCR job to queue
-    await prisma.processingQueue.create({
+    await prisma.processingJob.create({
       data: {
         documentId: document.id,
-        jobType: "ocr",
+        jobType: "OCR_EXTRACTION",
         priority: 5,
-        status: "QUEUED",
+        status: "PENDING",
       },
     });
 
@@ -146,11 +177,13 @@ export async function POST(request: NextRequest) {
           document: {
             id: document.id,
             originalFileName: document.originalFileName,
+            fileName: document.fileName,
             documentType: document.documentType,
             status: document.status,
-            uploadDate: document.uploadDate,
-            s3Url: document.s3Url,
-            s3Key: document.s3Key,
+            analysisStatus: document.analysisStatus,
+            uploadedAt: document.uploadedAt,
+            fileUrl: document.fileUrl,
+            storageKey: document.storageKey,
           },
           uploadResult,
         },
