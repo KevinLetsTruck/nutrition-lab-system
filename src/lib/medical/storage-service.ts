@@ -40,10 +40,11 @@ export class S3StorageService {
     // Configuration check
 
     // Check if S3 is properly configured
-    if (process.env.S3_ACCESS_KEY_ID && 
-        process.env.S3_SECRET_ACCESS_KEY && 
-        this.bucketName) {
-      
+    if (
+      process.env.S3_ACCESS_KEY_ID &&
+      process.env.S3_SECRET_ACCESS_KEY &&
+      this.bucketName
+    ) {
       try {
         this.s3Client = new S3Client({
           region: this.region,
@@ -58,14 +59,18 @@ export class S3StorageService {
         this.isConfigured = false;
       }
     } else {
-      console.warn("⚠️ S3 not configured - documents will be stored as metadata only");
+      console.warn(
+        "⚠️ S3 not configured - documents will be stored as metadata only"
+      );
       this.isConfigured = false;
     }
   }
 
   private checkConfiguration(): void {
     if (!this.isConfigured) {
-      throw new Error("S3 storage is not configured. Please set S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, and S3_MEDICAL_BUCKET_NAME environment variables.");
+      throw new Error(
+        "S3 storage is not configured. Please set S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, and S3_MEDICAL_BUCKET_NAME environment variables."
+      );
     }
   }
 
@@ -82,11 +87,15 @@ export class S3StorageService {
 
     // If S3 is not configured, return a fallback response
     if (!this.isConfigured) {
-      console.warn(`⚠️ S3 not configured - document ${fileName} stored as metadata only`);
-      
+      console.warn(
+        `⚠️ S3 not configured - document ${fileName} stored as metadata only`
+      );
+
       return {
         id: key,
-        url: `/api/documents/fallback/${clientId}/${encodeURIComponent(fileName)}`,
+        url: `/api/documents/fallback/${clientId}/${encodeURIComponent(
+          fileName
+        )}`,
         key,
         bucket: "local-fallback",
       };
@@ -95,10 +104,10 @@ export class S3StorageService {
     // Sanitize metadata values for HTTP headers (S3 metadata becomes x-amz-meta-* headers)
     const sanitizeMetadataValue = (value: string): string => {
       return value
-        .replace(/[^\x20-\x7E]/g, '') // Remove non-ASCII characters
-        .replace(/[\r\n\t]/g, ' ')    // Replace line breaks and tabs with spaces
-        .replace(/\s+/g, ' ')         // Replace multiple spaces with single space
-        .trim();                      // Remove leading/trailing whitespace
+        .replace(/[^\x20-\x7E]/g, "") // Remove non-ASCII characters
+        .replace(/[\r\n\t]/g, " ") // Replace line breaks and tabs with spaces
+        .replace(/\s+/g, " ") // Replace multiple spaces with single space
+        .trim(); // Remove leading/trailing whitespace
     };
 
     const sanitizedMetadata: Record<string, string> = {};
@@ -172,7 +181,9 @@ export class S3StorageService {
   async downloadFileByUrl(fileUrl: string): Promise<DownloadResult> {
     // Handle fallback URLs when S3 is not configured
     if (fileUrl.includes("/api/documents/fallback/")) {
-      throw new Error("Document file not available - stored as metadata only (S3 not configured)");
+      throw new Error(
+        "Document file not available - stored as metadata only (S3 not configured)"
+      );
     }
 
     // If S3 is not configured, we can't download

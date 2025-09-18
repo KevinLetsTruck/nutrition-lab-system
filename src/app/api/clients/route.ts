@@ -49,12 +49,28 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Add CORS headers for OPTIONS requests
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    },
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Simplified auth check
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const errorResponse = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      errorResponse.headers.set("Access-Control-Allow-Origin", "*");
+      errorResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+      errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      return errorResponse;
     }
 
     const body = await request.json();
@@ -62,6 +78,7 @@ export async function POST(request: NextRequest) {
 
     const client = await prisma.client.create({
       data: {
+        id: `cm${Date.now()}${Math.random().toString(36).substr(2, 9)}`, // Generate unique ID
         ...validatedData,
         healthGoals: validatedData.healthGoals || undefined,
         medications: validatedData.medications || undefined,
@@ -71,36 +88,74 @@ export async function POST(request: NextRequest) {
           ? new Date(validatedData.dateOfBirth)
           : undefined,
         status: "ONGOING",
+        updatedAt: new Date(), // Required field
       },
     });
 
-    return NextResponse.json(client, { status: 201 });
+    const response = NextResponse.json(client, { status: 201 });
+    
+    // Add CORS headers to success response
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    
+    return response;
   } catch (error) {
     if (
       error instanceof Error &&
       (error.message.includes("authorization") ||
         error.message.includes("token"))
     ) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
+      const errorResponse = NextResponse.json({ error: error.message }, { status: 401 });
+      errorResponse.headers.set("Access-Control-Allow-Origin", "*");
+      errorResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+      errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      return errorResponse;
     }
 
     if (error instanceof ZodError) {
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: "Invalid input", details: error.errors },
         { status: 400 }
       );
+      errorResponse.headers.set("Access-Control-Allow-Origin", "*");
+      errorResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+      errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      return errorResponse;
     }
 
     if (error instanceof Error && error.message.includes("Unique constraint")) {
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: "Client with this email already exists" },
         { status: 409 }
       );
+      errorResponse.headers.set("Access-Control-Allow-Origin", "*");
+      errorResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+      errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      return errorResponse;
     }
 
-    return NextResponse.json(
-      { error: "Failed to create client" },
+    console.error("❌ Client creation error:", error);
+    console.error("Error details:", {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace'
+    });
+
+    const errorResponse = NextResponse.json(
+      { 
+        error: "Failed to create client",
+        details: error instanceof Error ? error.message : "Unknown error",
+        timestamp: new Date().toISOString()
+      },
       { status: 500 }
     );
+    
+    // Add CORS headers to error response
+    errorResponse.headers.set("Access-Control-Allow-Origin", "*");
+    errorResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    
+    return errorResponse;
   }
 }
