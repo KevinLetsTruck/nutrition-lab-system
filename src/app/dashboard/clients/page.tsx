@@ -44,7 +44,6 @@ interface Client {
   // Enhanced fields for health tracking
   yearsOTR?: number;
   healthGoals?: string;
-  lastAssessment?: string;
   symptomBurden?: number;
   activeProtocols?: number;
   upcomingDOT?: string;
@@ -105,12 +104,6 @@ export default function ClientDashboard() {
         healthGoals: ["Weight Loss", "Energy", "Sleep Quality"][
           Math.floor(Math.random() * 3)
         ],
-        lastAssessment:
-          Math.random() > 0.3
-            ? new Date(
-                Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000
-              ).toISOString()
-            : null,
         symptomBurden: Math.floor(Math.random() * 100),
         activeProtocols: Math.floor(Math.random() * 3),
         upcomingDOT:
@@ -198,10 +191,6 @@ export default function ClientDashboard() {
         case "email":
           aValue = a.email.toLowerCase();
           bValue = b.email.toLowerCase();
-          break;
-        case "lastAssessment":
-          aValue = a.lastAssessment ? new Date(a.lastAssessment).getTime() : 0;
-          bValue = b.lastAssessment ? new Date(b.lastAssessment).getTime() : 0;
           break;
 
         default:
@@ -532,16 +521,6 @@ export default function ClientDashboard() {
                   </div>
                 </th>
 
-                <th
-                  className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider cursor-pointer hover:bg-[#334155] select-none transition-colors duration-200"
-                  onClick={() => handleSort("lastAssessment")}
-                >
-                  <div className="flex items-center gap-1">
-                    Last Assessment
-                    {getSortIcon("lastAssessment")}
-                  </div>
-                </th>
-
                 <th className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
                   Actions
                 </th>
@@ -623,14 +602,6 @@ export default function ClientDashboard() {
                           </select>
                         )}
                       </div>
-                    </td>
-
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#94a3b8]">
-                      {client.lastAssessment ? (
-                        new Date(client.lastAssessment).toLocaleDateString()
-                      ) : (
-                        <span className="text-yellow-400">Never assessed</span>
-                      )}
                     </td>
 
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
