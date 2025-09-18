@@ -50,6 +50,7 @@ interface Client {
 }
 
 export default function ClientDashboard() {
+  // Enhanced action buttons with better spacing and usability - v2
   const router = useRouter();
   const [clients, setClients] = useState<Client[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -521,8 +522,8 @@ export default function ClientDashboard() {
                   </div>
                 </th>
 
-                <th className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
-                  Actions
+                <th className="px-8 py-4 text-right text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
+                  Actions (UPDATED)
                 </th>
               </tr>
             </thead>
@@ -530,7 +531,7 @@ export default function ClientDashboard() {
               {loading ? (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={3}
                     className="px-6 py-8 text-center text-[#94a3b8]"
                   >
                     <div className="flex items-center justify-center space-x-2">
@@ -542,7 +543,7 @@ export default function ClientDashboard() {
               ) : filteredAndSortedClients.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={3}
                     className="px-6 py-8 text-center text-[#94a3b8]"
                   >
                     No clients found
@@ -604,21 +605,21 @@ export default function ClientDashboard() {
                       </div>
                     </td>
 
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex space-x-2">
+                    <td className="px-8 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex justify-end space-x-3">
                         <Link
                           href={`/dashboard/clients/${client.id}`}
-                          className="p-2 rounded-xl text-[#94a3b8] hover:text-[#f1f5f9] hover:bg-gray-800 transition-all duration-200"
+                          className="p-3 rounded-xl text-[#94a3b8] hover:text-[#f1f5f9] hover:bg-gray-800 hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md"
                           title="View Client"
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-5 h-5" />
                         </Link>
                         <Link
                           href={`/dashboard/clients/${client.id}/edit`}
-                          className="p-2 rounded-xl text-[#94a3b8] hover:text-[#f1f5f9] hover:bg-gray-800 transition-all duration-200"
+                          className="p-3 rounded-xl text-[#94a3b8] hover:text-[#f1f5f9] hover:bg-gray-800 hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md"
                           title="Edit Client"
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-5 h-5" />
                         </Link>
                         {client.status !== "ARCHIVED" ? (
                           <button
@@ -628,10 +629,10 @@ export default function ClientDashboard() {
                                 `${client.firstName} ${client.lastName}`
                               )
                             }
-                            className="p-2 rounded-xl text-amber-400 hover:text-amber-300 hover:bg-gray-800 transition-all duration-200"
+                            className="p-3 rounded-xl text-amber-400 hover:text-amber-300 hover:bg-amber-900/20 hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md"
                             title="Archive Client"
                           >
-                            <Archive className="w-4 h-4" />
+                            <Archive className="w-5 h-5" />
                           </button>
                         ) : (
                           <button
@@ -641,10 +642,10 @@ export default function ClientDashboard() {
                                 `${client.firstName} ${client.lastName}`
                               )
                             }
-                            className="p-2 rounded-xl text-green-400 hover:text-green-300 hover:bg-gray-800 transition-all duration-200"
+                            className="p-3 rounded-xl text-green-400 hover:text-green-300 hover:bg-green-900/20 hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md"
                             title="Reactivate Client"
                           >
-                            <RotateCcw className="w-4 h-4" />
+                            <RotateCcw className="w-5 h-5" />
                           </button>
                         )}
                         <button
@@ -654,10 +655,10 @@ export default function ClientDashboard() {
                               `${client.firstName} ${client.lastName}`
                             )
                           }
-                          className="p-2 rounded-xl text-red-400 hover:text-red-300 hover:bg-gray-800 transition-all duration-200"
+                          className="p-3 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-900/20 hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md"
                           title="Delete Client"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-5 h-5" />
                         </button>
                       </div>
                     </td>
