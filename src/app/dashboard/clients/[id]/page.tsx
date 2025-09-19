@@ -28,6 +28,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
 import { ExportClientButton } from "@/components/clients/ExportClientButton";
+import { ImportAnalysisButton } from "@/components/clients/ImportAnalysisButton";
 import { ClaudePromptsModal } from "@/components/exports/ClaudePromptsModal";
 
 // Dynamically import SimplePDFViewer with SSR disabled
@@ -138,6 +139,20 @@ export default function ClientDetailPage() {
   // Claude prompts modal state
   const [isClaudePromptsOpen, setIsClaudePromptsOpen] = useState(false);
   const [claudeExportResult, setClaudeExportResult] = useState<any>(null);
+
+  // Listen for Claude prompts ready event
+  useEffect(() => {
+    const handleClaudePromptsReady = (event: CustomEvent) => {
+      setClaudeExportResult(event.detail);
+      setIsClaudePromptsOpen(true);
+    };
+
+    window.addEventListener("claudePromptsReady", handleClaudePromptsReady as EventListener);
+
+    return () => {
+      window.removeEventListener("claudePromptsReady", handleClaudePromptsReady as EventListener);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchCompleteClientData = async () => {
@@ -864,12 +879,18 @@ export default function ClientDetailPage() {
                 </div>
               </div>
 
-              {/* Export Button */}
+              {/* Export and Import Buttons */}
               <div className="flex gap-2">
                 <ExportClientButton
                   clientId={client.id}
                   clientName={`${client.firstName} ${client.lastName}`}
                   variant="secondary"
+                  size="sm"
+                />
+                <ImportAnalysisButton
+                  clientId={client.id}
+                  clientName={`${client.firstName} ${client.lastName}`}
+                  variant="outline"
                   size="sm"
                 />
               </div>

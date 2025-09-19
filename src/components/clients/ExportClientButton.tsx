@@ -100,6 +100,65 @@ export function ExportClientButton({
           icon: "/favicon.ico",
         });
       }
+
+      // Trigger Claude prompts modal
+      const claudePromptsData = {
+        filename: filename,
+        location: "Downloads folder",
+        prompts: {
+          comprehensive: `FNTP FUNCTIONAL MEDICINE ANALYSIS - EXECUTE IMMEDIATELY
+
+CRITICAL INSTRUCTIONS: 
+- DO NOT ask clarifying questions or request file uploads
+- ZIP FILE IS READY: ${filename} in your Downloads folder
+- EXTRACT and ANALYZE all contents directly
+- PROCEED with complete analysis using all extracted files
+
+SYSTEM ACTIVATION: You are my FNTP functional medicine analysis system. Load all protocols.
+
+FILE LOCATION: Downloads/${filename}
+- Extract the ZIP to access organized folder structure
+- Contains: client-data.json (complete client information)
+- Contains: client-summary.md (human-readable overview)
+- Contains: All client PDF documents (lab reports, intake forms)
+- Contains: export-metadata.json (system information)
+
+CLIENT OVERVIEW:
+- Name: ${clientName}
+- Export Date: ${new Date().toLocaleDateString()}
+
+ANALYSIS REQUIREMENTS:
+1. EXTRACT the ZIP file: ${filename}
+2. READ client-data.json for complete client information
+3. REVIEW all PDF documents for lab values and medical history
+4. ANALYZE client-summary.md for clinical context
+
+5. Generate comprehensive FNTP analysis with 3-phase protocol
+6. Provide LetsTruck supplement recommendations
+7. Include practitioner coaching notes
+
+EXTRACT ZIP FILE AND EXECUTE COMPREHENSIVE FNTP ANALYSIS NOW.`,
+          focused: {
+            gut: "GUT HEALTH ANALYSIS - Extract and use ZIP file data",
+            metabolic: "METABOLIC ANALYSIS - Extract and use ZIP file data",
+            hormonal: "HORMONAL ANALYSIS - Extract and use ZIP file data"
+          },
+          followup: "FOLLOW-UP ANALYSIS - Extract and use ZIP file data"
+        },
+        clientContext: {
+          name: clientName,
+          primaryConcerns: "Review extracted data for health goals",
+          medications: [],
+          keyLabs: "Review documents in extracted ZIP file"
+        }
+      };
+
+      // Dispatch event to show Claude prompts modal
+      window.dispatchEvent(
+        new CustomEvent("claudePromptsReady", {
+          detail: claudePromptsData,
+        })
+      );
     } catch (error) {
       console.error("Export error:", error);
       setExportStatus("error");
