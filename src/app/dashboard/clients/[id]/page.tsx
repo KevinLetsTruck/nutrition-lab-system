@@ -147,10 +147,16 @@ export default function ClientDetailPage() {
       setIsClaudePromptsOpen(true);
     };
 
-    window.addEventListener("claudePromptsReady", handleClaudePromptsReady as EventListener);
+    window.addEventListener(
+      "claudePromptsReady",
+      handleClaudePromptsReady as EventListener
+    );
 
     return () => {
-      window.removeEventListener("claudePromptsReady", handleClaudePromptsReady as EventListener);
+      window.removeEventListener(
+        "claudePromptsReady",
+        handleClaudePromptsReady as EventListener
+      );
     };
   }, []);
 
@@ -205,10 +211,16 @@ export default function ClientDetailPage() {
       setIsClaudePromptsOpen(true);
     };
 
-    window.addEventListener('claudePromptsReady', handleClaudePromptsReady as EventListener);
-    
+    window.addEventListener(
+      "claudePromptsReady",
+      handleClaudePromptsReady as EventListener
+    );
+
     return () => {
-      window.removeEventListener('claudePromptsReady', handleClaudePromptsReady as EventListener);
+      window.removeEventListener(
+        "claudePromptsReady",
+        handleClaudePromptsReady as EventListener
+      );
     };
   }, []);
 

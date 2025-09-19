@@ -37,16 +37,13 @@ export function ImportAnalysisButton({
     setImportStatus("idle");
 
     try {
-      const response = await fetch(
-        `/api/clients/${clientId}/import-analysis`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`/api/clients/${clientId}/import-analysis`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -55,7 +52,7 @@ export function ImportAnalysisButton({
 
       const result = await response.json();
       setImportStatus("success");
-      
+
       toast.success("Analysis imported successfully!", {
         description: `${clientName}'s Claude analysis has been imported and saved.`,
       });
@@ -64,12 +61,12 @@ export function ImportAnalysisButton({
       setTimeout(() => {
         window.location.reload();
       }, 1000);
-
     } catch (error) {
       console.error("Import error:", error);
       setImportStatus("error");
       toast.error("Import failed", {
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
       });
     } finally {
       setIsImporting(false);

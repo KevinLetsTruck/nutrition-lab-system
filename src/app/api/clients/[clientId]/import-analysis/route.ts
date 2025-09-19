@@ -44,7 +44,6 @@ export async function POST(
       clientId: clientId,
       analysisDate: new Date().toISOString(),
     });
-
   } catch (error) {
     console.error("Import analysis error:", error);
     return NextResponse.json(
