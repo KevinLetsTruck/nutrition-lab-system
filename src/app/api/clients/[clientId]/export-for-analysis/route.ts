@@ -191,20 +191,68 @@ export async function GET(
 
       // Copy document files into documents/ subfolder
       let copiedDocuments = 0;
+      let documentsSkipped = 0;
+      
       for (const doc of clientData.Document || []) {
         try {
-          // Try local file first
-          const sourcePath = path.join(process.cwd(), "public", doc.fileUrl);
-          if (fs.existsSync(sourcePath)) {
-            archive.file(sourcePath, { 
-              name: `${folderName}/documents/${doc.fileName}` 
-            });
-            copiedDocuments++;
+          console.log(`📄 Processing document: ${doc.fileName}`);
+          console.log(`📁 FileUrl: ${doc.fileUrl}`);
+          console.log(`🗄️ Storage Provider: ${doc.storageProvider || "LOCAL"}`);
+
+          let fileBuffer = null;
+          let fileName = doc.fileName;
+
+          // Try LOCAL storage first
+          if (!doc.storageProvider || doc.storageProvider === "LOCAL") {
+            const sourcePath = path.join(process.cwd(), "public", doc.fileUrl);
+            console.log(`🔍 Checking local file: ${sourcePath}`);
+
+            if (fs.existsSync(sourcePath)) {
+              console.log(`✅ Local file found: ${fileName}`);
+              archive.file(sourcePath, { 
+                name: `${folderName}/documents/${fileName}` 
+              });
+              copiedDocuments++;
+              continue;
+            } else {
+              console.warn(`❌ Local file not found: ${sourcePath}`);
+            }
           }
+
+          // If LOCAL failed or storage is S3, try S3 download
+          if (doc.storageProvider === "S3" && doc.fileUrl.startsWith("http")) {
+            try {
+              console.log(`☁️ Downloading from S3: ${doc.fileUrl}`);
+              const response = await fetch(doc.fileUrl);
+              
+              if (response.ok) {
+                fileBuffer = Buffer.from(await response.arrayBuffer());
+                console.log(`✅ S3 file downloaded: ${fileName} (${fileBuffer.length} bytes)`);
+                
+                archive.append(fileBuffer, { 
+                  name: `${folderName}/documents/${fileName}` 
+                });
+                copiedDocuments++;
+                continue;
+              } else {
+                console.warn(`❌ S3 download failed: ${response.status} ${response.statusText}`);
+              }
+            } catch (s3Error) {
+              console.error(`❌ S3 download error for ${fileName}:`, s3Error);
+            }
+          }
+
+          // If we get here, the document couldn't be retrieved
+          console.warn(`⚠️ Document not accessible: ${fileName}`);
+          documentsSkipped++;
+          
         } catch (error) {
-          console.error(`Failed to add document ${doc.fileName}:`, error);
+          console.error(`❌ Failed to process document ${doc.fileName}:`, error);
+          documentsSkipped++;
         }
       }
+
+      console.log(`📊 Documents processed: ${copiedDocuments} copied, ${documentsSkipped} skipped`);
 
       // Finalize the archive
       archive.finalize();
