@@ -48,35 +48,49 @@ export function ExportClientButton({
         }
       );
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || "Export failed");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Export failed");
       }
 
-      if (data.success) {
+      // Handle ZIP file download
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get("content-disposition");
+      const filenameMatch = contentDisposition?.match(/filename="([^"]+)"/);
+      const filename = filenameMatch
+        ? filenameMatch[1]
+        : `${clientName}-export.zip`;
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      if (true) {
         setExportStatus("success");
-        toast.success("Export Complete!", {
+        toast.success("Export Downloaded!", {
           description: (
             <div className="space-y-1">
               <p>
-                <strong>Client:</strong> {data.summary.clientName}
+                <strong>Client:</strong> {clientName}
               </p>
               <p>
-                <strong>Location:</strong> {data.exportPath}
+                <strong>File:</strong> {filename}
               </p>
-              <p>
-                <strong>Files:</strong> {data.summary.exportedFiles.join(", ")}
+              <p className="text-xs text-gray-500 mt-2">
+                📦 ZIP file downloaded to your Downloads folder
               </p>
-              <div className="text-xs text-gray-500 mt-2">
-                <p>📊 {data.summary.totalAssessments} assessments</p>
-                <p>📄 {data.summary.totalDocuments} documents</p>
-                <p>📝 {data.summary.totalNotes} notes</p>
-                <p>💊 {data.summary.totalProtocols} protocols</p>
-              </div>
+              <p className="text-xs text-blue-500 mt-1">
+                💡 Extract the ZIP to get organized folder structure
+              </p>
             </div>
           ),
-          duration: 8000,
+          duration: 6000,
         });
 
         // Optional: Show system notification
@@ -89,56 +103,53 @@ export function ExportClientButton({
 
         // Trigger Claude prompts modal
         const claudePromptsData = {
-          filename: `${data.summary.clientName}-${
-            new Date().toISOString().split("T")[0]
-          }`,
-          location: data.exportPath,
+          filename: filename,
+          location: "Downloads folder",
           prompts: {
             comprehensive: `FNTP FUNCTIONAL MEDICINE ANALYSIS - EXECUTE IMMEDIATELY
 
 CRITICAL INSTRUCTIONS: 
 - DO NOT ask clarifying questions or request file uploads
-- CLIENT FOLDER IS READY: ${data.exportPath}
-- ANALYZE all files in the folder directly
-- PROCEED with complete analysis using all available data
+- ZIP FILE IS READY: ${filename} in your Downloads folder
+- EXTRACT and ANALYZE all contents directly
+- PROCEED with complete analysis using all extracted files
 
 SYSTEM ACTIVATION: You are my FNTP functional medicine analysis system. Load all protocols.
 
-FOLDER LOCATION: ${data.exportPath}
+FILE LOCATION: Downloads/${filename}
+- Extract the ZIP to access organized folder structure
 - Contains: client-data.json (complete client information)
-- Contains: client-summary.md (human-readable overview)  
+- Contains: client-summary.md (human-readable overview)
 - Contains: export-metadata.json (system information)
 - Contains: documents/ folder with all client PDF files
 
 CLIENT OVERVIEW:
-- Name: ${data.summary.clientName}
+- Name: ${clientName}
 - Export Date: ${new Date().toLocaleDateString()}
-- Total Documents: ${data.summary.totalDocuments}
-- Total Assessments: ${data.summary.totalAssessments}
 
 ANALYSIS REQUIREMENTS:
-1. READ client-data.json for complete client information
-2. REVIEW client-summary.md for clinical context
-3. ANALYZE all PDF documents in documents/ folder
-4. EXTRACT lab values and medical history
+1. EXTRACT the ZIP file: ${filename}
+2. READ client-data.json for complete client information
+3. REVIEW client-summary.md for clinical context
+4. ANALYZE all PDF documents in documents/ folder
 
 5. Generate comprehensive FNTP analysis with 3-phase protocol
-6. Provide LetsTruck supplement recommendations  
+6. Provide LetsTruck supplement recommendations
 7. Include practitioner coaching notes
 
-EXECUTE COMPREHENSIVE FNTP ANALYSIS NOW.`,
+EXTRACT ZIP FILE AND EXECUTE COMPREHENSIVE FNTP ANALYSIS NOW.`,
             focused: {
-              gut: `GUT HEALTH ANALYSIS - Use folder data: ${data.exportPath}`,
-              metabolic: `METABOLIC ANALYSIS - Use folder data: ${data.exportPath}`,
-              hormonal: `HORMONAL ANALYSIS - Use folder data: ${data.exportPath}`,
+              gut: "GUT HEALTH ANALYSIS - Extract and use ZIP file data",
+              metabolic: "METABOLIC ANALYSIS - Extract and use ZIP file data",
+              hormonal: "HORMONAL ANALYSIS - Extract and use ZIP file data",
             },
-            followup: `FOLLOW-UP ANALYSIS - Use folder data: ${data.exportPath}`,
+            followup: "FOLLOW-UP ANALYSIS - Extract and use ZIP file data",
           },
           clientContext: {
-            name: data.summary.clientName,
-            primaryConcerns: "Review client-summary.md for health goals",
+            name: clientName,
+            primaryConcerns: "Review extracted data for health goals",
             medications: [],
-            keyLabs: "Review documents in folder for lab results",
+            keyLabs: "Review documents in extracted ZIP file",
           },
         };
 
