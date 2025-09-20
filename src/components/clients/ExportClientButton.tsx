@@ -89,7 +89,9 @@ export function ExportClientButton({
 
         // Trigger Claude prompts modal
         const claudePromptsData = {
-          filename: `${data.summary.clientName}-${new Date().toISOString().split("T")[0]}`,
+          filename: `${data.summary.clientName}-${
+            new Date().toISOString().split("T")[0]
+          }`,
           location: data.exportPath,
           prompts: {
             comprehensive: `FNTP FUNCTIONAL MEDICINE ANALYSIS - EXECUTE IMMEDIATELY

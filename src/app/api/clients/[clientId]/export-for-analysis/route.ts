@@ -18,31 +18,28 @@ export async function GET(
 
     const { clientId } = await params;
 
-    // Fetch complete client data from all 5 main tables
+    // Fetch complete client data from all main tables
     const clientData = await prisma.client.findUnique({
       where: { id: clientId },
       include: {
-        // SimpleAssessment data
-        simpleAssessments: {
-          include: {
-            responses: true,
-          },
-          orderBy: { startedAt: "desc" },
+        // Assessment data
+        FunctionalMedicineAssessment: {
+          orderBy: { createdAt: "desc" },
         },
         // Document data with analysis
-        documents: {
-          include: {
-            DocumentAnalysis: true,
-            LabValue: true,
-          },
+        Document: {
           orderBy: { uploadedAt: "desc" },
         },
         // Clinical notes
-        notes: {
+        Note: {
           orderBy: { createdAt: "desc" },
         },
         // Treatment protocols
-        protocols: {
+        Protocol: {
+          orderBy: { createdAt: "desc" },
+        },
+        // Claude Analysis data
+        analyses: {
           orderBy: { createdAt: "desc" },
         },
       },
@@ -87,26 +84,17 @@ export async function GET(
         createdAt: clientData.createdAt,
         lastVisit: clientData.lastVisit,
       },
-      assessments: clientData.simpleAssessments.map((assessment) => ({
+      assessments: clientData.FunctionalMedicineAssessment.map((assessment) => ({
         id: assessment.id,
-        status: assessment.status,
-        startedAt: assessment.startedAt,
-        completedAt: assessment.completedAt,
-        responses: assessment.responses.map((response) => ({
-          questionId: response.questionId,
-          questionText: response.questionText,
-          category: response.category,
-          score: response.score,
-          answeredAt: response.answeredAt,
-        })),
-        totalQuestions: assessment.responses.length,
-        averageScore:
-          assessment.responses.length > 0
-            ? assessment.responses.reduce((sum, r) => sum + r.score, 0) /
-              assessment.responses.length
-            : 0,
+        status: assessment.status || "completed",
+        startedAt: assessment.createdAt,
+        completedAt: assessment.updatedAt,
+        totalQuestions: assessment.totalQuestions || 0,
+        averageScore: assessment.averageScore || 0,
+        systemScores: assessment.systemScores || {},
+        recommendations: assessment.recommendations || {},
       })),
-      documents: clientData.documents.map((doc) => ({
+      documents: clientData.Document.map((doc) => ({
         id: doc.id,
         fileName: doc.fileName,
         fileType: doc.fileType,
@@ -114,30 +102,11 @@ export async function GET(
         extractedText: doc.extractedText,
         aiAnalysis: doc.aiAnalysis,
         documentType: doc.documentType,
-        labType: doc.labType,
-        analysisStatus: doc.analysisStatus,
-        analysis: doc.DocumentAnalysis.map((analysis) => ({
-          analysisType: analysis.analysisType,
-          patterns: analysis.patterns,
-          findings: analysis.findings,
-          criticalValues: analysis.criticalValues,
-          recommendations: analysis.recommendations,
-          confidence: analysis.confidence,
-          createdAt: analysis.createdAt,
-        })),
-        labValues: doc.LabValue.map((lab) => ({
-          testName: lab.testName,
-          value: lab.value,
-          unit: lab.unit,
-          flag: lab.flag,
-          isOutOfRange: lab.isOutOfRange,
-          isCritical: lab.isCritical,
-          severity: lab.severity,
-          category: lab.category,
-          collectionDate: lab.collectionDate,
-        })),
+        fileUrl: doc.fileUrl,
+        storageProvider: doc.storageProvider,
+        processingStatus: doc.processingStatus,
       })),
-      notes: clientData.notes.map((note) => ({
+      notes: clientData.Note.map((note) => ({
         id: note.id,
         noteType: note.noteType,
         title: note.title,
@@ -154,7 +123,7 @@ export async function GET(
         followUpNeeded: note.followUpNeeded,
         createdAt: note.createdAt,
       })),
-      protocols: clientData.protocols.map((protocol) => ({
+      protocols: clientData.Protocol.map((protocol) => ({
         id: protocol.id,
         protocolName: protocol.protocolName,
         status: protocol.status,
@@ -170,10 +139,10 @@ export async function GET(
         exportedAt: new Date(),
         exportedBy: authUser.email,
         version: "1.0.0",
-        totalAssessments: clientData.simpleAssessments.length,
-        totalDocuments: clientData.documents.length,
-        totalNotes: clientData.notes.length,
-        totalProtocols: clientData.protocols.length,
+        totalAssessments: clientData.FunctionalMedicineAssessment.length,
+        totalDocuments: clientData.Document.length,
+        totalNotes: clientData.Note.length,
+        totalProtocols: clientData.Protocol.length,
       },
     };
 
@@ -195,7 +164,7 @@ export async function GET(
 
     // Copy document files (if they exist locally)
     const copiedDocuments = [];
-    for (const doc of clientData.documents) {
+    for (const doc of clientData.Document) {
       try {
         // Assuming documents are stored in public/uploads/
         const sourcePath = path.join(process.cwd(), "public", doc.fileUrl);
@@ -215,10 +184,10 @@ export async function GET(
       exportPath: clientExportDir,
       summary: {
         clientName: `${clientData.firstName} ${clientData.lastName}`,
-        totalAssessments: clientData.simpleAssessments.length,
-        totalDocuments: clientData.documents.length,
-        totalNotes: clientData.notes.length,
-        totalProtocols: clientData.protocols.length,
+        totalAssessments: clientData.FunctionalMedicineAssessment.length,
+        totalDocuments: clientData.Document.length,
+        totalNotes: clientData.Note.length,
+        totalProtocols: clientData.Protocol.length,
         copiedDocuments: copiedDocuments.length,
         exportedFiles: [
           "client-data.json",
