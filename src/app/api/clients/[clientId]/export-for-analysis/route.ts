@@ -38,10 +38,6 @@ export async function GET(
         Protocol: {
           orderBy: { createdAt: "desc" },
         },
-        // Claude Analysis data
-        analyses: {
-          orderBy: { createdAt: "desc" },
-        },
       },
     });
 
@@ -84,16 +80,18 @@ export async function GET(
         createdAt: clientData.createdAt,
         lastVisit: clientData.lastVisit,
       },
-      assessments: clientData.FunctionalMedicineAssessment.map((assessment) => ({
-        id: assessment.id,
-        status: assessment.status || "completed",
-        startedAt: assessment.createdAt,
-        completedAt: assessment.updatedAt,
-        totalQuestions: assessment.totalQuestions || 0,
-        averageScore: assessment.averageScore || 0,
-        systemScores: assessment.systemScores || {},
-        recommendations: assessment.recommendations || {},
-      })),
+      assessments: clientData.FunctionalMedicineAssessment.map(
+        (assessment) => ({
+          id: assessment.id,
+          status: assessment.status || "completed",
+          startedAt: assessment.createdAt,
+          completedAt: assessment.updatedAt,
+          totalQuestions: assessment.totalQuestions || 0,
+          averageScore: assessment.averageScore || 0,
+          systemScores: assessment.systemScores || {},
+          recommendations: assessment.recommendations || {},
+        })
+      ),
       documents: clientData.Document.map((doc) => ({
         id: doc.id,
         fileName: doc.fileName,
