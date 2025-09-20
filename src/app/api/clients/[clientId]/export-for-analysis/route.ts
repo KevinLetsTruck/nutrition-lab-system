@@ -92,7 +92,7 @@ export async function GET(
           recommendations: assessment.recommendations || {},
         })
       ),
-      documents: clientData.Document.map((doc) => ({
+      documents: (clientData.Document || []).map((doc) => ({
         id: doc.id,
         fileName: doc.fileName,
         fileType: doc.fileType,
@@ -104,7 +104,7 @@ export async function GET(
         storageProvider: doc.storageProvider,
         processingStatus: doc.processingStatus,
       })),
-      notes: clientData.Note.map((note) => ({
+      notes: (clientData.Note || []).map((note) => ({
         id: note.id,
         noteType: note.noteType,
         title: note.title,
@@ -121,7 +121,7 @@ export async function GET(
         followUpNeeded: note.followUpNeeded,
         createdAt: note.createdAt,
       })),
-      protocols: clientData.Protocol.map((protocol) => ({
+      protocols: (clientData.Protocol || []).map((protocol) => ({
         id: protocol.id,
         protocolName: protocol.protocolName,
         status: protocol.status,
@@ -137,10 +137,10 @@ export async function GET(
         exportedAt: new Date(),
         exportedBy: authUser.email,
         version: "1.0.0",
-        totalAssessments: clientData.FunctionalMedicineAssessment.length,
-        totalDocuments: clientData.Document.length,
-        totalNotes: clientData.Note.length,
-        totalProtocols: clientData.Protocol.length,
+        totalAssessments: (clientData.FunctionalMedicineAssessment || []).length,
+        totalDocuments: (clientData.Document || []).length,
+        totalNotes: (clientData.Note || []).length,
+        totalProtocols: (clientData.Protocol || []).length,
       },
     };
 
@@ -162,7 +162,7 @@ export async function GET(
 
     // Copy document files (if they exist locally)
     const copiedDocuments = [];
-    for (const doc of clientData.Document) {
+    for (const doc of (clientData.Document || [])) {
       try {
         // Assuming documents are stored in public/uploads/
         const sourcePath = path.join(process.cwd(), "public", doc.fileUrl);
@@ -182,10 +182,10 @@ export async function GET(
       exportPath: clientExportDir,
       summary: {
         clientName: `${clientData.firstName} ${clientData.lastName}`,
-        totalAssessments: clientData.FunctionalMedicineAssessment.length,
-        totalDocuments: clientData.Document.length,
-        totalNotes: clientData.Note.length,
-        totalProtocols: clientData.Protocol.length,
+        totalAssessments: (clientData.FunctionalMedicineAssessment || []).length,
+        totalDocuments: (clientData.Document || []).length,
+        totalNotes: (clientData.Note || []).length,
+        totalProtocols: (clientData.Protocol || []).length,
         copiedDocuments: copiedDocuments.length,
         exportedFiles: [
           "client-data.json",
