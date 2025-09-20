@@ -100,9 +100,12 @@ export async function GET(
         extractedText: doc.extractedText,
         aiAnalysis: doc.aiAnalysis,
         documentType: doc.documentType,
+        labType: doc.documentType, // Use documentType as labType for compatibility
+        analysisStatus: doc.processingStatus || "completed",
         fileUrl: doc.fileUrl,
         storageProvider: doc.storageProvider,
         processingStatus: doc.processingStatus,
+        labValues: [], // Empty array for compatibility with summary function
       })),
       notes: (clientData.Note || []).map((note) => ({
         id: note.id,
@@ -137,7 +140,8 @@ export async function GET(
         exportedAt: new Date(),
         exportedBy: authUser.email,
         version: "1.0.0",
-        totalAssessments: (clientData.FunctionalMedicineAssessment || []).length,
+        totalAssessments: (clientData.FunctionalMedicineAssessment || [])
+          .length,
         totalDocuments: (clientData.Document || []).length,
         totalNotes: (clientData.Note || []).length,
         totalProtocols: (clientData.Protocol || []).length,
@@ -162,7 +166,7 @@ export async function GET(
 
     // Copy document files (if they exist locally)
     const copiedDocuments = [];
-    for (const doc of (clientData.Document || [])) {
+    for (const doc of clientData.Document || []) {
       try {
         // Assuming documents are stored in public/uploads/
         const sourcePath = path.join(process.cwd(), "public", doc.fileUrl);
@@ -182,7 +186,8 @@ export async function GET(
       exportPath: clientExportDir,
       summary: {
         clientName: `${clientData.firstName} ${clientData.lastName}`,
-        totalAssessments: (clientData.FunctionalMedicineAssessment || []).length,
+        totalAssessments: (clientData.FunctionalMedicineAssessment || [])
+          .length,
         totalDocuments: (clientData.Document || []).length,
         totalNotes: (clientData.Note || []).length,
         totalProtocols: (clientData.Protocol || []).length,
@@ -209,10 +214,10 @@ export async function GET(
 
 function generateClientSummary(data: any): string {
   const client = data.client;
-  const assessments = data.assessments;
-  const documents = data.documents;
-  const notes = data.notes;
-  const protocols = data.protocols;
+  const assessments = data.assessments || [];
+  const documents = data.documents || [];
+  const notes = data.notes || [];
+  const protocols = data.protocols || [];
 
   return `# Client Analysis Summary: ${client.name}
 
@@ -289,12 +294,12 @@ ${documents
 - **Type:** ${doc.documentType} ${doc.labType ? `(${doc.labType})` : ""}
 - **Uploaded:** ${new Date(doc.uploadedAt).toLocaleDateString()}
 - **Analysis Status:** ${doc.analysisStatus}
-- **Lab Values:** ${doc.labValues.length} values extracted
+- **Lab Values:** ${(doc.labValues || []).length} values extracted
 ${
-  doc.labValues.length > 0
+  (doc.labValues || []).length > 0
     ? `
   **Critical Values:**
-  ${doc.labValues
+  ${(doc.labValues || [])
     .filter((lab) => lab.isCritical)
     .map(
       (lab) => `
