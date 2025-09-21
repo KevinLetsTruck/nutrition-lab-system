@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { verifyAuthToken } from "@/lib/auth";
 import { z } from "zod";
+import { handleApiError } from "@/lib/error-handler";
+import { createCachedResponse, getCached, setCached } from "@/lib/cache";
 
 
 
@@ -52,18 +54,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(notes);
   } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
-    ) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
-    }
-
-    return NextResponse.json(
-      { error: "Failed to fetch notes" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
 
@@ -115,24 +106,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(note, { status: 201 });
   } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
-    ) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
-    }
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid input", details: error.errors },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: "Failed to create note" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

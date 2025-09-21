@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { createClientSchema } from "@/lib/validations/client";
-import { ZodError } from "zod";
 import { verifyAuthToken } from "@/lib/auth";
+import { handleApiError, createNotFoundError } from "@/lib/error-handler";
+import { createCachedResponse, getCached, setCached } from "@/lib/cache";
 
 
 
@@ -15,6 +16,18 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
     const search = searchParams.get("search");
 
+    // Create cache key based on query parameters
+    const cacheKey = `clients:${user.id}:${status || 'all'}:${search || 'none'}`;
+    
+    // Check cache first
+    const cached = getCached(cacheKey);
+    if (cached) {
+      return createCachedResponse(cached, { 
+        maxAge: 300, // 5 minutes
+        tags: ['clients'] 
+      });
+    }
+
     const clients = await prisma.client.findMany({
       where: {
         ...(status && { status }),
@@ -26,23 +39,29 @@ export async function GET(request: NextRequest) {
           ],
         }),
       },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        // Only select what we need for the list view
+      },
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(clients);
-  } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
-    ) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
-    }
+    // Cache the results
+    setCached(cacheKey, clients, 300);
 
-    return NextResponse.json(
-      { error: "Failed to fetch clients" },
-      { status: 500 }
-    );
+    return createCachedResponse(clients, { 
+      maxAge: 300,
+      tags: ['clients'] 
+    });
+  } catch (error) {
+    return handleApiError(error);
   }
 }
 
