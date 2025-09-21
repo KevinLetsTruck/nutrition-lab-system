@@ -23,7 +23,6 @@ import NoteCard from "@/components/notes/NoteCard";
 import NoteModal from "@/components/notes/NoteModal";
 import NoteViewerModal from "@/components/notes/NoteViewerModal";
 import ClientDocumentViewer from "@/components/clients/ClientDocumentViewer";
-import DocumentUploadModal from "@/components/documents/DocumentUploadModal";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
