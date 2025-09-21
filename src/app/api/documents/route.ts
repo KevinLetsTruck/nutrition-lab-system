@@ -42,8 +42,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
+    // Return detailed error for debugging
     return NextResponse.json(
-      { error: "Failed to fetch documents" },
+      { 
+        error: "Failed to fetch documents",
+        details: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack?.split('\n').slice(0, 5) : undefined
+      },
       { status: 500 }
     );
   }

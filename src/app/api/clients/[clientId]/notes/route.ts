@@ -165,8 +165,13 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
+    // Return detailed error for debugging
     return NextResponse.json(
-      { error: "Failed to fetch notes" },
+      { 
+        error: "Failed to fetch notes",
+        details: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack?.split('\n').slice(0, 5) : undefined
+      },
       { status: 500 }
     );
   }
