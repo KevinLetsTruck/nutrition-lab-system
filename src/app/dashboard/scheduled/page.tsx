@@ -18,7 +18,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 // Dynamically import SimplePDFViewer with SSR disabled
-const SimplePDFViewer = dynamic(
+// PDF viewer removed during cleanup
+/*const SimplePDFViewer = dynamic(
   () => import("@/components/pdf/SimplePDFViewer"),
   {
     ssr: false,
@@ -38,7 +39,7 @@ const SimplePDFViewer = dynamic(
       </div>
     ),
   }
-);
+);*/
 
 // Helper function to safely handle healthGoals data type conversion
 function getHealthGoalsArray(healthGoals: any): string[] {
@@ -742,8 +743,8 @@ export default function ScheduledClientsPage() {
         />
       )}
 
-      {/* Document Viewer */}
-      {isDocumentViewerOpen && selectedDocument && (
+      {/* Document Viewer - Removed during cleanup */}
+      {/*isDocumentViewerOpen && selectedDocument && (
         <SimplePDFViewer
           document={selectedDocument}
           onClose={() => {
@@ -751,7 +752,7 @@ export default function ScheduledClientsPage() {
             setSelectedDocument(null);
           }}
         />
-      )}
+      )*/}
     </div>
   );
 }

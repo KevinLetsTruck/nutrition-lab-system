@@ -30,11 +30,7 @@ import { ExportClientButton } from "@/components/clients/ExportClientButton";
 import { ImportAnalysisButton } from "@/components/clients/ImportAnalysisButton";
 import { ClaudePromptsModal } from "@/components/exports/ClaudePromptsModal";
 
-// Dynamically import SimplePDFViewer with SSR disabled
-const SimplePDFViewer = dynamic(
-  () => import("@/components/pdf/SimplePDFViewer"),
-  { ssr: false }
-);
+// PDF viewer removed during cleanup
 
 interface Client {
   id: string;
@@ -1218,8 +1214,8 @@ export default function ClientDetailPage() {
         </div>
       )}
 
-      {/* Document Viewer */}
-      {isDocumentViewerOpen && selectedDocument && (
+      {/* Document Viewer - Removed during cleanup */}
+      {/*isDocumentViewerOpen && selectedDocument && (
         <SimplePDFViewer
           document={selectedDocument}
           onClose={() => {
@@ -1227,7 +1223,7 @@ export default function ClientDetailPage() {
             setSelectedDocument(null);
           }}
         />
-      )}
+      )*/}
 
       {/* Claude Prompts Modal */}
       {isClaudePromptsOpen && claudeExportResult && (

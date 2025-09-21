@@ -1,0 +1,37 @@
+# Railway ignore file
+.git
+.next
+node_modules
+*.log
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Problematic files
+lib/ai/
+components/pdf/
+src/lib/websocket/
+src/lib/pdfUtils.ts
+
+# Documentation
+*.md
+docs/
+README.md
+
+# Test files
+**/*.test.*
+**/*.spec.*
+test/
+tests/
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
