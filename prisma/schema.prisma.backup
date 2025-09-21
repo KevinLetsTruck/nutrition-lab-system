@@ -1,0 +1,1174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AuditLog {
+  id            String        @id
+  userId        String?
+  userEmail     String?
+  ipAddress     String?
+  userAgent     String?
+  resourceId    String?
+  timestamp     DateTime      @default(now())
+  endpoint      String?
+  method        String?
+  clientId      String?
+  metadata      Json?
+  changes       Json?
+  dataAccessed  String[]
+  details       Json?
+  duration      Int?
+  errorMessage  String?
+  hipaaRelevant Boolean       @default(true)
+  purpose       String?
+  requestId     String?
+  sessionId     String?
+  statusCode    Int?
+  success       Boolean
+  userRole      String?
+  action        AuditAction
+  resource      AuditResource
+
+  @@index([action, resource])
+  @@index([clientId, timestamp])
+  @@index([hipaaRelevant])
+  @@index([timestamp])
+  @@index([userId, timestamp])
+}
+
+model Client {
+  id                           String                         @id
+  firstName                    String
+  lastName                     String
+  email                        String                         @unique
+  phone                        String?
+  dateOfBirth                  DateTime?
+  isTruckDriver                Boolean                        @default(true)
+  dotNumber                    String?
+  cdlNumber                    String?
+  healthGoals                  Json?
+  medications                  Json?
+  conditions                   Json?
+  allergies                    Json?
+  status                       String                         @default("active")
+  lastVisit                    DateTime?
+  createdAt                    DateTime                       @default(now())
+  updatedAt                    DateTime
+  gender                       String?
+  assessmentCompleted          Boolean                        @default(false)
+  assessmentCompletedAt        DateTime?
+  emailVerificationToken       String?
+  emailVerified                Boolean                        @default(false)
+  lastLoginAt                  DateTime?
+  password                     String?
+  rememberToken                String?
+  ClientAnalysis               ClientAnalysis[]
+  ClientStatus                 ClientStatus[]
+  Document                     Document[]
+  EnhancedProtocol             EnhancedProtocol[]
+  FunctionalMedicineAssessment FunctionalMedicineAssessment[]
+  Note                         Note[]
+  NutriqComparisonData         NutriqComparisonData[]
+  Protocol                     Protocol[]
+  ProtocolGeneration           ProtocolGeneration[]
+  ProtocolProgress             ProtocolProgress[]
+  TimelineExport               TimelineExport[]
+  medical_documents            medical_documents[]
+  
+  // Claude Analysis System Relations
+  analyses        Analysis[]
+  protocolPhases  ProtocolPhase[]
+  supplements     Supplement[]
+  protocolHistory ProtocolHistory[]
+}
+
+model ClientAnalysis {
+  id                      String             @id
+  clientId                String
+  analysisDate            DateTime           @default(now())
+  analysisVersion         String             @default("v1.0")
+  executiveSummary        String?
+  systemAnalysis          Json?
+  rootCauseAnalysis       String?
+  protocolRecommendations Json?
+  monitoringPlan          String?
+  patientEducation        String?
+  fullAnalysis            String
+  practitionerNotes       String?
+  status                  String             @default("active")
+  createdBy               String?
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime
+  Client                  Client             @relation(fields: [clientId], references: [id])
+  EnhancedProtocol        EnhancedProtocol[]
+
+  @@index([clientId, analysisDate])
+  @@index([status])
+}
+
+model ClientStatus {
+  id        String     @id
+  clientId  String
+  status    StatusType
+  notes     String?
+  createdAt DateTime   @default(now())
+  createdBy String?
+  Client    Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId, createdAt])
+  @@index([status])
+}
+
+model DailyScheduleTemplate {
+  id            String   @id
+  name          String
+  scheduleTimes Json
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([isDefault])
+}
+
+model Document {
+  id               String             @id
+  clientId         String
+  fileName         String
+  fileType         String
+  fileSize         Int
+  fileUrl          String
+  processingError  String?
+  extractedText    String?
+  ocrConfidence    Float?
+  analysisDate     DateTime?
+  uploadedAt       DateTime           @default(now())
+  processedAt      DateTime?
+  structuredData   Json?
+  documentType     DocumentType       @default(UNKNOWN)
+  labType          LabType?
+  analysisStatus   AnalysisStatus     @default(PENDING)
+  containsPHI      Boolean            @default(false)
+  encryptionKey    String?
+  isEncrypted      Boolean            @default(true)
+  lastAccessedAt   DateTime?
+  metadata         Json?
+  ocrProvider      String?
+  originalFileName String?
+  phiTypes         Json?
+  priority         Int                @default(5)
+  storageKey       String?
+  storageProvider  StorageProvider    @default(LOCAL)
+  tags             String[]
+  status           ProcessingStatus   @default(UPLOADED)
+  Client           Client             @relation(fields: [clientId], references: [id])
+  DocumentAnalysis DocumentAnalysis[]
+  LabValue         LabValue[]
+  ProcessingJob    ProcessingJob[]
+
+  @@index([clientId])
+  @@index([documentType])
+  @@index([priority])
+  @@index([status])
+  @@index([uploadedAt])
+}
+
+model DocumentAnalysis {
+  id               String         @id
+  documentId       String
+  clientId         String
+  analysisType     AnalysisType
+  patterns         Json?
+  findings         Json?
+  criticalValues   Json?
+  trends           Json?
+  systemAssessment Json?
+  rootCauses       Json?
+  recommendations  Json?
+  confidence       Float?
+  modelVersion     String?
+  processingTime   Int?
+  status           AnalysisStatus @default(PENDING)
+  errorMessage     String?
+  createdAt        DateTime       @default(now())
+  completedAt      DateTime?
+  reviewedAt       DateTime?
+  reviewedBy       String?
+  approvedAt       DateTime?
+  approvedBy       String?
+  cost             Float?
+  insights         Json?
+  interactions     Json?
+  limitations      String[]
+  provider         String         @default("CLAUDE")
+  reliability      String?
+  reviewRequired   Boolean        @default(false)
+  tokens           Int?
+  updatedAt        DateTime
+  Document         Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([analysisType])
+  @@index([clientId])
+  @@index([createdAt])
+  @@index([documentId])
+  @@index([status])
+}
+
+model EnhancedProtocol {
+  id                     String                  @id
+  clientId               String
+  analysisId             String?
+  protocolName           String
+  protocolPhase          String?
+  supplements            Json?
+  dietaryGuidelines      Json?
+  lifestyleModifications Json?
+  monitoringRequirements Json?
+  startDate              DateTime?
+  durationWeeks          Int?
+  status                 String                  @default("planned")
+  complianceNotes        String?
+  effectivenessRating    Int?
+  sideEffects            String?
+  modificationsMade      Json?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime
+  brandingConfig         Json?
+  clinicalFocus          String?
+  currentStatus          String?
+  dailySchedule          Json?
+  greeting               String?
+  prioritySupplements    Json?
+  protocolNotes          String?
+  ClientAnalysis         ClientAnalysis?         @relation(fields: [analysisId], references: [id])
+  Client                 Client                  @relation(fields: [clientId], references: [id])
+  ProtocolGeneration     ProtocolGeneration[]
+  ProtocolProgress       ProtocolProgress[]
+  ProtocolStatusChanges  ProtocolStatusChanges[]
+  ProtocolSupplement     ProtocolSupplement[]
+
+  @@index([analysisId])
+  @@index([clientId, status])
+}
+
+model FmDigestiveQuestion {
+  id                    Int                   @id @default(autoincrement())
+  category              String
+  subcategory           String?
+  questionText          String
+  questionContext       String?
+  clinicalSignificance  String?
+  scaleType             String                @default("frequency")
+  reverseScoring        Boolean               @default(false)
+  diagnosticWeight      Float                 @default(1.0)
+  symptomType           String?
+  conditionAssociations String[]
+  isTraditional         Boolean               @default(true)
+  isModernInsight       Boolean               @default(false)
+  environmentalFactor   String?
+  displayOrder          Int
+  requiredLevel         String                @default("standard")
+  skipLogic             Json?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime
+  isActive              Boolean               @default(true)
+  FmDigestiveResponse   FmDigestiveResponse[]
+
+  @@index([category])
+  @@index([displayOrder])
+  @@index([isActive])
+  @@index([subcategory])
+}
+
+model FmDigestiveResponse {
+  id                           String                       @id
+  assessmentId                 String
+  questionId                   Int
+  responseValue                Int
+  confidenceLevel              Int                          @default(5)
+  notes                        String?
+  timeSpentSeconds             Int?
+  answerChangedCount           Int                          @default(0)
+  answeredAt                   DateTime                     @default(now())
+  FunctionalMedicineAssessment FunctionalMedicineAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  FmDigestiveQuestion          FmDigestiveQuestion          @relation(fields: [questionId], references: [id])
+
+  @@unique([assessmentId, questionId])
+  @@index([assessmentId])
+  @@index([questionId])
+}
+
+model FmScoringAlgorithm {
+  id                     String   @id
+  systemName             String
+  algorithmVersion       String   @default("v1.0")
+  scoringRules           Json
+  thresholds             Json
+  treatmentAlgorithms    Json?
+  clinicalValidationData Json?
+  comparisonMetrics      Json?
+  isActive               Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime
+
+  @@index([isActive])
+  @@index([systemName])
+}
+
+model FunctionalMedicineAssessment {
+  id                    String                @id
+  clientId              String
+  assessmentType        String                @default("digestive_system")
+  status                String                @default("draft")
+  startedAt             DateTime              @default(now())
+  completedAt           DateTime?
+  totalTimeMinutes      Int?
+  completionPercentage  Int                   @default(0)
+  overallDigestiveScore Float?
+  subsystemScores       Json?
+  rootCauseIndicators   Json?
+  treatmentPriorities   Json?
+  environmentalFactors  Json?
+  lifestyleFactors      Json?
+  rootCauseAnalysis     Json?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime
+  FmDigestiveResponse   FmDigestiveResponse[]
+  Client                Client                @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  nutriqassessments     nutriqassessments[]
+
+  @@index([assessmentType])
+  @@index([clientId])
+  @@index([completedAt])
+  @@index([status])
+}
+
+model FunctionalMedicineLabRange {
+  id                   String   @id
+  testName             String
+  testCode             String?
+  category             String
+  standardRangeMin     Float?
+  standardRangeMax     Float?
+  fmOptimalMin         Float
+  fmOptimalMax         Float
+  criticalLow          Float?
+  criticalHigh         Float?
+  unit                 String
+  genderSpecific       Boolean  @default(false)
+  ageDependent         Boolean  @default(false)
+  description          String?
+  clinicalSignificance String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime
+
+  @@unique([testName, testCode])
+  @@index([category])
+  @@index([testName])
+}
+
+model LabValue {
+  id               String      @id
+  documentId       String
+  clientId         String
+  testName         String
+  testCode         String?
+  category         LabCategory
+  subcategory      String?
+  value            String
+  numericValue     Float?
+  unit             String?
+  conventionalLow  Float?
+  conventionalHigh Float?
+  functionalLow    Float?
+  functionalHigh   Float?
+  flag             String?
+  isOutOfRange     Boolean     @default(false)
+  isCritical       Boolean     @default(false)
+  severity         Severity    @default(NORMAL)
+  collectionDate   DateTime?
+  labName          String?
+  verifiedAt       DateTime?
+  verifiedBy       String?
+  confidence       Float?
+  createdAt        DateTime    @default(now())
+  extractionMethod String?
+  labLocation      String?
+  panel            String?
+  referenceRange   Json?
+  reportDate       DateTime?
+  updatedAt        DateTime
+  verified         Boolean     @default(false)
+  Document         Document    @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([category])
+  @@index([clientId, testName])
+  @@index([collectionDate])
+  @@index([documentId])
+  @@index([isCritical])
+}
+
+model Note {
+  id                  String   @id
+  clientId            String
+  noteType            NoteType
+  title               String?
+  chiefComplaints     String?
+  healthHistory       String?
+  currentMedications  String?
+  goals               String?
+  protocolAdjustments String?
+  complianceNotes     String?
+  progressMetrics     String?
+  nextSteps           String?
+  generalNotes        String?
+  isImportant         Boolean  @default(false)
+  followUpNeeded      Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime
+  Client              Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId, noteType])
+  @@index([createdAt])
+}
+
+model NutriqComparisonData {
+  id                   String    @id
+  clientId             String
+  nutriqRawResponses   Json?
+  nutriqScores         Json?
+  nutriqAssessmentDate DateTime?
+  fmAssessmentId       String?
+  fmScores             Json?
+  scoreCorrelations    Json?
+  diagnosticAgreement  Json?
+  improvementTracking  Json?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime
+  Client               Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([nutriqAssessmentDate])
+}
+
+model ProcessingJob {
+  id             String    @id
+  documentId     String
+  jobType        JobType
+  priority       Int       @default(5)
+  config         Json?
+  queueName      String    @default("default")
+  jobId          String?
+  status         JobStatus @default(PENDING)
+  progress       Int       @default(0)
+  currentStep    String?
+  attempts       Int       @default(0)
+  maxAttempts    Int       @default(3)
+  backoffDelay   Int       @default(5000)
+  result         Json?
+  error          Json?
+  logs           Json[]
+  scheduledAt    DateTime  @default(now())
+  startedAt      DateTime?
+  completedAt    DateTime?
+  failedAt       DateTime?
+  processingNode String?
+  memoryUsage    Int?
+  cpuTime        Int?
+  Document       Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId, status])
+  @@index([jobType])
+  @@index([scheduledAt])
+  @@index([status, priority])
+}
+
+model Protocol {
+  id           String    @id
+  clientId     String
+  protocolName String
+  status       String    @default("active")
+  supplements  Json
+  dietary      Json
+  lifestyle    Json
+  timeline     Json
+  metrics      Json?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime
+  completedAt  DateTime?
+  Client       Client    @relation(fields: [clientId], references: [id])
+
+  @@index([clientId])
+  @@index([status])
+}
+
+model ProtocolGeneration {
+  id               String           @id
+  protocolId       String
+  clientId         String
+  pdfUrl           String?
+  emailSentAt      DateTime?
+  emailRecipients  String[]
+  generationData   Json?
+  createdAt        DateTime         @default(now())
+  Client           Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  EnhancedProtocol EnhancedProtocol @relation(fields: [protocolId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([createdAt])
+  @@index([protocolId])
+}
+
+model ProtocolProgress {
+  id                   String           @id
+  protocolId           String
+  clientId             String
+  energyLevel          Int?             @db.SmallInt
+  sleepQuality         Int?             @db.SmallInt
+  digestionHealth      Int?             @db.SmallInt
+  overallWellbeing     Int?             @db.SmallInt
+  supplementCompliance Int?             @db.SmallInt
+  dietaryCompliance    Int?             @db.SmallInt
+  lifestyleCompliance  Int?             @db.SmallInt
+  symptomsNotes        String?
+  challengesFaced      String?
+  positiveChanges      String?
+  questionsConcerns    String?
+  weekNumber           Int
+  trackingDate         DateTime         @default(now())
+  submittedBy          String
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime
+  Client               Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  EnhancedProtocol     EnhancedProtocol @relation(fields: [protocolId], references: [id], onDelete: Cascade)
+
+  @@unique([protocolId, weekNumber])
+  @@index([clientId])
+  @@index([protocolId])
+  @@index([trackingDate])
+  @@index([weekNumber])
+}
+
+model ProtocolStatusChanges {
+  id               String           @id
+  protocolId       String
+  previousStatus   String?
+  newStatus        String
+  reasonForChange  String?
+  adjustmentNotes  String?
+  changedBy        String
+  changedAt        DateTime         @default(now())
+  EnhancedProtocol EnhancedProtocol @relation(fields: [protocolId], references: [id], onDelete: Cascade)
+
+  @@index([changedAt])
+  @@index([changedBy])
+  @@index([protocolId])
+}
+
+model ProtocolSupplement {
+  id               String           @id
+  protocolId       String
+  productName      String
+  dosage           String
+  timing           String
+  purpose          String?
+  priority         Int              @default(1)
+  isActive         Boolean          @default(true)
+  startDate        DateTime?
+  endDate          DateTime?
+  createdAt        DateTime         @default(now())
+  EnhancedProtocol EnhancedProtocol @relation(fields: [protocolId], references: [id], onDelete: Cascade)
+
+  @@index([priority, isActive])
+  @@index([protocolId])
+  @@index([startDate, endDate])
+}
+
+model ProtocolTemplate {
+  id           String   @id
+  name         String
+  category     String
+  templateData Json
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime
+
+  @@index([category, isActive])
+  @@index([isActive])
+}
+
+model SystemMetrics {
+  id                    String   @id
+  cpuUsage              Float?
+  memoryUsage           Float?
+  diskUsage             Float?
+  queueLength           Int      @default(0)
+  activeJobs            Int      @default(0)
+  completedJobs         Int      @default(0)
+  failedJobs            Int      @default(0)
+  averageProcessingTime Float?
+  throughputPerHour     Int      @default(0)
+  errorRate             Float    @default(0)
+  requestCount          Int      @default(0)
+  averageResponseTime   Float?
+  documentsStored       Int      @default(0)
+  storageUsed           BigInt   @default(0)
+  timestamp             DateTime @default(now())
+  intervalType          String   @default("hourly")
+
+  @@index([timestamp, intervalType])
+}
+
+model TimelineExport {
+  id                     String       @id
+  clientId               String
+  exportType             TimelineType @default(COMPREHENSIVE)
+  status                 ExportStatus @default(PENDING)
+  timelineData           Json?
+  criticalFindings       Json?
+  exportedAt             DateTime?
+  markdownContent        String?
+  fileUrl                String?
+  fileName               String?
+  dateRange              Json?
+  dataPoints             Int          @default(0)
+  analysisVersion        String       @default("v1.0")
+  requestedBy            String?
+  processingTime         Int?
+  errorMessage           String?
+  hipaaRelevant          Boolean      @default(true)
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime
+  labAnalysisData        Json?
+  assessmentAnalysisData Json?
+  Client                 Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId, exportType])
+  @@index([createdAt])
+  @@index([requestedBy])
+  @@index([status])
+}
+
+model User {
+  id            String    @id
+  email         String    @unique
+  name          String
+  password      String
+  role          String    @default("admin")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime
+  lastLoginAt   DateTime?
+  rememberToken String?
+}
+
+model medical_document_analyses {
+  id                String            @id
+  document_id       String            @unique
+  patterns          Json
+  root_causes       Json?
+  critical_values   Json?
+  functional_status Json?
+  cross_references  Json?
+  trends            Json?
+  recommendations   Json?
+  created_at        DateTime          @default(now())
+  medical_documents medical_documents @relation(fields: [document_id], references: [id], onDelete: Cascade)
+}
+
+model medical_documents {
+  id                        String                     @id
+  client_id                 String?
+  document_type             String
+  original_file_name        String
+  s3_url                    String?
+  s3_key                    String?
+  upload_date               DateTime                   @default(now())
+  status                    MedicalDocStatus           @default(PENDING)
+  ocr_text                  String?
+  ocr_confidence            Float?
+  processed_at              DateTime?
+  error_message             String?
+  metadata                  Json?
+  medical_document_analyses medical_document_analyses?
+  Client                    Client?                    @relation(fields: [client_id], references: [id])
+  medical_lab_values        medical_lab_values[]
+
+  @@index([client_id, upload_date])
+  @@index([status])
+}
+
+model medical_lab_values {
+  id                String            @id
+  document_id       String
+  test_name         String
+  standard_name     String?
+  value             Float?
+  value_text        String?
+  unit              String?
+  reference_min     Float?
+  reference_max     Float?
+  functional_min    Float?
+  functional_max    Float?
+  optimal_min       Float?
+  optimal_max       Float?
+  flag              String?
+  collection_date   DateTime?
+  lab_source        String?
+  confidence        Float?            @default(1.0)
+  medical_documents medical_documents @relation(fields: [document_id], references: [id], onDelete: Cascade)
+
+  @@index([document_id])
+  @@index([standard_name])
+  @@index([test_name])
+}
+
+model medical_processing_queue {
+  id            String           @id
+  document_id   String
+  job_type      String
+  priority      Int              @default(0)
+  status        MedicalJobStatus @default(QUEUED)
+  attempts      Int              @default(0)
+  max_attempts  Int              @default(3)
+  error_message String?
+  started_at    DateTime?
+  completed_at  DateTime?
+  created_at    DateTime         @default(now())
+
+  @@index([status, priority])
+}
+
+model nutriqassessments {
+  id                           Int                           @id @default(autoincrement())
+  fm_assessment_id             String?
+  participant_id               Int?
+  assessment_date              DateTime?                     @default(now()) @db.Timestamp(6)
+  gender                       String?                       @db.VarChar(10)
+  age_range                    String?                       @db.VarChar(20)
+  total_score                  Decimal?                      @db.Decimal(8, 2)
+  category_scores              Json?
+  completion_status            String?                       @default("in_progress") @db.VarChar(20)
+  completion_percentage        Int?                          @default(0)
+  time_to_complete             Int?
+  clinical_flags               Json?
+  created_at                   DateTime?                     @default(now()) @db.Timestamp(6)
+  updated_at                   DateTime?                     @default(now()) @db.Timestamp(6)
+  FunctionalMedicineAssessment FunctionalMedicineAssessment? @relation(fields: [fm_assessment_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  nutriqresponses              nutriqresponses[]
+
+  @@index([assessment_date], map: "idx_nutriq_assessments_date")
+  @@index([fm_assessment_id], map: "idx_nutriq_assessments_fm")
+  @@index([participant_id], map: "idx_nutriq_assessments_participant")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model nutriqcategories {
+  id                         Int                          @id @default(autoincrement())
+  category_code              String                       @unique @db.VarChar(50)
+  category_name              String                       @db.VarChar(200)
+  display_order              Int
+  description                String?
+  clinical_significance      String?
+  scoring_weight             Decimal?                     @default(1.00) @db.Decimal(3, 2)
+  created_at                 DateTime?                    @default(now()) @db.Timestamp(6)
+  updated_at                 DateTime?                    @default(now()) @db.Timestamp(6)
+  nutriqclinicalcorrelations nutriqclinicalcorrelations[]
+  nutriqquestions            nutriqquestions[]
+  nutriqrecommendations      nutriqrecommendations[]
+  nutriqscoringalgorithms    nutriqscoringalgorithms[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model nutriqclinicalcorrelations {
+  id                   Int               @id @default(autoincrement())
+  category_id          Int?
+  correlation_type     String?           @db.VarChar(50)
+  target_system        String?           @db.VarChar(100)
+  clinical_marker      String?           @db.VarChar(200)
+  correlation_strength String?           @db.VarChar(20)
+  research_references  String?
+  clinical_notes       String?
+  created_at           DateTime?         @default(now()) @db.Timestamp(6)
+  nutriqcategories     nutriqcategories? @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model nutriqquestions {
+  id                  Int               @id @default(autoincrement())
+  question_id         String            @unique @db.VarChar(10)
+  category_id         Int?
+  question_text       String
+  response_scale_type String?           @default("0-3") @db.VarChar(20)
+  response_options    Json
+  clinical_notes      String?
+  is_gender_specific  Boolean?          @default(false)
+  applicable_genders  String?           @db.VarChar(20)
+  display_order       Int
+  is_active           Boolean?          @default(true)
+  created_at          DateTime?         @default(now()) @db.Timestamp(6)
+  updated_at          DateTime?         @default(now()) @db.Timestamp(6)
+  nutriqcategories    nutriqcategories? @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  nutriqresponses     nutriqresponses[]
+
+  @@index([category_id], map: "idx_nutriq_questions_category")
+  @@index([display_order], map: "idx_nutriq_questions_display")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model nutriqrecommendations {
+  id                  Int               @id @default(autoincrement())
+  category_id         Int?
+  score_range_min     Int?
+  score_range_max     Int?
+  recommendation_type String?           @db.VarChar(50)
+  recommendation_text String
+  priority_level      Int?              @default(3)
+  estimated_duration  String?           @db.VarChar(50)
+  contraindications   String?
+  is_active           Boolean?          @default(true)
+  created_at          DateTime?         @default(now()) @db.Timestamp(6)
+  nutriqcategories    nutriqcategories? @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model nutriqresponses {
+  id                 Int                @id @default(autoincrement())
+  assessment_id      Int?
+  question_id        Int?
+  response_value     Int
+  response_text      String?            @db.VarChar(20)
+  points_contributed Decimal?           @db.Decimal(5, 2)
+  is_flagged         Boolean?           @default(false)
+  notes              String?
+  answered_at        DateTime?          @default(now()) @db.Timestamp(6)
+  nutriqassessments  nutriqassessments? @relation(fields: [assessment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  nutriqquestions    nutriqquestions?   @relation(fields: [question_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([assessment_id], map: "idx_nutriq_responses_assessment")
+  @@index([question_id], map: "idx_nutriq_responses_question")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model nutriqscoringalgorithms {
+  id                      Int               @id @default(autoincrement())
+  algorithm_name          String            @db.VarChar(100)
+  category_id             Int?
+  calculation_method      String
+  weight_factor           Decimal?          @default(1.00) @db.Decimal(3, 2)
+  threshold_low           Int?
+  threshold_moderate      Int?
+  threshold_high          Int?
+  clinical_interpretation Json?
+  is_active               Boolean?          @default(true)
+  created_at              DateTime?         @default(now()) @db.Timestamp(6)
+  nutriqcategories        nutriqcategories? @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+enum AnalysisStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  REQUIRES_REVIEW
+  APPROVED
+}
+
+enum AnalysisType {
+  FUNCTIONAL_MEDICINE
+  CONVENTIONAL_INTERPRETATION
+  TREND_ANALYSIS
+  COMPARATIVE_ANALYSIS
+  PATTERN_RECOGNITION
+  NUTRIENT_ANALYSIS
+  TOXICITY_ANALYSIS
+  HORMONE_ANALYSIS
+}
+
+enum AuditAction {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  UPLOAD
+  DOWNLOAD
+  PROCESS
+  ANALYZE
+  EXPORT
+  SHARE
+  LOGIN
+  LOGOUT
+  ACCESS_DENIED
+}
+
+enum AuditResource {
+  USER
+  CLIENT
+  DOCUMENT
+  LAB_VALUE
+  ANALYSIS
+  ASSESSMENT
+  PROTOCOL
+  NOTE
+  SYSTEM
+}
+
+enum DocumentType {
+  LAB_REPORT
+  IMAGING_REPORT
+  CLINICAL_NOTES
+  PATHOLOGY_REPORT
+  ASSESSMENT_FORM
+  PRESCRIPTION
+  UNKNOWN
+  INSURANCE_CARD
+  INTAKE_FORM
+}
+
+enum ExportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
+enum JobStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  FAILED
+  DELAYED
+  CANCELLED
+  STUCK
+}
+
+enum JobType {
+  OCR_EXTRACTION
+  DATA_PARSING
+  VALUE_EXTRACTION
+  FUNCTIONAL_ANALYSIS
+  PATTERN_ANALYSIS
+  TREND_ANALYSIS
+  REPORT_GENERATION
+  NOTIFICATION
+}
+
+enum LabCategory {
+  BASIC_METABOLIC
+  COMPREHENSIVE_METABOLIC
+  LIPID_PANEL
+  THYROID
+  HORMONE
+  VITAMIN_MINERAL
+  INFLAMMATORY_MARKERS
+  IMMUNE_FUNCTION
+  DIGESTIVE_HEALTH
+  DETOXIFICATION
+  CARDIOVASCULAR
+  NEUROLOGICAL
+  OTHER
+  GENETIC
+  MICRONUTRIENT
+  FOOD_SENSITIVITY
+  HEAVY_METALS
+  ORGANIC_ACIDS
+  AMINO_ACIDS
+  FATTY_ACIDS
+}
+
+enum LabType {
+  NUTRIQ
+  LABCORP
+  QUEST
+  DUTCH
+  KBMO
+  GENOVA
+  DIAGNOSTIC_SOLUTIONS
+  GREAT_PLAINS
+  OTHER
+  VIBRANT_WELLNESS
+  PRECISION_POINT
+}
+
+enum MedicalDocStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REQUIRES_REVIEW
+}
+
+enum MedicalJobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  RETRY
+}
+
+enum NoteType {
+  INTERVIEW
+  COACHING
+}
+
+enum ProcessingStatus {
+  UPLOADED
+  QUEUED
+  PROCESSING
+  OCR_COMPLETE
+  EXTRACTION_COMPLETE
+  ANALYSIS_COMPLETE
+  COMPLETED
+  FAILED
+  ARCHIVED
+}
+
+enum Severity {
+  CRITICAL
+  HIGH
+  MODERATE
+  LOW
+  NORMAL
+}
+
+enum StatusType {
+  SIGNED_UP
+  INITIAL_INTERVIEW_COMPLETED
+  ASSESSMENT_COMPLETED
+  DOCS_UPLOADED
+  SCHEDULED
+  ONGOING
+  ARCHIVED
+}
+
+enum StorageProvider {
+  LOCAL
+  S3
+  CLOUDINARY
+}
+
+enum TimelineType {
+  COMPREHENSIVE
+  FOCUSED
+  SYMPTOMS
+  TREATMENTS
+  ASSESSMENTS
+  PROTOCOL_DEVELOPMENT
+}
+
+// Claude Analysis System Models
+model Analysis {
+  id            String   @id @default(cuid())
+  clientId      String
+  analysisData  Json     // Full Claude analysis JSON
+  rootCauses    String[] // Extracted root causes
+  riskFactors   String[] // Identified risk factors  
+  priorityAreas String[] // Priority intervention areas
+  confidence    Float    // Analysis confidence score (0-1)
+  analysisDate  DateTime @default(now())
+  version       String   @default("1.0")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  client          Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  protocolPhases  ProtocolPhase[]
+  supplements     Supplement[]
+  protocolHistory ProtocolHistory[]
+
+  @@map("analyses")
+}
+
+model ProtocolPhase {
+  id          String   @id @default(cuid())
+  analysisId  String
+  clientId    String
+  phase       String   // PHASE1, PHASE2, PHASE3
+  name        String
+  description String?
+  duration    String   // "30 days", "90 days", etc.
+  supplements Json[]   // Array of supplement objects
+  lifestyle   Json[]   // Array of lifestyle interventions
+  dietary     Json[]   // Array of dietary recommendations
+  monitoring  Json[]   // Array of monitoring requirements
+  status      ProtocolPhaseStatus @default(PLANNED)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  analysis Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  client   Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("protocol_phases")
+}
+
+model Supplement {
+  id            String   @id @default(cuid())
+  clientId      String
+  analysisId    String?
+  name          String
+  dosage        String
+  timing        String
+  duration      String
+  priority      SupplementPriority @default(MEDIUM)
+  category      String   // "Foundational", "Targeted", "Optimization"
+  productUrl    String?
+  estimatedCost Float    @default(0)
+  rationale     String?
+  phase         String   // PHASE1, PHASE2, PHASE3
+  status        SupplementStatus @default(RECOMMENDED)
+  startDate     DateTime?
+  endDate       DateTime?
+  compliance    Int?     // 0-100 percentage
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  client   Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  analysis Analysis? @relation(fields: [analysisId], references: [id], onDelete: SetNull)
+
+  @@map("supplements")
+}
+
+model ProtocolHistory {
+  id         String   @id @default(cuid())
+  clientId   String
+  analysisId String?
+  action     String   // ANALYSIS_IMPORTED, PHASE_STARTED, PHASE_COMPLETED, etc.
+  details    Json?    // Additional action details
+  timestamp  DateTime @default(now())
+
+  // Relations
+  client   Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  analysis Analysis? @relation(fields: [analysisId], references: [id], onDelete: SetNull)
+
+  @@map("protocol_history")
+}
+
+// Claude Analysis System Enums
+enum ProtocolPhaseStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+  PAUSED
+  CANCELLED
+}
+
+enum SupplementPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SupplementStatus {
+  RECOMMENDED
+  ACTIVE
+  COMPLETED
+  DISCONTINUED
+  ON_HOLD
+}
