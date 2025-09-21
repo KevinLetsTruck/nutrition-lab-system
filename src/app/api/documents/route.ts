@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
         ...(status && { status }),
       },
       include: {
-        client: {
+        Client: {
           select: {
             id: true,
             firstName: true,
@@ -44,10 +44,13 @@ export async function GET(request: NextRequest) {
 
     // Return detailed error for debugging
     return NextResponse.json(
-      { 
+      {
         error: "Failed to fetch documents",
         details: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack?.split('\n').slice(0, 5) : undefined
+        stack:
+          error instanceof Error
+            ? error.stack?.split("\n").slice(0, 5)
+            : undefined,
       },
       { status: 500 }
     );

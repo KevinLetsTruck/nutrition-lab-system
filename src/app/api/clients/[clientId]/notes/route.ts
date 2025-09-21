@@ -47,7 +47,7 @@ export async function POST(
         clientId,
       },
       include: {
-        client: {
+        Client: {
           select: {
             id: true,
             firstName: true,
@@ -142,7 +142,7 @@ export async function GET(
     const notes = await prisma.note.findMany({
       where: whereClause,
       include: {
-        client: {
+        Client: {
           select: {
             id: true,
             firstName: true,
@@ -167,10 +167,13 @@ export async function GET(
 
     // Return detailed error for debugging
     return NextResponse.json(
-      { 
+      {
         error: "Failed to fetch notes",
         details: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack?.split('\n').slice(0, 5) : undefined
+        stack:
+          error instanceof Error
+            ? error.stack?.split("\n").slice(0, 5)
+            : undefined,
       },
       { status: 500 }
     );
