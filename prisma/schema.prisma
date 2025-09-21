@@ -79,6 +79,9 @@ model Client {
   protocolPhases  ProtocolPhase[]
   supplements     Supplement[]
   protocolHistory ProtocolHistory[]
+  
+  // Document Relations
+  Document        Document[]
 }
 
 model ClientAnalysis {
@@ -532,4 +535,21 @@ enum SupplementStatus {
   COMPLETED
   DISCONTINUED
   ON_HOLD
+}
+
+model Document {
+  id           String   @id @default(cuid())
+  fileName     String
+  documentType String
+  labType      String?
+  status       String   @default("uploaded")
+  fileSize     Int
+  fileUrl      String
+  uploadedAt   DateTime @default(now())
+  clientId     String
+  Client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@index([clientId])
+  @@index([status])
+  @@index([documentType])
 }
