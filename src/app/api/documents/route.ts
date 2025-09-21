@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { verifyAuthToken } from "@/lib/auth";
 import { handleApiError } from "@/lib/error-handler";
-import { createCachedResponse, getCached, setCached, invalidateCache } from "@/lib/cache";
+import {
+  createCachedResponse,
+  getCached,
+  setCached,
+  invalidateCache,
+} from "@/lib/cache";
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,14 +20,16 @@ export async function GET(request: NextRequest) {
     const id = searchParams.get("id");
 
     // Create cache key
-    const cacheKey = `documents:${clientId || 'all'}:${status || 'all'}:${id || 'none'}`;
-    
+    const cacheKey = `documents:${clientId || "all"}:${status || "all"}:${
+      id || "none"
+    }`;
+
     // Check cache first
     const cached = getCached(cacheKey);
     if (cached) {
-      return createCachedResponse(cached, { 
+      return createCachedResponse(cached, {
         maxAge: 300, // 5 minutes
-        tags: ['documents'] 
+        tags: ["documents"],
       });
     }
 
@@ -50,9 +57,9 @@ export async function GET(request: NextRequest) {
     // Cache the results
     setCached(cacheKey, documents, 300);
 
-    return createCachedResponse(documents, { 
+    return createCachedResponse(documents, {
       maxAge: 300,
-      tags: ['documents'] 
+      tags: ["documents"],
     });
   } catch (error) {
     return handleApiError(error);
@@ -82,10 +89,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!client) {
-      return NextResponse.json(
-        { error: "Client not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
 
     // For now, we'll create a simple document record
@@ -113,7 +117,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Invalidate cache
-    invalidateCache('documents');
+    invalidateCache("documents");
 
     return NextResponse.json(document, { status: 201 });
   } catch (error) {
@@ -154,7 +158,7 @@ export async function DELETE(request: NextRequest) {
     });
 
     // Invalidate cache
-    invalidateCache('documents');
+    invalidateCache("documents");
 
     return NextResponse.json({ message: "Document deleted successfully" });
   } catch (error) {

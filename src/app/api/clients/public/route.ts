@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/db";
+import { handleApiError } from "@/lib/error-handler";
 
 export async function POST(req: NextRequest) {
   try {
@@ -61,13 +62,6 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error creating/updating client:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to process client information",
-      },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
