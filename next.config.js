@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Enable standalone output for Docker deployment
+  output: 'standalone',
   // Disable TypeScript checking during build (Railway will still build successfully)
   typescript: {
     ignoreBuildErrors: true,
