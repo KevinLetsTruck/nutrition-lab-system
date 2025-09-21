@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(documents);
   } catch (error) {
+    console.error("❌ DOCUMENTS API Error:", error);
     if (
       error instanceof Error &&
       (error.message.includes("authorization") ||

@@ -156,6 +156,7 @@ export async function GET(
 
     return NextResponse.json(notes);
   } catch (error) {
+    console.error("❌ NOTES API Error:", error);
     if (
       error instanceof Error &&
       (error.message.includes("authorization") ||
