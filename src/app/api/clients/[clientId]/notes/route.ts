@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { verifyAuthToken } from "@/lib/auth";
 import { z } from "zod";
+import { randomBytes } from "crypto";
 
 // Validation schema for creating notes
 const createNoteSchema = z.object({
@@ -43,8 +44,10 @@ export async function POST(
 
     const note = await prisma.note.create({
       data: {
+        id: randomBytes(12).toString('hex'),
         ...validatedData,
         clientId,
+        updatedAt: new Date(),
       },
       include: {
         Client: {
@@ -75,8 +78,12 @@ export async function POST(
       );
     }
 
+    console.error("Note creation error:", error);
     return NextResponse.json(
-      { error: "Failed to create note" },
+      { 
+        error: "Failed to create note",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
       { status: 500 }
     );
   }

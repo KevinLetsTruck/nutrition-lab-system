@@ -38,14 +38,17 @@ export function ImportAnalysisButton({
     fileInputRef.current?.click();
   };
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file type
-    if (!file.name.endsWith('.md') && !file.name.endsWith('.txt')) {
+    if (!file.name.endsWith(".md") && !file.name.endsWith(".txt")) {
       toast.error("Invalid file type", {
-        description: "Please select a .md or .txt file containing Claude analysis.",
+        description:
+          "Please select a .md or .txt file containing Claude analysis.",
       });
       return;
     }
@@ -56,13 +59,13 @@ export function ImportAnalysisButton({
     try {
       // Read file content
       const fileContent = await file.text();
-      
+
       const analysisData = {
         type: "text_analysis",
         content: fileContent,
         filename: file.name,
-        wordCount: fileContent.split(' ').length,
-        importDate: new Date().toISOString()
+        wordCount: fileContent.split(" ").length,
+        importDate: new Date().toISOString(),
       };
 
       const response = await fetch(`/api/clients/${clientId}/import-analysis`, {
@@ -71,9 +74,9 @@ export function ImportAnalysisButton({
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           analysisData,
-          version: "2.0.0"
+          version: "2.0.0",
         }),
       });
 
@@ -104,7 +107,7 @@ export function ImportAnalysisButton({
       setIsImporting(false);
       // Reset file input
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
