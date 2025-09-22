@@ -45,10 +45,10 @@ export function ImportAnalysisButton({
     if (!file) return;
 
     // Validate file type
-    if (!file.name.endsWith(".md") && !file.name.endsWith(".txt")) {
+    if (!file.name.endsWith(".md") && !file.name.endsWith(".txt") && !file.name.endsWith(".json")) {
       toast.error("Invalid file type", {
         description:
-          "Please select a .md or .txt file containing Claude analysis.",
+          "Please select a .md, .txt, or .json file containing Claude analysis.",
       });
       return;
     }
@@ -59,25 +59,51 @@ export function ImportAnalysisButton({
     try {
       // Read file content
       const fileContent = await file.text();
+      
+      let analysisData;
+      let apiEndpoint;
+      
+      if (file.name.endsWith('.json')) {
+        // Handle JSON file from Claude Desktop
+        try {
+          const jsonData = JSON.parse(fileContent);
+          
+          // Validate it's a Claude Desktop export document
+          if (jsonData.exportMetadata && jsonData.supplementRecommendations) {
+            analysisData = jsonData;
+            apiEndpoint = `/api/clients/${clientId}/import-supplement-analysis`;
+          } else {
+            throw new Error("Invalid JSON structure");
+          }
+        } catch (jsonError) {
+          toast.error("Invalid JSON file", {
+            description: "Please ensure the file contains valid Claude Desktop export data.",
+          });
+          return;
+        }
+      } else {
+        // Handle text/markdown files (legacy format)
+        analysisData = {
+          type: "text_analysis",
+          content: fileContent,
+          filename: file.name,
+          wordCount: fileContent.split(" ").length,
+          importDate: new Date().toISOString(),
+        };
+        apiEndpoint = `/api/clients/${clientId}/import-analysis`;
+      }
 
-      const analysisData = {
-        type: "text_analysis",
-        content: fileContent,
-        filename: file.name,
-        wordCount: fileContent.split(" ").length,
-        importDate: new Date().toISOString(),
-      };
+      const requestBody = file.name.endsWith('.json') 
+        ? { analysisText: fileContent, filename: file.name }
+        : { analysisData, version: "2.0.0" };
 
-      const response = await fetch(`/api/clients/${clientId}/import-analysis`, {
+      const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          analysisData,
-          version: "2.0.0",
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -88,14 +114,31 @@ export function ImportAnalysisButton({
       const result = await response.json();
       setImportStatus("success");
 
-      toast.success("Analysis imported successfully!", {
-        description: `${clientName}'s Claude analysis has been imported and saved.`,
-      });
+      if (file.name.endsWith('.json')) {
+        // JSON import success message
+        toast.success("Structured protocol imported successfully!", {
+          description: `${result.supplementsCreated || 0} supplements imported for ${clientName}. ${result.totalMonthlyCost ? `Monthly cost: $${result.totalMonthlyCost}` : ''}`,
+          duration: 5000
+        });
+
+        // Show medication warnings if any
+        if (result.medicationWarnings > 0) {
+          toast.warning("Medication interactions detected", {
+            description: `${result.medicationWarnings} potential interactions found. Review supplement recommendations.`,
+            duration: 8000
+          });
+        }
+      } else {
+        // Text/markdown import success message
+        toast.success("Analysis imported successfully!", {
+          description: `${clientName}'s Claude analysis has been imported and saved.`,
+        });
+      }
 
       // Refresh the page to show new analysis
       setTimeout(() => {
         window.location.reload();
-      }, 1000);
+      }, 2000);
     } catch (error) {
       console.error("Import error:", error);
       setImportStatus("error");
@@ -141,7 +184,7 @@ export function ImportAnalysisButton({
       <input
         ref={fileInputRef}
         type="file"
-        accept=".md,.txt,text/plain,text/markdown"
+        accept=".md,.txt,.json,text/plain,text/markdown,application/json"
         onChange={handleFileSelect}
         className="hidden"
       />

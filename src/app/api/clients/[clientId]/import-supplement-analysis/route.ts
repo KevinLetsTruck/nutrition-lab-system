@@ -34,26 +34,35 @@ export async function POST(
       );
     }
 
+    // Determine if this is a comprehensive export document or simple supplement data
+    const isComprehensiveExport = supplementData.exportMetadata && supplementData.labAnalysis;
+
     // Create analysis record
     const analysis = await prisma.analysis.create({
       data: {
         id: randomBytes(12).toString("hex"),
         clientId,
-        analysisType: "SUPPLEMENT_RECOMMENDATION",
+        analysisType: isComprehensiveExport ? "FNTP_COMPREHENSIVE_PROTOCOL" : "SUPPLEMENT_RECOMMENDATION",
         analysisData: {
           structuredSupplementData: supplementData,
           originalAnalysis: analysisText,
-          importType: "structured_json",
+          importType: isComprehensiveExport ? "comprehensive_export" : "structured_json",
+          labAnalysis: supplementData.labAnalysis || null,
+          clinicalSummary: supplementData.clinicalSummary || null,
+          protocolLetter: supplementData.clientProtocolLetter || null,
+          coachingNotes: supplementData.coachingNotes || null,
         },
-        rootCauses:
-          supplementData.supplements?.map((s: any) => s.rationale) || [],
-        priorityAreas:
-          supplementData.supplements
+        rootCauses: isComprehensiveExport 
+          ? extractRootCausesFromLabAnalysis(supplementData.labAnalysis)
+          : supplementData.supplements?.map((s: any) => s.rationale) || [],
+        priorityAreas: isComprehensiveExport
+          ? supplementData.coachingNotes?.keyHealthPriorities || []
+          : supplementData.supplements
             ?.filter((s: any) => s.priority === "CRITICAL")
             .map((s: any) => s.name) || [],
         confidence: 0.95, // High confidence for structured data
         analysisDate: new Date(),
-        version: "3.0.0",
+        version: supplementData.exportMetadata?.exportVersion || "3.0.0",
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -158,6 +167,25 @@ function parseSupplementJSON(analysisText: string): any | null {
     console.error("JSON parsing error:", error);
     return null;
   }
+}
+
+// Extract root causes from lab analysis data
+function extractRootCausesFromLabAnalysis(labAnalysis: any): string[] {
+  const rootCauses: string[] = [];
+  
+  if (labAnalysis?.dutchTestFindings?.hormoneImbalances) {
+    rootCauses.push(labAnalysis.dutchTestFindings.hormoneImbalances);
+  }
+  
+  if (labAnalysis?.nutriqFindings?.topConditions) {
+    rootCauses.push(...labAnalysis.nutriqFindings.topConditions.slice(0, 3));
+  }
+  
+  if (labAnalysis?.otherLabFindings?.abnormalValues) {
+    rootCauses.push(labAnalysis.otherLabFindings.abnormalValues);
+  }
+  
+  return rootCauses.filter(Boolean).slice(0, 10);
 }
 
 // Map priority strings to enum values
