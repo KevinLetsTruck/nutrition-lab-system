@@ -38,14 +38,17 @@ export function ImportSupplementAnalysisButton({
     fileInputRef.current?.click();
   };
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file type
-    if (!file.name.endsWith('.md') && !file.name.endsWith('.txt')) {
+    if (!file.name.endsWith(".md") && !file.name.endsWith(".txt")) {
       toast.error("Invalid file type", {
-        description: "Please select a .md or .txt file containing Claude supplement analysis.",
+        description:
+          "Please select a .md or .txt file containing Claude supplement analysis.",
       });
       return;
     }
@@ -56,18 +59,21 @@ export function ImportSupplementAnalysisButton({
     try {
       // Read file content
       const fileContent = await file.text();
-      
-      const response = await fetch(`/api/clients/${clientId}/import-supplement-analysis`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ 
-          analysisText: fileContent,
-          filename: file.name
-        }),
-      });
+
+      const response = await fetch(
+        `/api/clients/${clientId}/import-supplement-analysis`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            analysisText: fileContent,
+            filename: file.name,
+          }),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -79,14 +85,14 @@ export function ImportSupplementAnalysisButton({
 
       toast.success("Structured supplement analysis imported!", {
         description: `${result.supplementsCreated} supplements imported for ${clientName}. Monthly cost: $${result.totalMonthlyCost}`,
-        duration: 5000
+        duration: 5000,
       });
 
       // Show medication warnings if any
       if (result.medicationWarnings > 0) {
         toast.warning("Medication interactions detected", {
           description: `${result.medicationWarnings} potential interactions found. Review supplement recommendations.`,
-          duration: 8000
+          duration: 8000,
         });
       }
 
@@ -105,7 +111,7 @@ export function ImportSupplementAnalysisButton({
       setIsImporting(false);
       // Reset file input
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };

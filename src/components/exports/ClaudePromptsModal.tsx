@@ -108,7 +108,8 @@ export function ClaudePromptsModal({
             <div>
               <p className="text-gray-400">Current Supplements:</p>
               <p className="text-yellow-300">
-                {exportResult.clientContext.currentSupplements?.length || 0} active
+                {exportResult.clientContext.currentSupplements?.length || 0}{" "}
+                active
               </p>
             </div>
             <div>
@@ -130,25 +131,28 @@ export function ClaudePromptsModal({
               </p>
             </div>
           </div>
-          
+
           {/* Second row for additional context */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs mt-2 pt-2 border-t border-gray-700">
             <div>
               <p className="text-gray-400">Age/Gender:</p>
               <p className="text-purple-300">
-                {exportResult.clientContext.age || "Unknown"} / {exportResult.clientContext.gender || "Unknown"}
+                {exportResult.clientContext.age || "Unknown"} /{" "}
+                {exportResult.clientContext.gender || "Unknown"}
               </p>
             </div>
             <div>
               <p className="text-gray-400">Supplement Gaps:</p>
               <p className="text-pink-300">
-                {exportResult.clientContext.supplementGaps?.length || 0} identified
+                {exportResult.clientContext.supplementGaps?.length || 0}{" "}
+                identified
               </p>
             </div>
             <div>
               <p className="text-gray-400">Risk Factors:</p>
               <p className="text-red-400">
-                {exportResult.clientContext.riskFactors?.length || 0} medication risks
+                {exportResult.clientContext.riskFactors?.length || 0} medication
+                risks
               </p>
             </div>
             <div>

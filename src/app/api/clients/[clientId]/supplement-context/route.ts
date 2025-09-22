@@ -16,9 +16,9 @@ export async function GET(
     const client = await prisma.client.findUnique({
       where: { id: clientId },
       include: {
-        supplements: { 
-          where: { status: { in: ['ACTIVE', 'RECOMMENDED'] } },
-          orderBy: { createdAt: 'desc' }
+        supplements: {
+          where: { status: { in: ["ACTIVE", "RECOMMENDED"] } },
+          orderBy: { createdAt: "desc" },
         },
         Note: {
           where: {
@@ -26,20 +26,22 @@ export async function GET(
               { currentMedications: { not: null } },
               { generalNotes: { contains: "supplement" } },
               { generalNotes: { contains: "medication" } },
-              { generalNotes: { contains: "allerg" } }
-            ]
+              { generalNotes: { contains: "allerg" } },
+            ],
           },
-          orderBy: { createdAt: 'desc' },
-          take: 10
+          orderBy: { createdAt: "desc" },
+          take: 10,
         },
         Document: {
           where: {
-            documentType: { in: ["lab_results", "medical_history", "assessment"] }
+            documentType: {
+              in: ["lab_results", "medical_history", "assessment"],
+            },
           },
-          orderBy: { uploadedAt: 'desc' },
-          take: 5
-        }
-      }
+          orderBy: { uploadedAt: "desc" },
+          take: 5,
+        },
+      },
     });
 
     if (!client) {
@@ -56,13 +58,13 @@ export async function GET(
     const supplementContext = {
       clientId,
       clientName: `${client.firstName} ${client.lastName}`,
-      
+
       // Current supplement status
       currentSupplements: {
         list: currentSupplements,
         count: currentSupplements.length,
         estimatedMonthlyCost: calculateSupplementCosts(currentSupplements),
-        categories: categorizeSupplements(currentSupplements)
+        categories: categorizeSupplements(currentSupplements),
       },
 
       // Current medications and interactions
@@ -70,7 +72,7 @@ export async function GET(
         list: currentMedications,
         count: currentMedications.length,
         interactionRisks: assessInteractionRisks(currentMedications),
-        contraindications: contraindications
+        contraindications: contraindications,
       },
 
       // Health context
@@ -80,7 +82,7 @@ export async function GET(
         isTruckDriver: client.isTruckDriver,
         age: calculateAge(client.dateOfBirth),
         gender: client.gender,
-        conditions: extractHealthConditions(client)
+        conditions: extractHealthConditions(client),
       },
 
       // Risk factors
@@ -88,7 +90,7 @@ export async function GET(
         medicationInteractions: assessMedicationRisks(currentMedications),
         allergyRisks: allergies,
         contraindications: contraindications,
-        truckerSpecificRisks: assessTruckerRisks(client)
+        truckerSpecificRisks: assessTruckerRisks(client),
       },
 
       // LetsTruck prioritization context
@@ -96,20 +98,20 @@ export async function GET(
         foundationRecommendation: "LyteBalance", // Universal foundation
         specialtyProducts: getLetsTruckSpecialtyRecommendations(client),
         costOptimization: true,
-        truckerCompliance: true
+        truckerCompliance: true,
       },
 
       // Analysis metadata
       metadata: {
         lastAnalysisDate: getLastAnalysisDate(client),
-        recentDocuments: client.Document.map(doc => ({
+        recentDocuments: client.Document.map((doc) => ({
           fileName: doc.fileName,
           type: doc.documentType,
-          uploadedAt: doc.uploadedAt
+          uploadedAt: doc.uploadedAt,
         })),
         supplementGaps: identifySupplementGaps(currentSupplements),
-        priorityAreas: extractPriorityAreas(client)
-      }
+        priorityAreas: extractPriorityAreas(client),
+      },
     };
 
     return NextResponse.json(supplementContext);
@@ -128,17 +130,23 @@ export async function GET(
 // Helper functions for supplement context analysis
 function extractCurrentSupplements(client: any): any[] {
   const supplements: any[] = [];
-  
+
   // Extract from notes
   client.Note?.forEach((note: any) => {
     if (note.currentMedications) {
-      const suppMatches = note.currentMedications.match(/([A-Za-z\s]+(?:mg|mcg|IU|g))/g);
+      const suppMatches = note.currentMedications.match(
+        /([A-Za-z\s]+(?:mg|mcg|IU|g))/g
+      );
       suppMatches?.forEach((match: string) => {
-        if (!supplements.some(s => s.name.toLowerCase().includes(match.toLowerCase()))) {
+        if (
+          !supplements.some((s) =>
+            s.name.toLowerCase().includes(match.toLowerCase())
+          )
+        ) {
           supplements.push({
             name: match.trim(),
             source: "note",
-            noteDate: note.createdAt
+            noteDate: note.createdAt,
           });
         }
       });
@@ -156,7 +164,7 @@ function extractCurrentSupplements(client: any): any[] {
 
 function extractCurrentMedications(client: any): any[] {
   const medications: any[] = [];
-  
+
   client.Note?.forEach((note: any) => {
     if (note.currentMedications) {
       // Parse medication patterns
@@ -164,15 +172,19 @@ function extractCurrentMedications(client: any): any[] {
         /(\w+)\s*\d+\s*mg/gi, // e.g., "Metformin 500mg"
         /(\w+)\s*\([^)]+\)/gi, // e.g., "Lisinopril (blood pressure)"
       ];
-      
-      medPatterns.forEach(pattern => {
+
+      medPatterns.forEach((pattern) => {
         const matches = note.currentMedications.match(pattern);
         matches?.forEach((match: string) => {
-          if (!medications.some(m => m.name.toLowerCase().includes(match.toLowerCase()))) {
+          if (
+            !medications.some((m) =>
+              m.name.toLowerCase().includes(match.toLowerCase())
+            )
+          ) {
             medications.push({
               name: match.trim(),
               source: "note",
-              noteDate: note.createdAt
+              noteDate: note.createdAt,
             });
           }
         });
@@ -185,26 +197,27 @@ function extractCurrentMedications(client: any): any[] {
 
 function extractAllergies(client: any): string[] {
   const allergies: string[] = [];
-  
+
   // Extract from allergies field
   if (client.allergies) {
-    const allergyData = typeof client.allergies === 'string' 
-      ? [client.allergies] 
-      : Array.isArray(client.allergies) 
-        ? client.allergies 
+    const allergyData =
+      typeof client.allergies === "string"
+        ? [client.allergies]
+        : Array.isArray(client.allergies)
+        ? client.allergies
         : Object.values(client.allergies || {});
-    
+
     allergies.push(...allergyData.filter(Boolean));
   }
 
   // Extract from notes
   client.Note?.forEach((note: any) => {
-    const noteText = (note.generalNotes || '').toLowerCase();
-    if (noteText.includes('allerg')) {
+    const noteText = (note.generalNotes || "").toLowerCase();
+    if (noteText.includes("allerg")) {
       // Extract allergy mentions
       const allergyMatches = noteText.match(/allergic to ([^,.]+)/gi);
       allergyMatches?.forEach((match: string) => {
-        const allergy = match.replace(/allergic to /i, '').trim();
+        const allergy = match.replace(/allergic to /i, "").trim();
         if (!allergies.includes(allergy)) {
           allergies.push(allergy);
         }
@@ -217,18 +230,27 @@ function extractAllergies(client: any): string[] {
 
 function extractContraindications(client: any): string[] {
   const contraindications: string[] = [];
-  
+
   // Based on medications and health conditions
   client.Note?.forEach((note: any) => {
-    const noteText = (note.generalNotes || note.healthHistory || '').toLowerCase();
-    
+    const noteText = (
+      note.generalNotes ||
+      note.healthHistory ||
+      ""
+    ).toLowerCase();
+
     // Look for contraindication keywords
     const contraindicationKeywords = [
-      'blood thinner', 'warfarin', 'pregnancy', 'breastfeeding',
-      'kidney disease', 'liver disease', 'heart condition'
+      "blood thinner",
+      "warfarin",
+      "pregnancy",
+      "breastfeeding",
+      "kidney disease",
+      "liver disease",
+      "heart condition",
     ];
-    
-    contraindicationKeywords.forEach(keyword => {
+
+    contraindicationKeywords.forEach((keyword) => {
       if (noteText.includes(keyword)) {
         contraindications.push(keyword);
       }
@@ -250,15 +272,22 @@ function categorizeSupplements(supplements: any[]): any {
     minerals: 0,
     probiotics: 0,
     adaptogens: 0,
-    other: 0
+    other: 0,
   };
 
-  supplements.forEach(supp => {
+  supplements.forEach((supp) => {
     const name = supp.name.toLowerCase();
-    if (name.includes('vitamin')) categories.vitamins++;
-    else if (name.includes('magnesium') || name.includes('zinc') || name.includes('iron')) categories.minerals++;
-    else if (name.includes('probiotic') || name.includes('digestive')) categories.probiotics++;
-    else if (name.includes('ashwagandha') || name.includes('rhodiola')) categories.adaptogens++;
+    if (name.includes("vitamin")) categories.vitamins++;
+    else if (
+      name.includes("magnesium") ||
+      name.includes("zinc") ||
+      name.includes("iron")
+    )
+      categories.minerals++;
+    else if (name.includes("probiotic") || name.includes("digestive"))
+      categories.probiotics++;
+    else if (name.includes("ashwagandha") || name.includes("rhodiola"))
+      categories.adaptogens++;
     else categories.other++;
   });
 
@@ -267,19 +296,21 @@ function categorizeSupplements(supplements: any[]): any {
 
 function assessInteractionRisks(medications: any[]): string[] {
   const risks: string[] = [];
-  
-  medications.forEach(med => {
+
+  medications.forEach((med) => {
     const medName = med.name.toLowerCase();
-    
+
     // Common interaction patterns
-    if (medName.includes('warfarin') || medName.includes('blood thinner')) {
-      risks.push('Blood thinning medication - avoid high-dose vitamin K, fish oil');
+    if (medName.includes("warfarin") || medName.includes("blood thinner")) {
+      risks.push(
+        "Blood thinning medication - avoid high-dose vitamin K, fish oil"
+      );
     }
-    if (medName.includes('metformin')) {
-      risks.push('Metformin - may deplete B12, consider B12 supplementation');
+    if (medName.includes("metformin")) {
+      risks.push("Metformin - may deplete B12, consider B12 supplementation");
     }
-    if (medName.includes('statin')) {
-      risks.push('Statin medication - consider CoQ10 supplementation');
+    if (medName.includes("statin")) {
+      risks.push("Statin medication - consider CoQ10 supplementation");
     }
   });
 
@@ -287,17 +318,21 @@ function assessInteractionRisks(medications: any[]): string[] {
 }
 
 function assessMedicationRisks(medications: any[]): string[] {
-  return medications.map(med => `Check interactions with ${med.name}`);
+  return medications.map((med) => `Check interactions with ${med.name}`);
 }
 
 function assessTruckerRisks(client: any): string[] {
   const risks: string[] = [];
-  
+
   if (client.isTruckDriver) {
-    risks.push('DOT medical certification - avoid supplements that may affect driving');
-    risks.push('Irregular schedule - prioritize easy-to-take supplements');
-    risks.push('Limited refrigeration - avoid probiotics requiring cold storage');
-    risks.push('Dehydration risk - emphasize electrolyte balance');
+    risks.push(
+      "DOT medical certification - avoid supplements that may affect driving"
+    );
+    risks.push("Irregular schedule - prioritize easy-to-take supplements");
+    risks.push(
+      "Limited refrigeration - avoid probiotics requiring cold storage"
+    );
+    risks.push("Dehydration risk - emphasize electrolyte balance");
   }
 
   return risks;
@@ -317,14 +352,15 @@ function calculateAge(dateOfBirth: Date | null): number | null {
 
 function extractHealthConditions(client: any): string[] {
   const conditions: string[] = [];
-  
+
   if (client.conditions) {
-    const conditionData = typeof client.conditions === 'string'
-      ? [client.conditions]
-      : Array.isArray(client.conditions)
+    const conditionData =
+      typeof client.conditions === "string"
+        ? [client.conditions]
+        : Array.isArray(client.conditions)
         ? client.conditions
         : Object.values(client.conditions || {});
-    
+
     conditions.push(...conditionData.filter(Boolean));
   }
 
@@ -343,23 +379,36 @@ function getLetsTruckSpecialtyRecommendations(client: any): string[] {
   const gender = client.gender?.toLowerCase();
 
   // LyteBalance - Universal foundation
-  recommendations.push('LyteBalance - Universal electrolyte foundation');
+  recommendations.push("LyteBalance - Universal electrolyte foundation");
 
   // Calocurb - GLP-1 support, appetite control, menopause
-  if (gender === 'female' && age && age > 40) {
-    recommendations.push('Calocurb - GLP-1 support and appetite control for menopause');
+  if (gender === "female" && age && age > 40) {
+    recommendations.push(
+      "Calocurb - GLP-1 support and appetite control for menopause"
+    );
   }
-  if (conditions.some(c => c.toLowerCase().includes('weight') || c.toLowerCase().includes('appetite'))) {
-    recommendations.push('Calocurb - Appetite control and metabolic support');
+  if (
+    conditions.some(
+      (c) =>
+        c.toLowerCase().includes("weight") ||
+        c.toLowerCase().includes("appetite")
+    )
+  ) {
+    recommendations.push("Calocurb - Appetite control and metabolic support");
   }
 
   // Cardio Miracle - Cardiovascular, circulation, diabetes
-  if (conditions.some(c => 
-    c.toLowerCase().includes('cardiovascular') || 
-    c.toLowerCase().includes('diabetes') || 
-    c.toLowerCase().includes('circulation')
-  )) {
-    recommendations.push('Cardio Miracle - Cardiovascular and circulation support');
+  if (
+    conditions.some(
+      (c) =>
+        c.toLowerCase().includes("cardiovascular") ||
+        c.toLowerCase().includes("diabetes") ||
+        c.toLowerCase().includes("circulation")
+    )
+  ) {
+    recommendations.push(
+      "Cardio Miracle - Cardiovascular and circulation support"
+    );
   }
 
   return recommendations;
@@ -367,18 +416,21 @@ function getLetsTruckSpecialtyRecommendations(client: any): string[] {
 
 function identifySupplementGaps(currentSupplements: any[]): string[] {
   const gaps: string[] = [];
-  const suppNames = currentSupplements.map(s => s.name.toLowerCase());
+  const suppNames = currentSupplements.map((s) => s.name.toLowerCase());
 
   // Common foundational supplements
   const foundational = [
-    { name: 'vitamin d', gap: 'Vitamin D3 deficiency common in truckers' },
-    { name: 'magnesium', gap: 'Magnesium essential for sleep and muscle function' },
-    { name: 'omega', gap: 'Omega-3 for cardiovascular and brain health' },
-    { name: 'probiotic', gap: 'Digestive support important for truckers' }
+    { name: "vitamin d", gap: "Vitamin D3 deficiency common in truckers" },
+    {
+      name: "magnesium",
+      gap: "Magnesium essential for sleep and muscle function",
+    },
+    { name: "omega", gap: "Omega-3 for cardiovascular and brain health" },
+    { name: "probiotic", gap: "Digestive support important for truckers" },
   ];
 
-  foundational.forEach(item => {
-    if (!suppNames.some(name => name.includes(item.name))) {
+  foundational.forEach((item) => {
+    if (!suppNames.some((name) => name.includes(item.name))) {
       gaps.push(item.gap);
     }
   });
@@ -388,11 +440,12 @@ function identifySupplementGaps(currentSupplements: any[]): string[] {
 
 function extractPriorityAreas(client: any): string[] {
   const areas: string[] = [];
-  
+
   // Extract from health goals
   const healthGoals = client.healthGoals || {};
   if (healthGoals.analysisHistory && healthGoals.analysisHistory.length > 0) {
-    const latestAnalysis = healthGoals.analysisHistory[healthGoals.analysisHistory.length - 1];
+    const latestAnalysis =
+      healthGoals.analysisHistory[healthGoals.analysisHistory.length - 1];
     if (latestAnalysis.priorityAreas) {
       areas.push(...latestAnalysis.priorityAreas);
     }

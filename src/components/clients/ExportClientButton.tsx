@@ -122,90 +122,203 @@ export function ExportClientButton({
           location: "Downloads folder",
           supplementContext: supplementContext, // NEW: Include supplement context
           prompts: {
-            comprehensive: `FNTP FUNCTIONAL MEDICINE ANALYSIS - EXECUTE IMMEDIATELY
+            comprehensive: `# FNTP FUNCTIONAL MEDICINE ANALYSIS & DOCUMENT GENERATION
 
-CRITICAL INSTRUCTIONS: 
-- DO NOT ask clarifying questions or request file uploads
+## CRITICAL INSTRUCTIONS
 - ZIP FILE IS READY: ${filename} in your Downloads folder
 - EXTRACT and ANALYZE all contents directly
-- PROCEED with complete analysis using all extracted files
-- RETURN STRUCTURED JSON OUTPUT as specified below
+- GENERATE 4 SPECIFIC OUTPUTS as detailed below
+- DO NOT ask clarifying questions - proceed with analysis
 
-SYSTEM ACTIVATION: You are my FNTP functional medicine analysis system. Load all protocols.
+## SYSTEM ACTIVATION
+You are my FNTP functional medicine analysis system. Load all protocols.
 
-FILE LOCATION: Downloads/${filename}
-- Extract the ZIP to access organized folder structure
-- Contains: client-data.json (complete client information)
-- Contains: client-summary.md (human-readable overview)
-- Contains: export-metadata.json (system information)
-- Contains: documents/ folder with all client PDF files
+## FILE STRUCTURE
+- client-data.json: Complete client information
+- client-summary.md: Human-readable overview  
+- export-metadata.json: System information
+- documents/: All client PDF files
 
-CLIENT OVERVIEW:
+## CLIENT OVERVIEW
 - Name: ${clientName}
 - Export Date: ${new Date().toLocaleDateString()}
 ${supplementContext ? `
-CURRENT SUPPLEMENT CONTEXT:
-- Current Supplements: ${supplementContext.currentSupplements.count} (Monthly cost: $${supplementContext.currentSupplements.estimatedMonthlyCost})
-- Current Medications: ${supplementContext.currentMedications.count}
+## PRE-ANALYSIS CONTEXT
+- Current Medications: ${supplementContext.currentMedications.list.map((m: any) => m.name).join(', ') || 'None'}
+- Current Supplements: ${supplementContext.currentSupplements.list.map((s: any) => s.name).join(', ') || 'None'}
 - Allergies: ${supplementContext.healthContext.allergies.join(', ') || 'None reported'}
+- Contraindications: ${supplementContext.riskFactors.contraindications.join(', ') || 'None'}
 - Trucker Status: ${supplementContext.healthContext.isTruckDriver ? 'Yes' : 'No'}
-- Risk Factors: ${supplementContext.riskFactors.medicationInteractions.join('; ') || 'None identified'}
+- Age/Gender: ${supplementContext.healthContext.age || 'Unknown'}/${supplementContext.healthContext.gender || 'Unknown'}
 ` : ''}
 
-LETSTRUCK PRIORITIZATION RULES (CRITICAL):
-1. LyteBalance: Universal foundation for ALL clients (unless contraindicated)
-2. Calocurb: GLP-1 support, appetite control, menopause support
-3. Cardio Miracle: Cardiovascular, circulation, diabetes support
-4. HIERARCHY: LetsTruck FIRST → Biotics Research SECOND → FullScript THIRD
+## LETSTRUCK PRIORITIZATION RULES (CRITICAL)
+1. **LyteBalance**: Universal foundation for ALL clients (unless contraindicated)
+   - Cellular hydration, ATP cycle support, 42 years clinical use
+   - Dosing: 1-2 capfuls in 8oz water, adjust by taste until mildly salty
+2. **Calocurb**: Natural GLP-1 support, appetite control, menopause
+   - Multiple protocols: general, menopause, GLP-1 concurrent, GLP-1 discontinuation, intermittent fasting
+3. **Cardio Miracle**: NO pathway support, cardiovascular, circulation, diabetes
+   - Protocols: general (1 scoop AM), optimal (2 scoops daily), advanced (4 scoops daily)
+4. **HIERARCHY**: LetsTruck FIRST → Biotics Research SECOND → FullScript THIRD
 
-ANALYSIS REQUIREMENTS:
+## ANALYSIS REQUIREMENTS
 1. EXTRACT the ZIP file: ${filename}
 2. READ client-data.json for complete client information
 3. REVIEW client-summary.md for clinical context
-4. ANALYZE all PDF documents in documents/ folder
+4. ANALYZE all PDF documents thoroughly
 5. CHECK current medications for interactions
 6. APPLY LetsTruck prioritization rules
+7. GENERATE all 4 required outputs below
 
-MANDATORY STRUCTURED JSON OUTPUT:
-Your response MUST include this exact JSON structure:
-
+## MANDATORY OUTPUT 1: STRUCTURED JSON DATA
 \`\`\`json
 {
   "supplements": [
     {
-      "name": "LyteBalance",
+      "name": "LyteBalance Electrolyte Concentrate",
       "brand": "LetsTruck",
-      "dosage": "1 packet",
-      "timing": "Morning with 16oz water",
+      "dosage": "1-2 capfuls in 8oz water daily",
+      "timing": "Morning, adjust by taste",
       "duration": "Ongoing",
       "priority": "CRITICAL",
       "category": "Foundational",
-      "rationale": "Universal electrolyte foundation for truckers",
+      "rationale": "Universal cellular hydration foundation, supports ATP cycle",
       "phase": "PHASE1",
       "estimatedCost": 45,
-      "interactions": "None known",
+      "interactions": "None",
       "contraindications": "None",
       "letstruck_sku": "LT-LYTE-30",
       "biotics_alternative": "Bio-Electrolyte Plus",
-      "fullscript_backup": "Designs for Health Electrolyte Synergy"
+      "fullscript_backup": "Designs for Health Electrolyte Synergy",
+      "clinicalEvidence": "42 years clinical use, rapid cramp relief",
+      "protocolNotes": "Use taste-ability method"
     }
   ],
-  "totalMonthlyCost": 150,
-  "phaseTimeline": "Phase 1: 30 days foundation, Phase 2: 60 days targeted, Phase 3: 90 days optimization",
-  "medicationWarnings": ["Check with prescribing physician before starting"],
-  "priorityReasoning": "Foundation protocol prioritizes LetsTruck products for trucker-specific needs",
-  "truckerSpecificNotes": ["All supplements selected for road compliance", "No refrigeration required", "Easy dosing schedule"]
+  "analysisMetadata": {
+    "clientId": "${clientId}",
+    "analysisDate": "${new Date().toISOString().split('T')[0]}",
+    "clinicalPriorities": ["List primary health priorities"],
+    "riskFactors": ["List identified risk factors"]
+  },
+  "costAnalysis": {
+    "totalMonthlyCost": 150,
+    "phase1Cost": 45,
+    "phase2Cost": 90,
+    "phase3Cost": 135,
+    "costPerDay": 4.50
+  },
+  "safetyConsiderations": {
+    "medicationWarnings": ["List any medication warnings"],
+    "contraindications": "None identified",
+    "followUpRequired": ["List follow-up items"]
+  },
+  "phaseTimeline": "Phase 1: 30 days foundation, Phase 2: 60 days targeted, Phase 3: 90 days optimization"
 }
 \`\`\`
 
-SAFETY REQUIREMENTS:
+## MANDATORY OUTPUT 2: CLIENT PROTOCOL LETTER
+Generate using this EXACT template format:
+
+PROTOCOL TEMPLATE
+
+GREETING
+[Warm, personalized greeting to the client]
+
+PHASE # & NAME OF PROTOCOL
+[e.g., "Phase 1: Foundation Protocol" or "Phase 2: Targeted Support"]
+
+DURATION: [e.g., "30 days" or "60 days"]
+CLINICAL FOCUS: [Primary health priorities being addressed]
+CURRENT STATUS: [Brief summary of client's current health situation]
+
+PRIORITY SUPPLEMENTS
+    NAME OF PRODUCT: [Full supplement name]
+        DOSE: [Specific dosing instructions]
+        TIMING: [When to take]
+        PURPOSE: [Why this supplement for this client]
+
+    NAME OF PRODUCT: [Second supplement]
+        DOSE: [Specific dosing instructions]
+        TIMING: [When to take]
+        PURPOSE: [Why this supplement for this client]
+
+    [Continue for all recommended supplements]
+
+DAILY PROTOCOL SCHEDULE
+
+    UPON WAKING
+    [List supplements/instructions for upon waking]
+
+    BEFORE BREAKFAST
+    [List supplements/instructions for before breakfast]
+
+    BETWEEN BREAKFAST & LUNCH
+    [List supplements/instructions for mid-morning]
+
+    BEFORE LUNCH
+    [List supplements/instructions for before lunch]
+
+    WITH LARGEST MEAL
+    [List supplements/instructions for with largest meal]
+
+    BETWEEN LUNCH & DINNER
+    [List supplements/instructions for afternoon]
+
+PROTOCOL NOTES
+[Important instructions, what to expect, when to follow up, encouraging notes]
+
+## MANDATORY OUTPUT 3: SUPPLEMENT ORDER LIST
+Create precise ordering lists organized by vendor:
+
+**LETSTRUCK.COM ORDERS:**
+- Product Name | SKU | Quantity | Monthly Supply | Cost
+
+**BIOTICS RESEARCH ORDERS:**
+- Product Name | SKU | Quantity | Monthly Supply | Cost
+
+**FULLSCRIPT ORDERS:**
+- Product Name | Quantity | Monthly Supply | Cost
+
+Include total costs per vendor and grand total.
+
+## MANDATORY OUTPUT 4: COACHING CALL NOTES
+Provide concise bullet points for practitioner use:
+
+**KEY HEALTH PRIORITIES:**
+- [Priority 1 with brief rationale]
+- [Priority 2 with brief rationale]
+
+**SUPPLEMENT RATIONALE:**
+- [Brief explanation for each recommended supplement]
+
+**LIFESTYLE RECOMMENDATIONS:**
+- [Specific actionable items]
+
+**FOLLOW-UP MONITORING:**
+- [What to track and when]
+
+**RED FLAGS TO WATCH:**
+- [Warning signs that require attention]
+
+**CLIENT MOTIVATION STRATEGIES:**
+- [Specific approaches for this client's personality/situation]
+
+## SAFETY REQUIREMENTS
 - Check ALL medication interactions first
 - Include contraindication warnings
 - Provide clinical rationale for each recommendation
 - Cost analysis with alternatives
-- Trucker-specific compliance considerations
+- Professional liability considerations
 
-EXTRACT ZIP FILE AND EXECUTE COMPREHENSIVE FNTP ANALYSIS WITH STRUCTURED JSON OUTPUT NOW.`,
+## OUTPUT FORMAT
+Provide all four outputs as separate, clearly labeled sections:
+1. JSON DATA (in code block)
+2. CLIENT PROTOCOL LETTER
+3. SUPPLEMENT ORDER LIST  
+4. COACHING CALL NOTES
+
+EXTRACT ZIP FILE AND EXECUTE COMPREHENSIVE FNTP ANALYSIS WITH ALL 4 OUTPUTS NOW.`,
             focused: {
               gut: `GUT HEALTH ANALYSIS - Extract and use ZIP file data
 
@@ -264,23 +377,49 @@ CURRENT HORMONAL CONTEXT:
 
 RETURN STRUCTURED JSON OUTPUT WITH LETSTRUCK PRIORITIZATION.`,
             },
-            followup: `FOLLOW-UP ANALYSIS - Extract and use ZIP file data
+            followup: `# FNTP FOLLOW-UP ANALYSIS & PROTOCOL ADJUSTMENT
 
-FOLLOW-UP SPECIFIC REQUIREMENTS:
+## CRITICAL INSTRUCTIONS
+- ZIP FILE IS READY: ${filename} in your Downloads folder
+- EXTRACT and ANALYZE all contents directly
+- COMPARE with previous analysis if available
+- GENERATE 4 SPECIFIC OUTPUTS with protocol adjustments
+- FOCUS on progress and optimization
+
+## FOLLOW-UP SPECIFIC REQUIREMENTS
 - Compare with previous analysis if available
 - Focus on protocol effectiveness and adjustments
 - Maintain LetsTruck prioritization hierarchy
 - Include cost optimization recommendations
+- Assess current protocol compliance
 
 ${supplementContext ? `
-FOLLOW-UP CONTEXT:
+## FOLLOW-UP CONTEXT
 - Previous Analyses: ${supplementContext.metadata.lastAnalysisDate ? 'Available' : 'None'}
 - Current Supplement Count: ${supplementContext.currentSupplements.count}
 - Estimated Monthly Cost: $${supplementContext.currentSupplements.estimatedMonthlyCost}
 - Supplement Gaps: ${supplementContext.metadata.supplementGaps.join(', ') || 'None identified'}
+- Protocol Compliance: [Assess from notes and progress]
 ` : ''}
 
-RETURN STRUCTURED JSON OUTPUT WITH LETSTRUCK PRIORITIZATION AND PROGRESS COMPARISON.`,
+## FOLLOW-UP ANALYSIS REQUIREMENTS
+1. EXTRACT the ZIP file: ${filename}
+2. COMPARE current data with previous analysis
+3. ASSESS protocol compliance and effectiveness
+4. IDENTIFY what's working and what needs adjustment
+5. MAINTAIN LetsTruck prioritization hierarchy
+6. GENERATE all 4 required outputs with adjustments
+
+## MANDATORY OUTPUT FORMAT
+Generate all four outputs as separate, clearly labeled sections:
+1. **STRUCTURED JSON DATA** (with progress comparison)
+2. **CLIENT PROTOCOL LETTER** (adjusted protocol)
+3. **SUPPLEMENT ORDER LIST** (updated recommendations)
+4. **COACHING CALL NOTES** (progress review and next steps)
+
+Include progress comparison, protocol adjustments, and optimization recommendations.
+
+EXTRACT ZIP FILE AND EXECUTE FOLLOW-UP ANALYSIS WITH ALL 4 OUTPUTS NOW.`,
           },
           clientContext: {
             name: clientName,

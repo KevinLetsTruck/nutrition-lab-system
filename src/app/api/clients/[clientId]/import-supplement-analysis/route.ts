@@ -26,7 +26,7 @@ export async function POST(
 
     // Parse structured JSON from Claude analysis
     const supplementData = parseSupplementJSON(analysisText);
-    
+
     if (!supplementData) {
       return NextResponse.json(
         { error: "No valid supplement JSON found in analysis" },
@@ -37,22 +37,26 @@ export async function POST(
     // Create analysis record
     const analysis = await prisma.analysis.create({
       data: {
-        id: randomBytes(12).toString('hex'),
+        id: randomBytes(12).toString("hex"),
         clientId,
-        analysisType: 'SUPPLEMENT_RECOMMENDATION',
+        analysisType: "SUPPLEMENT_RECOMMENDATION",
         analysisData: {
           structuredSupplementData: supplementData,
           originalAnalysis: analysisText,
-          importType: 'structured_json'
+          importType: "structured_json",
         },
-        rootCauses: supplementData.supplements?.map((s: any) => s.rationale) || [],
-        priorityAreas: supplementData.supplements?.filter((s: any) => s.priority === 'CRITICAL').map((s: any) => s.name) || [],
+        rootCauses:
+          supplementData.supplements?.map((s: any) => s.rationale) || [],
+        priorityAreas:
+          supplementData.supplements
+            ?.filter((s: any) => s.priority === "CRITICAL")
+            .map((s: any) => s.name) || [],
         confidence: 0.95, // High confidence for structured data
         analysisDate: new Date(),
         version: "3.0.0",
         createdAt: new Date(),
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
 
     // Create supplement records
@@ -61,25 +65,25 @@ export async function POST(
       for (const supplement of supplementData.supplements) {
         const supplementRecord = await prisma.supplement.create({
           data: {
-            id: randomBytes(12).toString('hex'),
+            id: randomBytes(12).toString("hex"),
             clientId,
             analysisId: analysis.id,
             name: supplement.name,
-            brand: supplement.brand || 'Unknown',
+            brand: supplement.brand || "Unknown",
             dosage: supplement.dosage,
             timing: supplement.timing,
             duration: supplement.duration,
             priority: mapPriority(supplement.priority),
-            category: supplement.category || 'General',
+            category: supplement.category || "General",
             rationale: supplement.rationale,
-            phase: supplement.phase || 'PHASE1',
+            phase: supplement.phase || "PHASE1",
             estimatedCost: supplement.estimatedCost || 0,
             interactions: supplement.interactions,
             contraindications: supplement.contraindications,
-            status: 'RECOMMENDED',
+            status: "RECOMMENDED",
             createdAt: new Date(),
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         });
         createdSupplements.push(supplementRecord);
       }
@@ -94,10 +98,10 @@ export async function POST(
           latestSupplementAnalysis: supplementData,
           supplementAnalysisDate: new Date().toISOString(),
           totalMonthlyCost: supplementData.totalMonthlyCost,
-          medicationWarnings: supplementData.medicationWarnings
+          medicationWarnings: supplementData.medicationWarnings,
         },
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
 
     return NextResponse.json({
@@ -107,15 +111,14 @@ export async function POST(
       supplementsCreated: createdSupplements.length,
       totalMonthlyCost: supplementData.totalMonthlyCost,
       medicationWarnings: supplementData.medicationWarnings?.length || 0,
-      phaseTimeline: supplementData.phaseTimeline
+      phaseTimeline: supplementData.phaseTimeline,
     });
-
   } catch (error) {
     console.error("Import supplement analysis error:", error);
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : "Import failed",
-        details: "Failed to parse structured supplement data"
+        details: "Failed to parse structured supplement data",
       },
       { status: 500 }
     );
@@ -128,7 +131,7 @@ function parseSupplementJSON(analysisText: string): any | null {
     // Look for JSON blocks in the analysis
     const jsonPattern = /```json\s*([\s\S]*?)\s*```/g;
     const matches = analysisText.match(jsonPattern);
-    
+
     if (!matches) {
       // Try to find JSON without code blocks
       const directJsonPattern = /\{[\s\S]*"supplements"[\s\S]*\}/;
@@ -140,17 +143,19 @@ function parseSupplementJSON(analysisText: string): any | null {
     }
 
     // Parse the first JSON block found
-    const jsonContent = matches[0].replace(/```json\s*/, '').replace(/\s*```/, '');
+    const jsonContent = matches[0]
+      .replace(/```json\s*/, "")
+      .replace(/\s*```/, "");
     const parsedData = JSON.parse(jsonContent);
-    
+
     // Validate structure
     if (parsedData.supplements && Array.isArray(parsedData.supplements)) {
       return parsedData;
     }
-    
+
     return null;
   } catch (error) {
-    console.error('JSON parsing error:', error);
+    console.error("JSON parsing error:", error);
     return null;
   }
 }
@@ -158,11 +163,11 @@ function parseSupplementJSON(analysisText: string): any | null {
 // Map priority strings to enum values
 function mapPriority(priority: string): string {
   const priorityMap: { [key: string]: string } = {
-    'CRITICAL': 'CRITICAL',
-    'HIGH': 'HIGH', 
-    'MEDIUM': 'MEDIUM',
-    'LOW': 'LOW'
+    CRITICAL: "CRITICAL",
+    HIGH: "HIGH",
+    MEDIUM: "MEDIUM",
+    LOW: "LOW",
   };
-  
-  return priorityMap[priority?.toUpperCase()] || 'MEDIUM';
+
+  return priorityMap[priority?.toUpperCase()] || "MEDIUM";
 }
