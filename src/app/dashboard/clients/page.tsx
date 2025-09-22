@@ -9,8 +9,6 @@ import {
   Eye,
   Edit,
   Trash2,
-  Archive,
-  RotateCcw,
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
@@ -44,7 +42,6 @@ interface Client {
   // Enhanced fields for health tracking
   yearsOTR?: number;
   healthGoals?: string;
-  lastAssessment?: string;
   symptomBurden?: number;
   activeProtocols?: number;
   upcomingDOT?: string;
@@ -105,12 +102,6 @@ export default function ClientDashboard() {
         healthGoals: ["Weight Loss", "Energy", "Sleep Quality"][
           Math.floor(Math.random() * 3)
         ],
-        lastAssessment:
-          Math.random() > 0.3
-            ? new Date(
-                Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000
-              ).toISOString()
-            : null,
         symptomBurden: Math.floor(Math.random() * 100),
         activeProtocols: Math.floor(Math.random() * 3),
         upcomingDOT:
@@ -156,13 +147,8 @@ export default function ClientDashboard() {
   // Define status priority for sorting
   const getStatusPriority = (status: string) => {
     const priorities: { [key: string]: number } = {
-      SIGNED_UP: 1,
-      INITIAL_INTERVIEW_COMPLETED: 2,
-      ASSESSMENT_COMPLETED: 3,
-      DOCS_UPLOADED: 4,
-      SCHEDULED: 5,
-      ONGOING: 6,
-      ARCHIVED: 7,
+      SCHEDULED: 1,
+      ONGOING: 2,
     };
     return priorities[status] || 0;
   };
@@ -177,11 +163,7 @@ export default function ClientDashboard() {
       const matchesFilter =
         filterStatus === "all" || client.status === filterStatus;
 
-      // Exclude archived clients from main list unless specifically filtering for them
-      const isNotArchived =
-        client.status !== "ARCHIVED" || filterStatus === "ARCHIVED";
-
-      return matchesSearch && matchesFilter && isNotArchived;
+      return matchesSearch && matchesFilter;
     })
     .sort((a, b) => {
       if (!sortConfig) return 0;
@@ -203,10 +185,6 @@ export default function ClientDashboard() {
           aValue = a.email.toLowerCase();
           bValue = b.email.toLowerCase();
           break;
-        case "lastAssessment":
-          aValue = a.lastAssessment ? new Date(a.lastAssessment).getTime() : 0;
-          bValue = b.lastAssessment ? new Date(b.lastAssessment).getTime() : 0;
-          break;
 
         default:
           return 0;
@@ -220,13 +198,8 @@ export default function ClientDashboard() {
   // Status utility functions
   const getStatusVariant = (status: string) => {
     const statusConfig: { [key: string]: string } = {
-      SIGNED_UP: "default",
-      INITIAL_INTERVIEW_COMPLETED: "secondary",
-      ASSESSMENT_COMPLETED: "outline",
-      DOCS_UPLOADED: "secondary",
       SCHEDULED: "outline",
       ONGOING: "default",
-      ARCHIVED: "destructive",
     };
     return statusConfig[status] || "default";
   };
@@ -235,13 +208,8 @@ export default function ClientDashboard() {
     if (!status) return "Unknown Status";
 
     const statusConfig: { [key: string]: string } = {
-      SIGNED_UP: "Signed Up",
-      INITIAL_INTERVIEW_COMPLETED: "Interview Completed",
-      ASSESSMENT_COMPLETED: "Assessment Completed",
-      DOCS_UPLOADED: "Docs Uploaded",
       SCHEDULED: "Scheduled",
       ONGOING: "Ongoing",
-      ARCHIVED: "Archived",
     };
 
     return statusConfig[status] || status.replace(/_/g, " ");
@@ -509,17 +477,8 @@ export default function ClientDashboard() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Clients</SelectItem>
-                  <SelectItem value="SIGNED_UP">Signed Up</SelectItem>
-                  <SelectItem value="INITIAL_INTERVIEW_COMPLETED">
-                    Interview Completed
-                  </SelectItem>
-                  <SelectItem value="ASSESSMENT_COMPLETED">
-                    Assessment Completed
-                  </SelectItem>
-                  <SelectItem value="DOCS_UPLOADED">Docs Uploaded</SelectItem>
                   <SelectItem value="SCHEDULED">Scheduled</SelectItem>
                   <SelectItem value="ONGOING">Ongoing</SelectItem>
-                  <SelectItem value="ARCHIVED">Archived</SelectItem>
                 </SelectContent>
               </Select>
             </CardContent>
@@ -552,15 +511,6 @@ export default function ClientDashboard() {
                   </div>
                 </th>
 
-                <th
-                  className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider cursor-pointer hover:bg-[#334155] select-none transition-colors duration-200"
-                  onClick={() => handleSort("lastAssessment")}
-                >
-                  <div className="flex items-center gap-1">
-                    Last Assessment
-                    {getSortIcon("lastAssessment")}
-                  </div>
-                </th>
 
                 <th className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
                   Actions
@@ -637,29 +587,13 @@ export default function ClientDashboard() {
                                 : "text-[#94a3b8]"
                             }`}
                           >
-                            <option value="SIGNED_UP">Signed Up</option>
-                            <option value="INITIAL_INTERVIEW_COMPLETED">
-                              Interview Completed
-                            </option>
-                            <option value="ASSESSMENT_COMPLETED">
-                              Assessment Completed
-                            </option>
-                            <option value="DOCS_UPLOADED">Docs Uploaded</option>
                             <option value="SCHEDULED">Scheduled</option>
                             <option value="ONGOING">Ongoing</option>
-                            <option value="ARCHIVED">Archived</option>
                           </select>
                         )}
                       </div>
                     </td>
 
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#94a3b8]">
-                      {client.lastAssessment ? (
-                        new Date(client.lastAssessment).toLocaleDateString()
-                      ) : (
-                        <span className="text-yellow-400">Never assessed</span>
-                      )}
-                    </td>
 
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex space-x-2">
@@ -677,33 +611,6 @@ export default function ClientDashboard() {
                         >
                           <Edit className="w-4 h-4" />
                         </Link>
-                        {client.status !== "ARCHIVED" ? (
-                          <button
-                            onClick={() =>
-                              handleArchive(
-                                client.id,
-                                `${client.firstName} ${client.lastName}`
-                              )
-                            }
-                            className="p-2 rounded-xl text-amber-400 hover:text-amber-300 hover:bg-gray-800 transition-all duration-200"
-                            title="Archive Client"
-                          >
-                            <Archive className="w-4 h-4" />
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() =>
-                              handleReactivate(
-                                client.id,
-                                `${client.firstName} ${client.lastName}`
-                              )
-                            }
-                            className="p-2 rounded-xl text-green-400 hover:text-green-300 hover:bg-gray-800 transition-all duration-200"
-                            title="Reactivate Client"
-                          >
-                            <RotateCcw className="w-4 h-4" />
-                          </button>
-                        )}
                         <button
                           onClick={() =>
                             handleDelete(
