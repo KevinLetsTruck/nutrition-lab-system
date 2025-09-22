@@ -265,6 +265,22 @@ function PromptDisplay({
   onCopy, 
   isCopied 
 }: PromptDisplayProps) {
+  const [editablePrompt, setEditablePrompt] = useState(prompt);
+
+  // Update editable prompt when prop changes
+  useEffect(() => {
+    setEditablePrompt(prompt);
+  }, [prompt]);
+
+  const handleCopy = () => {
+    onCopy(editablePrompt, promptType);
+  };
+
+  const handleReset = () => {
+    setEditablePrompt(prompt);
+    toast.info("Prompt reset to original");
+  };
+
   return (
     <div className="h-full flex flex-col">
       {/* Prompt Header */}
@@ -274,36 +290,55 @@ function PromptDisplay({
             <h3 className="text-lg font-semibold text-white">{title}</h3>
             <p className="text-gray-400 text-sm">{description}</p>
           </div>
-          <Button
-            onClick={() => onCopy(prompt, promptType)}
-            className={`flex items-center space-x-2 ${
-              isCopied 
-                ? "bg-green-600 hover:bg-green-700" 
-                : "bg-blue-600 hover:bg-blue-700"
-            }`}
-          >
-            {isCopied ? (
-              <>
-                <CheckCircle className="w-4 h-4" />
-                <span>Copied!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4" />
-                <span>Copy Prompt</span>
-              </>
-            )}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleReset}
+              variant="outline"
+              size="sm"
+              className="text-gray-300 border-gray-600 hover:bg-gray-700"
+            >
+              Reset
+            </Button>
+            <Button
+              onClick={handleCopy}
+              className={`flex items-center space-x-2 ${
+                isCopied 
+                  ? "bg-green-600 hover:bg-green-700" 
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
+              size="sm"
+            >
+              {isCopied ? (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>Copy</span>
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Prompt Content */}
-      <div className="flex-1 p-6 overflow-y-auto">
-        <div className="bg-gray-900 border border-gray-700 rounded-lg p-4">
-          <pre className="text-gray-300 text-sm whitespace-pre-wrap font-mono leading-relaxed">
-            {prompt}
-          </pre>
+      {/* Editable Prompt Content */}
+      <div className="flex-1 p-6 overflow-hidden flex flex-col">
+        <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 flex-1 flex flex-col">
+          <textarea
+            value={editablePrompt}
+            onChange={(e) => setEditablePrompt(e.target.value)}
+            className="flex-1 w-full bg-transparent text-gray-300 text-sm font-mono leading-relaxed resize-none border-none outline-none placeholder-gray-500 scrollbar-thin scrollbar-track-gray-800 scrollbar-thumb-gray-600"
+            placeholder="Claude Desktop prompt will appear here..."
+            style={{ minHeight: '400px' }}
+          />
         </div>
+        <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+          <FileText className="w-3 h-3" />
+          Prompt is editable - modify as needed before copying to Claude Desktop
+        </p>
       </div>
     </div>
   );
