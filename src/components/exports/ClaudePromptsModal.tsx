@@ -9,9 +9,6 @@ import {
   CheckCircle, 
   X, 
   Brain, 
-  Target, 
-  Activity, 
-  TrendingUp,
   FileText
 } from "lucide-react";
 import { toast } from "sonner";
@@ -144,27 +141,6 @@ export function ClaudePromptsModal({
                 <span>Comprehensive</span>
               </TabsTrigger>
               <TabsTrigger 
-                value="gut" 
-                className="flex items-center space-x-2 data-[state=active]:bg-green-600"
-              >
-                <Target className="w-4 h-4" />
-                <span>Gut Health</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="metabolic" 
-                className="flex items-center space-x-2 data-[state=active]:bg-red-600"
-              >
-                <Activity className="w-4 h-4" />
-                <span>Metabolic</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="hormonal" 
-                className="flex items-center space-x-2 data-[state=active]:bg-purple-600"
-              >
-                <TrendingUp className="w-4 h-4" />
-                <span>Hormonal</span>
-              </TabsTrigger>
-              <TabsTrigger 
                 value="followup" 
                 className="flex items-center space-x-2 data-[state=active]:bg-orange-600"
               >
@@ -185,38 +161,6 @@ export function ClaudePromptsModal({
                 />
               </TabsContent>
 
-              <TabsContent value="gut" className="h-full p-0 m-0">
-                <PromptDisplay
-                  prompt={exportResult.prompts.focused.gut}
-                  promptType="gut"
-                  title="Gut Health Focus"
-                  description="Digestive system optimization and gut barrier restoration"
-                  onCopy={copyToClipboard}
-                  isCopied={copiedPrompt === "gut"}
-                />
-              </TabsContent>
-
-              <TabsContent value="metabolic" className="h-full p-0 m-0">
-                <PromptDisplay
-                  prompt={exportResult.prompts.focused.metabolic}
-                  promptType="metabolic"
-                  title="Metabolic Focus"
-                  description="Blood sugar regulation and metabolic optimization"
-                  onCopy={copyToClipboard}
-                  isCopied={copiedPrompt === "metabolic"}
-                />
-              </TabsContent>
-
-              <TabsContent value="hormonal" className="h-full p-0 m-0">
-                <PromptDisplay
-                  prompt={exportResult.prompts.focused.hormonal}
-                  promptType="hormonal"
-                  title="Hormonal Focus"
-                  description="Hormonal balance and energy restoration"
-                  onCopy={copyToClipboard}
-                  isCopied={copiedPrompt === "hormonal"}
-                />
-              </TabsContent>
 
               <TabsContent value="followup" className="h-full p-0 m-0">
                 <PromptDisplay
