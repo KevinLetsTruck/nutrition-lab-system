@@ -16,6 +16,10 @@ export async function GET(
     const client = await prisma.client.findUnique({
       where: { id: clientId },
       include: {
+        supplements: { 
+          where: { status: { in: ['ACTIVE', 'RECOMMENDED'] } },
+          orderBy: { createdAt: 'desc' }
+        },
         Note: {
           where: {
             OR: [

@@ -4,13 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Copy, 
-  CheckCircle, 
-  X, 
-  Brain, 
-  FileText
-} from "lucide-react";
+import { Copy, CheckCircle, X, Brain, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 interface ClaudePromptsModalProps {
@@ -37,10 +31,10 @@ interface ClaudePromptsModalProps {
   };
 }
 
-export function ClaudePromptsModal({ 
-  isOpen, 
-  onClose, 
-  exportResult 
+export function ClaudePromptsModal({
+  isOpen,
+  onClose,
+  exportResult,
 }: ClaudePromptsModalProps) {
   const [copiedPrompt, setCopiedPrompt] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("comprehensive");
@@ -53,7 +47,7 @@ export function ClaudePromptsModal({
         description: "Ready to paste into Claude Desktop",
         duration: 3000,
       });
-      
+
       // Reset copied state after 3 seconds
       setTimeout(() => setCopiedPrompt(null), 3000);
     } catch (error) {
@@ -101,47 +95,88 @@ export function ClaudePromptsModal({
             </div>
             <div>
               <p className="text-gray-400">Location:</p>
-              <p className="text-white font-medium text-xs">{exportResult.location}</p>
+              <p className="text-white font-medium text-xs">
+                {exportResult.location}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Client Context Summary */}
+        {/* Enhanced Client Context Summary */}
         <div className="bg-gray-800/50 px-6 py-3 border-b border-gray-700">
-          <div className="grid grid-cols-3 gap-4 text-xs">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
             <div>
-              <p className="text-gray-400">Primary Concerns:</p>
-              <p className="text-blue-300">{exportResult.clientContext.primaryConcerns}</p>
+              <p className="text-gray-400">Current Supplements:</p>
+              <p className="text-yellow-300">
+                {exportResult.clientContext.currentSupplements?.length || 0} active
+              </p>
             </div>
             <div>
               <p className="text-gray-400">Medications:</p>
-              <p className="text-green-300">
-                {exportResult.clientContext.medications.length > 0 
-                  ? exportResult.clientContext.medications.join(", ")
-                  : "None"
-                }
+              <p className="text-red-300">
+                {exportResult.clientContext.medications?.length || 0} current
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-400">Allergies:</p>
+              <p className="text-orange-300">
+                {exportResult.clientContext.allergies?.length || 0} known
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-400">Trucker Status:</p>
+              <p className="text-blue-300">
+                {exportResult.clientContext.isTruckDriver ? "Yes" : "No"}
+              </p>
+            </div>
+          </div>
+          
+          {/* Second row for additional context */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs mt-2 pt-2 border-t border-gray-700">
+            <div>
+              <p className="text-gray-400">Age/Gender:</p>
+              <p className="text-purple-300">
+                {exportResult.clientContext.age || "Unknown"} / {exportResult.clientContext.gender || "Unknown"}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-400">Supplement Gaps:</p>
+              <p className="text-pink-300">
+                {exportResult.clientContext.supplementGaps?.length || 0} identified
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-400">Risk Factors:</p>
+              <p className="text-red-400">
+                {exportResult.clientContext.riskFactors?.length || 0} medication risks
               </p>
             </div>
             <div>
               <p className="text-gray-400">Key Labs:</p>
-              <p className="text-purple-300">{exportResult.clientContext.keyLabs}</p>
+              <p className="text-green-300">
+                {exportResult.clientContext.keyLabs}
+              </p>
             </div>
           </div>
         </div>
 
         {/* Prompt Tabs */}
         <div className="flex-1 overflow-hidden">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="h-full flex flex-col"
+          >
             <TabsList className="bg-gray-800 border-b border-gray-700 rounded-none p-1">
-              <TabsTrigger 
-                value="comprehensive" 
+              <TabsTrigger
+                value="comprehensive"
                 className="flex items-center space-x-2 data-[state=active]:bg-blue-600"
               >
                 <Brain className="w-4 h-4" />
                 <span>Comprehensive</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="followup" 
+              <TabsTrigger
+                value="followup"
                 className="flex items-center space-x-2 data-[state=active]:bg-orange-600"
               >
                 <FileText className="w-4 h-4" />
@@ -161,7 +196,6 @@ export function ClaudePromptsModal({
                 />
               </TabsContent>
 
-
               <TabsContent value="followup" className="h-full p-0 m-0">
                 <PromptDisplay
                   prompt={exportResult.prompts.followup}
@@ -180,7 +214,8 @@ export function ClaudePromptsModal({
         <div className="bg-gray-800 px-6 py-4 border-t border-gray-700">
           <div className="flex items-center justify-between">
             <div className="text-xs text-gray-400">
-              💡 Copy any prompt above and paste into Claude Desktop for analysis
+              💡 Copy any prompt above and paste into Claude Desktop for
+              analysis
             </div>
             <Button onClick={onClose} variant="outline">
               Close
@@ -201,13 +236,13 @@ interface PromptDisplayProps {
   isCopied: boolean;
 }
 
-function PromptDisplay({ 
-  prompt, 
-  promptType, 
-  title, 
-  description, 
-  onCopy, 
-  isCopied 
+function PromptDisplay({
+  prompt,
+  promptType,
+  title,
+  description,
+  onCopy,
+  isCopied,
 }: PromptDisplayProps) {
   const [editablePrompt, setEditablePrompt] = useState(prompt);
 
@@ -246,8 +281,8 @@ function PromptDisplay({
             <Button
               onClick={handleCopy}
               className={`flex items-center space-x-2 ${
-                isCopied 
-                  ? "bg-green-600 hover:bg-green-700" 
+                isCopied
+                  ? "bg-green-600 hover:bg-green-700"
                   : "bg-blue-600 hover:bg-blue-700"
               }`}
               size="sm"
@@ -276,7 +311,7 @@ function PromptDisplay({
             onChange={(e) => setEditablePrompt(e.target.value)}
             className="flex-1 w-full bg-transparent text-gray-300 text-sm font-mono leading-relaxed resize-none border-none outline-none placeholder-gray-500 scrollbar-thin scrollbar-track-gray-800 scrollbar-thumb-gray-600"
             placeholder="Claude Desktop prompt will appear here..."
-            style={{ minHeight: '400px' }}
+            style={{ minHeight: "400px" }}
           />
         </div>
         <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
