@@ -38,52 +38,60 @@ export async function POST(
     const isComprehensiveExport =
       supplementData.exportMetadata && supplementData.labAnalysis;
 
-    // Create analysis record
-    const analysis = await prisma.analysis.create({
-      data: {
-        id: randomBytes(12).toString("hex"),
-        clientId,
-        analysisType: isComprehensiveExport
-          ? "FNTP_COMPREHENSIVE_PROTOCOL"
-          : "SUPPLEMENT_RECOMMENDATION",
-        analysisData: {
-          structuredSupplementData: supplementData,
-          originalAnalysis: analysisText,
-          importType: isComprehensiveExport
-            ? "comprehensive_export"
-            : "structured_json",
-          labAnalysis: supplementData.labAnalysis || null,
-          clinicalSummary: supplementData.clinicalSummary || null,
-          protocolLetter: supplementData.clientProtocolLetter || null,
-          coachingNotes: supplementData.coachingNotes || null,
-        },
-        rootCauses: isComprehensiveExport 
-          ? extractRootCausesFromLabAnalysis(supplementData.labAnalysis)
-          : (supplementData.supplements || supplementData.supplementRecommendations)?.map((s: any) => s.rationale) || [],
-        priorityAreas: isComprehensiveExport
-          ? supplementData.coachingNotes?.keyHealthPriorities || []
-          : (supplementData.supplements || supplementData.supplementRecommendations)
+    // Create analysis data object (store in client.healthGoals instead of separate table)
+    const analysisId = randomBytes(12).toString("hex");
+    const analysisRecord = {
+      id: analysisId,
+      clientId,
+      analysisType: isComprehensiveExport
+        ? "FNTP_COMPREHENSIVE_PROTOCOL"
+        : "SUPPLEMENT_RECOMMENDATION",
+      analysisData: {
+        structuredSupplementData: supplementData,
+        originalAnalysis: analysisText,
+        importType: isComprehensiveExport
+          ? "comprehensive_export"
+          : "structured_json",
+        labAnalysis: supplementData.labAnalysis || null,
+        clinicalSummary: supplementData.clinicalSummary || null,
+        protocolLetter: supplementData.clientProtocolLetter || null,
+        coachingNotes: supplementData.coachingNotes || null,
+      },
+      rootCauses: isComprehensiveExport
+        ? extractRootCausesFromLabAnalysis(supplementData.labAnalysis)
+        : (
+            supplementData.supplements ||
+            supplementData.supplementRecommendations
+          )?.map((s: any) => s.rationale) || [],
+      priorityAreas: isComprehensiveExport
+        ? supplementData.coachingNotes?.keyHealthPriorities || []
+        : (
+            supplementData.supplements ||
+            supplementData.supplementRecommendations
+          )
             ?.filter((s: any) => s.priority === "CRITICAL")
             .map((s: any) => s.name) || [],
-        confidence: 0.95, // High confidence for structured data
-        analysisDate: new Date(),
-        version: supplementData.exportMetadata?.exportVersion || "3.0.0",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    });
+      confidence: 0.95, // High confidence for structured data
+      analysisDate: new Date().toISOString(),
+      version: supplementData.exportMetadata?.exportVersion || "3.0.0",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
 
     // Create supplement records
     const createdSupplements = [];
-    const supplementsList = supplementData.supplements || supplementData.supplementRecommendations || [];
-    
+    const supplementsList =
+      supplementData.supplements ||
+      supplementData.supplementRecommendations ||
+      [];
+
     if (supplementsList.length > 0) {
       for (const supplement of supplementsList) {
         const supplementRecord = await prisma.supplement.create({
           data: {
             id: randomBytes(12).toString("hex"),
             clientId,
-            analysisId: analysis.id,
+            analysisId: analysisId,
             name: supplement.name,
             brand: supplement.brand || "Unknown",
             dosage: supplement.dosage,
@@ -105,7 +113,10 @@ export async function POST(
       }
     }
 
-    // Update client with latest supplement analysis
+    // Update client with latest supplement analysis (store analysis in healthGoals)
+    const currentAnalysisHistory = client.healthGoals?.analysisHistory || [];
+    const updatedAnalysisHistory = [...currentAnalysisHistory, analysisRecord];
+
     await prisma.client.update({
       where: { id: clientId },
       data: {
@@ -113,8 +124,13 @@ export async function POST(
           ...client.healthGoals,
           latestSupplementAnalysis: supplementData,
           supplementAnalysisDate: new Date().toISOString(),
-          totalMonthlyCost: supplementData.totalMonthlyCost || supplementData.costAnalysis?.totalMonthlyCost,
-          medicationWarnings: supplementData.medicationWarnings || supplementData.safetyConsiderations?.medicationWarnings,
+          totalMonthlyCost:
+            supplementData.totalMonthlyCost ||
+            supplementData.costAnalysis?.totalMonthlyCost,
+          medicationWarnings:
+            supplementData.medicationWarnings ||
+            supplementData.safetyConsiderations?.medicationWarnings,
+          analysisHistory: updatedAnalysisHistory,
         },
         updatedAt: new Date(),
       },
@@ -123,10 +139,17 @@ export async function POST(
     return NextResponse.json({
       success: true,
       message: "Structured supplement analysis imported successfully",
-      analysisId: analysis.id,
+      analysisId: analysisId,
       supplementsCreated: createdSupplements.length,
-      totalMonthlyCost: supplementData.totalMonthlyCost || supplementData.costAnalysis?.totalMonthlyCost || 0,
-      medicationWarnings: (supplementData.medicationWarnings || supplementData.safetyConsiderations?.medicationWarnings || []).length,
+      totalMonthlyCost:
+        supplementData.totalMonthlyCost ||
+        supplementData.costAnalysis?.totalMonthlyCost ||
+        0,
+      medicationWarnings: (
+        supplementData.medicationWarnings ||
+        supplementData.safetyConsiderations?.medicationWarnings ||
+        []
+      ).length,
       phaseTimeline: supplementData.phaseTimeline,
       labAnalysisIncluded: !!supplementData.labAnalysis,
       protocolLetterIncluded: !!supplementData.clientProtocolLetter,
@@ -150,12 +173,12 @@ function parseSupplementJSON(analysisText: string): any | null {
     // First, try to parse the entire content as JSON (for direct JSON files)
     try {
       const directJson = JSON.parse(analysisText);
-      
+
       // Check for comprehensive export document structure
       if (directJson.exportMetadata || directJson.supplementRecommendations) {
         return directJson;
       }
-      
+
       // Check for simple supplement structure
       if (directJson.supplements && Array.isArray(directJson.supplements)) {
         return directJson;
@@ -170,7 +193,8 @@ function parseSupplementJSON(analysisText: string): any | null {
 
     if (!matches) {
       // Try to find JSON without code blocks
-      const directJsonPattern = /\{[\s\S]*(?:"supplements"|"supplementRecommendations"|"exportMetadata")[\s\S]*\}/;
+      const directJsonPattern =
+        /\{[\s\S]*(?:"supplements"|"supplementRecommendations"|"exportMetadata")[\s\S]*\}/;
       const directMatch = analysisText.match(directJsonPattern);
       if (directMatch) {
         return JSON.parse(directMatch[0]);
@@ -188,8 +212,11 @@ function parseSupplementJSON(analysisText: string): any | null {
     if (parsedData.supplements && Array.isArray(parsedData.supplements)) {
       return parsedData;
     }
-    
-    if (parsedData.supplementRecommendations && Array.isArray(parsedData.supplementRecommendations)) {
+
+    if (
+      parsedData.supplementRecommendations &&
+      Array.isArray(parsedData.supplementRecommendations)
+    ) {
       return parsedData;
     }
 
