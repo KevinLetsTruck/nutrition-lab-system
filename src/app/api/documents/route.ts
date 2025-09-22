@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { verifyAuthToken } from "@/lib/auth";
+import { randomBytes } from "crypto";
 import { promises as fs } from "fs";
 import path from "path";
 
@@ -87,12 +88,17 @@ export async function POST(request: NextRequest) {
     // You can implement S3 upload later if needed
     const document = await prisma.document.create({
       data: {
+        id: randomBytes(12).toString('hex'),
         fileName: file.name,
         documentType: documentType || "other",
+        fileType: file.type || "application/octet-stream",
         fileSize: file.size,
         fileUrl: `/uploads/${clientId}/${file.name}`, // Placeholder URL
         clientId: clientId,
         status: "uploaded",
+        uploadedAt: new Date(),
+        analysisStatus: "PENDING",
+        storageProvider: "LOCAL",
       },
       include: {
         Client: {
