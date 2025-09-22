@@ -57,7 +57,7 @@ export async function POST(
     const analysisContent = body.analysisData?.content || "";
     const rootCauses = extractRootCauses(analysisContent);
     const priorityAreas = extractPriorityAreas(analysisContent);
-    
+
     // Parse structured protocol data from Claude Desktop
     const parsedProtocol = ProtocolParser.parseClaudeProtocol(analysisContent);
 
@@ -77,7 +77,9 @@ export async function POST(
       parsedProtocol,
       supplementCount: parsedProtocol.supplements.length,
       phaseCount: parsedProtocol.phases.length,
-      hasLetsTruckProducts: parsedProtocol.supplements.some(s => s.letstruck_sku),
+      hasLetsTruckProducts: parsedProtocol.supplements.some(
+        (s) => s.letstruck_sku
+      ),
       coachingNotesCount: parsedProtocol.coachingNotes.length,
     };
 

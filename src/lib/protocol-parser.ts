@@ -1,5 +1,5 @@
 // Enhanced protocol parser for Claude Desktop generated protocols
-import { randomBytes } from 'crypto';
+import { randomBytes } from "crypto";
 
 export interface ParsedProtocol {
   phases: ProtocolPhase[];
@@ -31,7 +31,7 @@ export interface SupplementRecommendation {
   timing: string;
   duration: string;
   purpose: string;
-  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  priority: "HIGH" | "MEDIUM" | "LOW";
   phase: string;
   trucker_instructions: string;
   monitoring_notes?: string;
@@ -39,7 +39,7 @@ export interface SupplementRecommendation {
 
 export interface LifestyleIntervention {
   id: string;
-  category: 'DIET' | 'EXERCISE' | 'SLEEP' | 'STRESS' | 'HYDRATION';
+  category: "DIET" | "EXERCISE" | "SLEEP" | "STRESS" | "HYDRATION";
   intervention: string;
   instructions: string;
   frequency: string;
@@ -51,7 +51,7 @@ export interface MonitoringPlan {
   metric: string;
   frequency: string;
   target: string;
-  method: 'SELF_REPORT' | 'LAB_TEST' | 'MEASUREMENT';
+  method: "SELF_REPORT" | "LAB_TEST" | "MEASUREMENT";
   phase: string;
 }
 
@@ -65,21 +65,20 @@ export interface ProtocolTimeline {
   }[];
   follow_up_schedule: {
     interval: string;
-    type: 'CHECK_IN' | 'LAB_REVIEW' | 'PROTOCOL_ADJUSTMENT';
+    type: "CHECK_IN" | "LAB_REVIEW" | "PROTOCOL_ADJUSTMENT";
     description: string;
   }[];
 }
 
 export interface CoachingNote {
   id: string;
-  category: 'EDUCATION' | 'MOTIVATION' | 'TROUBLESHOOTING' | 'EXPECTATIONS';
+  category: "EDUCATION" | "MOTIVATION" | "TROUBLESHOOTING" | "EXPECTATIONS";
   content: string;
   phase: string;
-  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  priority: "HIGH" | "MEDIUM" | "LOW";
 }
 
 export class ProtocolParser {
-  
   static parseClaudeProtocol(content: string): ParsedProtocol {
     const phases = this.extractPhases(content);
     const supplements = this.extractSupplements(content);
@@ -94,13 +93,13 @@ export class ProtocolParser {
       lifestyle,
       monitoring,
       timeline,
-      coachingNotes
+      coachingNotes,
     };
   }
 
   private static extractPhases(content: string): ProtocolPhase[] {
     const phases: ProtocolPhase[] = [];
-    
+
     // Look for phase patterns in Claude analysis
     const phasePatterns = [
       /phase\s*1[:\-\s]*([^#]*?)(?=phase\s*2|$)/gis,
@@ -111,7 +110,7 @@ export class ProtocolParser {
     phasePatterns.forEach((pattern, index) => {
       const matches = content.match(pattern);
       if (matches) {
-        matches.forEach(match => {
+        matches.forEach((match) => {
           const phase = this.parsePhaseContent(match, index + 1);
           if (phase) phases.push(phase);
         });
@@ -121,24 +120,29 @@ export class ProtocolParser {
     return phases;
   }
 
-  private static parsePhaseContent(content: string, phaseNumber: number): ProtocolPhase | null {
-    const lines = content.split('\n').filter(line => line.trim());
-    
+  private static parsePhaseContent(
+    content: string,
+    phaseNumber: number
+  ): ProtocolPhase | null {
+    const lines = content.split("\n").filter((line) => line.trim());
+
     return {
-      id: randomBytes(8).toString('hex'),
+      id: randomBytes(8).toString("hex"),
       name: `Phase ${phaseNumber}`,
       duration: this.extractDuration(content) || "30 days",
       goals: this.extractGoals(content),
       supplements: [], // Will be populated separately
       lifestyle: [], // Will be populated separately
       successCriteria: this.extractSuccessCriteria(content),
-      nextPhaseConditions: this.extractTransitionConditions(content)
+      nextPhaseConditions: this.extractTransitionConditions(content),
     };
   }
 
-  private static extractSupplements(content: string): SupplementRecommendation[] {
+  private static extractSupplements(
+    content: string
+  ): SupplementRecommendation[] {
     const supplements: SupplementRecommendation[] = [];
-    
+
     // Look for supplement patterns
     const supplementPatterns = [
       /supplement[s]?[:\-\s]*([^#]*?)(?=##|lifestyle|diet|$)/gis,
@@ -146,10 +150,10 @@ export class ProtocolParser {
       /protocol[:\-\s]*([^#]*?)(?=##|lifestyle|diet|$)/gis,
     ];
 
-    supplementPatterns.forEach(pattern => {
+    supplementPatterns.forEach((pattern) => {
       const matches = content.match(pattern);
       if (matches) {
-        matches.forEach(match => {
+        matches.forEach((match) => {
           const extractedSupps = this.parseSupplementSection(match);
           supplements.push(...extractedSupps);
         });
@@ -159,19 +163,26 @@ export class ProtocolParser {
     return supplements;
   }
 
-  private static parseSupplementSection(content: string): SupplementRecommendation[] {
+  private static parseSupplementSection(
+    content: string
+  ): SupplementRecommendation[] {
     const supplements: SupplementRecommendation[] = [];
-    const lines = content.split('\n').filter(line => line.trim());
+    const lines = content.split("\n").filter((line) => line.trim());
 
-    lines.forEach(line => {
+    lines.forEach((line) => {
       // Look for supplement patterns like:
       // - Magnesium Glycinate 400mg before bed (LetsTruck SKU: LT-MAG-400)
       // - Vitamin D3 5000 IU daily (Biotiics alternative available)
-      
-      const supplementMatch = line.match(/[-•*]\s*([^(]+?)(?:\s*\(([^)]+)\))?$/);
+
+      const supplementMatch = line.match(
+        /[-•*]\s*([^(]+?)(?:\s*\(([^)]+)\))?$/
+      );
       if (supplementMatch) {
         const [, supplementText, notes] = supplementMatch;
-        const supplement = this.parseSupplementLine(supplementText.trim(), notes);
+        const supplement = this.parseSupplementLine(
+          supplementText.trim(),
+          notes
+        );
         if (supplement) supplements.push(supplement);
       }
     });
@@ -179,14 +190,17 @@ export class ProtocolParser {
     return supplements;
   }
 
-  private static parseSupplementLine(text: string, notes?: string): SupplementRecommendation | null {
+  private static parseSupplementLine(
+    text: string,
+    notes?: string
+  ): SupplementRecommendation | null {
     // Parse supplement name, dosage, timing
     const parts = text.split(/\s+/);
     if (parts.length < 2) return null;
 
-    const name = parts.slice(0, -2).join(' ');
-    const dosage = parts[parts.length - 2] || '';
-    const timing = parts[parts.length - 1] || '';
+    const name = parts.slice(0, -2).join(" ");
+    const dosage = parts[parts.length - 2] || "";
+    const timing = parts[parts.length - 1] || "";
 
     // Extract LetsTruck SKU if mentioned
     const letstruckMatch = notes?.match(/LetsTruck[\s\w]*:?\s*([A-Z0-9-]+)/i);
@@ -194,18 +208,18 @@ export class ProtocolParser {
     const fullscriptMatch = notes?.match(/FullScript[\s\w]*:?\s*([^,]+)/i);
 
     return {
-      id: randomBytes(8).toString('hex'),
+      id: randomBytes(8).toString("hex"),
       name,
       letstruck_sku: letstruckMatch?.[1],
       biotiics_alternative: bioticsMatch?.[1],
       fullscript_backup: fullscriptMatch?.[1],
       dosage,
       timing,
-      duration: this.extractDuration(notes || '') || "90 days",
-      purpose: this.extractPurpose(notes || ''),
+      duration: this.extractDuration(notes || "") || "90 days",
+      purpose: this.extractPurpose(notes || ""),
       priority: this.determinePriority(text, notes),
       phase: "1", // Default, will be updated based on context
-      trucker_instructions: this.generateTruckerInstructions(name, timing)
+      trucker_instructions: this.generateTruckerInstructions(name, timing),
     };
   }
 
@@ -222,13 +236,13 @@ export class ProtocolParser {
       /targets?[:\-\s]*([^#]*?)(?=##|$)/gis,
     ];
 
-    goalPatterns.forEach(pattern => {
+    goalPatterns.forEach((pattern) => {
       const matches = content.match(pattern);
       if (matches) {
-        matches.forEach(match => {
-          const lines = match.split('\n').filter(line => line.trim());
-          lines.forEach(line => {
-            const cleaned = line.replace(/^[•\-\*\d\.]+\s*/, '').trim();
+        matches.forEach((match) => {
+          const lines = match.split("\n").filter((line) => line.trim());
+          lines.forEach((line) => {
+            const cleaned = line.replace(/^[•\-\*\d\.]+\s*/, "").trim();
             if (cleaned.length > 10 && !goals.includes(cleaned)) {
               goals.push(cleaned);
             }
@@ -248,13 +262,13 @@ export class ProtocolParser {
       /progress\s*indicators?[:\-\s]*([^#]*?)(?=##|$)/gis,
     ];
 
-    patterns.forEach(pattern => {
+    patterns.forEach((pattern) => {
       const matches = content.match(pattern);
       if (matches) {
-        matches.forEach(match => {
-          const lines = match.split('\n').filter(line => line.trim());
-          lines.forEach(line => {
-            const cleaned = line.replace(/^[•\-\*\d\.]+\s*/, '').trim();
+        matches.forEach((match) => {
+          const lines = match.split("\n").filter((line) => line.trim());
+          lines.forEach((line) => {
+            const cleaned = line.replace(/^[•\-\*\d\.]+\s*/, "").trim();
             if (cleaned.length > 10 && !criteria.includes(cleaned)) {
               criteria.push(cleaned);
             }
@@ -274,13 +288,13 @@ export class ProtocolParser {
       /advance\s*to[:\-\s]*([^#]*?)(?=##|$)/gis,
     ];
 
-    patterns.forEach(pattern => {
+    patterns.forEach((pattern) => {
       const matches = content.match(pattern);
       if (matches) {
-        matches.forEach(match => {
-          const lines = match.split('\n').filter(line => line.trim());
-          lines.forEach(line => {
-            const cleaned = line.replace(/^[•\-\*\d\.]+\s*/, '').trim();
+        matches.forEach((match) => {
+          const lines = match.split("\n").filter((line) => line.trim());
+          lines.forEach((line) => {
+            const cleaned = line.replace(/^[•\-\*\d\.]+\s*/, "").trim();
             if (cleaned.length > 10 && !conditions.includes(cleaned)) {
               conditions.push(cleaned);
             }
@@ -306,7 +320,7 @@ export class ProtocolParser {
     return {
       total_duration: "90 days",
       phase_transitions: [],
-      follow_up_schedule: []
+      follow_up_schedule: [],
     };
   }
 
@@ -317,27 +331,46 @@ export class ProtocolParser {
 
   private static extractPurpose(text: string): string {
     const purposeMatch = text.match(/for\s+([^,.\n]+)/i);
-    return purposeMatch?.[1] || 'General health support';
+    return purposeMatch?.[1] || "General health support";
   }
 
-  private static determinePriority(text: string, notes?: string): 'HIGH' | 'MEDIUM' | 'LOW' {
-    const highPriorityWords = ['critical', 'essential', 'urgent', 'priority', 'foundation'];
-    const lowPriorityWords = ['optional', 'consider', 'if needed', 'supplement'];
-    
-    const fullText = (text + ' ' + (notes || '')).toLowerCase();
-    
-    if (highPriorityWords.some(word => fullText.includes(word))) return 'HIGH';
-    if (lowPriorityWords.some(word => fullText.includes(word))) return 'LOW';
-    return 'MEDIUM';
+  private static determinePriority(
+    text: string,
+    notes?: string
+  ): "HIGH" | "MEDIUM" | "LOW" {
+    const highPriorityWords = [
+      "critical",
+      "essential",
+      "urgent",
+      "priority",
+      "foundation",
+    ];
+    const lowPriorityWords = [
+      "optional",
+      "consider",
+      "if needed",
+      "supplement",
+    ];
+
+    const fullText = (text + " " + (notes || "")).toLowerCase();
+
+    if (highPriorityWords.some((word) => fullText.includes(word)))
+      return "HIGH";
+    if (lowPriorityWords.some((word) => fullText.includes(word))) return "LOW";
+    return "MEDIUM";
   }
 
-  private static generateTruckerInstructions(supplement: string, timing: string): string {
+  private static generateTruckerInstructions(
+    supplement: string,
+    timing: string
+  ): string {
     const instructions = {
-      'morning': 'Take with breakfast at truck stop or during pre-trip inspection',
-      'evening': 'Take before sleep during 10-hour break',
-      'before bed': 'Take 30 minutes before sleep during mandatory rest period',
-      'with meals': 'Take with meal at truck stop or packed lunch',
-      'daily': 'Take at consistent time each day, set phone reminder'
+      morning:
+        "Take with breakfast at truck stop or during pre-trip inspection",
+      evening: "Take before sleep during 10-hour break",
+      "before bed": "Take 30 minutes before sleep during mandatory rest period",
+      "with meals": "Take with meal at truck stop or packed lunch",
+      daily: "Take at consistent time each day, set phone reminder",
     };
 
     const timingLower = timing.toLowerCase();
@@ -347,6 +380,6 @@ export class ProtocolParser {
       }
     }
 
-    return 'Follow dosage instructions, maintain consistency while on the road';
+    return "Follow dosage instructions, maintain consistency while on the road";
   }
 }

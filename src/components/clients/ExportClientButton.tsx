@@ -37,6 +37,21 @@ export function ExportClientButton({
     setExportStatus("idle");
 
     try {
+      // First, fetch supplement context for enhanced prompts
+      const supplementContextResponse = await fetch(
+        `/api/clients/${clientId}/supplement-context`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      let supplementContext = null;
+      if (supplementContextResponse.ok) {
+        supplementContext = await supplementContextResponse.json();
+      }
+
       const response = await fetch(
         `/api/clients/${clientId}/export-for-analysis`,
         {
@@ -105,6 +120,7 @@ export function ExportClientButton({
         const claudePromptsData = {
           filename: filename,
           location: "Downloads folder",
+          supplementContext: supplementContext, // NEW: Include supplement context
           prompts: {
             comprehensive: `FNTP FUNCTIONAL MEDICINE ANALYSIS - EXECUTE IMMEDIATELY
 
@@ -113,6 +129,7 @@ CRITICAL INSTRUCTIONS:
 - ZIP FILE IS READY: ${filename} in your Downloads folder
 - EXTRACT and ANALYZE all contents directly
 - PROCEED with complete analysis using all extracted files
+- RETURN STRUCTURED JSON OUTPUT as specified below
 
 SYSTEM ACTIVATION: You are my FNTP functional medicine analysis system. Load all protocols.
 
@@ -126,30 +143,157 @@ FILE LOCATION: Downloads/${filename}
 CLIENT OVERVIEW:
 - Name: ${clientName}
 - Export Date: ${new Date().toLocaleDateString()}
+${supplementContext ? `
+CURRENT SUPPLEMENT CONTEXT:
+- Current Supplements: ${supplementContext.currentSupplements.count} (Monthly cost: $${supplementContext.currentSupplements.estimatedMonthlyCost})
+- Current Medications: ${supplementContext.currentMedications.count}
+- Allergies: ${supplementContext.healthContext.allergies.join(', ') || 'None reported'}
+- Trucker Status: ${supplementContext.healthContext.isTruckDriver ? 'Yes' : 'No'}
+- Risk Factors: ${supplementContext.riskFactors.medicationInteractions.join('; ') || 'None identified'}
+` : ''}
+
+LETSTRUCK PRIORITIZATION RULES (CRITICAL):
+1. LyteBalance: Universal foundation for ALL clients (unless contraindicated)
+2. Calocurb: GLP-1 support, appetite control, menopause support
+3. Cardio Miracle: Cardiovascular, circulation, diabetes support
+4. HIERARCHY: LetsTruck FIRST → Biotics Research SECOND → FullScript THIRD
 
 ANALYSIS REQUIREMENTS:
 1. EXTRACT the ZIP file: ${filename}
 2. READ client-data.json for complete client information
 3. REVIEW client-summary.md for clinical context
 4. ANALYZE all PDF documents in documents/ folder
+5. CHECK current medications for interactions
+6. APPLY LetsTruck prioritization rules
 
-5. Generate comprehensive FNTP analysis with 3-phase protocol
-6. Provide LetsTruck supplement recommendations
-7. Include practitioner coaching notes
+MANDATORY STRUCTURED JSON OUTPUT:
+Your response MUST include this exact JSON structure:
 
-EXTRACT ZIP FILE AND EXECUTE COMPREHENSIVE FNTP ANALYSIS NOW.`,
+\`\`\`json
+{
+  "supplements": [
+    {
+      "name": "LyteBalance",
+      "brand": "LetsTruck",
+      "dosage": "1 packet",
+      "timing": "Morning with 16oz water",
+      "duration": "Ongoing",
+      "priority": "CRITICAL",
+      "category": "Foundational",
+      "rationale": "Universal electrolyte foundation for truckers",
+      "phase": "PHASE1",
+      "estimatedCost": 45,
+      "interactions": "None known",
+      "contraindications": "None",
+      "letstruck_sku": "LT-LYTE-30",
+      "biotics_alternative": "Bio-Electrolyte Plus",
+      "fullscript_backup": "Designs for Health Electrolyte Synergy"
+    }
+  ],
+  "totalMonthlyCost": 150,
+  "phaseTimeline": "Phase 1: 30 days foundation, Phase 2: 60 days targeted, Phase 3: 90 days optimization",
+  "medicationWarnings": ["Check with prescribing physician before starting"],
+  "priorityReasoning": "Foundation protocol prioritizes LetsTruck products for trucker-specific needs",
+  "truckerSpecificNotes": ["All supplements selected for road compliance", "No refrigeration required", "Easy dosing schedule"]
+}
+\`\`\`
+
+SAFETY REQUIREMENTS:
+- Check ALL medication interactions first
+- Include contraindication warnings
+- Provide clinical rationale for each recommendation
+- Cost analysis with alternatives
+- Trucker-specific compliance considerations
+
+EXTRACT ZIP FILE AND EXECUTE COMPREHENSIVE FNTP ANALYSIS WITH STRUCTURED JSON OUTPUT NOW.`,
             focused: {
-              gut: "GUT HEALTH ANALYSIS - Extract and use ZIP file data",
-              metabolic: "METABOLIC ANALYSIS - Extract and use ZIP file data",
-              hormonal: "HORMONAL ANALYSIS - Extract and use ZIP file data",
+              gut: `GUT HEALTH ANALYSIS - Extract and use ZIP file data
+
+LETSTRUCK PRIORITIZATION FOR GUT HEALTH:
+- LyteBalance: Foundation electrolyte support
+- Consider Biotics Research probiotics if LetsTruck unavailable
+- Apply structured JSON output format for supplement recommendations
+
+${supplementContext ? `
+CURRENT GUT-RELATED CONTEXT:
+- Current Supplements: ${supplementContext.currentSupplements.list.filter((s: any) => 
+  s.name.toLowerCase().includes('probiotic') || 
+  s.name.toLowerCase().includes('digestive')
+).length} digestive supplements
+- Medication Interactions: ${supplementContext.riskFactors.medicationInteractions.join('; ') || 'None'}
+` : ''}
+
+RETURN STRUCTURED JSON OUTPUT WITH LETSTRUCK PRIORITIZATION.`,
+
+              metabolic: `METABOLIC ANALYSIS - Extract and use ZIP file data
+
+LETSTRUCK PRIORITIZATION FOR METABOLIC HEALTH:
+- LyteBalance: Universal foundation
+- Calocurb: GLP-1 support and appetite control
+- Cardio Miracle: Cardiovascular and metabolic support
+- Apply structured JSON output format
+
+${supplementContext ? `
+CURRENT METABOLIC CONTEXT:
+- Age: ${supplementContext.healthContext.age || 'Unknown'}
+- Gender: ${supplementContext.healthContext.gender || 'Unknown'}
+- Current Medications: ${supplementContext.currentMedications.list.map((m: any) => m.name).join(', ') || 'None'}
+- Risk Factors: ${supplementContext.riskFactors.medicationInteractions.join('; ') || 'None'}
+` : ''}
+
+RETURN STRUCTURED JSON OUTPUT WITH LETSTRUCK PRIORITIZATION.`,
+
+              hormonal: `HORMONAL ANALYSIS - Extract and use ZIP file data
+
+LETSTRUCK PRIORITIZATION FOR HORMONAL HEALTH:
+- LyteBalance: Foundation support
+- Calocurb: Especially for female clients 40+ (menopause support)
+- Consider Biotics Research hormonal support if needed
+- Apply structured JSON output format
+
+${supplementContext ? `
+CURRENT HORMONAL CONTEXT:
+- Gender: ${supplementContext.healthContext.gender || 'Unknown'}
+- Age: ${supplementContext.healthContext.age || 'Unknown'}
+- Current Hormonal Supplements: ${supplementContext.currentSupplements.list.filter((s: any) => 
+  s.name.toLowerCase().includes('hormone') || 
+  s.name.toLowerCase().includes('estrogen') ||
+  s.name.toLowerCase().includes('testosterone')
+).length}
+` : ''}
+
+RETURN STRUCTURED JSON OUTPUT WITH LETSTRUCK PRIORITIZATION.`,
             },
-            followup: "FOLLOW-UP ANALYSIS - Extract and use ZIP file data",
+            followup: `FOLLOW-UP ANALYSIS - Extract and use ZIP file data
+
+FOLLOW-UP SPECIFIC REQUIREMENTS:
+- Compare with previous analysis if available
+- Focus on protocol effectiveness and adjustments
+- Maintain LetsTruck prioritization hierarchy
+- Include cost optimization recommendations
+
+${supplementContext ? `
+FOLLOW-UP CONTEXT:
+- Previous Analyses: ${supplementContext.metadata.lastAnalysisDate ? 'Available' : 'None'}
+- Current Supplement Count: ${supplementContext.currentSupplements.count}
+- Estimated Monthly Cost: $${supplementContext.currentSupplements.estimatedMonthlyCost}
+- Supplement Gaps: ${supplementContext.metadata.supplementGaps.join(', ') || 'None identified'}
+` : ''}
+
+RETURN STRUCTURED JSON OUTPUT WITH LETSTRUCK PRIORITIZATION AND PROGRESS COMPARISON.`,
           },
           clientContext: {
             name: clientName,
             primaryConcerns: "Review extracted data for health goals",
-            medications: [],
+            medications: supplementContext?.currentMedications.list || [],
+            currentSupplements: supplementContext?.currentSupplements.list || [],
+            allergies: supplementContext?.healthContext.allergies || [],
+            isTruckDriver: supplementContext?.healthContext.isTruckDriver || false,
+            age: supplementContext?.healthContext.age || null,
+            gender: supplementContext?.healthContext.gender || null,
             keyLabs: "Review documents in extracted ZIP file",
+            supplementGaps: supplementContext?.metadata.supplementGaps || [],
+            riskFactors: supplementContext?.riskFactors.medicationInteractions || [],
           },
         };
 
