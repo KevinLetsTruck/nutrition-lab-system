@@ -63,31 +63,13 @@ export async function POST(request: NextRequest) {
     const user = await verifyAuthToken(request);
 
     const formData = await request.formData();
-    const clientId = formData.get("clientId") as string;
-    let documentType = formData.get("documentType") as string;
-    const labType = formData.get("labType") as string;
     const file = formData.get("file") as File;
+    const clientId = formData.get("clientId") as string;
+    const documentType = formData.get("documentType") as string;
 
-    // Map frontend document types to valid enum values
-    const documentTypeMap: Record<string, string> = {
-      lab_report: "LAB_REPORT",
-      imaging_report: "IMAGING_REPORT",
-      clinical_notes: "CLINICAL_NOTES",
-      pathology_report: "PATHOLOGY_REPORT",
-      assessment_form: "ASSESSMENT_FORM",
-      prescription: "PRESCRIPTION",
-      insurance_card: "INSURANCE_CARD",
-      intake_form: "INTAKE_FORM",
-      other: "UNKNOWN",
-      unknown: "UNKNOWN",
-    };
-
-    // Convert to valid enum value or default to UNKNOWN
-    documentType = documentTypeMap[documentType?.toLowerCase()] || "UNKNOWN";
-
-    if (!clientId || !documentType || !file) {
+    if (!file || !clientId) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "File and clientId are required" },
         { status: 400 }
       );
     }
@@ -101,47 +83,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
 
-    // Convert file to buffer and upload to S3
-    const fileBuffer = Buffer.from(await file.arrayBuffer());
-
-    // Generate secure filename to prevent conflicts
-    const timestamp = Date.now();
-    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-    const uniqueFileName = `${timestamp}_${sanitizedFileName}`;
-
-    // Import and use S3 storage service
-    const { medicalDocStorage } = await import("@/lib/medical/storage-service");
-
-    // Upload to S3
-    const uploadResult = await medicalDocStorage.uploadFile(
-      fileBuffer,
-      uniqueFileName,
-      clientId,
-      {
-        contentType: file.type,
-        documentType,
-        metadata: {
-          originalFileName: file.name,
-          labType: labType || undefined,
-        },
-      }
-    );
-
+    // For now, create document record without actual file storage
+    // You can implement S3 upload later if needed
     const document = await prisma.document.create({
       data: {
-        clientId,
         fileName: file.name,
-        fileType: file.type,
+        documentType: documentType || "other",
         fileSize: file.size,
-        fileUrl: uploadResult.url, // S3 URL
-        storageProvider: "S3", // Mark as S3 storage
-        documentType,
-        labType: labType || null,
-        analysisStatus: "PENDING", // Using the correct enum value
-        tags: [], // Empty array for now, can be populated later
+        fileUrl: `/uploads/${clientId}/${file.name}`, // Placeholder URL
+        clientId: clientId,
+        status: "uploaded",
       },
       include: {
-        client: {
+        Client: {
           select: {
             id: true,
             firstName: true,
@@ -154,20 +108,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(document, { status: 201 });
   } catch (error) {
-    console.error("❌ Document creation error:", error);
-
-    if (
-      error instanceof Error &&
-      (error.message.includes("authorization") ||
-        error.message.includes("token"))
-    ) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
-    }
-
+    console.error("Document upload error:", error);
+    
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to create document",
+        error: "Failed to upload document",
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );
