@@ -22,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 export default function NewClientPage() {
   const router = useRouter();
   const { token } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -245,10 +245,10 @@ export default function NewClientPage() {
                   </Link>
                   <Button
                     type="submit"
-                    disabled={loading}
+                    disabled={isLoading}
                     className="bg-brand-green hover:bg-brand-green/90 border-brand-green"
                   >
-                    {loading ? "Creating..." : "Create Client"}
+                    {isLoading ? "Creating..." : "Create Client"}
                   </Button>
                 </div>
               </div>

@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
           ? new Date(validatedData.dateOfBirth)
           : undefined,
         status: "SIGNED_UP",
+        updatedAt: new Date(),
       },
     });
 
