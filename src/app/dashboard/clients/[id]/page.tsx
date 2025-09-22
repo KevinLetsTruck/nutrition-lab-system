@@ -30,6 +30,7 @@ import dynamic from "next/dynamic";
 import { ExportClientButton } from "@/components/clients/ExportClientButton";
 import { ImportAnalysisButton } from "@/components/clients/ImportAnalysisButton";
 import { ClaudePromptsModal } from "@/components/exports/ClaudePromptsModal";
+import { AnalysisHistory } from "@/components/analysis/AnalysisHistory";
 
 // Dynamically import SimplePDFViewer with SSR disabled
 const SimplePDFViewer = dynamic(
@@ -1168,6 +1169,14 @@ export default function ClientDetailPage() {
         }}
         onEdit={handleEditFromViewer}
       />
+
+      {/* Analysis History Section */}
+      <div className="mt-6">
+        <AnalysisHistory 
+          clientId={params.id as string}
+          clientName={client ? `${client.firstName} ${client.lastName}` : "Client"}
+        />
+      </div>
 
       {/* Document Upload Modal */}
       {isUploadModalOpen && (

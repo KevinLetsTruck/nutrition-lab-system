@@ -138,7 +138,7 @@ model Document {
   id               String             @id
   clientId         String
   fileName         String
-  fileType         String
+  fileType         String             @default("application/octet-stream")
   fileSize         Int
   fileUrl          String
   processingError  String?
@@ -1071,14 +1071,26 @@ model Analysis {
   version       String   @default("1.0")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  
+  // NEW: Analysis versioning and context
+  analysisType     String   @default("INITIAL") // INITIAL, FOLLOW_UP, PROTOCOL_REVIEW, SYMPTOM_CHANGE
+  triggerEvent     String?  // What triggered this analysis
+  parentAnalysisId String?  // Link to previous analysis
+  relatedDocuments String[] // Document IDs that triggered this analysis
+  changesFromPrev  Json?    // What changed from previous analysis
 
   // Relations
   client          Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
   protocolPhases  ProtocolPhase[]
   supplements     Supplement[]
   protocolHistory ProtocolHistory[]
+  parentAnalysis  Analysis?         @relation("AnalysisHistory", fields: [parentAnalysisId], references: [id])
+  childAnalyses   Analysis[]        @relation("AnalysisHistory")
 
   @@map("analyses")
+  @@index([clientId, analysisDate])
+  @@index([analysisType])
+  @@index([parentAnalysisId])
 }
 
 model ProtocolPhase {
