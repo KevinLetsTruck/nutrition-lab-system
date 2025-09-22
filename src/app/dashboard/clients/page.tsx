@@ -511,7 +511,6 @@ export default function ClientDashboard() {
                   </div>
                 </th>
 
-
                 <th className="px-6 py-4 text-left text-xs font-medium text-[#f1f5f9] uppercase tracking-wider">
                   Actions
                 </th>
@@ -593,7 +592,6 @@ export default function ClientDashboard() {
                         )}
                       </div>
                     </td>
-
 
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex space-x-2">

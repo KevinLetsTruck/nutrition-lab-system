@@ -1018,6 +1018,18 @@ export default function ClientDetailPage() {
                               <span className="text-gray-400 text-xs">
                                 {formatDate(note.createdAt)}
                               </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (confirm(`Delete this ${note.noteType.toLowerCase()} note?`)) {
+                                    handleDeleteNote(note.id);
+                                  }
+                                }}
+                                className="p-1 hover:bg-red-600/20 rounded transition-colors text-red-400 hover:text-red-300"
+                                title="Delete Note"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             </div>
                           </div>
                           <p className="text-gray-300 text-xs line-clamp-2">
