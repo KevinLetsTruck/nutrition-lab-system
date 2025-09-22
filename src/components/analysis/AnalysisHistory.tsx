@@ -74,22 +74,36 @@ export function AnalysisHistory({
       const analysisHistory = healthGoals.analysisHistory || [];
 
       setAnalyses(analysisHistory);
-      
+
       // Calculate stats from analysis history
       const stats = {
         totalAnalyses: analysisHistory.length,
-        initialAnalyses: analysisHistory.filter((a: any) => a.analysisType === "INITIAL").length,
-        followUpAnalyses: analysisHistory.filter((a: any) => a.analysisType === "FOLLOW_UP").length,
-        protocolReviews: analysisHistory.filter((a: any) => a.analysisType === "PROTOCOL_REVIEW").length,
-        averageConfidence: analysisHistory.length > 0 
-          ? analysisHistory.reduce((sum: number, a: any) => sum + (a.confidence || 0), 0) / analysisHistory.length 
-          : 0,
-        dateRange: analysisHistory.length > 0 ? {
-          earliest: analysisHistory[analysisHistory.length - 1].analysisDate,
-          latest: analysisHistory[0].analysisDate
-        } : null
+        initialAnalyses: analysisHistory.filter(
+          (a: any) => a.analysisType === "INITIAL"
+        ).length,
+        followUpAnalyses: analysisHistory.filter(
+          (a: any) => a.analysisType === "FOLLOW_UP"
+        ).length,
+        protocolReviews: analysisHistory.filter(
+          (a: any) => a.analysisType === "PROTOCOL_REVIEW"
+        ).length,
+        averageConfidence:
+          analysisHistory.length > 0
+            ? analysisHistory.reduce(
+                (sum: number, a: any) => sum + (a.confidence || 0),
+                0
+              ) / analysisHistory.length
+            : 0,
+        dateRange:
+          analysisHistory.length > 0
+            ? {
+                earliest:
+                  analysisHistory[analysisHistory.length - 1].analysisDate,
+                latest: analysisHistory[0].analysisDate,
+              }
+            : null,
       };
-      
+
       setStats(stats);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");

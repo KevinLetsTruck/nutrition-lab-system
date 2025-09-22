@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { verifyAuthToken } from "@/lib/auth";
 import { randomBytes } from "crypto";
+import { ProtocolParser } from "@/lib/protocol-parser";
 
 export async function POST(
   request: NextRequest,
@@ -27,25 +28,38 @@ export async function POST(
     }
 
     // Get recent documents to link to this analysis
-    const recentDocuments = await prisma.document.findMany({
-      where: {
-        clientId,
-        uploadedAt: {
-          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
+    const recentDocuments = await prisma.document
+      .findMany({
+        where: {
+          clientId,
+          uploadedAt: {
+            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
+          },
         },
-      },
-      select: { id: true, fileName: true, uploadedAt: true },
-    }).catch(() => []); // Fallback if document table issues
+        select: { id: true, fileName: true, uploadedAt: true },
+      })
+      .catch(() => []); // Fallback if document table issues
 
     // Create analysis history in client healthGoals (works with existing schema)
-    const existingHealthGoals = client.healthGoals as any || {};
+    const existingHealthGoals = (client.healthGoals as any) || {};
     const analysisHistory = existingHealthGoals.analysisHistory || [];
-    
+
     // Determine analysis type
     const analysisType = analysisHistory.length === 0 ? "INITIAL" : "FOLLOW_UP";
-    const triggerEvent = recentDocuments.length > 0
-      ? `New documents uploaded: ${recentDocuments.map(d => d.fileName).join(', ')}`
-      : "Manual analysis import";
+    const triggerEvent =
+      recentDocuments.length > 0
+        ? `New documents uploaded: ${recentDocuments
+            .map((d) => d.fileName)
+            .join(", ")}`
+        : "Manual analysis import";
+
+    // Extract key data from analysis content
+    const analysisContent = body.analysisData?.content || "";
+    const rootCauses = extractRootCauses(analysisContent);
+    const priorityAreas = extractPriorityAreas(analysisContent);
+    
+    // Parse structured protocol data from Claude Desktop
+    const parsedProtocol = ProtocolParser.parseClaudeProtocol(analysisContent);
 
     // Create new analysis record for history
     const newAnalysisRecord = {
@@ -53,12 +67,18 @@ export async function POST(
       analysisData: body.analysisData,
       analysisType,
       triggerEvent,
-      relatedDocuments: recentDocuments.map(d => d.id),
+      relatedDocuments: recentDocuments.map((d) => d.id),
       analysisDate: new Date().toISOString(),
       version: body.version || "2.0.0",
-      confidence: calculateConfidence(body.analysisData?.content || ""),
-      rootCauses: extractRootCauses(body.analysisData?.content || ""),
-      priorityAreas: extractPriorityAreas(body.analysisData?.content || "")
+      confidence: calculateConfidence(analysisContent),
+      rootCauses,
+      priorityAreas,
+      // NEW: Structured protocol data
+      parsedProtocol,
+      supplementCount: parsedProtocol.supplements.length,
+      phaseCount: parsedProtocol.phases.length,
+      hasLetsTruckProducts: parsedProtocol.supplements.some(s => s.letstruck_sku),
+      coachingNotesCount: parsedProtocol.coachingNotes.length,
     };
 
     // Add to analysis history (preserves all previous analyses)
@@ -75,7 +95,7 @@ export async function POST(
           analysisVersion: body.version || "2.0.0",
           analysisHistory, // Complete history of all analyses
           totalAnalyses: analysisHistory.length,
-          latestAnalysisType: analysisType
+          latestAnalysisType: analysisType,
         },
         updatedAt: new Date(),
       },
@@ -90,7 +110,7 @@ export async function POST(
       analysisDate: new Date().toISOString(),
       relatedDocuments: recentDocuments.length,
       preservedPreviousAnalyses: analysisHistory.length - 1,
-      totalAnalyses: analysisHistory.length
+      totalAnalyses: analysisHistory.length,
     });
   } catch (error) {
     console.error("Import analysis error:", error);
