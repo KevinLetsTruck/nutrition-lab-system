@@ -56,6 +56,13 @@ export async function POST(
         clinicalSummary: supplementData.clinicalSummary || null,
         protocolLetter: supplementData.clientProtocolLetter || null,
         coachingNotes: supplementData.coachingNotes || null,
+        supplementDetails: (supplementData.supplements || supplementData.supplementRecommendations || []).map((s: any) => ({
+          name: s.name,
+          brand: s.brand,
+          interactions: s.interactions,
+          contraindications: s.contraindications,
+          labJustification: s.labJustification,
+        })),
       },
       rootCauses: isComprehensiveExport
         ? extractRootCausesFromLabAnalysis(supplementData.labAnalysis)
@@ -93,7 +100,6 @@ export async function POST(
             clientId,
             analysisId: analysisId,
             name: supplement.name,
-            brand: supplement.brand || "Unknown",
             dosage: supplement.dosage,
             timing: supplement.timing,
             duration: supplement.duration,
@@ -102,8 +108,6 @@ export async function POST(
             rationale: supplement.rationale,
             phase: supplement.phase || "PHASE1",
             estimatedCost: supplement.estimatedCost || 0,
-            interactions: supplement.interactions,
-            contraindications: supplement.contraindications,
             status: "RECOMMENDED",
             createdAt: new Date(),
             updatedAt: new Date(),
