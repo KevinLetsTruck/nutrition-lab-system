@@ -1021,7 +1021,11 @@ export default function ClientDetailPage() {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (confirm(`Delete this ${note.noteType.toLowerCase()} note?`)) {
+                                  if (
+                                    confirm(
+                                      `Delete this ${note.noteType.toLowerCase()} note?`
+                                    )
+                                  ) {
                                     handleDeleteNote(note.id);
                                   }
                                 }}
