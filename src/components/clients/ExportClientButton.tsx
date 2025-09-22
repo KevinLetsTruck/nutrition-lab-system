@@ -127,7 +127,7 @@ export function ExportClientButton({
 ## CRITICAL INSTRUCTIONS
 - ZIP FILE IS READY: ${filename} in your Downloads folder
 - EXTRACT and ANALYZE all contents directly
-- GENERATE 4 SPECIFIC OUTPUTS as detailed below
+- GENERATE SINGLE EXPORT DOCUMENT as detailed below
 - DO NOT ask clarifying questions - proceed with analysis
 
 ## SYSTEM ACTIVATION
@@ -142,15 +142,35 @@ You are my FNTP functional medicine analysis system. Load all protocols.
 ## CLIENT OVERVIEW
 - Name: ${clientName}
 - Export Date: ${new Date().toLocaleDateString()}
-${supplementContext ? `
+${
+  supplementContext
+    ? `
 ## PRE-ANALYSIS CONTEXT
-- Current Medications: ${supplementContext.currentMedications.list.map((m: any) => m.name).join(', ') || 'None'}
-- Current Supplements: ${supplementContext.currentSupplements.list.map((s: any) => s.name).join(', ') || 'None'}
-- Allergies: ${supplementContext.healthContext.allergies.join(', ') || 'None reported'}
-- Contraindications: ${supplementContext.riskFactors.contraindications.join(', ') || 'None'}
-- Trucker Status: ${supplementContext.healthContext.isTruckDriver ? 'Yes' : 'No'}
-- Age/Gender: ${supplementContext.healthContext.age || 'Unknown'}/${supplementContext.healthContext.gender || 'Unknown'}
-` : ''}
+- Current Medications: ${
+        supplementContext.currentMedications.list
+          .map((m: any) => m.name)
+          .join(", ") || "None"
+      }
+- Current Supplements: ${
+        supplementContext.currentSupplements.list
+          .map((s: any) => s.name)
+          .join(", ") || "None"
+      }
+- Allergies: ${
+        supplementContext.healthContext.allergies.join(", ") || "None reported"
+      }
+- Contraindications: ${
+        supplementContext.riskFactors.contraindications.join(", ") || "None"
+      }
+- Trucker Status: ${
+        supplementContext.healthContext.isTruckDriver ? "Yes" : "No"
+      }
+- Age/Gender: ${supplementContext.healthContext.age || "Unknown"}/${
+        supplementContext.healthContext.gender || "Unknown"
+      }
+`
+    : ""
+}
 
 ## LETSTRUCK PRIORITIZATION RULES (CRITICAL)
 1. **LyteBalance**: Universal foundation for ALL clients (unless contraindicated)
@@ -162,163 +182,141 @@ ${supplementContext ? `
    - Protocols: general (1 scoop AM), optimal (2 scoops daily), advanced (4 scoops daily)
 4. **HIERARCHY**: LetsTruck FIRST → Biotics Research SECOND → FullScript THIRD
 
-## ANALYSIS REQUIREMENTS
-1. EXTRACT the ZIP file: ${filename}
-2. READ client-data.json for complete client information
-3. REVIEW client-summary.md for clinical context
-4. ANALYZE all PDF documents thoroughly
-5. CHECK current medications for interactions
-6. APPLY LetsTruck prioritization rules
-7. GENERATE all 4 required outputs below
+## MANDATORY ANALYSIS SEQUENCE (DO NOT SKIP)
+**CRITICAL: Complete ALL steps in order before making ANY supplement recommendations**
 
-## MANDATORY OUTPUT 1: STRUCTURED JSON DATA
+1. **EXTRACT the ZIP file completely**
+2. **READ client-data.json** for complete client information
+3. **REVIEW client-summary.md** for clinical context
+4. **ANALYZE ALL PDF DOCUMENTS THOROUGHLY:**
+   - **Dutch Test**: Extract ALL hormone values, cortisol patterns, estrogen/testosterone levels, metabolic markers
+   - **NutriQ/Symptom Burden Report**: Extract ALL condition scores, deficiency percentages, primary findings
+   - **Lab Reports**: Extract ALL abnormal values, reference ranges, clinical significance
+   - **Assessment Forms**: Extract ALL symptoms, severity scores, patterns
+5. **INTEGRATE LAB FINDINGS** with clinical symptoms before supplement selection
+6. **CHECK current medications** for interactions
+7. **APPLY LetsTruck prioritization rules** BASED ON ACTUAL LAB DATA
+8. **GENERATE EXPORT DOCUMENT** (single consolidated file for app import)
+
+## MANDATORY OUTPUT: SINGLE EXPORT DOCUMENT FOR APP IMPORT
+**CRITICAL: Generate ONE consolidated JSON document that contains all data for app import**
+
+**DO NOT provide lengthy analysis or explanations in Claude - just generate the export document**
+
+Create a comprehensive JSON export document ready for app import:
+
 \`\`\`json
 {
-  "supplements": [
+  "exportMetadata": {
+    "clientId": "${clientId}",
+    "clientName": "${clientName}",
+    "analysisDate": "${new Date().toISOString().split("T")[0]}",
+    "exportVersion": "2.0.0",
+    "analysisType": "FNTP_COMPREHENSIVE_PROTOCOL"
+  },
+  "labAnalysis": {
+    "dutchTestFindings": {
+      "cortisolPattern": "Describe key cortisol abnormalities found",
+      "hormoneImbalances": "List critical hormone findings (estrogen, testosterone, etc.)",
+      "keyMarkers": "Values outside normal range with clinical significance",
+      "clinicalSignificance": "How these findings impact supplement selection"
+    },
+    "nutriqFindings": {
+      "topConditions": ["List top 5 conditions with percentages from symptom burden report"],
+      "primaryDeficiencies": ["List top 5 deficiencies with percentages"],
+      "symptomBurden": "Total score and key patterns"
+    },
+    "otherLabFindings": {
+      "abnormalValues": "Any other significant lab findings from additional reports",
+      "clinicalRelevance": "How these impact supplement choices"
+    }
+  },
+  "supplementRecommendations": [
     {
       "name": "LyteBalance Electrolyte Concentrate",
       "brand": "LetsTruck",
       "dosage": "1-2 capfuls in 8oz water daily",
-      "timing": "Morning, adjust by taste",
+      "timing": "Upon waking, adjust by taste",
       "duration": "Ongoing",
       "priority": "CRITICAL",
       "category": "Foundational",
-      "rationale": "Universal cellular hydration foundation, supports ATP cycle",
+      "rationale": "Specific reasoning based on lab findings",
       "phase": "PHASE1",
       "estimatedCost": 45,
-      "interactions": "None",
-      "contraindications": "None",
-      "letstruck_sku": "LT-LYTE-30",
-      "biotics_alternative": "Bio-Electrolyte Plus",
-      "fullscript_backup": "Designs for Health Electrolyte Synergy",
-      "clinicalEvidence": "42 years clinical use, rapid cramp relief",
-      "protocolNotes": "Use taste-ability method"
+      "status": "recommended",
+      "labJustification": "Which specific lab findings support this recommendation"
     }
   ],
-  "analysisMetadata": {
-    "clientId": "${clientId}",
-    "analysisDate": "${new Date().toISOString().split('T')[0]}",
-    "clinicalPriorities": ["List primary health priorities"],
-    "riskFactors": ["List identified risk factors"]
+  "clientProtocolLetter": {
+    "greeting": "Personalized greeting text",
+    "phaseInfo": "Phase 1: Foundation Protocol",
+    "duration": "30 days",
+    "clinicalFocus": "Primary health priorities based on actual lab findings",
+    "currentStatus": "Brief summary based on lab analysis",
+    "prioritySupplements": [
+      {
+        "productName": "Full supplement name",
+        "dose": "Specific dosing instructions", 
+        "timing": "When to take",
+        "purpose": "Why this supplement based on lab findings"
+      }
+    ],
+    "dailySchedule": {
+      "uponWaking": "Supplements and instructions",
+      "beforeBreakfast": "Supplements and instructions",
+      "betweenBreakfastLunch": "Instructions", 
+      "beforeLunch": "Supplements and instructions",
+      "withLargestMeal": "Supplements and instructions",
+      "betweenLunchDinner": "Supplements and instructions"
+    },
+    "protocolNotes": "Important instructions, expectations, follow-up timing based on lab priorities"
   },
-  "costAnalysis": {
-    "totalMonthlyCost": 150,
-    "phase1Cost": 45,
-    "phase2Cost": 90,
-    "phase3Cost": 135,
-    "costPerDay": 4.50
+  "supplementOrderList": {
+    "letstruckOrders": [
+      {
+        "productName": "Product name",
+        "sku": "SKU if known",
+        "quantity": "Quantity needed",
+        "monthlySupply": "Days of supply",
+        "cost": "Cost per unit"
+      }
+    ],
+    "bioticsOrders": [],
+    "fullscriptOrders": [],
+    "totalCosts": {
+      "letstruckTotal": 110.00,
+      "bioticsTotal": 0.00,
+      "fullscriptTotal": 0.00,
+      "grandTotal": 110.00
+    }
   },
-  "safetyConsiderations": {
-    "medicationWarnings": ["List any medication warnings"],
-    "contraindications": "None identified",
-    "followUpRequired": ["List follow-up items"]
+  "coachingNotes": {
+    "keyHealthPriorities": ["Priority 1 based on lab findings", "Priority 2 based on lab findings"],
+    "supplementRationale": ["Brief explanation for each supplement based on labs"],
+    "lifestyleRecommendations": ["Specific items based on lab findings"],
+    "followUpMonitoring": ["What to track based on lab abnormalities"],
+    "redFlagsToWatch": ["Warning signs specific to this client's lab findings"],
+    "motivationStrategies": ["Approaches specific to this client's situation"]
   },
-  "phaseTimeline": "Phase 1: 30 days foundation, Phase 2: 60 days targeted, Phase 3: 90 days optimization"
+  "clinicalSummary": {
+    "primaryFindings": "Top 3 most critical findings from all labs/assessments",
+    "supplementStrategy": "Overall approach based on integrated lab data",
+    "riskFactors": "Key risk factors identified from labs",
+    "expectedOutcomes": "What client should expect based on protocol",
+    "followUpTesting": "Recommended retesting timeline and specific tests"
+  }
 }
 \`\`\`
 
-## MANDATORY OUTPUT 2: CLIENT PROTOCOL LETTER
-Generate using this EXACT template format:
+## CRITICAL REQUIREMENTS
+- Base ALL supplement recommendations on actual lab findings, not just symptoms
+- Include specific lab values and abnormalities that justify each supplement
+- Integrate Dutch test hormone data with NutriQ deficiency patterns
+- Provide clear connection between lab findings and supplement selection
+- Generate single JSON document ready for direct app import
+- Minimize analysis discussion - focus on clean data export
 
-PROTOCOL TEMPLATE
-
-GREETING
-[Warm, personalized greeting to the client]
-
-PHASE # & NAME OF PROTOCOL
-[e.g., "Phase 1: Foundation Protocol" or "Phase 2: Targeted Support"]
-
-DURATION: [e.g., "30 days" or "60 days"]
-CLINICAL FOCUS: [Primary health priorities being addressed]
-CURRENT STATUS: [Brief summary of client's current health situation]
-
-PRIORITY SUPPLEMENTS
-    NAME OF PRODUCT: [Full supplement name]
-        DOSE: [Specific dosing instructions]
-        TIMING: [When to take]
-        PURPOSE: [Why this supplement for this client]
-
-    NAME OF PRODUCT: [Second supplement]
-        DOSE: [Specific dosing instructions]
-        TIMING: [When to take]
-        PURPOSE: [Why this supplement for this client]
-
-    [Continue for all recommended supplements]
-
-DAILY PROTOCOL SCHEDULE
-
-    UPON WAKING
-    [List supplements/instructions for upon waking]
-
-    BEFORE BREAKFAST
-    [List supplements/instructions for before breakfast]
-
-    BETWEEN BREAKFAST & LUNCH
-    [List supplements/instructions for mid-morning]
-
-    BEFORE LUNCH
-    [List supplements/instructions for before lunch]
-
-    WITH LARGEST MEAL
-    [List supplements/instructions for with largest meal]
-
-    BETWEEN LUNCH & DINNER
-    [List supplements/instructions for afternoon]
-
-PROTOCOL NOTES
-[Important instructions, what to expect, when to follow up, encouraging notes]
-
-## MANDATORY OUTPUT 3: SUPPLEMENT ORDER LIST
-Create precise ordering lists organized by vendor:
-
-**LETSTRUCK.COM ORDERS:**
-- Product Name | SKU | Quantity | Monthly Supply | Cost
-
-**BIOTICS RESEARCH ORDERS:**
-- Product Name | SKU | Quantity | Monthly Supply | Cost
-
-**FULLSCRIPT ORDERS:**
-- Product Name | Quantity | Monthly Supply | Cost
-
-Include total costs per vendor and grand total.
-
-## MANDATORY OUTPUT 4: COACHING CALL NOTES
-Provide concise bullet points for practitioner use:
-
-**KEY HEALTH PRIORITIES:**
-- [Priority 1 with brief rationale]
-- [Priority 2 with brief rationale]
-
-**SUPPLEMENT RATIONALE:**
-- [Brief explanation for each recommended supplement]
-
-**LIFESTYLE RECOMMENDATIONS:**
-- [Specific actionable items]
-
-**FOLLOW-UP MONITORING:**
-- [What to track and when]
-
-**RED FLAGS TO WATCH:**
-- [Warning signs that require attention]
-
-**CLIENT MOTIVATION STRATEGIES:**
-- [Specific approaches for this client's personality/situation]
-
-## SAFETY REQUIREMENTS
-- Check ALL medication interactions first
-- Include contraindication warnings
-- Provide clinical rationale for each recommendation
-- Cost analysis with alternatives
-- Professional liability considerations
-
-## OUTPUT FORMAT
-Provide all four outputs as separate, clearly labeled sections:
-1. JSON DATA (in code block)
-2. CLIENT PROTOCOL LETTER
-3. SUPPLEMENT ORDER LIST  
-4. COACHING CALL NOTES
-
-EXTRACT ZIP FILE AND EXECUTE COMPREHENSIVE FNTP ANALYSIS WITH ALL 4 OUTPUTS NOW.`,
+EXTRACT ZIP FILE, ANALYZE ALL LABS THOROUGHLY, AND GENERATE EXPORT DOCUMENT NOW.`,
             focused: {
               gut: `GUT HEALTH ANALYSIS - Extract and use ZIP file data
 
@@ -327,14 +325,24 @@ LETSTRUCK PRIORITIZATION FOR GUT HEALTH:
 - Consider Biotics Research probiotics if LetsTruck unavailable
 - Apply structured JSON output format for supplement recommendations
 
-${supplementContext ? `
+${
+  supplementContext
+    ? `
 CURRENT GUT-RELATED CONTEXT:
-- Current Supplements: ${supplementContext.currentSupplements.list.filter((s: any) => 
-  s.name.toLowerCase().includes('probiotic') || 
-  s.name.toLowerCase().includes('digestive')
-).length} digestive supplements
-- Medication Interactions: ${supplementContext.riskFactors.medicationInteractions.join('; ') || 'None'}
-` : ''}
+- Current Supplements: ${
+        supplementContext.currentSupplements.list.filter(
+          (s: any) =>
+            s.name.toLowerCase().includes("probiotic") ||
+            s.name.toLowerCase().includes("digestive")
+        ).length
+      } digestive supplements
+- Medication Interactions: ${
+        supplementContext.riskFactors.medicationInteractions.join("; ") ||
+        "None"
+      }
+`
+    : ""
+}
 
 RETURN STRUCTURED JSON OUTPUT WITH LETSTRUCK PRIORITIZATION.`,
 
@@ -346,13 +354,24 @@ LETSTRUCK PRIORITIZATION FOR METABOLIC HEALTH:
 - Cardio Miracle: Cardiovascular and metabolic support
 - Apply structured JSON output format
 
-${supplementContext ? `
+${
+  supplementContext
+    ? `
 CURRENT METABOLIC CONTEXT:
-- Age: ${supplementContext.healthContext.age || 'Unknown'}
-- Gender: ${supplementContext.healthContext.gender || 'Unknown'}
-- Current Medications: ${supplementContext.currentMedications.list.map((m: any) => m.name).join(', ') || 'None'}
-- Risk Factors: ${supplementContext.riskFactors.medicationInteractions.join('; ') || 'None'}
-` : ''}
+- Age: ${supplementContext.healthContext.age || "Unknown"}
+- Gender: ${supplementContext.healthContext.gender || "Unknown"}
+- Current Medications: ${
+        supplementContext.currentMedications.list
+          .map((m: any) => m.name)
+          .join(", ") || "None"
+      }
+- Risk Factors: ${
+        supplementContext.riskFactors.medicationInteractions.join("; ") ||
+        "None"
+      }
+`
+    : ""
+}
 
 RETURN STRUCTURED JSON OUTPUT WITH LETSTRUCK PRIORITIZATION.`,
 
@@ -364,16 +383,23 @@ LETSTRUCK PRIORITIZATION FOR HORMONAL HEALTH:
 - Consider Biotics Research hormonal support if needed
 - Apply structured JSON output format
 
-${supplementContext ? `
+${
+  supplementContext
+    ? `
 CURRENT HORMONAL CONTEXT:
-- Gender: ${supplementContext.healthContext.gender || 'Unknown'}
-- Age: ${supplementContext.healthContext.age || 'Unknown'}
-- Current Hormonal Supplements: ${supplementContext.currentSupplements.list.filter((s: any) => 
-  s.name.toLowerCase().includes('hormone') || 
-  s.name.toLowerCase().includes('estrogen') ||
-  s.name.toLowerCase().includes('testosterone')
-).length}
-` : ''}
+- Gender: ${supplementContext.healthContext.gender || "Unknown"}
+- Age: ${supplementContext.healthContext.age || "Unknown"}
+- Current Hormonal Supplements: ${
+        supplementContext.currentSupplements.list.filter(
+          (s: any) =>
+            s.name.toLowerCase().includes("hormone") ||
+            s.name.toLowerCase().includes("estrogen") ||
+            s.name.toLowerCase().includes("testosterone")
+        ).length
+      }
+`
+    : ""
+}
 
 RETURN STRUCTURED JSON OUTPUT WITH LETSTRUCK PRIORITIZATION.`,
             },
@@ -393,14 +419,25 @@ RETURN STRUCTURED JSON OUTPUT WITH LETSTRUCK PRIORITIZATION.`,
 - Include cost optimization recommendations
 - Assess current protocol compliance
 
-${supplementContext ? `
+${
+  supplementContext
+    ? `
 ## FOLLOW-UP CONTEXT
-- Previous Analyses: ${supplementContext.metadata.lastAnalysisDate ? 'Available' : 'None'}
+- Previous Analyses: ${
+        supplementContext.metadata.lastAnalysisDate ? "Available" : "None"
+      }
 - Current Supplement Count: ${supplementContext.currentSupplements.count}
-- Estimated Monthly Cost: $${supplementContext.currentSupplements.estimatedMonthlyCost}
-- Supplement Gaps: ${supplementContext.metadata.supplementGaps.join(', ') || 'None identified'}
+- Estimated Monthly Cost: $${
+        supplementContext.currentSupplements.estimatedMonthlyCost
+      }
+- Supplement Gaps: ${
+        supplementContext.metadata.supplementGaps.join(", ") ||
+        "None identified"
+      }
 - Protocol Compliance: [Assess from notes and progress]
-` : ''}
+`
+    : ""
+}
 
 ## FOLLOW-UP ANALYSIS REQUIREMENTS
 1. EXTRACT the ZIP file: ${filename}
@@ -425,14 +462,17 @@ EXTRACT ZIP FILE AND EXECUTE FOLLOW-UP ANALYSIS WITH ALL 4 OUTPUTS NOW.`,
             name: clientName,
             primaryConcerns: "Review extracted data for health goals",
             medications: supplementContext?.currentMedications.list || [],
-            currentSupplements: supplementContext?.currentSupplements.list || [],
+            currentSupplements:
+              supplementContext?.currentSupplements.list || [],
             allergies: supplementContext?.healthContext.allergies || [],
-            isTruckDriver: supplementContext?.healthContext.isTruckDriver || false,
+            isTruckDriver:
+              supplementContext?.healthContext.isTruckDriver || false,
             age: supplementContext?.healthContext.age || null,
             gender: supplementContext?.healthContext.gender || null,
             keyLabs: "Review documents in extracted ZIP file",
             supplementGaps: supplementContext?.metadata.supplementGaps || [],
-            riskFactors: supplementContext?.riskFactors.medicationInteractions || [],
+            riskFactors:
+              supplementContext?.riskFactors.medicationInteractions || [],
           },
         };
 
