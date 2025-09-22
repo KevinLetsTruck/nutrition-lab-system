@@ -35,59 +35,49 @@ export async function POST(
         },
       },
       select: { id: true, fileName: true, uploadedAt: true },
-    });
+    }).catch(() => []); // Fallback if document table issues
 
-    // Check for previous analyses to determine type
-    const previousAnalyses = await prisma.analysis.findMany({
-      where: { clientId },
-      orderBy: { analysisDate: "desc" },
-      take: 1,
-    });
+    // Create analysis history in client healthGoals (works with existing schema)
+    const existingHealthGoals = client.healthGoals as any || {};
+    const analysisHistory = existingHealthGoals.analysisHistory || [];
+    
+    // Determine analysis type
+    const analysisType = analysisHistory.length === 0 ? "INITIAL" : "FOLLOW_UP";
+    const triggerEvent = recentDocuments.length > 0
+      ? `New documents uploaded: ${recentDocuments.map(d => d.fileName).join(', ')}`
+      : "Manual analysis import";
 
-    const analysisType =
-      previousAnalyses.length === 0 ? "INITIAL" : "FOLLOW_UP";
-    const triggerEvent =
-      recentDocuments.length > 0
-        ? `New documents uploaded: ${recentDocuments
-            .map((d) => d.fileName)
-            .join(", ")}`
-        : "Manual analysis import";
+    // Create new analysis record for history
+    const newAnalysisRecord = {
+      id: randomBytes(12).toString("hex"),
+      analysisData: body.analysisData,
+      analysisType,
+      triggerEvent,
+      relatedDocuments: recentDocuments.map(d => d.id),
+      analysisDate: new Date().toISOString(),
+      version: body.version || "2.0.0",
+      confidence: calculateConfidence(body.analysisData?.content || ""),
+      rootCauses: extractRootCauses(body.analysisData?.content || ""),
+      priorityAreas: extractPriorityAreas(body.analysisData?.content || "")
+    };
 
-    // Extract key data from analysis content
-    const analysisContent = body.analysisData?.content || "";
-    const rootCauses = extractRootCauses(analysisContent);
-    const priorityAreas = extractPriorityAreas(analysisContent);
+    // Add to analysis history (preserves all previous analyses)
+    analysisHistory.push(newAnalysisRecord);
 
-    // Create new Analysis record (don't overwrite!)
-    const newAnalysis = await prisma.analysis.create({
-      data: {
-        id: randomBytes(12).toString("hex"),
-        clientId,
-        analysisData: body.analysisData,
-        rootCauses,
-        priorityAreas,
-        confidence: calculateConfidence(analysisContent),
-        analysisDate: new Date(),
-        version: body.version || "2.0.0",
-        analysisType,
-        triggerEvent,
-        relatedDocuments: recentDocuments.map((d) => d.id),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    });
-
-    // Also update client healthGoals for backward compatibility
+    // Update client with new analysis and preserved history
     await prisma.client.update({
       where: { id: clientId },
       data: {
         healthGoals: {
-          ...client.healthGoals,
-          claudeAnalysis: body.analysisData,
+          ...existingHealthGoals,
+          claudeAnalysis: body.analysisData, // Latest analysis (backward compatibility)
           analysisDate: new Date().toISOString(),
           analysisVersion: body.version || "2.0.0",
-          latestAnalysisId: newAnalysis.id, // Link to latest analysis
+          analysisHistory, // Complete history of all analyses
+          totalAnalyses: analysisHistory.length,
+          latestAnalysisType: analysisType
         },
+        updatedAt: new Date(),
       },
     });
 
@@ -95,11 +85,12 @@ export async function POST(
       success: true,
       message: "Analysis imported successfully",
       clientId: clientId,
-      analysisId: newAnalysis.id,
+      analysisId: newAnalysisRecord.id,
       analysisType,
       analysisDate: new Date().toISOString(),
       relatedDocuments: recentDocuments.length,
-      preservedPreviousAnalyses: previousAnalyses.length,
+      preservedPreviousAnalyses: analysisHistory.length - 1,
+      totalAnalyses: analysisHistory.length
     });
   } catch (error) {
     console.error("Import analysis error:", error);

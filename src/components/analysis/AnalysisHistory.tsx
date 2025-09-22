@@ -60,17 +60,37 @@ export function AnalysisHistory({
   const fetchAnalysisHistory = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`/api/clients/${clientId}/analyses`, {
+      const response = await fetch(`/api/clients/${clientId}/complete`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch analysis history");
+        throw new Error("Failed to fetch client data");
       }
 
       const data = await response.json();
-      setAnalyses(data.analyses);
-      setStats(data.stats);
+      const client = data.client;
+      const healthGoals = client.healthGoals || {};
+      const analysisHistory = healthGoals.analysisHistory || [];
+
+      setAnalyses(analysisHistory);
+      
+      // Calculate stats from analysis history
+      const stats = {
+        totalAnalyses: analysisHistory.length,
+        initialAnalyses: analysisHistory.filter((a: any) => a.analysisType === "INITIAL").length,
+        followUpAnalyses: analysisHistory.filter((a: any) => a.analysisType === "FOLLOW_UP").length,
+        protocolReviews: analysisHistory.filter((a: any) => a.analysisType === "PROTOCOL_REVIEW").length,
+        averageConfidence: analysisHistory.length > 0 
+          ? analysisHistory.reduce((sum: number, a: any) => sum + (a.confidence || 0), 0) / analysisHistory.length 
+          : 0,
+        dateRange: analysisHistory.length > 0 ? {
+          earliest: analysisHistory[analysisHistory.length - 1].analysisDate,
+          latest: analysisHistory[0].analysisDate
+        } : null
+      };
+      
+      setStats(stats);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
