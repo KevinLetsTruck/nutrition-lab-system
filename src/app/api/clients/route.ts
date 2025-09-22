@@ -3,8 +3,7 @@ import { prisma } from "@/lib/db";
 import { createClientSchema } from "@/lib/validations/client";
 import { ZodError } from "zod";
 import { verifyAuthToken } from "@/lib/auth";
-
-
+import { randomBytes } from "crypto";
 
 export async function GET(request: NextRequest) {
   try {
@@ -56,6 +55,7 @@ export async function POST(request: NextRequest) {
 
     const client = await prisma.client.create({
       data: {
+        id: randomBytes(12).toString('hex'),
         ...validatedData,
         healthGoals: validatedData.healthGoals || undefined,
         medications: validatedData.medications || undefined,
@@ -93,8 +93,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.error("Client creation error:", error);
     return NextResponse.json(
-      { error: "Failed to create client" },
+      { 
+        error: "Failed to create client",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
       { status: 500 }
     );
   }
