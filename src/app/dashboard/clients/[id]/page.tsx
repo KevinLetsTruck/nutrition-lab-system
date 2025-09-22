@@ -1172,9 +1172,11 @@ export default function ClientDetailPage() {
 
       {/* Analysis History Section */}
       <div className="mt-6">
-        <AnalysisHistory 
+        <AnalysisHistory
           clientId={params.id as string}
-          clientName={client ? `${client.firstName} ${client.lastName}` : "Client"}
+          clientName={
+            client ? `${client.firstName} ${client.lastName}` : "Client"
+          }
         />
       </div>
 

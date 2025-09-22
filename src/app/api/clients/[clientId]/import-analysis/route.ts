@@ -28,36 +28,40 @@ export async function POST(
 
     // Get recent documents to link to this analysis
     const recentDocuments = await prisma.document.findMany({
-      where: { 
+      where: {
         clientId,
         uploadedAt: {
-          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last 7 days
-        }
+          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
+        },
       },
-      select: { id: true, fileName: true, uploadedAt: true }
+      select: { id: true, fileName: true, uploadedAt: true },
     });
 
     // Check for previous analyses to determine type
     const previousAnalyses = await prisma.analysis.findMany({
       where: { clientId },
-      orderBy: { analysisDate: 'desc' },
-      take: 1
+      orderBy: { analysisDate: "desc" },
+      take: 1,
     });
 
-    const analysisType = previousAnalyses.length === 0 ? "INITIAL" : "FOLLOW_UP";
-    const triggerEvent = recentDocuments.length > 0 
-      ? `New documents uploaded: ${recentDocuments.map(d => d.fileName).join(', ')}`
-      : "Manual analysis import";
+    const analysisType =
+      previousAnalyses.length === 0 ? "INITIAL" : "FOLLOW_UP";
+    const triggerEvent =
+      recentDocuments.length > 0
+        ? `New documents uploaded: ${recentDocuments
+            .map((d) => d.fileName)
+            .join(", ")}`
+        : "Manual analysis import";
 
     // Extract key data from analysis content
-    const analysisContent = body.analysisData?.content || '';
+    const analysisContent = body.analysisData?.content || "";
     const rootCauses = extractRootCauses(analysisContent);
     const priorityAreas = extractPriorityAreas(analysisContent);
 
     // Create new Analysis record (don't overwrite!)
     const newAnalysis = await prisma.analysis.create({
       data: {
-        id: randomBytes(12).toString('hex'),
+        id: randomBytes(12).toString("hex"),
         clientId,
         analysisData: body.analysisData,
         rootCauses,
@@ -67,10 +71,10 @@ export async function POST(
         version: body.version || "2.0.0",
         analysisType,
         triggerEvent,
-        relatedDocuments: recentDocuments.map(d => d.id),
+        relatedDocuments: recentDocuments.map((d) => d.id),
         createdAt: new Date(),
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
 
     // Also update client healthGoals for backward compatibility
@@ -95,7 +99,7 @@ export async function POST(
       analysisType,
       analysisDate: new Date().toISOString(),
       relatedDocuments: recentDocuments.length,
-      preservedPreviousAnalyses: previousAnalyses.length
+      preservedPreviousAnalyses: previousAnalyses.length,
     });
   } catch (error) {
     console.error("Import analysis error:", error);
@@ -111,7 +115,7 @@ export async function POST(
 // Helper functions for analysis processing
 function extractRootCauses(content: string): string[] {
   const causes: string[] = [];
-  
+
   // Look for common patterns in Claude analysis
   const patterns = [
     /root causes?[:\-\s]*(.*?)(?=\n\n|\n[A-Z]|$)/gis,
@@ -119,13 +123,13 @@ function extractRootCauses(content: string): string[] {
     /primary causes?[:\-\s]*(.*?)(?=\n\n|\n[A-Z]|$)/gis,
   ];
 
-  patterns.forEach(pattern => {
+  patterns.forEach((pattern) => {
     const matches = content.match(pattern);
     if (matches) {
-      matches.forEach(match => {
-        const lines = match.split('\n').filter(line => line.trim());
-        lines.forEach(line => {
-          const cleaned = line.replace(/^[•\-\*\d\.]+\s*/, '').trim();
+      matches.forEach((match) => {
+        const lines = match.split("\n").filter((line) => line.trim());
+        lines.forEach((line) => {
+          const cleaned = line.replace(/^[•\-\*\d\.]+\s*/, "").trim();
           if (cleaned.length > 10 && !causes.includes(cleaned)) {
             causes.push(cleaned);
           }
@@ -139,20 +143,20 @@ function extractRootCauses(content: string): string[] {
 
 function extractPriorityAreas(content: string): string[] {
   const areas: string[] = [];
-  
+
   const patterns = [
     /priority areas?[:\-\s]*(.*?)(?=\n\n|\n[A-Z]|$)/gis,
     /focus areas?[:\-\s]*(.*?)(?=\n\n|\n[A-Z]|$)/gis,
     /intervention areas?[:\-\s]*(.*?)(?=\n\n|\n[A-Z]|$)/gis,
   ];
 
-  patterns.forEach(pattern => {
+  patterns.forEach((pattern) => {
     const matches = content.match(pattern);
     if (matches) {
-      matches.forEach(match => {
-        const lines = match.split('\n').filter(line => line.trim());
-        lines.forEach(line => {
-          const cleaned = line.replace(/^[•\-\*\d\.]+\s*/, '').trim();
+      matches.forEach((match) => {
+        const lines = match.split("\n").filter((line) => line.trim());
+        lines.forEach((line) => {
+          const cleaned = line.replace(/^[•\-\*\d\.]+\s*/, "").trim();
           if (cleaned.length > 5 && !areas.includes(cleaned)) {
             areas.push(cleaned);
           }
@@ -167,14 +171,18 @@ function extractPriorityAreas(content: string): string[] {
 function calculateConfidence(content: string): number {
   // Simple confidence calculation based on content quality
   let confidence = 0.5; // Base confidence
-  
+
   // Increase confidence based on content indicators
-  if (content.includes('lab results') || content.includes('laboratory')) confidence += 0.1;
-  if (content.includes('symptoms') || content.includes('symptom')) confidence += 0.1;
-  if (content.includes('protocol') || content.includes('recommendations')) confidence += 0.1;
-  if (content.includes('root cause') || content.includes('underlying')) confidence += 0.1;
+  if (content.includes("lab results") || content.includes("laboratory"))
+    confidence += 0.1;
+  if (content.includes("symptoms") || content.includes("symptom"))
+    confidence += 0.1;
+  if (content.includes("protocol") || content.includes("recommendations"))
+    confidence += 0.1;
+  if (content.includes("root cause") || content.includes("underlying"))
+    confidence += 0.1;
   if (content.length > 1000) confidence += 0.1; // Detailed analysis
   if (content.length > 5000) confidence += 0.1; // Very detailed analysis
-  
+
   return Math.min(confidence, 1.0); // Cap at 1.0
 }

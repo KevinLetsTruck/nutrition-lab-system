@@ -30,32 +30,40 @@ export async function GET(
             id: true,
             analysisDate: true,
             analysisType: true,
-          }
+          },
         },
         childAnalyses: {
           select: {
             id: true,
             analysisDate: true,
             analysisType: true,
-          }
-        }
+          },
+        },
       },
-      orderBy: { analysisDate: 'desc' }
+      orderBy: { analysisDate: "desc" },
     });
 
     // Calculate analysis statistics
     const stats = {
       totalAnalyses: analyses.length,
-      initialAnalyses: analyses.filter(a => a.analysisType === 'INITIAL').length,
-      followUpAnalyses: analyses.filter(a => a.analysisType === 'FOLLOW_UP').length,
-      protocolReviews: analyses.filter(a => a.analysisType === 'PROTOCOL_REVIEW').length,
-      averageConfidence: analyses.length > 0 
-        ? analyses.reduce((sum, a) => sum + a.confidence, 0) / analyses.length 
-        : 0,
-      dateRange: analyses.length > 0 ? {
-        earliest: analyses[analyses.length - 1].analysisDate,
-        latest: analyses[0].analysisDate
-      } : null
+      initialAnalyses: analyses.filter((a) => a.analysisType === "INITIAL")
+        .length,
+      followUpAnalyses: analyses.filter((a) => a.analysisType === "FOLLOW_UP")
+        .length,
+      protocolReviews: analyses.filter(
+        (a) => a.analysisType === "PROTOCOL_REVIEW"
+      ).length,
+      averageConfidence:
+        analyses.length > 0
+          ? analyses.reduce((sum, a) => sum + a.confidence, 0) / analyses.length
+          : 0,
+      dateRange:
+        analyses.length > 0
+          ? {
+              earliest: analyses[analyses.length - 1].analysisDate,
+              latest: analyses[0].analysisDate,
+            }
+          : null,
     };
 
     return NextResponse.json({
