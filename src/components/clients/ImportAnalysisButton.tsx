@@ -45,7 +45,11 @@ export function ImportAnalysisButton({
     if (!file) return;
 
     // Validate file type
-    if (!file.name.endsWith(".md") && !file.name.endsWith(".txt") && !file.name.endsWith(".json")) {
+    if (
+      !file.name.endsWith(".md") &&
+      !file.name.endsWith(".txt") &&
+      !file.name.endsWith(".json")
+    ) {
       toast.error("Invalid file type", {
         description:
           "Please select a .md, .txt, or .json file containing Claude analysis.",
@@ -59,15 +63,15 @@ export function ImportAnalysisButton({
     try {
       // Read file content
       const fileContent = await file.text();
-      
+
       let analysisData;
       let apiEndpoint;
-      
-      if (file.name.endsWith('.json')) {
+
+      if (file.name.endsWith(".json")) {
         // Handle JSON file from Claude Desktop
         try {
           const jsonData = JSON.parse(fileContent);
-          
+
           // Validate it's a Claude Desktop export document
           if (jsonData.exportMetadata && jsonData.supplementRecommendations) {
             analysisData = jsonData;
@@ -77,7 +81,8 @@ export function ImportAnalysisButton({
           }
         } catch (jsonError) {
           toast.error("Invalid JSON file", {
-            description: "Please ensure the file contains valid Claude Desktop export data.",
+            description:
+              "Please ensure the file contains valid Claude Desktop export data.",
           });
           return;
         }
@@ -93,7 +98,7 @@ export function ImportAnalysisButton({
         apiEndpoint = `/api/clients/${clientId}/import-analysis`;
       }
 
-      const requestBody = file.name.endsWith('.json') 
+      const requestBody = file.name.endsWith(".json")
         ? { analysisText: fileContent, filename: file.name }
         : { analysisData, version: "2.0.0" };
 
@@ -114,18 +119,24 @@ export function ImportAnalysisButton({
       const result = await response.json();
       setImportStatus("success");
 
-      if (file.name.endsWith('.json')) {
+      if (file.name.endsWith(".json")) {
         // JSON import success message
         toast.success("Structured protocol imported successfully!", {
-          description: `${result.supplementsCreated || 0} supplements imported for ${clientName}. ${result.totalMonthlyCost ? `Monthly cost: $${result.totalMonthlyCost}` : ''}`,
-          duration: 5000
+          description: `${
+            result.supplementsCreated || 0
+          } supplements imported for ${clientName}. ${
+            result.totalMonthlyCost
+              ? `Monthly cost: $${result.totalMonthlyCost}`
+              : ""
+          }`,
+          duration: 5000,
         });
 
         // Show medication warnings if any
         if (result.medicationWarnings > 0) {
           toast.warning("Medication interactions detected", {
             description: `${result.medicationWarnings} potential interactions found. Review supplement recommendations.`,
-            duration: 8000
+            duration: 8000,
           });
         }
       } else {

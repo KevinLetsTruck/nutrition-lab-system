@@ -35,18 +35,23 @@ export async function POST(
     }
 
     // Determine if this is a comprehensive export document or simple supplement data
-    const isComprehensiveExport = supplementData.exportMetadata && supplementData.labAnalysis;
+    const isComprehensiveExport =
+      supplementData.exportMetadata && supplementData.labAnalysis;
 
     // Create analysis record
     const analysis = await prisma.analysis.create({
       data: {
         id: randomBytes(12).toString("hex"),
         clientId,
-        analysisType: isComprehensiveExport ? "FNTP_COMPREHENSIVE_PROTOCOL" : "SUPPLEMENT_RECOMMENDATION",
+        analysisType: isComprehensiveExport
+          ? "FNTP_COMPREHENSIVE_PROTOCOL"
+          : "SUPPLEMENT_RECOMMENDATION",
         analysisData: {
           structuredSupplementData: supplementData,
           originalAnalysis: analysisText,
-          importType: isComprehensiveExport ? "comprehensive_export" : "structured_json",
+          importType: isComprehensiveExport
+            ? "comprehensive_export"
+            : "structured_json",
           labAnalysis: supplementData.labAnalysis || null,
           clinicalSummary: supplementData.clinicalSummary || null,
           protocolLetter: supplementData.clientProtocolLetter || null,
@@ -54,10 +59,10 @@ export async function POST(
         },
         rootCauses: isComprehensiveExport 
           ? extractRootCausesFromLabAnalysis(supplementData.labAnalysis)
-          : supplementData.supplements?.map((s: any) => s.rationale) || [],
+          : (supplementData.supplements || supplementData.supplementRecommendations)?.map((s: any) => s.rationale) || [],
         priorityAreas: isComprehensiveExport
           ? supplementData.coachingNotes?.keyHealthPriorities || []
-          : supplementData.supplements
+          : (supplementData.supplements || supplementData.supplementRecommendations)
             ?.filter((s: any) => s.priority === "CRITICAL")
             .map((s: any) => s.name) || [],
         confidence: 0.95, // High confidence for structured data
@@ -70,8 +75,10 @@ export async function POST(
 
     // Create supplement records
     const createdSupplements = [];
-    if (supplementData.supplements) {
-      for (const supplement of supplementData.supplements) {
+    const supplementsList = supplementData.supplements || supplementData.supplementRecommendations || [];
+    
+    if (supplementsList.length > 0) {
+      for (const supplement of supplementsList) {
         const supplementRecord = await prisma.supplement.create({
           data: {
             id: randomBytes(12).toString("hex"),
@@ -106,8 +113,8 @@ export async function POST(
           ...client.healthGoals,
           latestSupplementAnalysis: supplementData,
           supplementAnalysisDate: new Date().toISOString(),
-          totalMonthlyCost: supplementData.totalMonthlyCost,
-          medicationWarnings: supplementData.medicationWarnings,
+          totalMonthlyCost: supplementData.totalMonthlyCost || supplementData.costAnalysis?.totalMonthlyCost,
+          medicationWarnings: supplementData.medicationWarnings || supplementData.safetyConsiderations?.medicationWarnings,
         },
         updatedAt: new Date(),
       },
@@ -118,9 +125,12 @@ export async function POST(
       message: "Structured supplement analysis imported successfully",
       analysisId: analysis.id,
       supplementsCreated: createdSupplements.length,
-      totalMonthlyCost: supplementData.totalMonthlyCost,
-      medicationWarnings: supplementData.medicationWarnings?.length || 0,
+      totalMonthlyCost: supplementData.totalMonthlyCost || supplementData.costAnalysis?.totalMonthlyCost || 0,
+      medicationWarnings: (supplementData.medicationWarnings || supplementData.safetyConsiderations?.medicationWarnings || []).length,
       phaseTimeline: supplementData.phaseTimeline,
+      labAnalysisIncluded: !!supplementData.labAnalysis,
+      protocolLetterIncluded: !!supplementData.clientProtocolLetter,
+      coachingNotesIncluded: !!supplementData.coachingNotes,
     });
   } catch (error) {
     console.error("Import supplement analysis error:", error);
@@ -137,13 +147,30 @@ export async function POST(
 // Parse structured JSON from Claude analysis
 function parseSupplementJSON(analysisText: string): any | null {
   try {
-    // Look for JSON blocks in the analysis
+    // First, try to parse the entire content as JSON (for direct JSON files)
+    try {
+      const directJson = JSON.parse(analysisText);
+      
+      // Check for comprehensive export document structure
+      if (directJson.exportMetadata || directJson.supplementRecommendations) {
+        return directJson;
+      }
+      
+      // Check for simple supplement structure
+      if (directJson.supplements && Array.isArray(directJson.supplements)) {
+        return directJson;
+      }
+    } catch (directParseError) {
+      // Not a direct JSON file, continue with pattern matching
+    }
+
+    // Look for JSON blocks in markdown/text analysis
     const jsonPattern = /```json\s*([\s\S]*?)\s*```/g;
     const matches = analysisText.match(jsonPattern);
 
     if (!matches) {
       // Try to find JSON without code blocks
-      const directJsonPattern = /\{[\s\S]*"supplements"[\s\S]*\}/;
+      const directJsonPattern = /\{[\s\S]*(?:"supplements"|"supplementRecommendations"|"exportMetadata")[\s\S]*\}/;
       const directMatch = analysisText.match(directJsonPattern);
       if (directMatch) {
         return JSON.parse(directMatch[0]);
@@ -157,8 +184,12 @@ function parseSupplementJSON(analysisText: string): any | null {
       .replace(/\s*```/, "");
     const parsedData = JSON.parse(jsonContent);
 
-    // Validate structure
+    // Validate structure (support both formats)
     if (parsedData.supplements && Array.isArray(parsedData.supplements)) {
+      return parsedData;
+    }
+    
+    if (parsedData.supplementRecommendations && Array.isArray(parsedData.supplementRecommendations)) {
       return parsedData;
     }
 
@@ -172,19 +203,19 @@ function parseSupplementJSON(analysisText: string): any | null {
 // Extract root causes from lab analysis data
 function extractRootCausesFromLabAnalysis(labAnalysis: any): string[] {
   const rootCauses: string[] = [];
-  
+
   if (labAnalysis?.dutchTestFindings?.hormoneImbalances) {
     rootCauses.push(labAnalysis.dutchTestFindings.hormoneImbalances);
   }
-  
+
   if (labAnalysis?.nutriqFindings?.topConditions) {
     rootCauses.push(...labAnalysis.nutriqFindings.topConditions.slice(0, 3));
   }
-  
+
   if (labAnalysis?.otherLabFindings?.abnormalValues) {
     rootCauses.push(labAnalysis.otherLabFindings.abnormalValues);
   }
-  
+
   return rootCauses.filter(Boolean).slice(0, 10);
 }
 
