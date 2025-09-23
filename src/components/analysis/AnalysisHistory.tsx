@@ -237,7 +237,7 @@ export function AnalysisHistory({
               {analyses.map((analysis, index) => (
                 <div
                   key={analysis.id}
-                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  className="border rounded-lg p-4 bg-white hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
