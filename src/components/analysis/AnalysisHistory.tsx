@@ -145,11 +145,11 @@ export function AnalysisHistory({
 
   if (loading) {
     return (
-      <Card>
+      <Card className="bg-gray-800 border-gray-700">
         <CardContent className="p-6">
           <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <span className="ml-3">Loading analysis history...</span>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+            <span className="ml-3 text-gray-300">Loading analysis history...</span>
           </div>
         </CardContent>
       </Card>
@@ -158,9 +158,9 @@ export function AnalysisHistory({
 
   if (error) {
     return (
-      <Card>
+      <Card className="bg-gray-800 border-gray-700">
         <CardContent className="p-6">
-          <div className="text-red-600 flex items-center">
+          <div className="text-red-400 flex items-center">
             <AlertCircle className="w-5 h-5 mr-2" />
             Error loading analysis history: {error}
           </div>
@@ -173,9 +173,9 @@ export function AnalysisHistory({
     <div className="space-y-4">
       {/* Analysis Statistics */}
       {stats && (
-        <Card>
+        <Card className="bg-gray-800 border-gray-700">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-white">
               <TrendingUp className="w-5 h-5" />
               Analysis Overview for {clientName}
             </CardTitle>
@@ -183,16 +183,16 @@ export function AnalysisHistory({
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="text-2xl font-bold text-blue-400">
                   {stats.totalAnalyses}
                 </div>
-                <div className="text-sm text-gray-600">Total Analyses</div>
+                <div className="text-sm text-gray-300">Total Analyses</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-2xl font-bold text-green-400">
                   {stats.followUpAnalyses}
                 </div>
-                <div className="text-sm text-gray-600">Follow-ups</div>
+                <div className="text-sm text-gray-300">Follow-ups</div>
               </div>
               <div className="text-center">
                 <div
@@ -202,13 +202,13 @@ export function AnalysisHistory({
                 >
                   {(stats.averageConfidence * 100).toFixed(0)}%
                 </div>
-                <div className="text-sm text-gray-600">Avg Confidence</div>
+                <div className="text-sm text-gray-300">Avg Confidence</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">
+                <div className="text-2xl font-bold text-purple-400">
                   {stats.protocolReviews}
                 </div>
-                <div className="text-sm text-gray-600">Protocol Reviews</div>
+                <div className="text-sm text-gray-300">Protocol Reviews</div>
               </div>
             </div>
           </CardContent>
@@ -216,9 +216,9 @@ export function AnalysisHistory({
       )}
 
       {/* Analysis Timeline */}
-      <Card>
+      <Card className="bg-gray-800 border-gray-700">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-white">
             <Calendar className="w-5 h-5" />
             Analysis Timeline
           </CardTitle>
@@ -227,8 +227,8 @@ export function AnalysisHistory({
           {analyses.length === 0 ? (
             <div className="text-center py-8">
               <Brain className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-600">No analyses found</p>
-              <p className="text-sm text-gray-500">
+              <p className="text-gray-300">No analyses found</p>
+              <p className="text-sm text-gray-400">
                 Import a Claude analysis to get started
               </p>
             </div>
@@ -237,7 +237,7 @@ export function AnalysisHistory({
               {analyses.map((analysis, index) => (
                 <div
                   key={analysis.id}
-                  className="border rounded-lg p-4 bg-white hover:bg-gray-50 transition-colors"
+                  className="border border-gray-600 rounded-lg p-4 bg-gray-700 hover:bg-gray-600 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -249,7 +249,7 @@ export function AnalysisHistory({
                         >
                           {analysis.analysisType.replace("_", " ")}
                         </Badge>
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-gray-300">
                           {formatDate(analysis.analysisDate)}
                         </span>
                       </div>
@@ -264,6 +264,7 @@ export function AnalysisHistory({
                     <Button
                       variant="ghost"
                       size="sm"
+                      className="text-gray-300 hover:text-white hover:bg-gray-600"
                       onClick={() =>
                         setExpandedAnalysis(
                           expandedAnalysis === analysis.id ? null : analysis.id
@@ -279,21 +280,21 @@ export function AnalysisHistory({
                   </div>
 
                   {analysis.triggerEvent && (
-                    <div className="mt-2 text-sm text-gray-600">
+                    <div className="mt-2 text-sm text-gray-300">
                       <strong>Triggered by:</strong> {analysis.triggerEvent}
                     </div>
                   )}
 
                   {expandedAnalysis === analysis.id && (
-                    <div className="mt-4 space-y-3 border-t pt-3">
+                    <div className="mt-4 space-y-3 border-t border-gray-600 pt-3">
                       {analysis.rootCauses &&
                         analysis.rootCauses.length > 0 && (
                           <div>
-                            <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-1">
+                            <h4 className="font-medium text-white mb-2 flex items-center gap-1">
                               <Target className="w-4 h-4" />
                               Root Causes ({analysis.rootCauses.length})
                             </h4>
-                            <ul className="text-sm text-gray-700 space-y-1">
+                            <ul className="text-sm text-gray-300 space-y-1">
                               {analysis.rootCauses
                                 .slice(0, 5)
                                 .map((cause, idx) => (
@@ -301,7 +302,7 @@ export function AnalysisHistory({
                                     key={idx}
                                     className="flex items-start gap-2"
                                   >
-                                    <span className="text-red-500 mt-1">•</span>
+                                    <span className="text-red-400 mt-1">•</span>
                                     {cause}
                                   </li>
                                 ))}
@@ -312,11 +313,11 @@ export function AnalysisHistory({
                       {analysis.priorityAreas &&
                         analysis.priorityAreas.length > 0 && (
                           <div>
-                            <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-1">
+                            <h4 className="font-medium text-white mb-2 flex items-center gap-1">
                               <AlertCircle className="w-4 h-4" />
                               Priority Areas ({analysis.priorityAreas.length})
                             </h4>
-                            <ul className="text-sm text-gray-700 space-y-1">
+                            <ul className="text-sm text-gray-300 space-y-1">
                               {analysis.priorityAreas
                                 .slice(0, 5)
                                 .map((area, idx) => (
@@ -324,7 +325,7 @@ export function AnalysisHistory({
                                     key={idx}
                                     className="flex items-start gap-2"
                                   >
-                                    <span className="text-blue-500 mt-1">
+                                    <span className="text-blue-400 mt-1">
                                       •
                                     </span>
                                     {area}
@@ -337,12 +338,12 @@ export function AnalysisHistory({
                       {analysis.relatedDocuments &&
                         analysis.relatedDocuments.length > 0 && (
                           <div>
-                            <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-1">
+                            <h4 className="font-medium text-white mb-2 flex items-center gap-1">
                               <FileText className="w-4 h-4" />
                               Related Documents (
                               {analysis.relatedDocuments.length})
                             </h4>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-300">
                               Analysis based on{" "}
                               {analysis.relatedDocuments?.length || 0} recent
                               document(s)

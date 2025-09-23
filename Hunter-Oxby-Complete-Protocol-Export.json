@@ -1,0 +1,419 @@
+{
+  "exportMetadata": {
+    "clientId": "cmevmazsl0024pf2y2jgw8kt6",
+    "clientName": "Hunter Oxby",
+    "analysisDate": "2025-09-23",
+    "exportVersion": "2.0.0",
+    "analysisType": "FNTP_COMPREHENSIVE_PROTOCOL"
+  },
+  "labAnalysis": {
+    "dutchTestFindings": {
+      "cortisolPattern": "Severe adrenal dysfunction with low waking cortisol (1.36 ng/mL, below range), extremely high cortisol clearance rate (93%), and excessive cortisol awakening response (332% vs normal 50-160%). Pattern indicates rapid cortisol metabolism consistent with insulin resistance.",
+      "hormoneImbalances": "Testosterone production normal, progesterone metabolites within range, but severe cortisol dysregulation with fast clearance indicating metabolic dysfunction and chronic stress adaptation.",
+      "keyMarkers": "Waking cortisol: 1.36 ng/mL (LOW), CAR: 332% (HIGH), Cortisol Clearance: 93rd percentile (VERY HIGH), Total DHEA production: normal range",
+      "clinicalSignificance": "High cortisol clearance with low morning cortisol indicates HPA axis dysfunction requiring mineral support (LyteBalance) and adrenal recovery protocol. Fast clearance suggests insulin resistance requiring metabolic support (Calocurb)."
+    },
+    "nutriqFindings": {
+      "topConditions": [
+        "Adrenal Stress/Hyperfunction: 40% (20/49 symptoms)",
+        "Pituitary/Hypothalamus Dysfunction: 36% (11/30 symptoms)",
+        "Hypoglycemia/Sugar Handling: 35% (40/113 symptoms)",
+        "Thyroid Hyperfunction: 29% (8/27 symptoms)",
+        "Adrenal Hypofunction: 28% (34/120 symptoms)"
+      ],
+      "primaryDeficiencies": [
+        "Nucleic Acid Need: 50% (3/6 symptoms)",
+        "Vitamin and Mineral Need: 28% (8/28 symptoms)",
+        "Magnesium: 26% (4/15 symptoms)",
+        "Protein Need: 25% (3/12 symptoms)",
+        "Alkaline Minerals: 23% (17/71 symptoms)"
+      ],
+      "symptomBurden": "Total score 351 indicating severe systemic dysfunction, with primary patterns showing adrenal exhaustion combined with hyperfunction, significant blood sugar dysregulation, and multiple mineral deficiencies"
+    },
+    "otherLabFindings": {
+      "abnormalValues": "FIT-176 shows 2+ reactions to Casein/Cow's Milk, 3+ reactions to Cantaloupe/Oyster/Shrimp. Blood pressure elevated at 129/86 mmHg indicating cardiovascular stress.",
+      "clinicalRelevance": "Food sensitivities to dairy (casein) support elimination protocol. Elevated BP with adrenal dysfunction requires cardiovascular support (Cardio Miracle) alongside mineral repletion."
+    }
+  },
+  "supplementRecommendations": [
+    {
+      "name": "LyteBalance Electrolyte Concentrate",
+      "brand": "LetsTruck",
+      "dosage": "1-2 capfuls in 8oz water daily, adjust by taste until mildly salty",
+      "timing": "Upon waking, additional doses as needed throughout day",
+      "duration": "Ongoing foundational support",
+      "priority": "CRITICAL",
+      "category": "Foundational",
+      "rationale": "Foundational cellular hydration essential for adrenal recovery and ATP cycle support. High cortisol clearance and chronic stress dramatically increase mineral needs.",
+      "phase": "PHASE1",
+      "estimatedCost": 45,
+      "status": "recommended",
+      "labJustification": "Dutch Test shows high cortisol clearance (93rd percentile), low morning cortisol (1.36 ng/mL). Symptom Burden shows 26% magnesium deficiency and 23% alkaline mineral deficiency."
+    },
+    {
+      "name": "Calocurb",
+      "brand": "LetsTruck",
+      "dosage": "1-2 capsules twice daily, titrate based on appetite response",
+      "timing": "30 minutes before meals, or as needed for sugar cravings",
+      "duration": "30 days initial, reassess based on blood sugar stability",
+      "priority": "HIGH",
+      "category": "Metabolic",
+      "rationale": "Natural GLP-1 support for significant hypoglycemia/sugar handling dysfunction (35% symptom burden). Fast cortisol clearance indicates insulin resistance.",
+      "phase": "PHASE1",
+      "estimatedCost": 65,
+      "status": "recommended",
+      "labJustification": "Symptom Burden Report shows Hypoglycemia/Sugar Handling as #3 condition (35% burden, 40/113 symptoms). Dutch Test shows fast cortisol clearance associated with insulin resistance."
+    },
+    {
+      "name": "Cardio Miracle",
+      "brand": "LetsTruck",
+      "dosage": "1 scoop in morning",
+      "timing": "Morning with or without food",
+      "duration": "Ongoing cardiovascular support",
+      "priority": "HIGH",
+      "category": "Cardiovascular",
+      "rationale": "Blood pressure 129/86 mmHg with chronic adrenal stress indicates early cardiovascular dysfunction requiring NO pathway support.",
+      "phase": "PHASE1",
+      "estimatedCost": 55,
+      "status": "recommended",
+      "labJustification": "Blood pressure 129/86 mmHg above optimal range. Symptom Burden shows 17% cardiovascular dysfunction. Chronic stress pattern with elevated cortisol clearance."
+    },
+    {
+      "name": "Cytozyme-AD",
+      "brand": "LetsTruck",
+      "dosage": "2 tablets twice daily with meals",
+      "timing": "With breakfast and lunch",
+      "duration": "90 days, reassess based on morning energy improvements",
+      "priority": "HIGH",
+      "category": "Adrenal Support",
+      "rationale": "Adrenal glandular support for severe morning cortisol deficiency and adrenal dysfunction. 40% adrenal stress burden requires targeted glandular support.",
+      "phase": "PHASE1",
+      "estimatedCost": 35,
+      "status": "recommended",
+      "labJustification": "Dutch Test shows severe morning cortisol deficiency (1.36 ng/mL, below range). Symptom Burden shows 40% adrenal stress (20/49 symptoms) and 28% adrenal hypofunction (34/120 symptoms)."
+    },
+    {
+      "name": "Berberine HCl",
+      "brand": "LetsTruck",
+      "dosage": "1 capsule daily with food",
+      "timing": "With largest meal of the day",
+      "duration": "90 days, reassess based on blood sugar stability",
+      "priority": "HIGH",
+      "category": "Metabolic",
+      "rationale": "Additional metabolic support beyond Calocurb for severe hypoglycemia and fast cortisol clearance indicating insulin resistance.",
+      "phase": "PHASE1",
+      "estimatedCost": 29,
+      "status": "recommended",
+      "labJustification": "Symptom Burden shows 35% hypoglycemia symptoms. Dutch Test shows fast cortisol clearance (93rd percentile) associated with insulin resistance. Weight plateau for 2-3 years despite dietary efforts."
+    },
+    {
+      "name": "Algae Oil DHA Omega-3s",
+      "brand": "LetsTruck",
+      "dosage": "Follow product instructions",
+      "timing": "With meals to optimize absorption",
+      "duration": "Ongoing foundational support",
+      "priority": "MODERATE",
+      "category": "Anti-inflammatory",
+      "rationale": "Essential fatty acid support for 15% EFA deficiency and anti-inflammatory support for chronic stress patterns.",
+      "phase": "PHASE1",
+      "estimatedCost": 45,
+      "status": "recommended",
+      "labJustification": "Symptom Burden shows 15% Essential Fatty Acid deficiency (17/108 symptoms). Chronic inflammation from stress and food sensitivities requires omega-3 support."
+    },
+    {
+      "name": "Bio-DK Mulsion",
+      "brand": "LetsTruck",
+      "dosage": "5 drops daily",
+      "timing": "Morning with fat-containing meal",
+      "duration": "Ongoing foundational support",
+      "priority": "MODERATE",
+      "category": "Foundational",
+      "rationale": "Vitamin D3/K2 support for immune function and mineral metabolism. Critical for adrenal recovery and overall health optimization.",
+      "phase": "PHASE1",
+      "estimatedCost": 25,
+      "status": "recommended",
+      "labJustification": "No specific vitamin D testing available, but chronic stress, adrenal dysfunction, and immune issues indicate probable deficiency. Standard foundational support needed."
+    },
+    {
+      "name": "Bio-B Complex",
+      "brand": "Biotics Research",
+      "dosage": "1 capsule daily with breakfast",
+      "timing": "With breakfast",
+      "duration": "90 days, reassess based on energy improvements",
+      "priority": "MODERATE",
+      "category": "Energy Support",
+      "rationale": "B vitamin support for 23% B vitamin deficiency and adrenal recovery. Essential for energy production and stress response.",
+      "phase": "PHASE1",
+      "estimatedCost": 28,
+      "status": "recommended",
+      "labJustification": "Symptom Burden shows 23% Vitamin B deficiency (15/63 symptoms). B vitamins essential for adrenal hormone production and energy metabolism."
+    },
+    {
+      "name": "HCl-Plus",
+      "brand": "Biotics Research",
+      "dosage": "1-2 capsules with meals as tolerated",
+      "timing": "Mid-meal with protein-containing meals",
+      "duration": "60 days, reassess based on digestive improvements",
+      "priority": "MODERATE",
+      "category": "Digestive Support",
+      "rationale": "Digestive acid support for 14% hypochlorhydria symptoms. Essential for protein digestion and mineral absorption needed for adrenal recovery.",
+      "phase": "PHASE1",
+      "estimatedCost": 22,
+      "status": "recommended",
+      "labJustification": "Symptom Burden shows 14% GI Hypochlorhydria (21/144 symptoms). Low stomach acid impairs mineral absorption needed for adrenal recovery."
+    },
+    {
+      "name": "Bio-6-Plus",
+      "brand": "Biotics Research",
+      "dosage": "2 tablets with meals",
+      "timing": "With breakfast and dinner",
+      "duration": "60 days, reassess based on digestive improvements",
+      "priority": "MODERATE",
+      "category": "Digestive Support",
+      "rationale": "Comprehensive digestive enzyme support for protein digestion and nutrient absorption. Critical for addressing multiple nutritional deficiencies.",
+      "phase": "PHASE2",
+      "estimatedCost": 35,
+      "status": "recommended",
+      "labJustification": "Multiple nutrient deficiencies (50% nucleic acids, 28% vitamins/minerals, 25% protein) indicate compromised digestion requiring enzyme support."
+    },
+    {
+      "name": "ChromeMate GTF",
+      "brand": "Biotics Research",
+      "dosage": "1 tablet twice daily",
+      "timing": "Before meals",
+      "duration": "90 days, reassess based on blood sugar stability",
+      "priority": "MODERATE",
+      "category": "Metabolic",
+      "rationale": "Additional chromium support for glucose metabolism and insulin sensitivity. Complements Berberine and Calocurb for comprehensive metabolic support.",
+      "phase": "PHASE2",
+      "estimatedCost": 24,
+      "status": "recommended",
+      "labJustification": "Fast cortisol clearance and 35% hypoglycemia symptoms indicate insulin resistance requiring chromium support for glucose metabolism."
+    },
+    {
+      "name": "Bio-Adrenal",
+      "brand": "Biotics Research",
+      "dosage": "2 tablets twice daily",
+      "timing": "Between meals",
+      "duration": "90 days, reassess based on stress tolerance improvements",
+      "priority": "HIGH",
+      "category": "Adrenal Support",
+      "rationale": "Comprehensive adrenal support for severe adrenal dysfunction. Works synergistically with Cytozyme-AD for complete adrenal recovery protocol.",
+      "phase": "PHASE2",
+      "estimatedCost": 45,
+      "status": "recommended",
+      "labJustification": "Severe adrenal dysfunction with 40% stress burden and 28% hypofunction requires comprehensive multi-phase adrenal support beyond glandular therapy alone."
+    }
+  ],
+  "clientProtocolLetter": {
+    "greeting": "Dear Hunter, Based on your comprehensive lab analysis including Dutch hormone testing, food sensitivity analysis, and nutritional assessment, I've identified several key areas where targeted nutritional support can help restore your energy, improve your stress response, and stabilize your blood sugar. Your results show significant adrenal dysfunction combined with metabolic challenges that are directly impacting your daily performance and long-term health.",
+    "phaseInfo": "Phase 1: Foundation Protocol - 30 Days",
+    "duration": "30 days",
+    "clinicalFocus": "Your primary health priorities are adrenal recovery from chronic stress, metabolic dysfunction correction, and foundational cellular hydration. Your labs show severe adrenal dysfunction with extremely low morning cortisol yet rapid cortisol clearance, combined with substantial blood sugar handling issues (35% symptom burden) and significant mineral deficiencies.",
+    "currentStatus": "Your Dutch test reveals a complex adrenal pattern - your body is clearing cortisol too quickly (93rd percentile), leaving you with low morning energy despite high stress burden. This creates a vicious cycle where your adrenals work overtime but can't maintain adequate hormone levels. Combined with elevated blood pressure (129/86), food sensitivities to dairy, and a total symptom burden of 351, your system requires immediate foundational support.",
+    "prioritySupplements": [
+      {
+        "productName": "LyteBalance Electrolyte Concentrate",
+        "dose": "1-2 capfuls in 8oz water daily, adjust by taste until mildly salty",
+        "timing": "Upon waking, additional doses throughout day as needed",
+        "purpose": "Critical foundational support for adrenal recovery, cellular hydration, and blood pressure regulation. Your high cortisol clearance is depleting minerals rapidly, requiring immediate replenishment."
+      },
+      {
+        "productName": "Calocurb",
+        "dose": "1-2 capsules twice daily",
+        "timing": "30 minutes before meals or as needed for sugar cravings",
+        "purpose": "Natural GLP-1 support to address your severe blood sugar dysfunction (35% symptom burden). Will help stabilize energy after meals, reduce sugar cravings, and support metabolic recovery."
+      },
+      {
+        "productName": "Cytozyme-AD",
+        "dose": "2 tablets twice daily",
+        "timing": "With breakfast and lunch",
+        "purpose": "Adrenal glandular support for your severe morning cortisol deficiency (1.36 ng/mL). Essential for rebuilding adrenal function and improving morning energy."
+      },
+      {
+        "productName": "Berberine HCl",
+        "dose": "1 capsule daily",
+        "timing": "With largest meal",
+        "purpose": "Additional metabolic support for insulin resistance indicated by your fast cortisol clearance. Works with Calocurb to stabilize blood sugar and support weight management."
+      },
+      {
+        "productName": "Bio-B Complex",
+        "dose": "1 capsule daily",
+        "timing": "With breakfast",
+        "purpose": "B vitamin support for 23% deficiency affecting energy production and adrenal hormone synthesis. Essential for stress response and metabolic function."
+      },
+      {
+        "productName": "HCl-Plus",
+        "dose": "1-2 capsules with meals as tolerated",
+        "timing": "Mid-meal with protein",
+        "purpose": "Digestive acid support for 14% hypochlorhydria symptoms. Improves protein digestion and mineral absorption needed for adrenal recovery."
+      },
+      {
+        "productName": "Cardio Miracle",
+        "dose": "1 scoop daily",
+        "timing": "Morning with or without food",
+        "purpose": "NO pathway support for elevated blood pressure (129/86) and cardiovascular protection. Supports circulation and helps manage stress-induced vascular dysfunction."
+      }
+    ],
+    "dailySchedule": {
+      "uponWaking": "LyteBalance - 1-2 capfuls in 8oz water (adjust by taste until mildly salty). This is your most critical supplement for adrenal and energy support. Bio-DK Mulsion - 5 drops for foundational vitamin D/K2 support.",
+      "beforeBreakfast": "Calocurb - 1-2 capsules (30 minutes before eating to optimize blood sugar response)",
+      "betweenBreakfastLunch": "Cardio Miracle - 1 scoop in water for cardiovascular and circulation support. Bio-B Complex - 1 capsule for energy and adrenal support.",
+      "beforeLunch": "Calocurb - 1-2 capsules (30 minutes before eating). Cytozyme-AD - 2 tablets for adrenal glandular support.",
+      "withLargestMeal": "HCl-Plus - 1-2 capsules mid-meal with protein. Berberine HCl - 1 capsule. Algae Oil DHA - per product instructions. Monitor energy levels and blood sugar stability - sleepiness after meals should improve within 2 weeks.",
+      "betweenLunchDinner": "Additional LyteBalance if needed based on stress levels, energy, or physical demands. Phase 2 supplements (Bio-6-Plus, ChromeMate GTF, Bio-Adrenal) to be added after 30-day foundation period based on progress assessment."
+    },
+    "protocolNotes": "Eliminate all dairy products immediately due to casein sensitivity. Avoid cantaloupe, oyster, and shrimp per your FIT-176 results. Reduce coffee intake gradually from 32oz to 16oz daily over 2 weeks. Expect initial energy improvements within 5-7 days with LyteBalance, blood sugar stability improvements within 2 weeks with Calocurb. Follow-up assessment in 30 days to evaluate progress and advance to Phase 2 protocol. Contact immediately if any concerning symptoms develop."
+  },
+  "supplementOrderList": {
+    "letstruckOrders": [
+      {
+        "productName": "LyteBalance Electrolyte Concentrate",
+        "sku": "LB-001",
+        "quantity": "1 bottle",
+        "monthlySupply": "30 days",
+        "cost": 45.0
+      },
+      {
+        "productName": "Calocurb",
+        "sku": "CC-001",
+        "quantity": "1 bottle",
+        "monthlySupply": "30 days",
+        "cost": 65.0
+      },
+      {
+        "productName": "Cardio Miracle",
+        "sku": "CM-001",
+        "quantity": "1 container",
+        "monthlySupply": "30 days",
+        "cost": 55.0
+      },
+      {
+        "productName": "Cytozyme-AD",
+        "sku": "CA-001",
+        "quantity": "1 bottle",
+        "monthlySupply": "30 days",
+        "cost": 35.0
+      },
+      {
+        "productName": "Berberine HCl",
+        "sku": "BH-001",
+        "quantity": "1 bottle",
+        "monthlySupply": "30 days",
+        "cost": 29.0
+      },
+      {
+        "productName": "Algae Oil DHA Omega-3s",
+        "sku": "AO-001",
+        "quantity": "1 bottle",
+        "monthlySupply": "30 days",
+        "cost": 45.0
+      },
+      {
+        "productName": "Bio-DK Mulsion",
+        "sku": "BDK-001",
+        "quantity": "1 bottle",
+        "monthlySupply": "30 days",
+        "cost": 25.0
+      }
+    ],
+    "bioticsOrders": [
+      {
+        "productName": "Bio-B Complex",
+        "sku": "BBC-001",
+        "quantity": "1 bottle",
+        "monthlySupply": "30 days",
+        "cost": 28.0
+      },
+      {
+        "productName": "HCl-Plus",
+        "sku": "HCL-001",
+        "quantity": "1 bottle",
+        "monthlySupply": "30 days",
+        "cost": 22.0
+      },
+      {
+        "productName": "Bio-6-Plus",
+        "sku": "B6P-001",
+        "quantity": "1 bottle",
+        "monthlySupply": "30 days",
+        "cost": 35.0
+      },
+      {
+        "productName": "ChromeMate GTF",
+        "sku": "CGT-001",
+        "quantity": "1 bottle",
+        "monthlySupply": "30 days",
+        "cost": 24.0
+      },
+      {
+        "productName": "Bio-Adrenal",
+        "sku": "BAD-001",
+        "quantity": "1 bottle",
+        "monthlySupply": "30 days",
+        "cost": 45.0
+      }
+    ],
+    "fullscriptOrders": [],
+    "totalCosts": {
+      "letstruckTotal": 299.0,
+      "bioticsTotal": 154.0,
+      "fullscriptTotal": 0.0,
+      "grandTotal": 453.0
+    }
+  },
+  "coachingNotes": {
+    "keyHealthPriorities": [
+      "Immediate adrenal support for severe morning cortisol deficiency (1.36 ng/mL) with high clearance rate requiring mineral repletion",
+      "Blood sugar stabilization for 35% hypoglycemia symptom burden causing post-meal fatigue and sugar cravings",
+      "Cardiovascular protection for elevated BP (129/86) and stress-induced vascular dysfunction from trucking demands"
+    ],
+    "supplementRationale": [
+      "LyteBalance addresses critical mineral deficiency (26% magnesium, 23% alkaline minerals) driving adrenal dysfunction and elevated BP - foundational for all other interventions",
+      "Calocurb provides natural GLP-1 support for severe glucose dysregulation evidenced by 35% hypoglycemia symptoms and fast cortisol clearance indicating insulin resistance",
+      "Cytozyme-AD supplies direct adrenal glandular support for severe morning cortisol deficiency (1.36 ng/mL) and 40% adrenal stress burden",
+      "Berberine HCl adds additional metabolic support for insulin resistance pattern and weight plateau despite dietary efforts over 2-3 years",
+      "Bio-B Complex addresses 23% B vitamin deficiency critical for adrenal hormone production and energy metabolism pathways",
+      "HCl-Plus supports 14% hypochlorhydria symptoms improving protein digestion and mineral absorption essential for adrenal recovery",
+      "Cardio Miracle provides NO pathway support for elevated BP (129/86) and vascular protection in high-stress trucking occupation",
+      "Algae Oil DHA addresses 15% essential fatty acid deficiency and provides anti-inflammatory support for chronic stress patterns",
+      "Bio-DK Mulsion provides foundational vitamin D/K2 for immune function and mineral metabolism optimization",
+      "Phase 2 supplements (Bio-6-Plus, ChromeMate GTF, Bio-Adrenal) provide comprehensive digestive enzyme support, additional chromium for glucose metabolism, and enhanced adrenal support for complete recovery"
+    ],
+    "lifestyleRecommendations": [
+      "Eliminate dairy products immediately due to casein sensitivity (FIT-176 2+ reaction)",
+      "Avoid shellfish (oyster, shrimp) and cantaloupe per food sensitivity results",
+      "Reduce coffee intake from 32oz to 16oz daily over 2-week period to support adrenal recovery",
+      "Implement stress management during driving (deep breathing, regular breaks) to support cortisol regulation",
+      "Regular meal timing to support blood sugar stability and optimize Calocurb effectiveness"
+    ],
+    "followUpMonitoring": [
+      "Morning energy levels (target improvement from current severe fatigue within 7 days)",
+      "Post-meal energy/sleepiness (should improve within 2 weeks with Calocurb)",
+      "Blood pressure readings (target reduction toward 120/80 within 30 days)",
+      "Sugar cravings and appetite control (should improve within 2 weeks)",
+      "Overall stress tolerance and sleep quality improvements"
+    ],
+    "redFlagsToWatch": [
+      "Any chest pain, severe palpitations, or breathing difficulties (given elevated BP and cardiovascular risk)",
+      "Severe hypoglycemic episodes or blood sugar crashes (monitor closely with Calocurb initiation)",
+      "Worsening fatigue or depression (could indicate further adrenal exhaustion)",
+      "Digestive upset from supplement initiation (start with lower doses if needed)",
+      "Any signs of severe electrolyte imbalance (dizziness, muscle cramps, heart palpitations)"
+    ],
+    "motivationStrategies": [
+      "Focus on immediate improvements in morning energy and driving alertness within first week",
+      "Connect blood sugar stability to improved job performance and safety",
+      "Emphasize how foundational support creates platform for future weight loss goals",
+      "Track daily energy levels 1-10 scale to document objective improvements",
+      "Use success with reduced post-meal fatigue as motivation for continued compliance"
+    ]
+  },
+  "clinicalSummary": {
+    "primaryFindings": "Severe adrenal dysfunction with paradoxical low morning cortisol (1.36 ng/mL) yet extremely high clearance rate (93rd percentile), significant metabolic dysfunction with 35% hypoglycemia symptom burden, and elevated cardiovascular risk with BP 129/86 mmHg. Total symptom burden of 351 indicates systemic dysfunction requiring immediate foundational intervention.",
+    "supplementStrategy": "Comprehensive 2-phase LetsTruck/Biotics Research protocol targeting root causes: Phase 1 foundation with LyteBalance (mineral repletion), Calocurb (metabolic support), Cytozyme-AD (adrenal glandular), Berberine HCl (insulin resistance), Bio-B Complex (energy support), HCl-Plus (digestion), Cardio Miracle (cardiovascular), Algae Oil DHA (anti-inflammatory), and Bio-DK Mulsion (foundational vitamins). Phase 2 adds Bio-6-Plus (digestive enzymes), ChromeMate GTF (glucose metabolism), and Bio-Adrenal (comprehensive adrenal support) for complete recovery protocol. All supplements chosen based on specific lab abnormalities and symptom patterns with evidence-based dosing.",
+    "riskFactors": "High-stress trucking occupation, severe adrenal dysfunction, metabolic syndrome risk factors, elevated blood pressure, rapid cortisol clearance indicating insulin resistance, food sensitivities contributing to inflammatory burden, chronic stress pattern with poor stress recovery.",
+    "expectedOutcomes": "Week 1: Improved morning energy and alertness from LyteBalance. Week 2: Reduced post-meal fatigue and sugar cravings from Calocurb. Week 4: Blood pressure trending toward normal range, improved stress tolerance, better sleep quality, foundation established for Phase 2 targeted interventions.",
+    "followUpTesting": "30-day follow-up assessment to evaluate symptom improvements and supplement compliance. Consider 60-day blood pressure monitoring. 90-day Dutch Test repeat to assess cortisol pattern normalization and adrenal recovery. Annual cardiovascular risk assessment given trucking occupation and current BP elevation."
+  }
+}
