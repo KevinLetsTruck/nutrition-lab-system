@@ -31,10 +31,9 @@ import { ExportClientButton } from "@/components/clients/ExportClientButton";
 import { ImportAnalysisButton } from "@/components/clients/ImportAnalysisButton";
 import { ClaudePromptsModal } from "@/components/exports/ClaudePromptsModal";
 import { AnalysisHistory } from "@/components/analysis/AnalysisHistory";
-// Components temporarily disabled due to React error #130
-// import { SupplementList } from "@/components/supplements/SupplementList";
-// import { ProtocolLetterDisplay } from "@/components/protocols/ProtocolLetterDisplay";
-// import { CoachingNotesDisplay } from "@/components/coaching/CoachingNotesDisplay";
+import { SupplementList } from "@/components/supplements/SupplementList";
+import { ProtocolLetterDisplay } from "@/components/protocols/ProtocolLetterDisplay";
+import { CoachingNotesDisplay } from "@/components/coaching/CoachingNotesDisplay";
 
 // Dynamically import SimplePDFViewer with SSR disabled
 const SimplePDFViewer = dynamic(
@@ -1184,43 +1183,34 @@ export default function ClientDetailPage() {
         />
       </div>
 
-      {/* Claude Desktop Data Section - Simplified */}
+      {/* Supplement List Section */}
       <div className="mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="w-5 h-5" />
-              Claude Desktop Import Data
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-blue-900 mb-2">Supplement Data Available</h3>
-                <p className="text-blue-800 text-sm">
-                  Your Claude Desktop supplement recommendations have been imported successfully.
-                  Access detailed supplement data via the Analysis History above.
-                </p>
-              </div>
-              
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-green-900 mb-2">Protocol Letter Available</h3>
-                <p className="text-green-800 text-sm">
-                  Professional client protocol letter has been imported.
-                  Contact support for display functionality.
-                </p>
-              </div>
-              
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-purple-900 mb-2">Coaching Notes Available</h3>
-                <p className="text-purple-800 text-sm">
-                  Practitioner coaching notes with key priorities, supplement rationale,
-                  and follow-up monitoring have been imported.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <SupplementList
+          clientId={params.id as string}
+          clientName={
+            client ? `${client.firstName} ${client.lastName}` : "Client"
+          }
+        />
+      </div>
+
+      {/* Protocol Letter Section */}
+      <div className="mt-6">
+        <ProtocolLetterDisplay
+          clientId={params.id as string}
+          clientName={
+            client ? `${client.firstName} ${client.lastName}` : "Client"
+          }
+        />
+      </div>
+
+      {/* Coaching Notes Section */}
+      <div className="mt-6">
+        <CoachingNotesDisplay
+          clientId={params.id as string}
+          clientName={
+            client ? `${client.firstName} ${client.lastName}` : "Client"
+          }
+        />
       </div>
 
       {/* Document Upload Modal */}
