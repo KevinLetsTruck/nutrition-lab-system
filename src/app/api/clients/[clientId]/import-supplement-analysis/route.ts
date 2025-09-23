@@ -56,13 +56,6 @@ export async function POST(
         clinicalSummary: supplementData.clinicalSummary || null,
         protocolLetter: supplementData.clientProtocolLetter || null,
         coachingNotes: supplementData.coachingNotes || null,
-        supplementDetails: (supplementData.supplements || supplementData.supplementRecommendations || []).map((s: any) => ({
-          name: s.name,
-          brand: s.brand,
-          interactions: s.interactions,
-          contraindications: s.contraindications,
-          labJustification: s.labJustification,
-        })),
       },
       rootCauses: isComprehensiveExport
         ? extractRootCausesFromLabAnalysis(supplementData.labAnalysis)
@@ -85,41 +78,39 @@ export async function POST(
       updatedAt: new Date().toISOString(),
     };
 
-    // Create supplement records
-    const createdSupplements = [];
+    // Process supplement data (store in healthGoals instead of separate table)
     const supplementsList =
       supplementData.supplements ||
       supplementData.supplementRecommendations ||
       [];
 
-    if (supplementsList.length > 0) {
-      for (const supplement of supplementsList) {
-        const supplementRecord = await prisma.supplement.create({
-          data: {
-            id: randomBytes(12).toString("hex"),
-            clientId,
-            analysisId: analysisId,
-            name: supplement.name,
-            dosage: supplement.dosage,
-            timing: supplement.timing,
-            duration: supplement.duration,
-            priority: mapPriority(supplement.priority),
-            category: supplement.category || "General",
-            rationale: supplement.rationale,
-            phase: supplement.phase || "PHASE1",
-            estimatedCost: supplement.estimatedCost || 0,
-            status: "RECOMMENDED",
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        });
-        createdSupplements.push(supplementRecord);
-      }
-    }
+    const processedSupplements = supplementsList.map((supplement: any) => ({
+      id: randomBytes(12).toString("hex"),
+      analysisId: analysisId,
+      name: supplement.name,
+      brand: supplement.brand || "Unknown",
+      dosage: supplement.dosage,
+      timing: supplement.timing,
+      duration: supplement.duration,
+      priority: supplement.priority || "MEDIUM",
+      category: supplement.category || "General",
+      rationale: supplement.rationale,
+      phase: supplement.phase || "PHASE1",
+      estimatedCost: supplement.estimatedCost || 0,
+      interactions: supplement.interactions,
+      contraindications: supplement.contraindications,
+      labJustification: supplement.labJustification,
+      status: "RECOMMENDED",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }));
 
     // Update client with latest supplement analysis (store analysis in healthGoals)
     const currentAnalysisHistory = client.healthGoals?.analysisHistory || [];
     const updatedAnalysisHistory = [...currentAnalysisHistory, analysisRecord];
+    
+    const currentSupplements = client.healthGoals?.supplements || [];
+    const updatedSupplements = [...currentSupplements, ...processedSupplements];
 
     await prisma.client.update({
       where: { id: clientId },
@@ -130,11 +121,13 @@ export async function POST(
           supplementAnalysisDate: new Date().toISOString(),
           totalMonthlyCost:
             supplementData.totalMonthlyCost ||
-            supplementData.costAnalysis?.totalMonthlyCost,
+            supplementData.costAnalysis?.totalMonthlyCost ||
+            processedSupplements.reduce((total, s) => total + (s.estimatedCost || 0), 0),
           medicationWarnings:
             supplementData.medicationWarnings ||
             supplementData.safetyConsiderations?.medicationWarnings,
           analysisHistory: updatedAnalysisHistory,
+          supplements: updatedSupplements,
         },
         updatedAt: new Date(),
       },
@@ -144,7 +137,7 @@ export async function POST(
       success: true,
       message: "Structured supplement analysis imported successfully",
       analysisId: analysisId,
-      supplementsCreated: createdSupplements.length,
+      supplementsCreated: processedSupplements.length,
       totalMonthlyCost:
         supplementData.totalMonthlyCost ||
         supplementData.costAnalysis?.totalMonthlyCost ||
