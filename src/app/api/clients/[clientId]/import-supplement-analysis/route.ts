@@ -62,7 +62,7 @@ export async function POST(
         : (
             supplementData.supplements ||
             supplementData.supplementRecommendations
-          )?.map((s: any) => s.rationale) || [],
+          )?.map((s: any) => s.rationale).filter(Boolean) || [],
       priorityAreas: isComprehensiveExport
         ? supplementData.coachingNotes?.keyHealthPriorities || []
         : (
@@ -70,7 +70,8 @@ export async function POST(
             supplementData.supplementRecommendations
           )
             ?.filter((s: any) => s.priority === "CRITICAL")
-            .map((s: any) => s.name) || [],
+            .map((s: any) => s.name).filter(Boolean) || [],
+      relatedDocuments: [],
       confidence: 0.95, // High confidence for structured data
       analysisDate: new Date().toISOString(),
       version: supplementData.exportMetadata?.exportVersion || "3.0.0",

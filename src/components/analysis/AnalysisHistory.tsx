@@ -18,20 +18,20 @@ import {
 interface Analysis {
   id: string;
   analysisData: any;
-  rootCauses: string[];
-  priorityAreas: string[];
+  rootCauses?: string[];
+  priorityAreas?: string[];
   confidence: number;
   analysisDate: string;
   version: string;
   analysisType: string;
   triggerEvent?: string;
-  relatedDocuments: string[];
+  relatedDocuments?: string[];
   parentAnalysis?: {
     id: string;
     analysisDate: string;
     analysisType: string;
   };
-  childAnalyses: {
+  childAnalyses?: {
     id: string;
     analysisDate: string;
     analysisType: string;
@@ -286,7 +286,7 @@ export function AnalysisHistory({
 
                   {expandedAnalysis === analysis.id && (
                     <div className="mt-4 space-y-3 border-t pt-3">
-                      {analysis.rootCauses.length > 0 && (
+                      {analysis.rootCauses && analysis.rootCauses.length > 0 && (
                         <div>
                           <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-1">
                             <Target className="w-4 h-4" />
@@ -308,7 +308,7 @@ export function AnalysisHistory({
                         </div>
                       )}
 
-                      {analysis.priorityAreas.length > 0 && (
+                      {analysis.priorityAreas && analysis.priorityAreas.length > 0 && (
                         <div>
                           <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-1">
                             <AlertCircle className="w-4 h-4" />
@@ -330,7 +330,7 @@ export function AnalysisHistory({
                         </div>
                       )}
 
-                      {analysis.relatedDocuments.length > 0 && (
+                      {analysis.relatedDocuments && analysis.relatedDocuments.length > 0 && (
                         <div>
                           <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-1">
                             <FileText className="w-4 h-4" />
@@ -338,7 +338,7 @@ export function AnalysisHistory({
                             {analysis.relatedDocuments.length})
                           </h4>
                           <p className="text-sm text-gray-600">
-                            Analysis based on {analysis.relatedDocuments.length}{" "}
+                            Analysis based on {analysis.relatedDocuments?.length || 0}{" "}
                             recent document(s)
                           </p>
                         </div>
