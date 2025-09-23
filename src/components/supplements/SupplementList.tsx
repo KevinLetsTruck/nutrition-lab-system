@@ -43,7 +43,9 @@ export function SupplementList({ clientId, clientName }: SupplementListProps) {
   const [supplements, setSupplements] = useState<Supplement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedSupplement, setExpandedSupplement] = useState<string | null>(null);
+  const [expandedSupplement, setExpandedSupplement] = useState<string | null>(
+    null
+  );
   const [totalCost, setTotalCost] = useState(0);
 
   useEffect(() => {
@@ -228,7 +230,9 @@ export function SupplementList({ clientId, clientName }: SupplementListProps) {
                           )}
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge className={getPriorityColor(supplement.priority)}>
+                          <Badge
+                            className={getPriorityColor(supplement.priority)}
+                          >
                             {supplement.priority}
                           </Badge>
                           <Badge className={getPhaseColor(supplement.phase)}>
