@@ -62,7 +62,9 @@ export async function POST(
         : (
             supplementData.supplements ||
             supplementData.supplementRecommendations
-          )?.map((s: any) => s.rationale).filter(Boolean) || [],
+          )
+            ?.map((s: any) => s.rationale)
+            .filter(Boolean) || [],
       priorityAreas: isComprehensiveExport
         ? supplementData.coachingNotes?.keyHealthPriorities || []
         : (
@@ -70,7 +72,8 @@ export async function POST(
             supplementData.supplementRecommendations
           )
             ?.filter((s: any) => s.priority === "CRITICAL")
-            .map((s: any) => s.name).filter(Boolean) || [],
+            .map((s: any) => s.name)
+            .filter(Boolean) || [],
       relatedDocuments: [],
       confidence: 0.95, // High confidence for structured data
       analysisDate: new Date().toISOString(),
@@ -109,7 +112,7 @@ export async function POST(
     // Update client with latest supplement analysis (store analysis in healthGoals)
     const currentAnalysisHistory = client.healthGoals?.analysisHistory || [];
     const updatedAnalysisHistory = [...currentAnalysisHistory, analysisRecord];
-    
+
     const currentSupplements = client.healthGoals?.supplements || [];
     const updatedSupplements = [...currentSupplements, ...processedSupplements];
 
@@ -123,7 +126,10 @@ export async function POST(
           totalMonthlyCost:
             supplementData.totalMonthlyCost ||
             supplementData.costAnalysis?.totalMonthlyCost ||
-            processedSupplements.reduce((total, s) => total + (s.estimatedCost || 0), 0),
+            processedSupplements.reduce(
+              (total, s) => total + (s.estimatedCost || 0),
+              0
+            ),
           medicationWarnings:
             supplementData.medicationWarnings ||
             supplementData.safetyConsiderations?.medicationWarnings,

@@ -31,6 +31,9 @@ import { ExportClientButton } from "@/components/clients/ExportClientButton";
 import { ImportAnalysisButton } from "@/components/clients/ImportAnalysisButton";
 import { ClaudePromptsModal } from "@/components/exports/ClaudePromptsModal";
 import { AnalysisHistory } from "@/components/analysis/AnalysisHistory";
+import { SupplementList } from "@/components/supplements/SupplementList";
+import { ProtocolLetterDisplay } from "@/components/protocols/ProtocolLetterDisplay";
+import { CoachingNotesDisplay } from "@/components/coaching/CoachingNotesDisplay";
 
 // Dynamically import SimplePDFViewer with SSR disabled
 const SimplePDFViewer = dynamic(
@@ -1173,6 +1176,36 @@ export default function ClientDetailPage() {
       {/* Analysis History Section */}
       <div className="mt-6">
         <AnalysisHistory
+          clientId={params.id as string}
+          clientName={
+            client ? `${client.firstName} ${client.lastName}` : "Client"
+          }
+        />
+      </div>
+
+      {/* Supplement List Section */}
+      <div className="mt-6">
+        <SupplementList
+          clientId={params.id as string}
+          clientName={
+            client ? `${client.firstName} ${client.lastName}` : "Client"
+          }
+        />
+      </div>
+
+      {/* Protocol Letter Section */}
+      <div className="mt-6">
+        <ProtocolLetterDisplay
+          clientId={params.id as string}
+          clientName={
+            client ? `${client.firstName} ${client.lastName}` : "Client"
+          }
+        />
+      </div>
+
+      {/* Coaching Notes Section */}
+      <div className="mt-6">
+        <CoachingNotesDisplay
           clientId={params.id as string}
           clientName={
             client ? `${client.firstName} ${client.lastName}` : "Client"

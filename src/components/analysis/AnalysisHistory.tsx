@@ -286,63 +286,69 @@ export function AnalysisHistory({
 
                   {expandedAnalysis === analysis.id && (
                     <div className="mt-4 space-y-3 border-t pt-3">
-                      {analysis.rootCauses && analysis.rootCauses.length > 0 && (
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-1">
-                            <Target className="w-4 h-4" />
-                            Root Causes ({analysis.rootCauses.length})
-                          </h4>
-                          <ul className="text-sm text-gray-700 space-y-1">
-                            {analysis.rootCauses
-                              .slice(0, 5)
-                              .map((cause, idx) => (
-                                <li
-                                  key={idx}
-                                  className="flex items-start gap-2"
-                                >
-                                  <span className="text-red-500 mt-1">•</span>
-                                  {cause}
-                                </li>
-                              ))}
-                          </ul>
-                        </div>
-                      )}
+                      {analysis.rootCauses &&
+                        analysis.rootCauses.length > 0 && (
+                          <div>
+                            <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-1">
+                              <Target className="w-4 h-4" />
+                              Root Causes ({analysis.rootCauses.length})
+                            </h4>
+                            <ul className="text-sm text-gray-700 space-y-1">
+                              {analysis.rootCauses
+                                .slice(0, 5)
+                                .map((cause, idx) => (
+                                  <li
+                                    key={idx}
+                                    className="flex items-start gap-2"
+                                  >
+                                    <span className="text-red-500 mt-1">•</span>
+                                    {cause}
+                                  </li>
+                                ))}
+                            </ul>
+                          </div>
+                        )}
 
-                      {analysis.priorityAreas && analysis.priorityAreas.length > 0 && (
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-1">
-                            <AlertCircle className="w-4 h-4" />
-                            Priority Areas ({analysis.priorityAreas.length})
-                          </h4>
-                          <ul className="text-sm text-gray-700 space-y-1">
-                            {analysis.priorityAreas
-                              .slice(0, 5)
-                              .map((area, idx) => (
-                                <li
-                                  key={idx}
-                                  className="flex items-start gap-2"
-                                >
-                                  <span className="text-blue-500 mt-1">•</span>
-                                  {area}
-                                </li>
-                              ))}
-                          </ul>
-                        </div>
-                      )}
+                      {analysis.priorityAreas &&
+                        analysis.priorityAreas.length > 0 && (
+                          <div>
+                            <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-1">
+                              <AlertCircle className="w-4 h-4" />
+                              Priority Areas ({analysis.priorityAreas.length})
+                            </h4>
+                            <ul className="text-sm text-gray-700 space-y-1">
+                              {analysis.priorityAreas
+                                .slice(0, 5)
+                                .map((area, idx) => (
+                                  <li
+                                    key={idx}
+                                    className="flex items-start gap-2"
+                                  >
+                                    <span className="text-blue-500 mt-1">
+                                      •
+                                    </span>
+                                    {area}
+                                  </li>
+                                ))}
+                            </ul>
+                          </div>
+                        )}
 
-                      {analysis.relatedDocuments && analysis.relatedDocuments.length > 0 && (
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-1">
-                            <FileText className="w-4 h-4" />
-                            Related Documents (
-                            {analysis.relatedDocuments.length})
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            Analysis based on {analysis.relatedDocuments?.length || 0}{" "}
-                            recent document(s)
-                          </p>
-                        </div>
-                      )}
+                      {analysis.relatedDocuments &&
+                        analysis.relatedDocuments.length > 0 && (
+                          <div>
+                            <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-1">
+                              <FileText className="w-4 h-4" />
+                              Related Documents (
+                              {analysis.relatedDocuments.length})
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              Analysis based on{" "}
+                              {analysis.relatedDocuments?.length || 0} recent
+                              document(s)
+                            </p>
+                          </div>
+                        )}
                     </div>
                   )}
                 </div>
