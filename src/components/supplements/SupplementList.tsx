@@ -41,10 +41,25 @@ interface SupplementListProps {
 }
 
 export function SupplementList({ clientId, clientName }: SupplementListProps) {
+  // Early return if missing required props
+  if (!clientId || !clientName) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-red-600 flex items-center">
+            <AlertTriangle className="w-5 h-5 mr-2" />
+            Missing required props: clientId or clientName
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
   const [supplements, setSupplements] = useState<Supplement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedSupplement, setExpandedSupplement] = useState<string | null>(null);
+  const [expandedSupplement, setExpandedSupplement] = useState<string | null>(
+    null
+  );
   const [totalCost, setTotalCost] = useState(0);
 
   useEffect(() => {
@@ -68,13 +83,13 @@ export function SupplementList({ clientId, clientName }: SupplementListProps) {
       const supplementsList = healthGoals.supplements || [];
 
       setSupplements(supplementsList);
-      
+
       // Calculate total monthly cost
-      const total = supplementsList.reduce((sum: number, supp: Supplement) => 
-        sum + (supp.estimatedCost || 0), 0
+      const total = supplementsList.reduce(
+        (sum: number, supp: Supplement) => sum + (supp.estimatedCost || 0),
+        0
       );
       setTotalCost(total);
-
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -111,9 +126,9 @@ export function SupplementList({ clientId, clientName }: SupplementListProps) {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(amount);
   };
 
@@ -155,7 +170,9 @@ export function SupplementList({ clientId, clientName }: SupplementListProps) {
             </div>
             <div className="flex items-center gap-2 text-sm">
               <DollarSign className="w-4 h-4" />
-              <span className="font-medium">{formatCurrency(totalCost)}/month</span>
+              <span className="font-medium">
+                {formatCurrency(totalCost)}/month
+              </span>
             </div>
           </CardTitle>
         </CardHeader>
@@ -169,13 +186,13 @@ export function SupplementList({ clientId, clientName }: SupplementListProps) {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-red-600">
-                {supplements.filter(s => s.priority === "CRITICAL").length}
+                {supplements.filter((s) => s.priority === "CRITICAL").length}
               </div>
               <div className="text-sm text-gray-600">Critical Priority</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600">
-                {supplements.filter(s => s.phase === "PHASE1").length}
+                {supplements.filter((s) => s.phase === "PHASE1").length}
               </div>
               <div className="text-sm text-gray-600">Phase 1</div>
             </div>
@@ -227,7 +244,9 @@ export function SupplementList({ clientId, clientName }: SupplementListProps) {
                           )}
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge className={getPriorityColor(supplement.priority)}>
+                          <Badge
+                            className={getPriorityColor(supplement.priority)}
+                          >
                             {supplement.priority}
                           </Badge>
                           <Badge className={getPhaseColor(supplement.phase)}>
@@ -252,7 +271,9 @@ export function SupplementList({ clientId, clientName }: SupplementListProps) {
                           size="sm"
                           onClick={() =>
                             setExpandedSupplement(
-                              expandedSupplement === supplement.id ? null : supplement.id
+                              expandedSupplement === supplement.id
+                                ? null
+                                : supplement.id
                             )
                           }
                         >
@@ -275,18 +296,26 @@ export function SupplementList({ clientId, clientName }: SupplementListProps) {
                             Dosing & Timing
                           </h4>
                           <div className="text-sm text-gray-700 space-y-1">
-                            <p><strong>Dosage:</strong> {supplement.dosage}</p>
-                            <p><strong>Timing:</strong> {supplement.timing}</p>
-                            <p><strong>Duration:</strong> {supplement.duration}</p>
+                            <p>
+                              <strong>Dosage:</strong> {supplement.dosage}
+                            </p>
+                            <p>
+                              <strong>Timing:</strong> {supplement.timing}
+                            </p>
+                            <p>
+                              <strong>Duration:</strong> {supplement.duration}
+                            </p>
                           </div>
                         </div>
-                        
+
                         {supplement.rationale && (
                           <div>
                             <h4 className="font-medium text-gray-900 mb-2">
                               Clinical Rationale
                             </h4>
-                            <p className="text-sm text-gray-700">{supplement.rationale}</p>
+                            <p className="text-sm text-gray-700">
+                              {supplement.rationale}
+                            </p>
                           </div>
                         )}
                       </div>
@@ -296,11 +325,14 @@ export function SupplementList({ clientId, clientName }: SupplementListProps) {
                           <h4 className="font-medium text-gray-900 mb-2">
                             Lab Justification
                           </h4>
-                          <p className="text-sm text-gray-700">{supplement.labJustification}</p>
+                          <p className="text-sm text-gray-700">
+                            {supplement.labJustification}
+                          </p>
                         </div>
                       )}
 
-                      {(supplement.interactions || supplement.contraindications) && (
+                      {(supplement.interactions ||
+                        supplement.contraindications) && (
                         <div className="bg-yellow-50 p-3 rounded-lg">
                           <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-1">
                             <AlertTriangle className="w-4 h-4 text-yellow-600" />
@@ -308,12 +340,14 @@ export function SupplementList({ clientId, clientName }: SupplementListProps) {
                           </h4>
                           {supplement.interactions && (
                             <p className="text-sm text-gray-700 mb-2">
-                              <strong>Interactions:</strong> {supplement.interactions}
+                              <strong>Interactions:</strong>{" "}
+                              {supplement.interactions}
                             </p>
                           )}
                           {supplement.contraindications && (
                             <p className="text-sm text-gray-700">
-                              <strong>Contraindications:</strong> {supplement.contraindications}
+                              <strong>Contraindications:</strong>{" "}
+                              {supplement.contraindications}
                             </p>
                           )}
                         </div>
