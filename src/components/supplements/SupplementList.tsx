@@ -224,7 +224,10 @@ export function SupplementList({ clientId, clientName }: SupplementListProps) {
                             {supplement.name}
                           </h3>
                           {supplement.brand && (
-                            <Badge variant="outline" className="text-xs border-gray-500 text-gray-300">
+                            <Badge
+                              variant="outline"
+                              className="text-xs border-gray-500 text-gray-300"
+                            >
                               {supplement.brand}
                             </Badge>
                           )}
@@ -238,7 +241,10 @@ export function SupplementList({ clientId, clientName }: SupplementListProps) {
                           <Badge className={getPhaseColor(supplement.phase)}>
                             {supplement.phase}
                           </Badge>
-                          <Badge variant="outline" className="text-xs border-gray-500 text-gray-300">
+                          <Badge
+                            variant="outline"
+                            className="text-xs border-gray-500 text-gray-300"
+                          >
                             {supplement.category}
                           </Badge>
                         </div>

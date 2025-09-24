@@ -18,6 +18,10 @@ import {
   AlertCircle,
   Users,
   Trash2,
+  BarChart3,
+  Pill,
+  Target,
+  Database,
 } from "lucide-react";
 import NoteCard from "@/components/notes/NoteCard";
 import NoteModal from "@/components/notes/NoteModal";
@@ -113,6 +117,7 @@ export default function ClientDetailPage() {
   const [activeTab, setActiveTab] = useState<"interview" | "coaching">(
     "interview"
   );
+  const [mainTab, setMainTab] = useState<"overview" | "analysis" | "supplements" | "protocol" | "coaching" | "data">("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [showImportant, setShowImportant] = useState(false);
   const [showFollowUp, setShowFollowUp] = useState(false);
@@ -914,8 +919,117 @@ export default function ClientDetailPage() {
           </div>
         </div>
 
-        {/* Two-Column Layout - Notes and Documents */}
-        <div className="flex gap-4 h-[calc(100vh-300px)] min-h-[600px] w-full overflow-hidden">
+        {/* Main Tab Navigation */}
+        <div className="bg-gray-800 rounded-lg border border-gray-700 mb-6">
+          <div className="border-b border-gray-700">
+            <nav className="flex space-x-1 p-1">
+              {[
+                { id: "overview", label: "Overview", icon: BarChart3 },
+                { id: "analysis", label: "Analysis", icon: AlertCircle },
+                { id: "supplements", label: "Supplements", icon: Pill },
+                { id: "protocol", label: "Protocol", icon: FileText },
+                { id: "coaching", label: "Coaching", icon: Target },
+                { id: "data", label: "Data", icon: Database },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setMainTab(tab.id as any)}
+                  className={`${
+                    mainTab === tab.id
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-400 hover:text-gray-300 hover:bg-gray-700"
+                  } px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+          
+          {/* Tab Content */}
+          <div className="p-6">
+            {mainTab === "overview" && (
+              <div className="space-y-6">
+                {/* Overview Content */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                    <h3 className="text-white font-semibold mb-2">Client Status</h3>
+                    <div className="text-gray-300 text-sm">
+                      <p>Status: <span className="text-green-400">{client.status}</span></p>
+                      <p>Created: {formatDate(client.createdAt)}</p>
+                      {client.lastVisit && <p>Last Visit: {formatDate(client.lastVisit)}</p>}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                    <h3 className="text-white font-semibold mb-2">Documents</h3>
+                    <div className="text-gray-300 text-sm">
+                      <p>Total: <span className="text-blue-400">{documents.length}</span></p>
+                      <p>Recent uploads: {documents.filter(d => 
+                        new Date(d.uploadedAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+                      ).length}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                    <h3 className="text-white font-semibold mb-2">Notes</h3>
+                    <div className="text-gray-300 text-sm">
+                      <p>Interview: <span className="text-yellow-400">{noteCounts.interview}</span></p>
+                      <p>Coaching: <span className="text-purple-400">{noteCounts.coaching}</span></p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Health Goals Summary */}
+                {getHealthGoalsArray(client.healthGoals).length > 0 && (
+                  <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                    <h3 className="text-white font-semibold mb-3">Health Goals</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {getHealthGoalsArray(client.healthGoals).map((goal, index) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1 bg-blue-600/20 text-blue-300 rounded-full text-sm border border-blue-500/30"
+                        >
+                          {goal}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {mainTab === "analysis" && (
+              <AnalysisHistory
+                clientId={params.id as string}
+                clientName={client ? `${client.firstName} ${client.lastName}` : "Client"}
+              />
+            )}
+
+            {mainTab === "supplements" && (
+              <SupplementList
+                clientId={params.id as string}
+                clientName={client ? `${client.firstName} ${client.lastName}` : "Client"}
+              />
+            )}
+
+            {mainTab === "protocol" && (
+              <ProtocolLetterDisplay
+                clientId={params.id as string}
+                clientName={client ? `${client.firstName} ${client.lastName}` : "Client"}
+              />
+            )}
+
+            {mainTab === "coaching" && (
+              <CoachingNotesDisplay
+                clientId={params.id as string}
+                clientName={client ? `${client.firstName} ${client.lastName}` : "Client"}
+              />
+            )}
+
+            {mainTab === "data" && (
+              <div className="flex gap-4 h-[calc(100vh-400px)] min-h-[500px] w-full overflow-hidden">
           {/* Left Column - Notes */}
           <div className="flex-1 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden flex flex-col">
             <div className="bg-gray-700 px-4 py-3 border-b border-gray-600">
@@ -1146,6 +1260,9 @@ export default function ClientDetailPage() {
               )}
             </div>
           </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -1173,45 +1290,6 @@ export default function ClientDetailPage() {
         onEdit={handleEditFromViewer}
       />
 
-      {/* Analysis History Section */}
-      <div className="mt-6">
-        <AnalysisHistory
-          clientId={params.id as string}
-          clientName={
-            client ? `${client.firstName} ${client.lastName}` : "Client"
-          }
-        />
-      </div>
-
-      {/* Supplement List Section */}
-      <div className="mt-6">
-        <SupplementList
-          clientId={params.id as string}
-          clientName={
-            client ? `${client.firstName} ${client.lastName}` : "Client"
-          }
-        />
-      </div>
-
-      {/* Protocol Letter Section */}
-      <div className="mt-6">
-        <ProtocolLetterDisplay
-          clientId={params.id as string}
-          clientName={
-            client ? `${client.firstName} ${client.lastName}` : "Client"
-          }
-        />
-      </div>
-
-      {/* Coaching Notes Section */}
-      <div className="mt-6">
-        <CoachingNotesDisplay
-          clientId={params.id as string}
-          clientName={
-            client ? `${client.firstName} ${client.lastName}` : "Client"
-          }
-        />
-      </div>
 
       {/* Document Upload Modal */}
       {isUploadModalOpen && (
